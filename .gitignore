@@ -1,0 +1,4 @@
+# Keep backend local env out of version control
+backend/.env
+node_modules/
+.DS_Store

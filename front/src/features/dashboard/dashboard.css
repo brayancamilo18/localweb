@@ -1,0 +1,132 @@
+.lw-dashboard-shell {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  background: var(--lw-bg);
+  align-items: stretch;
+  position: relative;
+}
+
+.lw-dashboard-desktop-sidebar {
+  display: block;
+}
+
+.lw-dashboard-mobilebar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.lw-dashboard-drawer,
+.lw-dashboard-overlay {
+  display: none;
+}
+
+.lw-dashboard-main {
+  padding: 20px 24px 56px;
+}
+
+.lw-mipagina-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.lw-mipagina-hero-card {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.lw-mipagina-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.lw-horarios-row {
+  display: grid;
+  grid-template-columns: 120px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.lw-horarios-times {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 1080px) {
+  .lw-dashboard-desktop-sidebar {
+    display: none;
+  }
+
+  .lw-dashboard-mobilebar {
+    display: flex;
+  }
+
+  .lw-dashboard-main {
+    padding: 14px 12px 36px;
+  }
+
+  .lw-dashboard-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 39;
+  }
+
+  .lw-dashboard-overlay.is-open {
+    display: block;
+  }
+
+  .lw-dashboard-drawer {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(88vw, 280px);
+    transform: translateX(-105%);
+    transition: transform 0.2s ease;
+    z-index: 40;
+    display: block;
+  }
+
+  .lw-dashboard-drawer.is-open {
+    transform: translateX(0);
+  }
+
+  .lw-dashboard-drawer .lw-dashboard-sidebar {
+    width: 100% !important;
+    height: 100%;
+  }
+
+  .lw-mipagina-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lw-horarios-row {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 10px;
+  }
+
+  .lw-horarios-times {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 640px) {
+  .lw-mipagina-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

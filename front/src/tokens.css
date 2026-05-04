@@ -1,0 +1,333 @@
+/* App shell */
+html, body {
+  margin: 0;
+  width: 100%;
+  overflow-x: clip;
+}
+html, body, #root {
+  min-height: 100%;
+  min-height: 100svh;
+}
+
+/**
+ * Contenedor de rutas: ocupa al menos el viewport y deja que pantallas (p. ej. dashboard)
+ * usen flex:1 + min-height:0 para scroll interno sin “cortar” el fondo.
+ */
+.lw-route-shell {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100svh;
+  min-height: 100dvh;
+  box-sizing: border-box;
+}
+
+/* LocalWeb — Design Tokens */
+:root {
+  /* Color · neutrals (cool slate) */
+  --lw-bg:        #F8FAFC;
+  --lw-bg-elev:   #FFFFFF;
+  --lw-surface:   #F1F5F9;
+  --lw-text:      #0F172A;
+  --lw-text-2:    #334155;
+  /* Tonos secundarios más oscuros para legibilidad sobre fondos claros (evitar “gris claro sobre gris claro”) */
+  --lw-text-3:    #475569;
+  --lw-text-4:    #64748B;
+  --lw-border:    #E2E8F0;
+  --lw-border-2:  #CBD5E1;
+  --lw-overlay:   rgba(15, 23, 42, .55);
+
+  /* Color · accent (default indigo) */
+  --lw-accent:        #2563EB;
+  --lw-accent-hover:  #1D4ED8;
+  --lw-accent-soft:   #EFF4FF;
+  --lw-accent-ring:   rgba(37, 99, 235, .14);
+
+  /* Color · semantic */
+  --lw-success:       #16A34A;
+  --lw-success-soft:  #ECFDF5;
+  --lw-warning:       #B45309;
+  --lw-warning-soft:  #FEF3C7;
+  --lw-danger:        #DC2626;
+  --lw-danger-soft:   #FEF2F2;
+  --lw-pro:           #B45309;     /* ámbar oscuro para PRO */
+  --lw-pro-soft:      #FEF3C7;
+
+  /* Type */
+  --lw-font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --lw-font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Radius */
+  --lw-r-sm: 6px;
+  --lw-r:    10px;
+  --lw-r-lg: 14px;
+  --lw-r-xl: 20px;
+
+  /* Shadows · solo funcionales */
+  --lw-shadow-1: 0 1px 2px rgba(15,23,42,.04);
+  --lw-shadow-2: 0 1px 3px rgba(15,23,42,.06), 0 4px 12px rgba(15,23,42,.04);
+  --lw-shadow-pop: 0 8px 24px rgba(15,23,42,.10), 0 1px 2px rgba(15,23,42,.06);
+
+  /* Spacing scale (4-based) */
+  --lw-s1: 4px;  --lw-s2: 8px;  --lw-s3: 12px; --lw-s4: 16px;
+  --lw-s5: 20px; --lw-s6: 24px; --lw-s7: 32px; --lw-s8: 48px;
+}
+
+/*
+ * Color de documento LocalWeb: evita que reglas globales (p. ej. index.css + prefers-color-scheme: dark)
+ * dejen el texto heredado en gris claro sobre --lw-bg / --lw-surface claros.
+ */
+html {
+  color-scheme: light;
+  color: var(--lw-text);
+  background-color: var(--lw-bg);
+}
+
+body,
+#root {
+  color: var(--lw-text);
+  background-color: var(--lw-bg);
+}
+
+/* Placeholders legibles sobre inputs claros */
+input::placeholder,
+textarea::placeholder {
+  color: var(--lw-text-3);
+  opacity: 1;
+}
+
+/* Base */
+.lw {
+  font-family: var(--lw-font);
+  color: var(--lw-text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv11", "ss01";
+  letter-spacing: -0.005em;
+}
+.lw, .lw * { box-sizing: border-box; }
+
+/* Striped placeholder fill (imágenes) */
+.lw-stripes {
+  background-color: #F1F5F9;
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(15,23,42,.045) 0 1px,
+    transparent 1px 9px
+  );
+  color: var(--lw-text-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 500 11px ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  letter-spacing: .02em;
+}
+.lw-stripes-dark {
+  background-color: #0F172A;
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(255,255,255,.06) 0 1px,
+    transparent 1px 9px
+  );
+  color: rgba(255,255,255,.55);
+}
+
+/* Focus ring */
+.lw-focus:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--lw-accent-ring), 0 0 0 1px var(--lw-accent);
+}
+
+/* Scrollbar inside artboards */
+.lw-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+.lw-scroll::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+.lw-scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* Animations */
+@keyframes lw-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .55; }
+}
+.lw-pulse { animation: lw-pulse 2s ease-in-out infinite; }
+
+@keyframes lw-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.lw-shimmer {
+  background: linear-gradient(
+    90deg,
+    #F1F5F9 0%,
+    #E2E8F0 50%,
+    #F1F5F9 100%
+  );
+  background-size: 200% 100%;
+  animation: lw-shimmer 1.6s ease-in-out infinite;
+}
+
+/* Tipografía utility */
+.lw-h1 { font-size: 36px; font-weight: 600; line-height: 1.1;  letter-spacing: -0.025em; color: var(--lw-text); }
+.lw-h2 { font-size: 28px; font-weight: 600; line-height: 1.15; letter-spacing: -0.02em; color: var(--lw-text); }
+.lw-h3 { font-size: 20px; font-weight: 600; line-height: 1.2;  letter-spacing: -0.01em; color: var(--lw-text); }
+.lw-h4 { font-size: 16px; font-weight: 600; line-height: 1.3; color: var(--lw-text); }
+.lw-body  { font-size: 14px; font-weight: 400; line-height: 1.5; color: var(--lw-text-2); }
+.lw-small { font-size: 12px; font-weight: 500; line-height: 1.4; color: var(--lw-text-3); }
+.lw-mono  { font: 500 11px ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: .02em; color: var(--lw-text-2); }
+
+/*
+ * Enlace: línea animada con ::after + scaleX.
+ * Hover: se dibuja de izquierda a derecha (origin left, 0 → 1).
+ * Al quitar hover: se retira de derecha a izquierda (mismo origin, 1 → 0).
+ */
+.lw-link-underline-hover {
+  color: var(--lw-text-2);
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+  padding-bottom: 2px;
+  transition: color 0.2s ease;
+}
+.lw-link-underline-hover::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.28s ease;
+}
+.lw-link-underline-hover:hover {
+  color: var(--lw-accent-hover);
+}
+.lw-link-underline-hover:hover::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+.lw-link-underline-hover:focus-visible {
+  outline: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 2px var(--lw-bg), 0 0 0 4px var(--lw-accent);
+}
+
+/* Onboarding wizard — full width + responsive split */
+.lw-wizard-layout {
+  width: 100%;
+  min-height: 100svh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--lw-bg);
+  box-sizing: border-box;
+}
+
+.lw-wizard-split {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  min-height: 0;
+  width: 100%;
+}
+
+.lw-wizard-form {
+  flex: 1 1 48%;
+  min-width: 0;
+  overflow: auto;
+  padding: clamp(16px, 3vw, 32px) clamp(16px, 4vw, 40px) clamp(80px, 12vh, 100px);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  text-align: left;
+}
+
+.lw-wizard-preview {
+  flex: 1 1 52%;
+  min-width: 0;
+  border-left: 1px solid var(--lw-border);
+  background: var(--lw-surface);
+  padding: clamp(16px, 3vw, 32px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+
+.lw-wizard-footer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--lw-border);
+  background: var(--lw-bg-elev);
+  padding: clamp(12px, 2vw, 14px) clamp(16px, 4vw, 32px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lw-wizard-steps {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+@media (max-width: 960px) {
+  .lw-wizard-split {
+    flex-direction: column;
+  }
+
+  .lw-wizard-form {
+    flex: 0 1 auto;
+    max-height: min(52vh, 520px);
+    padding-bottom: 24px;
+  }
+
+  .lw-wizard-preview {
+    flex: 1 1 auto;
+    border-left: none;
+    border-top: 1px solid var(--lw-border);
+    min-height: min(40vh, 360px);
+  }
+}
+
+@media (max-width: 600px) {
+  .lw-wizard-form {
+    max-height: none;
+  }
+
+  .lw-wizard-preview {
+    min-height: 280px;
+  }
+}
+
+/* Auth (login / registro) — split pantalla completa + responsive */
+.lw-auth-split {
+  min-height: 100svh;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  background: var(--lw-bg);
+  width: 100%;
+}
+
+.lw-auth-split > div:first-child {
+  text-align: left;
+}
+
+@media (max-width: 900px) {
+  .lw-auth-split {
+    grid-template-columns: 1fr;
+  }
+
+  .lw-auth-split-hero {
+    order: -1;
+    min-height: min(42vh, 320px);
+  }
+}

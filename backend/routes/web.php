@@ -1,0 +1,14 @@
+<?php
+
+use App\Http\Controllers\StripeWebhookController;
+use Illuminate\Support\Facades\Route;
+use Laravel\Cashier\Http\Controllers\PaymentController;
+
+Route::get('/', function () {
+    return view('welcome');
+})->name('home');
+
+Route::prefix(config('cashier.path', 'stripe'))->name('cashier.')->group(function (): void {
+    Route::get('payment/{id}', [PaymentController::class, 'show'])->name('payment');
+    Route::post('webhook', [StripeWebhookController::class, 'handleWebhook'])->name('webhook');
+});

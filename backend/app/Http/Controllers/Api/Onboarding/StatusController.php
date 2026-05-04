@@ -1,0 +1,102 @@
+<?php
+
+namespace App\Http\Controllers\Api\Onboarding;
+
+use App\Enums\ImageSection;
+use App\Http\Controllers\Api\BaseApiController;
+use App\Models\Business;
+use App\Models\BusinessImage;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+
+class StatusController extends BaseApiController
+{
+    public function __invoke(Request $request)
+    {
+        $user = $request->user()->load('business');
+
+        if ($user->business && $user->business->onboarding_completed_at) {
+            return $this->success([
+                'is_complete' => true,
+                'step' => 8,
+            ]);
+        }
+
+        if ($user->business) {
+            return $this->success([
+                'is_complete' => false,
+                'step' => 8,
+                'draft' => $this->draftFromBusiness($user->business),
+            ]);
+        }
+
+        $draft = Cache::get("onboarding:{$user->id}", []);
+        $draft = $this->withGalleryPreviewUrlsForCacheDraft($user->id, $draft);
+
+        return $this->success([
+            'is_complete' => false,
+            'step' => $draft['step'] ?? 1,
+            'draft' => $draft,
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $draft
+     * @return array<string, mixed>
+     */
+    private function withGalleryPreviewUrlsForCacheDraft(int $userId, array $draft): array
+    {
+        $paths = $draft['gallery_paths'] ?? [];
+        if (! is_array($paths) || $paths === []) {
+            return $draft;
+        }
+
+        $urls = [];
+        foreach ($paths as $i => $p) {
+            if (! is_string($p) || $p === '' || $p === '__synced__') {
+                return $draft;
+            }
+            $expectedPrefix = "onboarding/{$userId}/gallery/";
+            if (! str_starts_with($p, $expectedPrefix)) {
+                return $draft;
+            }
+            $urls[] = '/api/v1/onboarding/draft-gallery/'.$i;
+        }
+        $draft['gallery_preview_urls'] = $urls;
+
+        return $draft;
+    }
+
+    /**
+     * Borrador sintético para hidratar el wizard cuando la caché de onboarding ya se vació
+     * pero el usuario aún debe ver el paso 8 (p. ej. tras volver de Stripe).
+     *
+     * @return array<string, mixed>
+     */
+    private function draftFromBusiness(Business $business): array
+    {
+        $business->loadMissing('images');
+        $images = $business->images;
+        $hasCover = $images->contains(fn (BusinessImage $img) => $img->section === ImageSection::Cover);
+        $galleryImages = $images
+            ->where('section', ImageSection::Gallery)
+            ->sortBy(fn (BusinessImage $img) => $img->display_order)
+            ->values();
+
+        return [
+            'template_id' => $business->template_id,
+            'subdomain' => $business->subdomain,
+            'cover_path' => $hasCover ? '__synced__' : null,
+            'business_name' => $business->name,
+            'tagline' => $business->tagline,
+            'description' => $business->description,
+            'gallery_paths' => $galleryImages->isNotEmpty()
+                ? array_fill(0, $galleryImages->count(), '__synced__')
+                : [],
+            'gallery_preview_urls' => $galleryImages->map(fn (BusinessImage $img) => $img->url)->all(),
+            'schedule' => $business->schedule,
+            'address' => $business->address,
+            'phone' => $business->phone,
+        ];
+    }
+}

@@ -1,0 +1,122 @@
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: webappdef-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: localweb
+      MINIO_ROOT_PASSWORD: localweb-secret-minio
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  # Crea el bucket y permiso de lectura pública (objetos servidos en <img> desde el navegador).
+  minio-init:
+    image: minio/mc:latest
+    container_name: webappdef-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: /bin/sh
+    command: >
+      -c "
+      mc alias set local http://minio:9000 localweb localweb-secret-minio &&
+      mc mb local/localweb --ignore-existing &&
+      mc anonymous set download local/localweb &&
+      exit 0
+      "
+    restart: "no"
+
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: webappdef-php
+    environment:
+      # MinIO S3: Laravel usa estos valores para subir y para generar URLs públicas (AWS_URL = navegador).
+      AWS_ACCESS_KEY_ID: localweb
+      AWS_SECRET_ACCESS_KEY: localweb-secret-minio
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_BUCKET: localweb
+      AWS_ENDPOINT: http://minio:9000
+      AWS_USE_PATH_STYLE_ENDPOINT: "true"
+      AWS_URL: http://localhost:9000/localweb
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
+      mysql:
+        condition: service_started
+      redis:
+        condition: service_started
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+
+  nginx:
+    image: nginx:alpine
+    container_name: webappdef-nginx
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./backend/public:/var/www/html/public
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - php
+
+  mysql:
+    image: mysql:8.0
+    container_name: webappdef-mysql
+    environment:
+      MYSQL_DATABASE: localweb
+      MYSQL_USER: localweb
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+  redis:
+    image: redis:7-alpine
+    container_name: webappdef-redis
+    ports:
+      - "6379:6379"
+
+  front:
+    image: node:20-alpine
+    container_name: webappdef-front
+    working_dir: /app
+    volumes:
+      - ./front:/app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "5173:5173"
+    depends_on:
+      - nginx
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: webappdef-phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: localweb
+      PMA_PASSWORD: secret
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:
+  minio_data:

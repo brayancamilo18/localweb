@@ -1,0 +1,87 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import GuestRoute from './components/guards/GuestRoute'
+import OnboardingGuard from './components/guards/OnboardingGuard'
+import ProtectedRoute from './components/guards/ProtectedRoute'
+import ErrorBoundary from './components/ui/ErrorBoundary'
+import { ToastProvider } from './components/ui/Toast'
+import { useAuth } from './hooks/useAuth'
+import { useAuthStore } from './store/authStore'
+import LoginPage from './pages/LoginPage'
+import OnboardingPage from './pages/OnboardingPage'
+import RegisterPage from './pages/RegisterPage'
+import DashboardPage from './features/dashboard/DashboardPage'
+import MiPagina from './features/dashboard/sections/MiPagina'
+import Editor from './features/dashboard/sections/Editor'
+import Imagenes from './features/dashboard/sections/Imagenes'
+import Horarios from './features/dashboard/sections/Horarios'
+import Estadisticas from './features/dashboard/sections/Estadisticas'
+import Suscripcion from './features/dashboard/sections/Suscripcion'
+import Seguridad from './features/dashboard/sections/Seguridad'
+import Servicios from './features/dashboard/sections/Servicios'
+import EnlacesPro from './features/dashboard/sections/EnlacesPro'
+import PublicPage from './features/public-page/PublicPage'
+import { hasBearerToken } from './lib/authSession'
+
+const queryClient = new QueryClient()
+
+function RootRedirect() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const hasCompletedOnboarding = useAuthStore((state) => state.hasCompletedOnboarding)
+  if (!isAuthenticated && !hasBearerToken()) {
+    return <Navigate to="/login" replace />
+  }
+  return <Navigate to={hasCompletedOnboarding ? '/dashboard' : '/onboarding'} replace />
+}
+
+function AppRoutes() {
+  useAuth()
+
+  return (
+    <Routes>
+      <Route path="/" element={<RootRedirect />} />
+
+      <Route element={<GuestRoute />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+      </Route>
+
+      <Route element={<OnboardingGuard />}>
+        <Route path="/onboarding" element={<OnboardingPage />} />
+      </Route>
+
+      <Route element={<ProtectedRoute />}>
+        <Route path="/dashboard" element={<DashboardPage />}>
+          <Route index element={<MiPagina />} />
+          <Route path="editor" element={<Editor />} />
+          <Route path="images" element={<Imagenes />} />
+          <Route path="schedule" element={<Horarios />} />
+          <Route path="services" element={<Servicios />} />
+          <Route path="enlaces" element={<EnlacesPro />} />
+          <Route path="stats" element={<Estadisticas />} />
+          <Route path="billing" element={<Suscripcion />} />
+          <Route path="security" element={<Seguridad />} />
+        </Route>
+      </Route>
+
+      <Route path="/:subdomain" element={<PublicPage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <ToastProvider>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <div className="lw-route-shell">
+              <AppRoutes />
+            </div>
+          </BrowserRouter>
+        </QueryClientProvider>
+      </ToastProvider>
+    </ErrorBoundary>
+  )
+}

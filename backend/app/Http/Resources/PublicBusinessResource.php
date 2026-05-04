@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class PublicBusinessResource extends JsonResource
+{
+    public function toArray(Request $request): array
+    {
+        $groupedImages = $this->images
+            ? $this->images->groupBy('section')->map(fn ($items) => BusinessImageResource::collection($items)->resolve())
+            : [];
+
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'subdomain' => $this->subdomain,
+            'sector' => $this->sector,
+            'logo_url' => $this->logo_url,
+            'description' => $this->description,
+            'tagline' => $this->tagline,
+            'phone' => $this->phone,
+            'address' => $this->address,
+            'lat' => $this->lat,
+            'lng' => $this->lng,
+            'google_maps_url' => $this->google_maps_url,
+            'google_business_url' => $this->google_business_url,
+            'booking_url' => $this->booking_url,
+            'vcard_enabled' => (bool) $this->vcard_enabled,
+            'schedule' => $this->schedule,
+            'is_pro' => (bool) $this->is_pro,
+            'whatsapp_url' => $this->whatsapp_url,
+            'template' => $this->whenLoaded('template', fn () => new TemplateResource($this->template)),
+            'images' => $groupedImages,
+            'services' => $this->whenLoaded(
+                'services',
+                fn () => BusinessServiceResource::collection($this->services)->resolve(),
+            ),
+        ];
+    }
+}

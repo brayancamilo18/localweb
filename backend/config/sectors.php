@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'peluqueria',
+    'barberia',
+    'estetica',
+    'spa',
+    'restaurante',
+    'cafeteria',
+    'bar',
+    'panaderia',
+    'tienda_ropa',
+    'tienda_calzado',
+    'floristeria',
+    'farmacia',
+    'clinica_dental',
+    'fisioterapia',
+    'gimnasio',
+    'academia',
+    'fontanero',
+    'electricista',
+    'cerrajero',
+    'limpieza',
+    'taller_mecanico',
+    'otros',
+];
