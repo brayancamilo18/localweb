@@ -7,6 +7,9 @@ export type BusinessIntegrationsUpdate = {
   vcard_enabled?: boolean
   google_maps_url?: string | null
   booking_url?: string | null
+  instagram_url?: string | null
+  tiktok_url?: string | null
+  facebook_url?: string | null
 }
 
 export async function getBusiness(): Promise<Business> {
@@ -39,8 +42,14 @@ export async function updateBusinessIntegrations(data: BusinessIntegrationsUpdat
   return updateBusiness(data)
 }
 
-export async function getStats(): Promise<StatsData> {
-  const response = await apiClient.get<ApiResponse<StatsData>>('/dashboard/stats')
+export async function getStats(params?: {
+  from?: string
+  to?: string
+  granularity?: 'day' | 'hour'
+}): Promise<StatsData> {
+  const response = await apiClient.get<ApiResponse<StatsData>>('/dashboard/stats', {
+    params: params ?? {},
+  })
   return response.data.data
 }
 
@@ -74,4 +83,25 @@ export async function deleteImage(id: number): Promise<void> {
 
 export async function reorderImages(ids: number[]): Promise<void> {
   await apiClient.put('/dashboard/images/reorder', { ids })
+}
+
+export async function uploadBusinessLogo(
+  file: File,
+  onProgress?: (pct: number) => void,
+): Promise<Business> {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const response = await apiClient.post<ApiResponse<Business>>('/dashboard/logo', formData, {
+    onUploadProgress(progressEvent) {
+      if (!onProgress || !progressEvent.total) return
+      onProgress(Math.round((progressEvent.loaded * 100) / progressEvent.total))
+    },
+  })
+  return response.data.data
+}
+
+export async function deleteBusinessLogo(): Promise<Business> {
+  const response = await apiClient.delete<ApiResponse<Business>>('/dashboard/logo')
+  return response.data.data
 }

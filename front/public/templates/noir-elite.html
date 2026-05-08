@@ -1,4 +1,15 @@
 <!doctype html>
+<!--
+  ──────────────────────────────────────────────────────────────────────────────
+  Convención de mensajería SPA → template
+  ──────────────────────────────────────────────────────────────────────────────
+  Este template recibe datos del SPA padre vía window.postMessage (preview en
+  vivo del onboarding y de la página pública). Por seguridad, el SPA inyecta
+  su origen en la URL del iframe como `?parentOrigin=<origin>`. El listener
+  `message` solo procesa mensajes cuyo `event.origin` coincide con ese valor.
+  Si añades nuevos templates, replica el mismo patrón.
+  ──────────────────────────────────────────────────────────────────────────────
+-->
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
@@ -79,6 +90,17 @@
     border-bottom-color:var(--hairline);
   }
   nav.top .row{ display:flex; align-items:center; justify-content:space-between; gap:24px; }
+  nav.top{ --lw-logo-scale:1; }
+  nav.top .logo.brand-has-img .nav-brand-img{
+    display:block;
+    height:calc(38px * var(--lw-logo-scale, 1));
+    width:auto;
+    max-width:calc(160px * var(--lw-logo-scale, 1));
+    object-fit:contain;
+    image-rendering:auto;
+    -webkit-font-smoothing:antialiased;
+  }
+  nav.top .logo.brand-has-img #navBrandName{ display:none !important; }
   .logo{
     font-family:var(--serif); font-weight:300; font-size:22px;
     letter-spacing:.32em; text-transform:uppercase;
@@ -265,6 +287,46 @@
   .gallery .photo:hover img{ transform:scale(1.06); }
   .gallery .photo:hover::after{ background:rgba(0,0,0,.55); }
   .gallery .photo:hover .glass{ opacity:1; }
+
+  /* Galería slider (modo Pro) */
+  .gallery.gallery-slider{
+    position:relative;
+    column-count:unset;
+    column-gap:0;
+    min-height:340px;
+  }
+  .gallery.gallery-slider .photo{
+    display:none;
+    margin-bottom:0;
+    break-inside:auto;
+    height:100%;
+  }
+  .gallery.gallery-slider .photo.is-active{
+    display:block;
+  }
+  .gallery.gallery-slider .photo img{
+    width:100%;
+    height:clamp(280px, 52vw, 520px);
+    object-fit:cover;
+  }
+  .gallery-nav-btn{
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    width:40px;
+    height:40px;
+    border-radius:999px;
+    border:1px solid var(--gold-line);
+    background:rgba(10,10,10,.52);
+    color:var(--gold);
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    z-index:3;
+  }
+  .gallery-nav-btn.prev{ left:10px; }
+  .gallery-nav-btn.next{ right:10px; }
 
   /* Horario */
   #horario{ background:var(--bg-2); }
@@ -517,8 +579,7 @@
     section{ padding:96px 0; }
     .easter{ display:none; }
   }
-  body.embed-preview .links{ display:flex !important; }
-  body.embed-preview .desk-cta{ display:inline-flex !important; }
+  /* No forzar menú desktop en embed: el ancho del iframe gobierna hamburguesa vs. links. */
   html.embed-preview-root{ scroll-behavior:auto !important; }
   body.embed-preview #horario{ scroll-margin-top:96px; }
   @media (max-width:560px){
@@ -547,7 +608,8 @@
 <!-- ═══ NAV (logo, anchors, CTA WhatsApp) ═══════════════ -->
 <nav class="top" id="nav">
   <div class="wrap row">
-    <a href="#portada" class="logo" data-cursor="lg">
+    <a href="#portada" class="logo" id="navBrandWrap" data-cursor="lg">
+      <img id="navBrandLogo" class="nav-brand-img" alt="" width="160" height="38" decoding="async" hidden style="display:none"/>
       <span id="navBrandName">{{nombre}}</span>
     </a>
     <div class="links" role="menu">
@@ -726,9 +788,9 @@
       <div>
         <div class="foot-h">Síguenos</div>
         <div class="social">
-          <a href="#" aria-label="Instagram"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>
-          <a href="#" aria-label="Facebook"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
-          <a href="#" aria-label="TripAdvisor"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="7" cy="13" r="2.6"/><circle cx="17" cy="13" r="2.6"/><circle cx="7" cy="13" r="1" fill="#000"/><circle cx="17" cy="13" r="1" fill="#000"/></svg></a>
+          <a href="#" id="tplSocialInstagram" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>
+          <a href="#" id="tplSocialTiktok" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3a5 5 0 0 0 4 4v3a8 8 0 0 1-4-1.2v6.7a5.5 5.5 0 1 1-5.5-5.5v3a2.5 2.5 0 1 0 2.5 2.5V3z"/></svg></a>
+          <a href="#" id="tplSocialFacebook" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
         </div>
       </div>
     </div>
@@ -808,6 +870,85 @@ var NOIR_DEFAULT_GALLERY_INNER =
   '<a class="photo" data-cursor="lg"><img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=900&q=70" alt=""/><div class="glass"><span>+</span></div></a>' +
   '<a class="photo" data-cursor="lg"><img src="https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?auto=format&fit=crop&w=900&q=70" alt=""/><div class="glass"><span>+</span></div></a>' +
   '<a class="photo" data-cursor="lg"><img src="https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=900&q=70" alt=""/><div class="glass"><span>+</span></div></a>';
+
+function updateNoirHeroSlider(raw) {
+  var heroBg = document.getElementById('heroBg');
+  if (!heroBg) return;
+  var hasPortada = raw && Object.prototype.hasOwnProperty.call(raw, 'portada');
+  if (!hasPortada) return;
+  var heroCover = (raw && raw.portada ? String(raw.portada).trim() : '');
+  var withCacheBust = '';
+  if (heroCover) {
+    /** Cache-bust solo para URLs HTTP(S) servidas (R2/storage). En `data:` el `?lwts=` rompe el URL
+     * (ERR_INVALID_URL) y en `blob:` invalida el lookup del object URL (hero queda en negro). */
+    if (/^https?:\/\//i.test(heroCover)) {
+      var sep = heroCover.indexOf('?') >= 0 ? '&' : '?';
+      withCacheBust = heroCover + sep + 'lwts=' + Date.now();
+    } else {
+      withCacheBust = heroCover;
+    }
+  }
+  var cssUrl = withCacheBust ? withCacheBust.replace(/"/g, '\\"') : '';
+  heroBg.style.opacity = '1';
+  heroBg.style.transform = '';
+  heroBg.style.transition = '';
+  heroBg.style.backgroundImage = cssUrl ? 'url("' + cssUrl + '")' : '';
+}
+
+var noirGallerySliderTimer = null;
+var noirGallerySliderIndex = 0;
+
+function clearNoirGallerySlider() {
+  if (noirGallerySliderTimer != null) {
+    clearInterval(noirGallerySliderTimer);
+    noirGallerySliderTimer = null;
+  }
+}
+
+function updateNoirGallerySlider(isPro) {
+  var root = document.getElementById('galleryLive');
+  if (!root) return;
+  clearNoirGallerySlider();
+
+  root.classList.remove('gallery-slider');
+  root.querySelectorAll('.gallery-nav-btn').forEach(function (btn) { btn.remove(); });
+  root.querySelectorAll('.photo').forEach(function (el) { el.classList.remove('is-active'); });
+
+  var photos = Array.prototype.slice.call(root.querySelectorAll('.photo'));
+  if (!isPro || photos.length <= 1) return;
+
+  root.classList.add('gallery-slider');
+  noirGallerySliderIndex = 0;
+
+  function paint() {
+    photos.forEach(function (photo, i) {
+      photo.classList.toggle('is-active', i === noirGallerySliderIndex);
+    });
+  }
+  function go(delta) {
+    noirGallerySliderIndex = (noirGallerySliderIndex + delta + photos.length) % photos.length;
+    paint();
+  }
+
+  var prev = document.createElement('button');
+  prev.type = 'button';
+  prev.className = 'gallery-nav-btn prev';
+  prev.setAttribute('aria-label', 'Foto anterior');
+  prev.textContent = '‹';
+  prev.addEventListener('click', function () { go(-1); });
+
+  var next = document.createElement('button');
+  next.type = 'button';
+  next.className = 'gallery-nav-btn next';
+  next.setAttribute('aria-label', 'Foto siguiente');
+  next.textContent = '›';
+  next.addEventListener('click', function () { go(1); });
+
+  root.appendChild(prev);
+  root.appendChild(next);
+  paint();
+  noirGallerySliderTimer = setInterval(function () { go(1); }, 3200);
+}
 
 function renderNoirGallery(urls) {
   var root = document.getElementById('galleryLive');
@@ -1071,6 +1212,23 @@ function syncNoirTemplateExtensions(raw) {
       vcA.removeAttribute('href');
     }
   }
+
+  var LW_DEFAULT_SOCIAL = {
+    instagram: 'https://www.instagram.com/localweb.es',
+    tiktok: 'https://www.tiktok.com/@localweb',
+    facebook: 'https://www.facebook.com/localweb'
+  };
+  function noirResolveSocialHref(raw, key, fallback) {
+    var u = (raw[key] || '').trim();
+    if (u) return u;
+    return fallback || '#';
+  }
+  var igEl = document.getElementById('tplSocialInstagram');
+  var ttEl = document.getElementById('tplSocialTiktok');
+  var fbEl = document.getElementById('tplSocialFacebook');
+  if (igEl) igEl.href = noirResolveSocialHref(raw, 'instagram_url', LW_DEFAULT_SOCIAL.instagram);
+  if (ttEl) ttEl.href = noirResolveSocialHref(raw, 'tiktok_url', LW_DEFAULT_SOCIAL.tiktok);
+  if (fbEl) fbEl.href = noirResolveSocialHref(raw, 'facebook_url', LW_DEFAULT_SOCIAL.facebook);
 }
 
 function applyLivePreviewData(raw, opts){
@@ -1094,8 +1252,38 @@ function applyLivePreviewData(raw, opts){
 
   document.title = `${name} — LocalWeb`;
 
+  const logoUrl = (raw?.logo_url || '').trim();
+  var navTopEl = document.querySelector('nav.top');
+  if (navTopEl) {
+    if (logoUrl) {
+      var lsc = typeof raw?.logo_scale === 'number' && isFinite(raw.logo_scale) ? raw.logo_scale : 1;
+      if (lsc < 0.45) lsc = 0.45;
+      if (lsc > 1.5) lsc = 1.5;
+      navTopEl.style.setProperty('--lw-logo-scale', String(lsc));
+    } else {
+      navTopEl.style.removeProperty('--lw-logo-scale');
+    }
+  }
+  const navBrandWrap = document.getElementById('navBrandWrap');
+  const navBrandLogo = document.getElementById('navBrandLogo');
   const navBrandName = document.getElementById('navBrandName');
-  if (navBrandName) navBrandName.textContent = name;
+  if (navBrandWrap && navBrandLogo && navBrandName) {
+    if (logoUrl) {
+      navBrandLogo.src = logoUrl;
+      navBrandLogo.alt = name ? `${name} · logo` : 'Logo';
+      navBrandLogo.hidden = false;
+      navBrandLogo.style.display = 'block';
+      navBrandName.style.display = 'none';
+      navBrandWrap.classList.add('brand-has-img');
+    } else {
+      navBrandLogo.removeAttribute('src');
+      navBrandLogo.hidden = true;
+      navBrandLogo.style.display = 'none';
+      navBrandName.style.display = '';
+      navBrandWrap.classList.remove('brand-has-img');
+    }
+  }
+  if (navBrandName && !logoUrl) navBrandName.textContent = name;
 
   const navBrandTagline = document.getElementById('navBrandTagline');
   if (navBrandTagline) {
@@ -1184,10 +1372,7 @@ function applyLivePreviewData(raw, opts){
     if (phoneRaw) el.textContent = phoneRaw;
   });
 
-  const heroBg = document.getElementById('heroBg');
-  if (heroBg) {
-    heroBg.style.backgroundImage = heroCover ? `url("${heroCover}")` : '';
-  }
+  updateNoirHeroSlider(raw || {});
 
   const aboutPhotoBg = document.getElementById('aboutPhotoBg');
   if (aboutPhotoBg) {
@@ -1217,11 +1402,33 @@ function applyLivePreviewData(raw, opts){
   }, { alignToHash: !!window.location.hash.replace(/^#/, '') });
 })();
 
-window.addEventListener('message', (event) => {
-  const data = event.data;
-  if (!data || data.type !== 'lw:onboarding-preview') return;
-  applyLivePreviewData(data.payload || {}, { alignToHash: data.alignToHash === true });
-});
+/**
+ * Mensajería SPA → template.
+ * Whitelist de orígenes: el SPA padre nos pasa su `parentOrigin` en el query string al
+ * cargar el iframe; cualquier mensaje cuyo `event.origin` no coincida se descarta.
+ * Si `parentOrigin` está ausente (apertura directa del HTML, ej. previsualización local),
+ * caemos a la lista de orígenes de desarrollo.
+ */
+(function initSecureMessageListener() {
+  var queryOrigin = new URLSearchParams(location.search).get('parentOrigin') || '';
+  var DEV_ORIGINS = [
+    'http://localhost',
+    'http://localhost:5173',
+    'http://localhost:4173',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:4173',
+  ];
+  function isAllowedOrigin(origin) {
+    if (queryOrigin) return origin === queryOrigin;
+    return DEV_ORIGINS.indexOf(origin) !== -1;
+  }
+  window.addEventListener('message', function (event) {
+    if (!isAllowedOrigin(event.origin)) return;
+    var data = event.data;
+    if (!data || data.type !== 'lw:onboarding-preview') return;
+    applyLivePreviewData(data.payload || {}, { alignToHash: data.alignToHash === true });
+  });
+})();
 
 /* ───── NAV scroll state ───────────────────────────────── */
 const nav = document.getElementById('nav');

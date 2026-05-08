@@ -34,7 +34,7 @@ export default function EnlacesPro() {
         Enlaces y contacto Pro
       </h1>
       <p className="lw-small" style={{ marginBottom: 24, fontSize: 13, color: 'var(--lw-text-2)' }}>
-        Google Business y vCard. «Cómo llegar» en tu web usa la dirección y el mapa que ya configuraste.
+        Google Business, redes del pie (Instagram, TikTok, Facebook) y vCard. «Cómo llegar» usa la dirección y el mapa que ya configuraste.
       </p>
 
       {!isPro ? (

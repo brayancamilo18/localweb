@@ -38,11 +38,17 @@ export default function ProIntegrationsForm({
   const disabled = !enabled || businessQuery.isLoading
 
   const [googleBusinessUrl, setGoogleBusinessUrl] = useState('')
+  const [instagramUrl, setInstagramUrl] = useState('')
+  const [tiktokUrl, setTiktokUrl] = useState('')
+  const [facebookUrl, setFacebookUrl] = useState('')
   const [vcardEnabled, setVcardEnabled] = useState(false)
 
   useEffect(() => {
     if (!business) return
     setGoogleBusinessUrl(business.google_business_url ?? '')
+    setInstagramUrl(business.instagram_url ?? '')
+    setTiktokUrl(business.tiktok_url ?? '')
+    setFacebookUrl(business.facebook_url ?? '')
     setVcardEnabled(Boolean(business.vcard_enabled))
   }, [business])
 
@@ -52,6 +58,9 @@ export default function ProIntegrationsForm({
         google_maps_url: null,
         booking_url: null,
         google_business_url: emptyToNull(googleBusinessUrl),
+        instagram_url: emptyToNull(instagramUrl),
+        tiktok_url: emptyToNull(tiktokUrl),
+        facebook_url: emptyToNull(facebookUrl),
         vcard_enabled: vcardEnabled,
       }),
     onSuccess: async () => {
@@ -86,6 +95,40 @@ export default function ProIntegrationsForm({
           value={googleBusinessUrl}
           onChange={(e) => setGoogleBusinessUrl(e.target.value)}
           placeholder="https://g.page/..."
+          disabled={disabled}
+        />
+      </Field>
+
+      <p className="lw-small" style={{ margin: 0, fontSize: 13, color: 'var(--lw-text-2)', lineHeight: 1.5 }}>
+        Redes del pie de página: en el plan gratuito se muestran los enlaces de LocalWeb; con Pro puedes poner los tuyos.
+      </p>
+
+      <Field label="Instagram" hint="Perfil o publicación">
+        <Input
+          type="url"
+          value={instagramUrl}
+          onChange={(e) => setInstagramUrl(e.target.value)}
+          placeholder="https://www.instagram.com/…"
+          disabled={disabled}
+        />
+      </Field>
+
+      <Field label="TikTok" hint="Perfil">
+        <Input
+          type="url"
+          value={tiktokUrl}
+          onChange={(e) => setTiktokUrl(e.target.value)}
+          placeholder="https://www.tiktok.com/@…"
+          disabled={disabled}
+        />
+      </Field>
+
+      <Field label="Facebook" hint="Página o perfil">
+        <Input
+          type="url"
+          value={facebookUrl}
+          onChange={(e) => setFacebookUrl(e.target.value)}
+          placeholder="https://www.facebook.com/…"
           disabled={disabled}
         />
       </Field>

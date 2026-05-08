@@ -1,12 +1,10 @@
-import { useNavigate } from 'react-router-dom'
-import { Btn, Icon } from '../../components/primitives'
+import { Icon } from '../../components/primitives'
 
 type Props = {
   currentStep: number
 }
 
 export default function WizardHeader({ currentStep }: Props) {
-  const navigate = useNavigate()
   const progress = Math.round((currentStep / 8) * 100)
 
   return (
@@ -20,12 +18,7 @@ export default function WizardHeader({ currentStep }: Props) {
         padding: '14px 20px',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <div style={{ fontWeight: 600 }}>Paso {currentStep} de 8</div>
-        <Btn kind="ghost" onClick={() => navigate('/dashboard')}>
-          Guardar y salir
-        </Btn>
-      </div>
+      <div style={{ fontWeight: 600 }}>Paso {currentStep} de 8</div>
 
       <div style={{ marginTop: 10, height: 6, background: 'var(--lw-surface)', borderRadius: 999, overflow: 'hidden' }}>
         <div style={{ width: `${progress}%`, height: '100%', background: 'var(--lw-accent)', transition: 'width .25s' }} />

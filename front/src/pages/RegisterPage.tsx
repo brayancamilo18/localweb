@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register } from '../api/auth'
 import { Btn, Field, Icon, Input } from '../components/primitives/primitives'
@@ -8,13 +8,25 @@ import { useApiError } from '../hooks/useApiError'
 import { clearAllOnboardingPersist } from '../features/onboarding/onboardingPersist'
 import { useAuthStore } from '../store/authStore'
 
+const SECTORS_PAGE_SIZE = 8
+
 const SECTORS = [
   { id: 'peluqueria', label: 'Peluquería', icon: 'scissors' as const },
-  { id: 'restaurante', label: 'Restaurante', icon: 'list' as const },
-  { id: 'tienda', label: 'Tienda', icon: 'creditCard' as const },
+  { id: 'barberia', label: 'Barbería', icon: 'scissors' as const },
   { id: 'estetica', label: 'Estética', icon: 'sparkle' as const },
-  { id: 'salud', label: 'Salud', icon: 'shield' as const },
-  { id: 'otro', label: 'Otro', icon: 'grid' as const },
+  { id: 'spa', label: 'Spa', icon: 'clock' as const },
+  { id: 'restaurante', label: 'Restaurante', icon: 'list' as const },
+  { id: 'cafeteria', label: 'Cafetería', icon: 'list' as const },
+  { id: 'bar', label: 'Bar', icon: 'star' as const },
+  { id: 'panaderia', label: 'Panadería', icon: 'palette' as const },
+  { id: 'tienda_ropa', label: 'Tienda de ropa', icon: 'creditCard' as const },
+  { id: 'tienda_calzado', label: 'Calzado', icon: 'layout' as const },
+  { id: 'floristeria', label: 'Floristería', icon: 'image' as const },
+  { id: 'farmacia', label: 'Farmacia', icon: 'shield' as const },
+  { id: 'clinica_dental', label: 'Clínica dental', icon: 'users' as const },
+  { id: 'fisioterapia', label: 'Fisioterapia', icon: 'bolt' as const },
+  { id: 'gimnasio', label: 'Gimnasio', icon: 'trending' as const },
+  { id: 'otros', label: 'Otros', icon: 'grid' as const },
 ]
 
 function StepDot({ n, active, done, label }: { n: number; active: boolean; done: boolean; label: string }) {
@@ -96,7 +108,16 @@ export default function RegisterPage() {
 
   const [bizName, setBizName] = useState('')
   const [sector, setSector] = useState('peluqueria')
+  const [sectorPage, setSectorPage] = useState(0)
+  const [animDir, setAnimDir] = useState<1 | -1>(1)
+  const [animKey, setAnimKey] = useState(0)
   const [city, setCity] = useState('')
+
+  useEffect(() => {
+    if (step !== 2) return
+    const idx = SECTORS.findIndex((s) => s.id === sector)
+    if (idx >= 0) setSectorPage(Math.floor(idx / SECTORS_PAGE_SIZE))
+  }, [step])
 
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({})
 
@@ -114,13 +135,12 @@ export default function RegisterPage() {
   const mutation = useMutation({
     mutationFn: () => register(name, email, password, passwordConfirmation),
     onSuccess(data) {
-      const sectorApi = sector === 'otro' ? 'otros' : sector
       try {
         sessionStorage.setItem(
           'lw_signup_prefill',
           JSON.stringify({
             business_name: bizName.trim(),
-            sector: sectorApi,
+            sector,
             address: city.trim(),
           }),
         )
@@ -129,7 +149,8 @@ export default function RegisterPage() {
       }
       clearAllOnboardingPersist()
       setAuth(data.token, data.user, data.business)
-      navigate('/onboarding')
+      // El onboarding está bloqueado tras el muro de verificación de email.
+      navigate(data.user?.email_verified_at ? '/onboarding' : '/verify-email')
     },
   })
 
@@ -437,39 +458,109 @@ export default function RegisterPage() {
               />
 
               <Field label="¿A qué te dedicas?">
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))',
-                    gap: 8,
-                  }}
-                >
-                  {SECTORS.map((s) => (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => setSector(s.id)}
+                <div>
+                  <style>
+                    {`
+@keyframes lw-slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+@keyframes lw-slide-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+`}
+                  </style>
+                  <div style={{ overflow: 'hidden' }}>
+                    <div
+                      key={animKey}
                       style={{
-                        padding: '12px 8px',
-                        background: sector === s.id ? 'var(--lw-accent-soft)' : 'var(--lw-bg-elev)',
-                        border: `1.5px solid ${sector === s.id ? 'var(--lw-accent)' : 'var(--lw-border)'}`,
-                        borderRadius: 'var(--lw-r-sm)',
-                        color: sector === s.id ? 'var(--lw-accent-hover)' : 'var(--lw-text-2)',
-                        cursor: 'pointer',
-                        fontFamily: 'inherit',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: 6,
-                        fontSize: 12,
-                        fontWeight: 500,
-                        transition: 'all .12s',
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(4, 1fr)',
+                        gap: 8,
+                        ...(animKey > 0
+                          ? {
+                              animation: `${animDir === 1 ? 'lw-slide-in-right' : 'lw-slide-in-left'} 220ms ease-out`,
+                            }
+                          : {}),
                       }}
                     >
-                      <Icon name={s.icon} size={18} />
-                      {s.label}
-                    </button>
-                  ))}
+                      {SECTORS.slice(
+                        sectorPage * SECTORS_PAGE_SIZE,
+                        sectorPage * SECTORS_PAGE_SIZE + SECTORS_PAGE_SIZE,
+                      ).map((s, i) => {
+                        const globalIdx = sectorPage * SECTORS_PAGE_SIZE + i
+                        return (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => {
+                              setSector(s.id)
+                              setSectorPage(Math.floor(globalIdx / SECTORS_PAGE_SIZE))
+                            }}
+                            style={{
+                              padding: '12px 8px',
+                              background: sector === s.id ? 'var(--lw-accent-soft)' : 'var(--lw-bg-elev)',
+                              border: `1.5px solid ${sector === s.id ? 'var(--lw-accent)' : 'var(--lw-border)'}`,
+                              borderRadius: 'var(--lw-r-sm)',
+                              color: sector === s.id ? 'var(--lw-accent-hover)' : 'var(--lw-text-2)',
+                              cursor: 'pointer',
+                              fontFamily: 'inherit',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              gap: 6,
+                              fontSize: 12,
+                              fontWeight: 500,
+                              transition: 'all .12s',
+                            }}
+                          >
+                            <Icon name={s.icon} size={18} />
+                            {s.label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                  <div
+                    role="tablist"
+                    aria-label="Página de sectores"
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: 8,
+                      marginTop: 12,
+                    }}
+                  >
+                    {Array.from({ length: Math.ceil(SECTORS.length / SECTORS_PAGE_SIZE) }).map((_, pi) => {
+                      const active = pi === sectorPage
+                      return (
+                        <button
+                          key={pi}
+                          type="button"
+                          role="tab"
+                          aria-selected={active}
+                          onClick={() => {
+                            if (pi === sectorPage) return
+                            setAnimDir(pi > sectorPage ? 1 : -1)
+                            setAnimKey((k) => k + 1)
+                            setSectorPage(pi)
+                          }}
+                          style={{
+                            padding: 0,
+                            border: 'none',
+                            cursor: 'pointer',
+                            height: 8,
+                            borderRadius: 999,
+                            background: active ? 'var(--lw-accent)' : 'var(--lw-border-2)',
+                            width: active ? 22 : 8,
+                            transition: 'width .25s ease, background .25s ease',
+                          }}
+                        />
+                      )
+                    })}
+                  </div>
                 </div>
               </Field>
 

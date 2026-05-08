@@ -101,5 +101,6 @@ it('me with token returns user', function () {
     test()->withHeader('Authorization', "Bearer {$token}")
         ->getJson('/api/v1/auth/me')
         ->assertStatus(200)
-        ->assertJsonPath('data.user.id', $user->id);
+        ->assertJsonPath('data.user.id', $user->id)
+        ->assertJsonPath('data.user.is_admin', false);
 });

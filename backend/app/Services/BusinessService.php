@@ -53,13 +53,48 @@ class BusinessService
 
     public function isSubdomainAvailable(string $subdomain, ?int $excludeId = null): bool
     {
-        $query = Business::query()->where('subdomain', strtolower($subdomain));
+        return $this->getSubdomainRejectionReason($subdomain, $excludeId) === null;
+    }
 
+    /**
+     * Devuelve el motivo concreto por el que el subdominio NO está disponible
+     * (uno de: reserved, too_short, too_long, invalid_format, taken) o `null`
+     * si está libre y cumple las reglas.
+     */
+    public function getSubdomainRejectionReason(string $subdomain, ?int $excludeId = null): ?string
+    {
+        $normalized = strtolower(trim($subdomain));
+
+        $min = (int) config('subdomains.min_length', 3);
+        $max = (int) config('subdomains.max_length', 63);
+
+        if (strlen($normalized) < $min) {
+            return 'too_short';
+        }
+        if (strlen($normalized) > $max) {
+            return 'too_long';
+        }
+
+        $pattern = (string) config('subdomains.pattern', '/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/');
+        if (! preg_match($pattern, $normalized)) {
+            return 'invalid_format';
+        }
+
+        $reserved = (array) config('subdomains.reserved', []);
+        if (in_array($normalized, $reserved, true)) {
+            return 'reserved';
+        }
+
+        $query = Business::query()->where('subdomain', $normalized);
         if ($excludeId !== null) {
             $query->whereKeyNot($excludeId);
         }
 
-        return ! $query->exists();
+        if ($query->exists()) {
+            return 'taken';
+        }
+
+        return null;
     }
 
     public function generateSubdomainSuggestion(string $businessName): string

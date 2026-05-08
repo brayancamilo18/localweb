@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import GuestRoute from './components/guards/GuestRoute'
 import OnboardingGuard from './components/guards/OnboardingGuard'
 import ProtectedRoute from './components/guards/ProtectedRoute'
+import AdminRoute from './components/guards/AdminRoute'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 import { ToastProvider } from './components/ui/Toast'
 import { useAuth } from './hooks/useAuth'
@@ -10,6 +11,7 @@ import { useAuthStore } from './store/authStore'
 import LoginPage from './pages/LoginPage'
 import OnboardingPage from './pages/OnboardingPage'
 import RegisterPage from './pages/RegisterPage'
+import VerifyEmailPage from './pages/VerifyEmailPage'
 import DashboardPage from './features/dashboard/DashboardPage'
 import MiPagina from './features/dashboard/sections/MiPagina'
 import Editor from './features/dashboard/sections/Editor'
@@ -21,6 +23,13 @@ import Seguridad from './features/dashboard/sections/Seguridad'
 import Servicios from './features/dashboard/sections/Servicios'
 import EnlacesPro from './features/dashboard/sections/EnlacesPro'
 import PublicPage from './features/public-page/PublicPage'
+import AdminLayout from './layouts/AdminLayout'
+import AdminDashboardPage from './features/admin/AdminDashboardPage'
+import AdminBusinessesPage from './features/admin/AdminBusinessesPage'
+import AdminBusinessDetailPage from './features/admin/AdminBusinessDetailPage'
+import AdminTemplatesPage from './features/admin/AdminTemplatesPage'
+import AdminUsersPage from './features/admin/AdminUsersPage'
+import AdminTopPagesPage from './features/admin/AdminTopPagesPage'
 import { hasBearerToken } from './lib/authSession'
 
 const queryClient = new QueryClient()
@@ -28,8 +37,15 @@ const queryClient = new QueryClient()
 function RootRedirect() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const hasCompletedOnboarding = useAuthStore((state) => state.hasCompletedOnboarding)
+  const user = useAuthStore((state) => state.user)
   if (!isAuthenticated && !hasBearerToken()) {
     return <Navigate to="/login" replace />
+  }
+  if (user?.is_admin) {
+    return <Navigate to="/admin" replace />
+  }
+  if (user && user.email_verified_at == null) {
+    return <Navigate to="/verify-email" replace />
   }
   return <Navigate to={hasCompletedOnboarding ? '/dashboard' : '/onboarding'} replace />
 }
@@ -46,8 +62,21 @@ function AppRoutes() {
         <Route path="/register" element={<RegisterPage />} />
       </Route>
 
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
+
       <Route element={<OnboardingGuard />}>
         <Route path="/onboarding" element={<OnboardingPage />} />
+      </Route>
+
+      <Route element={<AdminRoute />}>
+        <Route path="admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboardPage />} />
+          <Route path="businesses" element={<AdminBusinessesPage />} />
+          <Route path="businesses/:id" element={<AdminBusinessDetailPage />} />
+          <Route path="templates" element={<AdminTemplatesPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
+          <Route path="top-pages" element={<AdminTopPagesPage />} />
+        </Route>
       </Route>
 
       <Route element={<ProtectedRoute />}>

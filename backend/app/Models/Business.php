@@ -38,6 +38,9 @@ class Business extends Tenant
         'google_business_url',
         'booking_url',
         'vcard_enabled',
+        'instagram_url',
+        'tiktok_url',
+        'facebook_url',
     ];
 
     protected function casts(): array
@@ -68,6 +71,11 @@ class Business extends Tenant
     public function owner(): HasOne
     {
         return $this->hasOne(User::class, 'business_id');
+    }
+
+    public function pageVisits(): HasMany
+    {
+        return $this->hasMany(PageVisit::class);
     }
 
     public function template(): BelongsTo

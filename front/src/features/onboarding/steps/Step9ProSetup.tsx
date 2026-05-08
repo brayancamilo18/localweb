@@ -45,7 +45,7 @@ export default function Step9ProSetup({
         <p className="lw-body" style={{ margin: 0, fontSize: 14, color: 'var(--lw-text-2)' }}>
           {setupPhase === 'services'
             ? 'Indica si publicas servicios con precios. La vista previa muestra la sección Servicios de tu plantilla.'
-            : 'Google Business y vCard. «Cómo llegar» usa la dirección y el mapa que ya configuraste.'}
+            : 'Google Business, redes sociales en el pie y vCard. «Cómo llegar» usa la dirección y el mapa que ya configuraste.'}
         </p>
       </div>
 

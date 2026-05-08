@@ -1,4 +1,6 @@
 # Keep backend local env out of version control
 backend/.env
+
+# Dependencias y artefactos de OS / herramientas
 node_modules/
 .DS_Store

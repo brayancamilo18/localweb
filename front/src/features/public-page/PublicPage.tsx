@@ -6,13 +6,15 @@ import type { PublicBusiness } from '../../types/api'
 import PublicHtmlTemplateFrame from './PublicHtmlTemplateFrame'
 import { PubAurora, PubNegocio, PubSoft, type PublicSiteBusiness } from './public-pages'
 
+// keep in sync with backend config/subdomains.php (GET /api/v1/public/subdomain-rules)
 const RESERVED_SUBDOMAINS = new Set([
-  'login',
-  'register',
-  'dashboard',
-  'onboarding',
-  'api',
-  'www',
+  'admin', 'api', 'www', 'mail', 'cdn', 'support', 'help',
+  'blog', 'login', 'register', 'dashboard', 'onboarding',
+  'app', 'static', 'assets', 'media', 'images', 'img',
+  'docs', 'status', 'billing', 'stripe', 'webhook',
+  'webhooks', 'auth', 'oauth', 'localweb', 'tenant',
+  'tenants', 'public', 'private', 'test', 'staging',
+  'dev', 'demo',
 ])
 
 function PublicSkeleton() {

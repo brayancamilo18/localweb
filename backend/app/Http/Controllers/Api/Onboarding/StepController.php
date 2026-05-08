@@ -6,11 +6,11 @@ use App\Enums\ImageSection;
 use App\Enums\Plan;
 use App\Exceptions\Auth\GeocodingException;
 use App\Http\Controllers\Api\BaseApiController;
+use App\Models\Business;
+use App\Models\User;
 use App\Services\BusinessSectorService;
 use App\Services\BusinessService;
 use App\Services\GeocodingService;
-use App\Models\Business;
-use App\Models\User;
 use App\Services\ImageService;
 use App\Services\TemplateService;
 use Illuminate\Http\Request;
@@ -41,6 +41,16 @@ class StepController extends BaseApiController
             $imageService->uploadImage(Storage::disk('local')->path($path), $business, ImageSection::Gallery, (int) $index);
         }
 
+        if (! empty($draft['logo_path'])) {
+            $logoRelative = $draft['logo_path'];
+            if (is_string($logoRelative) && $logoRelative !== '') {
+                $expectedPrefix = 'onboarding/'.$user->id.'/logo/';
+                if (str_starts_with($logoRelative, $expectedPrefix) && is_file(Storage::disk('local')->path($logoRelative))) {
+                    $imageService->replaceBusinessLogo(Storage::disk('local')->path($logoRelative), $business);
+                }
+            }
+        }
+
         Storage::disk('local')->deleteDirectory("onboarding/{$user->id}");
         Cache::forget($this->cacheKey($user->id));
     }
@@ -50,15 +60,37 @@ class StepController extends BaseApiController
         $data = $request->validate([
             'template_id' => ['required', 'integer'],
             'sector' => ['required', 'string'],
+            'logo' => ['nullable', 'image', 'max:2048', 'mimes:jpg,jpeg,png,webp'],
+            'remove_logo' => ['sometimes', 'boolean'],
         ]);
 
         if (! $templates->exists((int) $data['template_id']) || ! $sectors->exists($data['sector'])) {
             return $this->error('Datos inválidos', ['template_or_sector' => 'invalid']);
         }
 
-        $draft = Cache::get($this->cacheKey($request->user()->id), []);
-        $draft = array_merge($draft, $data, ['step' => 1]);
-        Cache::put($this->cacheKey($request->user()->id), $draft, now()->addHours(4));
+        $userId = $request->user()->id;
+        $draft = Cache::get($this->cacheKey($userId), []);
+
+        if ($request->boolean('remove_logo')) {
+            if (! empty($draft['logo_path']) && is_string($draft['logo_path'])) {
+                Storage::disk('local')->delete($draft['logo_path']);
+            }
+            unset($draft['logo_path']);
+        }
+
+        if ($request->hasFile('logo')) {
+            if (! empty($draft['logo_path']) && is_string($draft['logo_path'])) {
+                Storage::disk('local')->delete($draft['logo_path']);
+            }
+            $draft['logo_path'] = $request->file('logo')->store("onboarding/{$userId}/logo", 'local');
+        }
+
+        $draft = array_merge($draft, [
+            'template_id' => $data['template_id'],
+            'sector' => $data['sector'],
+            'step' => 1,
+        ]);
+        Cache::put($this->cacheKey($userId), $draft, now()->addHours(4));
 
         return $this->success(['ok' => true, 'next_step' => 2]);
     }
@@ -107,7 +139,7 @@ class StepController extends BaseApiController
         return $this->success(['ok' => true, 'next_step' => 4]);
     }
 
-    public function step4(Request $request)
+    public function step4(Request $request, ImageService $imageService)
     {
         $user = $request->user();
         $user->loadMissing('business');
@@ -117,18 +149,51 @@ class StepController extends BaseApiController
             $maxPhotos = 20;
         }
 
-        $request->validate([
-            'photos' => ['required', 'array', 'max:'.$maxPhotos],
-            'photos.*' => ['required', 'image', 'max:10240'],
-        ]);
-
         $userId = $user->id;
 
-        // Sustituir galería anterior en disco si el usuario vuelve al paso y vuelve a enviar fotos.
+        /** @var array<int, \Illuminate\Http\UploadedFile>|null $uploaded */
+        $uploaded = $request->file('photos');
+        $newPhotos = is_array($uploaded) ? array_values(array_filter($uploaded)) : [];
+
+        if ($business) {
+            $request->validate([
+                'photos' => ['nullable', 'array', 'max:'.$maxPhotos],
+                'photos.*' => ['required', 'image', 'max:10240', 'mimes:jpg,jpeg,png,webp'],
+            ]);
+
+            $existingCount = $business->images()
+                ->where('section', ImageSection::Gallery->value)
+                ->count();
+            $totalAfter = $existingCount + count($newPhotos);
+            if ($totalAfter > $maxPhotos) {
+                return $this->error(
+                    "Solo puedes tener hasta {$maxPhotos} fotos en la galería.",
+                    ['photos' => 'too_many'],
+                    422
+                );
+            }
+
+            foreach ($newPhotos as $i => $photo) {
+                $imageService->uploadImage($photo, $business, ImageSection::Gallery, $existingCount + $i);
+            }
+
+            return $this->success([
+                'ok' => true,
+                'count' => $totalAfter,
+                'next_step' => 5,
+                'mode' => 'append',
+            ]);
+        }
+
+        $request->validate([
+            'photos' => ['required', 'array', 'max:'.$maxPhotos],
+            'photos.*' => ['required', 'image', 'max:10240', 'mimes:jpg,jpeg,png,webp'],
+        ]);
+
         Storage::disk('local')->deleteDirectory("onboarding/{$userId}/gallery");
 
         $paths = [];
-        foreach ($request->file('photos', []) as $photo) {
+        foreach ($newPhotos as $photo) {
             $paths[] = $photo->store("onboarding/{$userId}/gallery", 'local');
         }
 
@@ -137,7 +202,12 @@ class StepController extends BaseApiController
         $draft['step'] = 4;
         Cache::put($this->cacheKey($userId), $draft, now()->addHours(4));
 
-        return $this->success(['ok' => true, 'count' => count($paths), 'next_step' => 5]);
+        return $this->success([
+            'ok' => true,
+            'count' => count($paths),
+            'next_step' => 5,
+            'mode' => 'draft',
+        ]);
     }
 
     public function step5(Request $request)
@@ -209,8 +279,24 @@ class StepController extends BaseApiController
         ];
 
         if ($data['plan'] === 'pro') {
-            if (! $data['subdomain'] || ! $businessService->isSubdomainAvailable($data['subdomain'])) {
-                return $this->error('Subdominio inválido o no disponible', ['subdomain' => 'invalid']);
+            $rawSubdomain = (string) ($data['subdomain'] ?? '');
+            if ($rawSubdomain === '') {
+                return $this->error('Falta el subdominio', ['subdomain' => 'too_short']);
+            }
+            $reason = $businessService->getSubdomainRejectionReason($rawSubdomain);
+            if ($reason !== null) {
+                $messages = [
+                    'reserved' => 'Ese subdominio está reservado.',
+                    'too_short' => 'El subdominio es demasiado corto.',
+                    'too_long' => 'El subdominio es demasiado largo.',
+                    'invalid_format' => 'El subdominio solo admite letras, números y guiones.',
+                    'taken' => 'Ese subdominio ya está en uso.',
+                ];
+
+                return $this->error(
+                    $messages[$reason] ?? 'Subdominio inválido.',
+                    ['subdomain' => $reason],
+                );
             }
             $business = $businessService->createFromOnboarding($user, $payload, 'pending');
             $user->refresh();
@@ -225,7 +311,7 @@ class StepController extends BaseApiController
                 ]);
             }
 
-            $priceId = (string) env('STRIPE_PRO_PRICE_ID', '');
+            $priceId = (string) config('cashier.pro_price_id', '');
             if ($priceId === '') {
                 return $this->error(
                     'El pago Pro no está configurado en el servidor (STRIPE_PRO_PRICE_ID).',

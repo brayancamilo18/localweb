@@ -66,13 +66,13 @@ function DashSidebar({
       style={{
         width: 240,
         flexShrink: 0,
-        alignSelf: 'stretch',
         background: 'var(--lw-bg-elev)',
         borderRight: '1px solid var(--lw-border)',
         display: 'flex',
         flexDirection: 'column',
         padding: '20px 12px',
-        minHeight: 0,
+        height: '100%',
+        boxSizing: 'border-box',
       }}
     >
       <div style={{ padding: "0 8px 18px", fontSize: 13, fontWeight: 600, color: 'var(--lw-text)' }}>
@@ -223,16 +223,7 @@ function Dashboard({ pro, business, children }: DashboardProps) {
       <div className="lw-dashboard-desktop-sidebar">
         <DashSidebar pro={pro} businessName={business?.name} />
       </div>
-      <main
-        className="lw-scroll lw-dashboard-main"
-        style={{
-          flex: 1,
-          minWidth: 0,
-          minHeight: 0,
-          overflow: 'auto',
-          padding: '20px 24px 56px',
-        }}
-      >
+      <main className="lw-scroll lw-dashboard-main">
         <div className="lw-dashboard-mobilebar">
           <Btn kind="outline" size="sm" icon="menu" type="button" onClick={() => setMenuOpen((v) => !v)}>
             Menú

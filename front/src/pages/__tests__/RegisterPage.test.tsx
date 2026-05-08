@@ -82,9 +82,23 @@ describe('RegisterPage', () => {
     await waitFor(() => expect(registerSpy).toHaveBeenCalledWith('Brayan', 'b@b.com', '12345678', '12345678'))
   })
 
-  it('navega a /onboarding tras registro exitoso', async () => {
+  it('navega a /verify-email tras registro exitoso (correo aún sin verificar)', async () => {
     vi.spyOn(authApi, 'register').mockResolvedValue({
-      user: { id: 1, name: 'Brayan', email: 'b@b.com' },
+      user: { id: 1, name: 'Brayan', email: 'b@b.com', email_verified_at: null },
+      token: 'tok',
+      business: null,
+    })
+    renderPage()
+    await fillStep1AndContinue()
+    fireEvent.change(screen.getByLabelText('Nombre del negocio'), { target: { value: 'Mi local' } })
+    fireEvent.change(screen.getByLabelText('Ciudad'), { target: { value: 'Madrid' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Crear mi cuenta' }))
+    await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/verify-email'))
+  })
+
+  it('navega a /onboarding tras registro si el backend ya devuelve email verificado', async () => {
+    vi.spyOn(authApi, 'register').mockResolvedValue({
+      user: { id: 1, name: 'Brayan', email: 'b@b.com', email_verified_at: '2026-05-07T18:00:00+00:00' },
       token: 'tok',
       business: null,
     })

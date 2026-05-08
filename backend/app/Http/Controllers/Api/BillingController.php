@@ -24,7 +24,7 @@ class BillingController extends BaseApiController
             return $this->success(['checkout_url' => 'https://checkout.stripe.test/session_123']);
         }
 
-        $session = $user->newSubscription('default', (string) env('STRIPE_PRO_PRICE_ID'))
+        $session = $user->newSubscription('default', (string) config('cashier.pro_price_id'))
             ->allowPromotionCodes()
             ->checkout([
                 'success_url' => config('app.frontend_url').'/onboarding?billing=success&session_id={CHECKOUT_SESSION_ID}',

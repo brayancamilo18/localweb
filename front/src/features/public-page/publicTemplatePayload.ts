@@ -10,6 +10,10 @@ export type TemplateServicePayload = {
 
 /** Misma forma que usa `TemplateIframe` / las plantillas `.html` vía `lw:onboarding-preview`. */
 export type HtmlTemplatePreviewPayload = {
+  /** URL absoluta o relativa del logo (navbar); vacío = nombre en texto. */
+  logo_url: string
+  /** Escala del logo en la barra (1 = diseño base). Solo usada en plantillas con `nav` + CSS var. */
+  logo_scale?: number
   nombre: string
   tagline: string
   telefono: string
@@ -33,6 +37,32 @@ export type HtmlTemplatePreviewPayload = {
   api_base_url: string
   /** URL lista para descargar la vCard (`GET …/public/{subdomain}/vcard`). */
   vcard_download_url: string
+  instagram_url: string
+  tiktok_url: string
+  facebook_url: string
+}
+
+/** URLs por defecto del pie (plan gratis / sin enlaces propios). Sobrescribibles con VITE_DEFAULT_* */
+export function defaultSocialUrls(): { instagram: string; tiktok: string; facebook: string } {
+  const ig = (import.meta.env.VITE_DEFAULT_INSTAGRAM_URL as string | undefined)?.trim()
+  const tt = (import.meta.env.VITE_DEFAULT_TIKTOK_URL as string | undefined)?.trim()
+  const fb = (import.meta.env.VITE_DEFAULT_FACEBOOK_URL as string | undefined)?.trim()
+  return {
+    instagram: ig || 'https://www.instagram.com/localweb.es',
+    tiktok: tt || 'https://www.tiktok.com/@localweb',
+    facebook: fb || 'https://www.facebook.com/localweb',
+  }
+}
+
+export function resolveTemplateSocialUrls(
+  business: Partial<Pick<PublicBusiness, 'instagram_url' | 'tiktok_url' | 'facebook_url'>>,
+): { instagram_url: string; tiktok_url: string; facebook_url: string } {
+  const d = defaultSocialUrls()
+  return {
+    instagram_url: business.instagram_url?.trim() || d.instagram,
+    tiktok_url: business.tiktok_url?.trim() || d.tiktok,
+    facebook_url: business.facebook_url?.trim() || d.facebook,
+  }
 }
 
 function imageList(section: unknown): Array<{ url?: string }> {
@@ -93,6 +123,7 @@ export function publicBusinessToTemplatePayload(business: PublicBusiness): HtmlT
   const about = imageList(raw?.about)
   const apiBase = resolvePublicApiBaseUrl()
   const sub = business.subdomain?.trim() ?? ''
+  const social = resolveTemplateSocialUrls(business)
   const directionsUrl =
     buildGoogleDirectionsUrl({
       lat: business.lat,
@@ -101,6 +132,8 @@ export function publicBusinessToTemplatePayload(business: PublicBusiness): HtmlT
     }) || (business.google_maps_url?.trim() ?? '')
 
   return {
+    logo_url: (business.logo_url ?? '').trim(),
+    logo_scale: 1,
     nombre: business.name,
     tagline: business.tagline ?? '',
     telefono: phoneForTemplate(business),
@@ -122,5 +155,8 @@ export function publicBusinessToTemplatePayload(business: PublicBusiness): HtmlT
     subdomain: sub,
     api_base_url: apiBase,
     vcard_download_url: sub ? buildPublicVcardUrl(apiBase, sub) : '',
+    instagram_url: social.instagram_url,
+    tiktok_url: social.tiktok_url,
+    facebook_url: social.facebook_url,
   }
 }

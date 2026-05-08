@@ -119,7 +119,7 @@ export function useOnboarding(): UseOnboardingResult {
     }
   }, [navigate, persistUserId])
 
-  /** Tras checkout Stripe: refrescar sesión, galería Pro y paso 4. */
+  /** Tras checkout Stripe: refrescar sesión, borrador del servidor (galería incluida), galería Pro y paso 4. */
   useEffect(() => {
     if (isPendingStatus) return
     if (billingSuccessHandled.current) return
@@ -134,17 +134,25 @@ export function useOnboarding(): UseOnboardingResult {
           useAuthStore.getState().setAuth(token, fresh.user, fresh.business)
         }
         await queryClient.invalidateQueries({ queryKey: keys.auth.me })
+        /** Sin esto `serverDraft` en memoria sigue siendo el de antes de Stripe y `gallery_preview_urls`
+         * no refleja las fotos ya guardadas — el paso 4 no puede rehidratar ni fusionar bien. */
+        const status = await getStatus()
+        if (status.is_complete) {
+          navigate('/dashboard', { replace: true })
+          return
+        }
+        const draft = (status.draft as Record<string, unknown> | undefined) ?? {}
+        setServerDraft(draft)
       } catch {
-        /* continuar igual: el paso 4 y queries pueden reintentar */
-      } finally {
-        setSearchParams({}, { replace: true })
-        setPostCheckoutProGallery(true)
-        setProExtrasSource('gallery')
-        setErrors({})
-        setCurrentStep(4)
+        /* continuar igual: banner Pro y paso 4 */
       }
+      setSearchParams({}, { replace: true })
+      setPostCheckoutProGallery(true)
+      setProExtrasSource('gallery')
+      setErrors({})
+      setCurrentStep(4)
     })()
-  }, [isPendingStatus, queryClient, searchParams, setSearchParams])
+  }, [isPendingStatus, queryClient, searchParams, setSearchParams, navigate])
 
   const jumpToStep = useCallback((step: number, opts?: { allowForward?: boolean }) => {
     setErrors({})
@@ -164,12 +172,22 @@ export function useOnboarding(): UseOnboardingResult {
       try {
         switch (currentStep) {
           case 1: {
-            const d = data as { template_id?: number; sector?: string } | undefined
+            const d = data as {
+              template_id?: number
+              sector?: string
+              logo?: File | null
+              removeLogo?: boolean
+            } | undefined
             if (!d?.template_id) {
               setErrors({ template_id: 'Elige una plantilla' })
               return
             }
-            await step1({ template_id: d.template_id, sector: d.sector ?? 'otros' })
+            await step1({
+              template_id: d.template_id,
+              sector: d.sector ?? 'otros',
+              logo: d.logo ?? undefined,
+              removeLogo: Boolean(d.removeLogo),
+            })
             break
           }
           case 2:
@@ -194,7 +212,17 @@ export function useOnboarding(): UseOnboardingResult {
             break
           }
           case 4: {
-            await step4((data as File[]) ?? [])
+            const raw = data
+            const photosToUpload =
+              raw &&
+              typeof raw === 'object' &&
+              !Array.isArray(raw) &&
+              (raw as { __step4Append?: boolean }).__step4Append === true
+                ? ((raw as { newPhotos?: File[] }).newPhotos ?? [])
+                : Array.isArray(raw)
+                  ? raw
+                  : []
+            await step4(photosToUpload)
             if (postCheckoutProGallery) {
               setPostCheckoutProGallery(false)
               setProExtrasSource('gallery')

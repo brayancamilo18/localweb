@@ -7,14 +7,14 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Resources\BusinessServiceResource;
 use App\Models\Business;
 use App\Models\BusinessService;
-use Illuminate\Http\Request;
+use App\Support\PublicPageCache;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ServicesController extends BaseApiController
 {
-    private const MAX_SERVICES_PRO = 20;
+    private const MAX_SERVICES_PRO = 15;
 
     private const MAX_SERVICES_FREE = 3;
 
@@ -47,14 +47,13 @@ class ServicesController extends BaseApiController
 
         $order = (int) $business->services()->max('display_order') + 1;
 
+        // BusinessServiceObserver invalida public_page:{subdomain} en saved.
         $service = $business->services()->create([
             'name' => $data['name'],
             'price' => $data['price'] ?? null,
             'description' => $data['description'] ?? null,
             'display_order' => $order,
         ]);
-
-        Cache::forget("public_page:{$business->subdomain}");
 
         return $this->success(new BusinessServiceResource($service));
     }
@@ -76,10 +75,9 @@ class ServicesController extends BaseApiController
             'description' => ['nullable', 'string', 'max:200'],
         ]);
 
+        // BusinessServiceObserver invalida public_page:{subdomain} en saved.
         $service->fill($data);
         $service->save();
-
-        Cache::forget("public_page:{$service->business->subdomain}");
 
         return $this->success(new BusinessServiceResource($service->fresh()));
     }
@@ -90,10 +88,8 @@ class ServicesController extends BaseApiController
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        $subdomain = $service->business->subdomain;
+        // BusinessServiceObserver invalida public_page:{subdomain} en deleted.
         $service->delete();
-
-        Cache::forget("public_page:{$subdomain}");
 
         return response()->noContent();
     }
@@ -107,6 +103,7 @@ class ServicesController extends BaseApiController
 
         $business = $request->user()->business;
 
+        // Update bulk vía query()->update(): NO dispara observer, así que invalidamos manualmente.
         DB::transaction(function () use ($business, $data): void {
             foreach (array_values($data['ids']) as $order => $id) {
                 BusinessService::query()
@@ -116,7 +113,7 @@ class ServicesController extends BaseApiController
             }
         });
 
-        Cache::forget("public_page:{$business->subdomain}");
+        PublicPageCache::forget($business);
 
         return $this->success(['ok' => true]);
     }

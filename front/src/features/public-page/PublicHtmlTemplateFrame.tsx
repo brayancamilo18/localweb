@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import type { PublicBusiness } from '../../types/api'
 import { publicBusinessToTemplatePayload } from './publicTemplatePayload'
 
@@ -14,7 +14,15 @@ type Props = {
 
 export default function PublicHtmlTemplateFrame({ templateSlug, business }: Props) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
-  const src = TEMPLATE_SRC[templateSlug] ?? TEMPLATE_SRC['noir-elite']
+  /**
+   * Pasamos `parentOrigin` al template como query param para que su listener `message`
+   * solo acepte mensajes de este origen (defensa contra postMessage spoofing en el iframe).
+   */
+  const src = useMemo(() => {
+    const base = TEMPLATE_SRC[templateSlug] ?? TEMPLATE_SRC['noir-elite']
+    const sep = base.includes('?') ? '&' : '?'
+    return `${base}${sep}parentOrigin=${encodeURIComponent(window.location.origin)}`
+  }, [templateSlug])
 
   const pushData = useCallback(() => {
     const win = iframeRef.current?.contentWindow
@@ -25,7 +33,9 @@ export default function PublicHtmlTemplateFrame({ templateSlug, business }: Prop
         alignToHash: false,
         payload: publicBusinessToTemplatePayload(business),
       },
-      '*',
+      // targetOrigin: el iframe sirve desde el mismo origen del SPA (carpeta /templates/ del front),
+      // así que el origin del documento del iframe coincide con window.location.origin.
+      window.location.origin,
     )
   }, [business])
 

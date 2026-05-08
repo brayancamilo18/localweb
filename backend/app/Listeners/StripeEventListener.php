@@ -3,10 +3,12 @@
 namespace App\Listeners;
 
 use App\Models\Business;
+use App\Models\ProcessedStripeEvent;
 use App\Models\User;
 use App\Services\OnboardingMediaFinalizeService;
 use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\Events\WebhookReceived;
+use Throwable;
 
 class StripeEventListener
 {
@@ -14,19 +16,46 @@ class StripeEventListener
     {
         $payload = $event->payload;
         $eventType = $payload['type'] ?? null;
+        $eventId = $payload['id'] ?? null;
 
-        match ($eventType) {
-            'checkout.session.completed' => $this->handleCheckoutCompleted($payload['data']['object'] ?? []),
-            'customer.subscription.deleted' => $this->handleSubscriptionDeleted($payload['data']['object'] ?? []),
-            'customer.subscription.updated' => $this->handleSubscriptionUpdated($payload['data']['object'] ?? []),
-            'payment_intent.succeeded' => $this->handlePaymentIntentSucceeded($payload),
-            'invoice.paid' => $this->handleInvoicePaid($payload),
-            'invoice.payment_succeeded' => $this->handleInvoicePaymentSucceeded($payload),
-            default => null,
-        };
+        if (! $eventId) {
+            return;
+        }
+
+        $marker = ProcessedStripeEvent::firstOrCreate(
+            ['event_id' => $eventId],
+            ['event_type' => $eventType ?? 'unknown', 'processed_at' => now()],
+        );
+
+        if (! $marker->wasRecentlyCreated) {
+            Log::info('Stripe event duplicate, skipping', [
+                'event_id' => $eventId,
+                'event_type' => $eventType,
+            ]);
+
+            return;
+        }
+
+        try {
+            match ($eventType) {
+                'checkout.session.completed' => $this->handleCheckoutCompleted($payload['data']['object'] ?? []),
+                'customer.subscription.deleted' => $this->handleSubscriptionDeleted($payload['data']['object'] ?? []),
+                'customer.subscription.updated' => $this->handleSubscriptionUpdated($payload['data']['object'] ?? []),
+                'customer.subscription.trial_will_end' => $this->handleTrialWillEnd($payload['data']['object'] ?? []),
+                'invoice.payment_failed' => $this->handleInvoicePaymentFailed($payload),
+                'payment_intent.succeeded' => $this->handlePaymentIntentSucceeded($payload),
+                'invoice.paid' => $this->handleInvoicePaid($payload),
+                'invoice.payment_succeeded' => $this->handleInvoicePaymentSucceeded($payload),
+                default => null,
+            };
+        } catch (Throwable $e) {
+            // Borramos el marcador para que el reintento de Stripe vuelva a procesar el evento.
+            $marker->delete();
+            throw $e;
+        }
     }
 
-    private function handleCheckoutCompleted(array $object): void
+    protected function handleCheckoutCompleted(array $object): void
     {
         $metadata = $object['metadata'] ?? [];
         $businessId = $metadata['business_id'] ?? null;
@@ -71,7 +100,7 @@ class StripeEventListener
         ]);
     }
 
-    private function handleSubscriptionDeleted(array $object): void
+    protected function handleSubscriptionDeleted(array $object): void
     {
         $stripeCustomerId = $object['customer'] ?? null;
         if (! $stripeCustomerId) {
@@ -94,7 +123,19 @@ class StripeEventListener
         ]);
     }
 
-    private function handleSubscriptionUpdated(array $object): void
+    /**
+     * Maneja transiciones de estado de la suscripción.
+     *
+     * Reglas:
+     *  - Estados terminales (canceled, incomplete_expired, unpaid) → degradar a free + plan_activated_at=null.
+     *  - past_due → log warning, NO degradar (Stripe puede recuperar el cobro).
+     *  - active con previousStatus en (past_due, trialing, incomplete) → asegurar pro y conservar
+     *    plan_activated_at si ya existía (no resetear en simple recuperación).
+     *
+     * Idempotencia: cualquier llamada repetida produce el mismo estado final
+     * (Eloquent no dispara updated cuando no hay cambios efectivos).
+     */
+    protected function handleSubscriptionUpdated(array $object): void
     {
         $stripeCustomerId = $object['customer'] ?? null;
         $status = $object['status'] ?? null;
@@ -105,31 +146,77 @@ class StripeEventListener
             return;
         }
 
-        if (in_array($status, ['past_due', 'unpaid'], true)) {
+        if (in_array($status, ['canceled', 'incomplete_expired', 'unpaid'], true)) {
+            $user->business->update([
+                'plan' => 'free',
+                'plan_activated_at' => null,
+            ]);
+
+            Log::info('Stripe subscription terminal state, downgraded', [
+                'user_id' => $user->id,
+                'business_id' => $user->business->id,
+                'status' => $status,
+                'previous_status' => $previousStatus,
+            ]);
+
+            return;
+        }
+
+        if ($status === 'past_due') {
             Log::warning('Stripe subscription in collection risk state', [
                 'user_id' => $user->id,
+                'business_id' => $user->business->id,
                 'status' => $status,
             ]);
 
             return;
         }
 
-        if ($status === 'active' && $previousStatus === 'past_due') {
+        if ($status === 'active' && in_array($previousStatus, ['past_due', 'trialing', 'incomplete'], true)) {
             $user->business->update([
                 'plan' => 'pro',
+                // Conservar plan_activated_at si ya existía (recuperación de past_due / trial→active).
                 'plan_activated_at' => $user->business->plan_activated_at ?? now(),
             ]);
 
-            Log::info('Stripe subscription recovered to active', [
+            Log::info('Stripe subscription transitioned to active', [
                 'user_id' => $user->id,
+                'business_id' => $user->business->id,
+                'previous_status' => $previousStatus,
             ]);
         }
+    }
+
+    protected function handleTrialWillEnd(array $object): void
+    {
+        Log::info('Stripe subscription trial_will_end', [
+            'subscription' => $object['id'] ?? null,
+            'customer' => $object['customer'] ?? null,
+            'trial_end' => $object['trial_end'] ?? null,
+        ]);
     }
 
     /**
      * @param  array<string, mixed>  $payload
      */
-    private function handlePaymentIntentSucceeded(array $payload): void
+    protected function handleInvoicePaymentFailed(array $payload): void
+    {
+        $object = $payload['data']['object'] ?? [];
+
+        // No degradamos aquí: dejamos que Stripe transicione la subscription a past_due/unpaid
+        // y reaccionamos en handleSubscriptionUpdated. Solo registramos el aviso.
+        Log::warning('Stripe invoice.payment_failed', [
+            'event_id' => $payload['id'] ?? null,
+            'invoice' => $object['id'] ?? null,
+            'customer' => $object['customer'] ?? null,
+            'attempt_count' => $object['attempt_count'] ?? null,
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    protected function handlePaymentIntentSucceeded(array $payload): void
     {
         $object = $payload['data']['object'] ?? [];
         Log::info('Stripe payment_intent.succeeded', [
@@ -142,7 +229,7 @@ class StripeEventListener
     /**
      * @param  array<string, mixed>  $payload
      */
-    private function handleInvoicePaid(array $payload): void
+    protected function handleInvoicePaid(array $payload): void
     {
         $object = $payload['data']['object'] ?? [];
         Log::info('Stripe invoice.paid', [
@@ -155,7 +242,7 @@ class StripeEventListener
     /**
      * @param  array<string, mixed>  $payload
      */
-    private function handleInvoicePaymentSucceeded(array $payload): void
+    protected function handleInvoicePaymentSucceeded(array $payload): void
     {
         $object = $payload['data']['object'] ?? [];
         Log::info('Stripe invoice.payment_succeeded', [

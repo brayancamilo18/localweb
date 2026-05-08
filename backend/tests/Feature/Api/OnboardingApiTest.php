@@ -196,6 +196,115 @@ it('step4 allows four photos when business plan is pending pro', function () {
         ->assertJsonPath('data.count', 4);
 });
 
+it('step7 pro returns 422 with reason=reserved for reserved subdomains', function () {
+    $template = Template::create([
+        'name' => 'Noir Elite',
+        'slug' => 'noir-elite',
+        'primary_color' => '#C9A84C',
+        'is_active' => true,
+        'requires_pro' => false,
+    ]);
+    $user = User::factory()->create();
+    Cache::put("onboarding:{$user->id}", [
+        'template_id' => $template->id,
+        'sector' => 'otros',
+        'business_name' => 'Reserved Test',
+    ], now()->addHours(4));
+    $token = $user->createToken('lw-spa')->plainTextToken;
+
+    test()->withHeader('Authorization', "Bearer {$token}")
+        ->postJson('/api/v1/onboarding/step/7', [
+            'plan' => 'pro',
+            'subdomain' => 'admin',
+        ])
+        ->assertStatus(422)
+        ->assertJsonPath('errors.subdomain', 'reserved');
+});
+
+it('step7 pro returns 422 with reason=invalid_format for malformed subdomains', function () {
+    $template = Template::create([
+        'name' => 'Noir Elite',
+        'slug' => 'noir-elite',
+        'primary_color' => '#C9A84C',
+        'is_active' => true,
+        'requires_pro' => false,
+    ]);
+    $user = User::factory()->create();
+    Cache::put("onboarding:{$user->id}", [
+        'template_id' => $template->id,
+        'sector' => 'otros',
+        'business_name' => 'Bad Format',
+    ], now()->addHours(4));
+    $token = $user->createToken('lw-spa')->plainTextToken;
+
+    test()->withHeader('Authorization', "Bearer {$token}")
+        ->postJson('/api/v1/onboarding/step/7', [
+            'plan' => 'pro',
+            'subdomain' => '-bad-',
+        ])
+        ->assertStatus(422)
+        ->assertJsonPath('errors.subdomain', 'invalid_format');
+});
+
+it('step7 pro returns 422 with reason=taken when subdomain already exists', function () {
+    Business::create([
+        'name' => 'Existing',
+        'subdomain' => 'mi-tienda',
+        'subdomain_type' => 'custom',
+        'sector' => 'otros',
+    ]);
+
+    $template = Template::create([
+        'name' => 'Noir Elite',
+        'slug' => 'noir-elite',
+        'primary_color' => '#C9A84C',
+        'is_active' => true,
+        'requires_pro' => false,
+    ]);
+    $user = User::factory()->create();
+    Cache::put("onboarding:{$user->id}", [
+        'template_id' => $template->id,
+        'sector' => 'otros',
+        'business_name' => 'Take Test',
+    ], now()->addHours(4));
+    $token = $user->createToken('lw-spa')->plainTextToken;
+
+    test()->withHeader('Authorization', "Bearer {$token}")
+        ->postJson('/api/v1/onboarding/step/7', [
+            'plan' => 'pro',
+            'subdomain' => 'mi-tienda',
+        ])
+        ->assertStatus(422)
+        ->assertJsonPath('errors.subdomain', 'taken');
+});
+
+it('step7 pro returns 422 with reason=too_short for missing/short subdomain', function () {
+    $template = Template::create([
+        'name' => 'Noir Elite',
+        'slug' => 'noir-elite',
+        'primary_color' => '#C9A84C',
+        'is_active' => true,
+        'requires_pro' => false,
+    ]);
+    $user = User::factory()->create();
+    Cache::put("onboarding:{$user->id}", [
+        'template_id' => $template->id,
+        'sector' => 'otros',
+        'business_name' => 'Short',
+    ], now()->addHours(4));
+    $token = $user->createToken('lw-spa')->plainTextToken;
+
+    test()->withHeader('Authorization', "Bearer {$token}")
+        ->postJson('/api/v1/onboarding/step/7', ['plan' => 'pro'])
+        ->assertStatus(422)
+        ->assertJsonPath('errors.subdomain', 'too_short');
+
+    test()->withHeader('Authorization', "Bearer {$token}")
+        ->postJson('/api/v1/onboarding/step/7', ['plan' => 'pro', 'subdomain' => 'ab'])
+        ->assertStatus(422)
+        ->assertJsonPath('errors.subdomain', 'too_short');
+});
+
 it('status with business but onboarding not completed returns step 8 draft', function () {
     $business = Business::create([
         'name' => 'Almost',

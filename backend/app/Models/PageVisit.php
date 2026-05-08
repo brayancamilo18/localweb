@@ -10,7 +10,7 @@ class PageVisit extends Model
     protected $fillable = [
         'business_id',
         'event_type',
-        'ip',
+        'ip_hash',
         'user_agent',
         'visited_at',
     ];

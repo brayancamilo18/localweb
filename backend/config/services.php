@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'analytics' => [
+        'ip_salt' => env('ANALYTICS_IP_SALT'),
+    ],
+
 ];

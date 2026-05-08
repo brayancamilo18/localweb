@@ -32,6 +32,7 @@ class StatusController extends BaseApiController
 
         $draft = Cache::get("onboarding:{$user->id}", []);
         $draft = $this->withGalleryPreviewUrlsForCacheDraft($user->id, $draft);
+        $draft = $this->withLogoPreviewUrlForCacheDraft($draft);
 
         return $this->success([
             'is_complete' => false,
@@ -63,6 +64,22 @@ class StatusController extends BaseApiController
             $urls[] = '/api/v1/onboarding/draft-gallery/'.$i;
         }
         $draft['gallery_preview_urls'] = $urls;
+
+        return $draft;
+    }
+
+    /**
+     * @param  array<string, mixed>  $draft
+     * @return array<string, mixed>
+     */
+    private function withLogoPreviewUrlForCacheDraft(array $draft): array
+    {
+        $path = $draft['logo_path'] ?? null;
+        if (! is_string($path) || $path === '') {
+            return $draft;
+        }
+
+        $draft['logo_preview_url'] = '/api/v1/onboarding/draft-logo';
 
         return $draft;
     }

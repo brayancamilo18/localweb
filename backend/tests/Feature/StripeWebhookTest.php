@@ -2,11 +2,14 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 class StripeWebhookTest extends TestCase
 {
+    use RefreshDatabase;
+
     private static function stripeTestSignatureHeader(string $payload, string $secret): string
     {
         $timestamp = time();

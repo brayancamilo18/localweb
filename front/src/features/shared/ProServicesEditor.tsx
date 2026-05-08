@@ -15,6 +15,7 @@ import { useApiError } from '../../hooks/useApiError'
 import type { BusinessService } from '../../types/api'
 
 const FREE_MAX = 3
+const PRO_MAX = 15
 
 function formatPrice(price: BusinessService['price']): string {
   if (price === null || price === undefined) return 'Consultar'
@@ -71,6 +72,8 @@ export default function ProServicesEditor({
 
   const services = servicesQuery.data ?? []
   const freeAtLimit = !isPro && services.length >= FREE_MAX
+  const proAtLimit = isPro && services.length >= PRO_MAX
+  const atLimit = freeAtLimit || proAtLimit
 
   const patchServicesCache = useCallback(
     (updater: (prev: BusinessService[] | undefined) => BusinessService[]) => {
@@ -118,13 +121,13 @@ export default function ProServicesEditor({
   const saving = createMut.isPending || updateMut.isPending || deleteMut.isPending
 
   const openCreate = useCallback(() => {
-    if (freeAtLimit) return
+    if (atLimit) return
     setFormMode('create')
     setEditingId(null)
     setForm(emptyForm())
     createMut.reset()
     updateMut.reset()
-  }, [freeAtLimit, createMut, updateMut])
+  }, [atLimit, createMut, updateMut])
 
   const openEdit = useCallback(
     (s: BusinessService) => {
@@ -210,16 +213,18 @@ export default function ProServicesEditor({
         ) : (
           <span />
         )}
-        <Btn
-          type="button"
-          kind="primary"
-          icon="plus"
-          size={onboarding ? 'sm' : 'md'}
-          disabled={freeAtLimit || servicesQuery.isLoading}
-          onClick={() => (formMode === 'create' ? cancelForm() : openCreate())}
-        >
-          {formMode === 'create' ? (onboarding ? 'Cerrar' : 'Cerrar formulario') : 'Añadir servicio'}
-        </Btn>
+        {!proAtLimit ? (
+          <Btn
+            type="button"
+            kind="primary"
+            icon="plus"
+            size={onboarding ? 'sm' : 'md'}
+            disabled={freeAtLimit || servicesQuery.isLoading}
+            onClick={() => (formMode === 'create' ? cancelForm() : openCreate())}
+          >
+            {formMode === 'create' ? (onboarding ? 'Cerrar' : 'Cerrar formulario') : 'Añadir servicio'}
+          </Btn>
+        ) : null}
       </div>
 
       {!onboarding && !isPro ? (
@@ -237,7 +242,7 @@ export default function ProServicesEditor({
           <Icon name="info" size={18} color="var(--lw-accent)" style={{ marginTop: 2 }} />
           <div style={{ flex: 1, fontSize: 13, color: 'var(--lw-text-2)', lineHeight: 1.5 }}>
             En el plan <strong>Gratis</strong> puedes tener hasta <strong>{FREE_MAX} servicios</strong>. Con{' '}
-            <strong>Pro</strong> puedes añadir hasta <strong>20 servicios</strong>.
+            <strong>Pro</strong> puedes añadir hasta <strong>{PRO_MAX} servicios</strong>.
           </div>
         </Card>
       ) : null}
@@ -263,6 +268,25 @@ export default function ProServicesEditor({
               Ver planes
             </Btn>
           </Link>
+        </Card>
+      ) : null}
+
+      {!onboarding && proAtLimit ? (
+        <Card
+          padding={14}
+          style={{
+            marginBottom: 16,
+            border: '1px solid var(--lw-border)',
+            background: 'var(--lw-bg-elev)',
+            display: 'flex',
+            gap: 12,
+            alignItems: 'center',
+          }}
+        >
+          <Icon name="info" size={18} color="var(--lw-accent)" />
+          <div style={{ flex: 1, fontSize: 13, color: 'var(--lw-text-2)', lineHeight: 1.5 }}>
+            Has alcanzado el límite de <strong>{PRO_MAX} servicios</strong> del plan Pro.
+          </div>
         </Card>
       ) : null}
 
@@ -324,11 +348,17 @@ export default function ProServicesEditor({
           <p style={{ margin: 0 }}>Aún no hay servicios. Pulsa «Añadir servicio» para crear el primero.</p>
         </Card>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+            gap: 12,
+          }}
+        >
           {services.map((s) => (
             <Card key={s.id} padding={16}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start' }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div>
                   <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>{s.name}</div>
                   <div style={{ fontSize: 14, color: 'var(--lw-accent)', fontWeight: 600, marginBottom: 6 }}>
                     {formatPrice(s.price)}
@@ -343,7 +373,7 @@ export default function ProServicesEditor({
                     </p>
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                <div style={{ display: 'flex', gap: 8 }}>
                   <Btn
                     type="button"
                     kind="outline"

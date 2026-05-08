@@ -32,7 +32,7 @@ class StripeSyncProPrice extends Command
         $productId = is_string($productOption) ? trim($productOption) : '';
 
         if ($productId === '') {
-            $oldPriceId = env('STRIPE_PRO_PRICE_ID');
+            $oldPriceId = config('cashier.pro_price_id');
             if (! is_string($oldPriceId) || $oldPriceId === '') {
                 $this->error('Indica --product=prod_… o define STRIPE_PRO_PRICE_ID para inferir el producto.');
 

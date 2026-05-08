@@ -1,15 +1,18 @@
 .lw-dashboard-shell {
   display: flex;
-  flex: 1;
-  min-height: 0;
   width: 100%;
   background: var(--lw-bg);
   align-items: stretch;
   position: relative;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .lw-dashboard-desktop-sidebar {
   display: block;
+  height: 100%;
+  overflow-y: auto;
+  flex-shrink: 0;
 }
 
 .lw-dashboard-mobilebar {
@@ -27,6 +30,10 @@
 
 .lw-dashboard-main {
   padding: 20px 24px 56px;
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+  min-width: 0;
 }
 
 .lw-mipagina-header {
@@ -128,5 +135,11 @@
 @media (max-width: 640px) {
   .lw-mipagina-stats-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 1081px) {
+  .lw-admin-mobile-menu-btn {
+    display: none !important;
   }
 }

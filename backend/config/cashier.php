@@ -80,6 +80,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Pro subscription price (application)
+    |--------------------------------------------------------------------------
+    |
+    | Stripe Price ID for the monthly Pro plan (used by billing checkout and
+    | onboarding step 7). Read at runtime via config('cashier.pro_price_id').
+    |
+    */
+
+    'pro_price_id' => env('STRIPE_PRO_PRICE_ID'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Payment Confirmation Notification
     |--------------------------------------------------------------------------
     |

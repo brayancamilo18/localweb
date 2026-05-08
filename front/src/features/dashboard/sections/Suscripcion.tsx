@@ -75,14 +75,19 @@ export default function Suscripcion() {
           <ul className="lw-small" style={{ paddingLeft: 18, lineHeight: 1.6 }}>
             <li>Página pública básica</li>
             <li>Hasta 3 fotos en galería</li>
+            <li>Hasta 3 servicios</li>
+            <li>Ubicación en Google Maps</li>
             <li>Estadísticas limitadas</li>
           </ul>
         </Card>
         <Card padding={18} style={{ borderColor: 'var(--lw-pro)', background: 'var(--lw-pro-soft)' }}>
           <div style={{ fontWeight: 600, marginBottom: 8, color: 'var(--lw-pro)' }}>Pro</div>
           <ul className="lw-small" style={{ paddingLeft: 18, lineHeight: 1.6 }}>
-            <li>Más fotos y plantillas</li>
-            <li>Estadísticas completas</li>
+            <li>Hasta 20 fotos en galería</li>
+            <li>Hasta 15 servicios</li>
+            <li>Estadísticas completas (90 días)</li>
+            <li>Sin publicidad LocalWeb</li>
+            <li>Subdominio personalizado</li>
             <li>Soporte prioritario</li>
           </ul>
         </Card>

@@ -1,4 +1,15 @@
 <!doctype html>
+<!--
+  ──────────────────────────────────────────────────────────────────────────────
+  Convención de mensajería SPA → template
+  ──────────────────────────────────────────────────────────────────────────────
+  Este template recibe datos del SPA padre vía window.postMessage (preview en
+  vivo del onboarding y de la página pública). Por seguridad, el SPA inyecta
+  su origen en la URL del iframe como `?parentOrigin=<origin>`. El listener
+  `message` solo procesa mensajes cuyo `event.origin` coincide con ese valor.
+  Si añades nuevos templates, replica el mismo patrón.
+  ──────────────────────────────────────────────────────────────────────────────
+-->
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
@@ -60,6 +71,17 @@
   }
   nav.top .row{ display:flex; align-items:center; justify-content:space-between; gap:24px; }
   .logo{ font-family:var(--serif); font-weight:600; font-size:22px; display:flex; align-items:center; gap:10px; letter-spacing:-.01em; }
+  nav.top{ --lw-logo-scale:1; }
+  nav.top .logo.brand-has-img .nav-brand-img{
+    display:block;
+    height:calc(40px * var(--lw-logo-scale, 1));
+    width:auto;
+    max-width:calc(180px * var(--lw-logo-scale, 1));
+    object-fit:contain;
+    image-rendering:auto;
+  }
+  nav.top .logo.brand-has-img .nav-brand-dot{ display:none !important; }
+  nav.top .logo.brand-has-img #brandLogo{ display:none !important; }
   .logo .dot{ width:10px; height:10px; border-radius:999px; background:var(--coral); display:inline-block; }
   .links{ display:flex; gap:30px; }
   .links a{ font-size:14px; font-weight:500; color:var(--ink); position:relative; }
@@ -153,7 +175,6 @@
   .shape.s5{ width:60px; height:60px; right:30%; top:42%; border-color:#fff; border-width:1px; animation:float1 7s ease-in-out infinite -1.5s; }
   @keyframes float1{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-22px); } }
   @keyframes float2{ 0%,100%{ transform:translateY(0) rotate(0); } 50%{ transform:translateY(18px) rotate(8deg); } }
-
   .hero-inner{
     position:relative; height:calc(100% - 64px); display:flex; flex-direction:column;
     justify-content:center; gap:24px; padding:0 32px;
@@ -267,6 +288,46 @@
     padding:6px 12px; border-radius:99px;
     font-size:12px; font-weight:500;
   }
+
+  /* Galería slider (modo Pro) */
+  .grid.gallery-slider{
+    position:relative;
+    display:block;
+    min-height:360px;
+  }
+  .grid.gallery-slider .photo{
+    display:none;
+    aspect-ratio:auto;
+    transform:none;
+    opacity:1;
+    border-radius:16px;
+  }
+  .grid.gallery-slider .photo.is-active{
+    display:block;
+  }
+  .grid.gallery-slider .photo img{
+    width:100%;
+    height:clamp(300px, 52vw, 560px);
+    object-fit:cover;
+  }
+  .bloom-gallery-nav-btn{
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    width:40px;
+    height:40px;
+    border-radius:999px;
+    border:1px solid rgba(245,240,232,.35);
+    background:rgba(20,17,14,.55);
+    color:#fff;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    z-index:3;
+  }
+  .bloom-gallery-nav-btn.prev{ left:10px; }
+  .bloom-gallery-nav-btn.next{ right:10px; }
 
   /* Horario */
   #horario{ background:var(--bg); }
@@ -456,14 +517,13 @@
 
   /* Responsive */
   @media (max-width:980px){
-    .links{ display:none; }
+    .links, .desk-cta{ display:none; }
     .burger{ display:block; }
     .about{ grid-template-columns:1fr; gap:48px; }
     .foot{ grid-template-columns:1fr; gap:32px; }
     .hero-meta{ display:none; }
     section{ padding:96px 0; }
   }
-  body.embed-preview .links{ display:flex !important; }
   html.embed-preview-root{ scroll-behavior:auto !important; }
   body.embed-preview #horario{ scroll-margin-top:88px; }
   @media (max-width:560px){
@@ -488,8 +548,9 @@
 <!-- ═══ NAV ════════════════════════════════════════════ -->
 <nav class="top" id="nav">
   <div class="wrap row">
-    <a href="#portada" class="logo">
-      <span class="dot" aria-hidden="true"></span>
+    <a href="#portada" class="logo" id="bloomNavBrandWrap">
+      <span class="dot nav-brand-dot" aria-hidden="true"></span>
+      <img id="navBrandLogo" class="nav-brand-img" alt="" width="180" height="40" decoding="async" hidden style="display:none"/>
       <span id="brandLogo">Salón Margarita</span>
     </a>
     <div class="links">
@@ -501,7 +562,7 @@
       <a href="#servicios" id="tplNavServicios" style="display:none;">Servicios</a>
       <a href="#contacto">Contacto</a>
     </div>
-    <a href="https://wa.me/{{telefono}}" class="btn coral sm" aria-label="WhatsApp" data-wa-link>
+    <a href="https://wa.me/{{telefono}}" class="btn coral sm desk-cta" aria-label="WhatsApp" data-wa-link>
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.6-.8-1.9-.9-.3-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.2-.3.2-.5.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.5-1.7-1.6-2-.2-.3 0-.4.1-.6l.3-.4c.1-.2.2-.3.3-.5.1-.2 0-.3 0-.5-.1-.1-.6-1.5-.9-2-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.3-.8.8-.8 2 0 1.2.8 2.4 1 2.5.1.2 1.6 2.5 4 3.4.6.2 1 .4 1.4.5.6.2 1.1.2 1.5.1.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.2.2-1.3-.1-.1-.3-.2-.5-.2zM12 2C6.5 2 2 6.5 2 12c0 1.7.4 3.3 1.2 4.7L2 22l5.3-1.2c1.4.8 3 1.2 4.7 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2z"/></svg>
       <span>Reservar</span>
     </a>
@@ -657,9 +718,9 @@
         <div class="logo"><span class="dot"></span> <span id="footBrand">Salón Margarita</span></div>
         <p id="footTagline">{{tagline}} — Peluquería de barrio en Lavapiés, Madrid. Cinco peluqueros, cita previa y mucho cariño por el oficio.</p>
         <div class="social">
-          <a href="#" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>
-          <a href="#" aria-label="TikTok"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3a5 5 0 0 0 4 4v3a8 8 0 0 1-4-1.2v6.7a5.5 5.5 0 1 1-5.5-5.5v3a2.5 2.5 0 1 0 2.5 2.5V3z"/></svg></a>
-          <a href="https://wa.me/{{telefono}}" aria-label="WhatsApp" data-wa-link><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.6-.8-1.9-.9-.3-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.2-.3.2-.5.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.5-1.7-1.6-2-.2-.3 0-.4.1-.6l.3-.4c.1-.2.2-.3.3-.5.1-.2 0-.3 0-.5-.1-.1-.6-1.5-.9-2-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.3-.8.8-.8 2 0 1.2.8 2.4 1 2.5.1.2 1.6 2.5 4 3.4.6.2 1 .4 1.4.5.6.2 1.1.2 1.5.1.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.2.2-1.3-.1-.1-.3-.2-.5-.2zM12 2C6.5 2 2 6.5 2 12c0 1.7.4 3.3 1.2 4.7L2 22l5.3-1.2c1.4.8 3 1.2 4.7 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2z"/></svg></a>
+          <a href="#" id="tplSocialInstagram" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>
+          <a href="#" id="tplSocialTiktok" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3a5 5 0 0 0 4 4v3a8 8 0 0 1-4-1.2v6.7a5.5 5.5 0 1 1-5.5-5.5v3a2.5 2.5 0 1 0 2.5 2.5V3z"/></svg></a>
+          <a href="#" id="tplSocialFacebook" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
         </div>
       </div>
       <div>
@@ -698,6 +759,86 @@ if (new URLSearchParams(window.location.search).get('embed') === '1') {
 function escapeBloomGalleryAttr(s) {
   return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 }
+
+function updateBloomHeroSlider(raw) {
+  var heroBg = document.getElementById('heroBg');
+  if (!heroBg) return;
+  var hasPortada = raw && Object.prototype.hasOwnProperty.call(raw, 'portada');
+  if (!hasPortada) return;
+  var heroCover = (raw && raw.portada ? String(raw.portada).trim() : '');
+  var withCacheBust = '';
+  if (heroCover) {
+    /** Cache-bust solo para URLs HTTP(S) servidas (R2/storage). En `data:` el `?lwts=` rompe el URL
+     * (ERR_INVALID_URL) y en `blob:` invalida el lookup del object URL (hero queda en negro). */
+    if (/^https?:\/\//i.test(heroCover)) {
+      var sep = heroCover.indexOf('?') >= 0 ? '&' : '?';
+      withCacheBust = heroCover + sep + 'lwts=' + Date.now();
+    } else {
+      withCacheBust = heroCover;
+    }
+  }
+  var cssUrl = withCacheBust ? withCacheBust.replace(/"/g, '\\"') : '';
+  heroBg.style.opacity = '1';
+  heroBg.style.transform = '';
+  heroBg.style.transition = '';
+  heroBg.style.backgroundImage = cssUrl ? 'url("' + cssUrl + '")' : '';
+}
+
+var bloomGallerySliderTimer = null;
+var bloomGallerySliderIndex = 0;
+
+function clearBloomGallerySlider() {
+  if (bloomGallerySliderTimer != null) {
+    clearInterval(bloomGallerySliderTimer);
+    bloomGallerySliderTimer = null;
+  }
+}
+
+function updateBloomGallerySlider(isPro) {
+  var root = document.getElementById('galleryLiveBloom');
+  if (!root) return;
+  clearBloomGallerySlider();
+
+  root.classList.remove('gallery-slider');
+  root.querySelectorAll('.bloom-gallery-nav-btn').forEach(function (btn) { btn.remove(); });
+  root.querySelectorAll('.photo').forEach(function (el) { el.classList.remove('is-active'); });
+
+  var photos = Array.prototype.slice.call(root.querySelectorAll('.photo'));
+  if (!isPro || photos.length <= 1) return;
+
+  root.classList.add('gallery-slider');
+  bloomGallerySliderIndex = 0;
+
+  function paint() {
+    photos.forEach(function (photo, i) {
+      photo.classList.toggle('is-active', i === bloomGallerySliderIndex);
+    });
+  }
+  function go(delta) {
+    bloomGallerySliderIndex = (bloomGallerySliderIndex + delta + photos.length) % photos.length;
+    paint();
+  }
+
+  var prev = document.createElement('button');
+  prev.type = 'button';
+  prev.className = 'bloom-gallery-nav-btn prev';
+  prev.setAttribute('aria-label', 'Foto anterior');
+  prev.textContent = '‹';
+  prev.addEventListener('click', function () { go(-1); });
+
+  var next = document.createElement('button');
+  next.type = 'button';
+  next.className = 'bloom-gallery-nav-btn next';
+  next.setAttribute('aria-label', 'Foto siguiente');
+  next.textContent = '›';
+  next.addEventListener('click', function () { go(1); });
+
+  root.appendChild(prev);
+  root.appendChild(next);
+  paint();
+  bloomGallerySliderTimer = setInterval(function () { go(1); }, 3200);
+}
+
 function renderBloomGallery(urls) {
   var root = document.getElementById('galleryLiveBloom');
   if (!root) return;
@@ -1010,6 +1151,23 @@ function syncBloomTemplateExtensions(raw) {
       vcA.removeAttribute('href');
     }
   }
+
+  var LW_DEFAULT_SOCIAL_BLOOM = {
+    instagram: 'https://www.instagram.com/localweb.es',
+    tiktok: 'https://www.tiktok.com/@localweb',
+    facebook: 'https://www.facebook.com/localweb'
+  };
+  function bloomResolveSocialHref(raw, key, fallback) {
+    var u = (raw[key] || '').trim();
+    if (u) return u;
+    return fallback || '#';
+  }
+  var igElB = document.getElementById('tplSocialInstagram');
+  var ttElB = document.getElementById('tplSocialTiktok');
+  var fbElB = document.getElementById('tplSocialFacebook');
+  if (igElB) igElB.href = bloomResolveSocialHref(raw, 'instagram_url', LW_DEFAULT_SOCIAL_BLOOM.instagram);
+  if (ttElB) ttElB.href = bloomResolveSocialHref(raw, 'tiktok_url', LW_DEFAULT_SOCIAL_BLOOM.tiktok);
+  if (fbElB) fbElB.href = bloomResolveSocialHref(raw, 'facebook_url', LW_DEFAULT_SOCIAL_BLOOM.facebook);
 }
 
 function applyLivePreviewData(raw, opts) {
@@ -1035,7 +1193,38 @@ function applyLivePreviewData(raw, opts) {
 
   document.title = `${name} — LocalWeb`;
 
+  const logoUrlBloom = (raw?.logo_url || '').trim();
+  var navTopBloom = document.querySelector('nav.top');
+  if (navTopBloom) {
+    if (logoUrlBloom) {
+      var lscB = typeof raw?.logo_scale === 'number' && isFinite(raw.logo_scale) ? raw.logo_scale : 1;
+      if (lscB < 0.45) lscB = 0.45;
+      if (lscB > 1.5) lscB = 1.5;
+      navTopBloom.style.setProperty('--lw-logo-scale', String(lscB));
+    } else {
+      navTopBloom.style.removeProperty('--lw-logo-scale');
+    }
+  }
+  const bloomNavWrap = document.getElementById('bloomNavBrandWrap');
+  const bloomNavImg = document.getElementById('navBrandLogo');
   const brandLogo = document.getElementById('brandLogo');
+  if (bloomNavWrap && bloomNavImg && brandLogo) {
+    if (logoUrlBloom) {
+      bloomNavImg.src = logoUrlBloom;
+      bloomNavImg.alt = name ? `${name} · logo` : 'Logo';
+      bloomNavImg.hidden = false;
+      bloomNavImg.style.display = 'block';
+      brandLogo.textContent = name;
+      brandLogo.style.display = 'none';
+      bloomNavWrap.classList.add('brand-has-img');
+    } else {
+      bloomNavImg.removeAttribute('src');
+      bloomNavImg.hidden = true;
+      bloomNavImg.style.display = 'none';
+      brandLogo.style.display = '';
+      bloomNavWrap.classList.remove('brand-has-img');
+    }
+  }
   if (brandLogo) brandLogo.textContent = name;
 
   const footBrand = document.getElementById('footBrand');
@@ -1097,8 +1286,7 @@ function applyLivePreviewData(raw, opts) {
     }
   }
 
-  const heroBg = document.getElementById('heroBg');
-  if (heroBg) heroBg.style.backgroundImage = heroCover ? `url("${heroCover}")` : '';
+  updateBloomHeroSlider(raw || {});
 
   const aboutPhotoBg = document.getElementById('aboutPhotoBg');
   if (aboutPhotoBg) aboutPhotoBg.style.backgroundImage = fotoEquipo ? `url("${fotoEquipo}")` : '';
@@ -1126,11 +1314,33 @@ function applyLivePreviewData(raw, opts) {
   }, { alignToHash: !!window.location.hash.replace(/^#/, '') });
 })();
 
-window.addEventListener('message', (event) => {
-  const data = event.data;
-  if (!data || data.type !== 'lw:onboarding-preview') return;
-  applyLivePreviewData(data.payload || {}, { alignToHash: data.alignToHash === true });
-});
+/**
+ * Mensajería SPA → template.
+ * Whitelist de orígenes: el SPA padre nos pasa su `parentOrigin` en el query string al
+ * cargar el iframe; cualquier mensaje cuyo `event.origin` no coincida se descarta.
+ * Si `parentOrigin` está ausente (apertura directa del HTML, ej. previsualización local),
+ * caemos a la lista de orígenes de desarrollo.
+ */
+(function initSecureMessageListener() {
+  var queryOrigin = new URLSearchParams(location.search).get('parentOrigin') || '';
+  var DEV_ORIGINS = [
+    'http://localhost',
+    'http://localhost:5173',
+    'http://localhost:4173',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:4173',
+  ];
+  function isAllowedOrigin(origin) {
+    if (queryOrigin) return origin === queryOrigin;
+    return DEV_ORIGINS.indexOf(origin) !== -1;
+  }
+  window.addEventListener('message', function (event) {
+    if (!isAllowedOrigin(event.origin)) return;
+    var data = event.data;
+    if (!data || data.type !== 'lw:onboarding-preview') return;
+    applyLivePreviewData(data.payload || {}, { alignToHash: data.alignToHash === true });
+  });
+})();
 
 /* ───── NAV: bump on first scroll change ─────────────── */
 const nav = document.getElementById('nav');

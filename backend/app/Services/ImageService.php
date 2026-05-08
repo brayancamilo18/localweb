@@ -55,6 +55,50 @@ class ImageService
         $image->delete();
     }
 
+    /**
+     * Logo del negocio: WebP en `businesses/{id}/logo/{uuid}.webp`, máx. 400 px en el lado mayor.
+     *
+     * @param  UploadedFile|string  $file  Multipart o ruta absoluta en disco local (onboarding).
+     */
+    public function replaceBusinessLogo(UploadedFile|string $file, Business $business): void
+    {
+        $manager = new ImageManager(Driver::class);
+        $image = $this->decodeSource($manager, $file);
+
+        if ($image->width() > 400 || $image->height() > 400) {
+            $image = $image->scaleDown(width: 400, height: 400);
+        }
+
+        $encoded = $image->encodeUsingFileExtension('webp', 85);
+        $path = sprintf(
+            'businesses/%d/logo/%s.webp',
+            $business->id,
+            (string) Str::uuid()
+        );
+
+        /** @var FilesystemAdapter $disk */
+        $disk = Storage::disk('r2');
+        if ($business->logo_path) {
+            $disk->delete($business->logo_path);
+        }
+
+        $disk->put($path, $encoded->toString(), ['visibility' => 'public']);
+
+        $business->update(['logo_path' => $path]);
+    }
+
+    public function deleteBusinessLogo(Business $business): void
+    {
+        if (! $business->logo_path) {
+            return;
+        }
+
+        /** @var FilesystemAdapter $disk */
+        $disk = Storage::disk('r2');
+        $disk->delete($business->logo_path);
+        $business->update(['logo_path' => null]);
+    }
+
     public function reorder(Business $business, array $imageIds): void
     {
         DB::transaction(function () use ($business, $imageIds): void {

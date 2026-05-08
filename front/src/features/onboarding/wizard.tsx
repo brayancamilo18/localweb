@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from 'react'
 import { createPortal } from 'react-dom'
@@ -28,7 +29,11 @@ import {
 } from '../../components/primitives/primitives'
 import Step7Plan from './steps/Step7Plan'
 import { buildGoogleDirectionsUrl } from '../../lib/googleMapsDirectionsUrl'
-import { buildPublicVcardUrl, resolvePublicApiBaseUrl } from '../public-page/publicTemplatePayload'
+import {
+  buildPublicVcardUrl,
+  defaultSocialUrls,
+  resolvePublicApiBaseUrl,
+} from '../public-page/publicTemplatePayload'
 import { WizardNavContext, type WizardStepProps } from './wizardNavContext'
 
 // LocalWeb — Onboarding wizard (8 pasos)
@@ -44,6 +49,10 @@ const BORDER = "var(--lw-border)";
 
 type Step1PreviewVariant = 'noir-elite' | 'bloom-studio'
 type TemplatePreviewData = {
+  /** Data URL o URL absoluta del logo (solo navbar). */
+  logoUrl?: string
+  /** Escala visual del logo en la barra (≈0.55–1.35); 1 = tamaño base del diseño. */
+  logoScale?: number
   businessName?: string
   tagline?: string
   phone?: string
@@ -69,6 +78,10 @@ type TemplatePreviewData = {
   vcardEnabled?: boolean
   isProCustomer?: boolean
   customerSubdomain?: string
+  /** Opcional; vacío → URLs por defecto de la app en el pie. */
+  instagramUrl?: string
+  tiktokUrl?: string
+  facebookUrl?: string
 }
 
 /** Calidad orientativa para fotos de galería web (resolución). */
@@ -134,6 +147,28 @@ const TEMPLATE_URL_BY_VARIANT: Record<Step1PreviewVariant, string> = {
   'bloom-studio': '/templates/bloom-studio.html',
 }
 
+/** Texto de ejemplo para miniaturas y vista previa del paso 1 (sin portada, galería ni foto «Sobre nosotros»). */
+const STEP1_TEMPLATE_PREVIEW_DEMO_BY_VARIANT: Record<Step1PreviewVariant, TemplatePreviewData> = {
+  'noir-elite': {
+    businessName: 'Casa Lumen',
+    tagline: 'Lámparas y luminarias de diseño en el centro de Madrid',
+    description:
+      'Selección curada de piezas contemporáneas y clásicas renovadas, con asesoramiento para hogar y espacios comerciales.',
+    phone: '+34 910 00 11 22',
+  },
+  'bloom-studio': {
+    businessName: 'Salón Margarita',
+    tagline: 'Color, brillo y cuidado capilar con cita previa',
+    description:
+      'Equipo especializado en coloración, tratamientos de recuperación y cortes a medida en un salón tranquilo y luminoso.',
+    phone: '+34 913 00 44 55',
+  },
+}
+
+/** Iframe “thumb” del paso plantilla: documento renderizado a esta resolución y escalado al ancho real de la tarjeta. */
+const TEMPLATE_THUMB_DOC_W = 1280
+const TEMPLATE_THUMB_DOC_H = 760
+
 function resolveStep1PreviewVariant(template: Pick<Template, 'slug' | 'name'>, index = 0): Step1PreviewVariant {
   const slug = template.slug.toLowerCase()
   const name = template.name.toLowerCase()
@@ -163,11 +198,29 @@ function TemplateIframe({
 }) {
   const templatePath = TEMPLATE_URL_BY_VARIANT[variant]
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
+  const thumbWrapRef = useRef<HTMLDivElement | null>(null)
+  const [thumbScale, setThumbScale] = useState(0.25)
+
+  useLayoutEffect(() => {
+    if (mode !== 'thumb') return
+    const el = thumbWrapRef.current
+    if (!el) return
+    const update = () => {
+      const w = el.getBoundingClientRect().width
+      if (w > 0) setThumbScale(w / TEMPLATE_THUMB_DOC_W)
+    }
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [mode])
 
   const src = useMemo(() => {
     const params = new URLSearchParams()
     if (embed) params.set('embed', '1')
     if (previewData) params.set('preview', '1')
+    // El template usa parentOrigin para validar event.origin en su listener `message`.
+    if (typeof window !== 'undefined') params.set('parentOrigin', window.location.origin)
     const qs = params.size > 0 ? `?${params.toString()}` : ''
     const hash = initialHash
       ? initialHash.startsWith('#')
@@ -189,12 +242,21 @@ function TemplateIframe({
         lng: previewData.mapLng,
         address: previewData.address,
       })
+      const rawLogo = (previewData.logoUrl ?? '').trim()
+      /** Los blob: solo son válidos en el documento que los creó; el iframe es otro contexto. */
+      const logoUrlForIframe = rawLogo.startsWith('blob:') ? '' : rawLogo
+      const rawScale = Number(previewData.logoScale)
+      const logoScale =
+        Number.isFinite(rawScale) ? Math.min(1.5, Math.max(0.45, rawScale)) : 1
+      const socialDef = defaultSocialUrls()
       frame.contentWindow.postMessage(
         {
           type: 'lw:onboarding-preview',
           /** Solo en la carga del iframe: centrar la sección del paso (p. ej. #horario). */
           alignToHash: options?.alignToHash === true,
           payload: {
+            logo_url: logoUrlForIframe,
+            logo_scale: logoScale,
             nombre: previewData.businessName ?? '',
             tagline: previewData.tagline ?? '',
             telefono: previewData.phone ?? '',
@@ -217,9 +279,16 @@ function TemplateIframe({
             subdomain: sub,
             api_base_url: apiBase,
             vcard_download_url: vcardOn && sub ? buildPublicVcardUrl(apiBase, sub) : '',
+            instagram_url: (previewData.instagramUrl ?? '').trim() || socialDef.instagram,
+            tiktok_url: (previewData.tiktokUrl ?? '').trim() || socialDef.tiktok,
+            facebook_url: (previewData.facebookUrl ?? '').trim() || socialDef.facebook,
           },
         },
-        '*',
+        // targetOrigin: el iframe se sirve desde la misma carpeta `/templates/` del SPA,
+        // así que el origin del documento del iframe coincide con window.location.origin.
+        // Usamos la whitelist explícita en lugar de '*' para evitar que el navegador entregue
+        // este mensaje a un documento que se haya redirigido a otro origin.
+        window.location.origin,
       )
     },
     [previewData],
@@ -230,27 +299,41 @@ function TemplateIframe({
   }, [syncPreview])
 
   if (mode === 'thumb') {
+    const thumbAspectPct = (TEMPLATE_THUMB_DOC_H / TEMPLATE_THUMB_DOC_W) * 100
     return (
-      <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
-        <iframe
-          ref={iframeRef}
-          title={`Plantilla ${variant} portada`}
-          src={src}
-          onLoad={() => syncPreview({ alignToHash: true })}
-          sandbox="allow-scripts allow-popups allow-forms"
+      <div
+        ref={thumbWrapRef}
+        className="lw-template-thumb-wrap"
+        style={{ position: 'relative', width: '100%', overflow: 'hidden' }}
+      >
+        <div
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: 1280,
-            height: 760,
-            border: 'none',
-            transform: 'scale(0.245)',
-            transformOrigin: 'top left',
-            pointerEvents: 'none',
-            background: '#fff',
+            position: 'relative',
+            width: '100%',
+            height: 0,
+            paddingBottom: `${thumbAspectPct}%`,
           }}
-        />
+        >
+          <iframe
+            ref={iframeRef}
+            title={`Plantilla ${variant} portada`}
+            src={src}
+            onLoad={() => syncPreview({ alignToHash: true })}
+            sandbox="allow-scripts allow-popups allow-forms allow-same-origin"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: TEMPLATE_THUMB_DOC_W,
+              height: TEMPLATE_THUMB_DOC_H,
+              border: 'none',
+              transform: `scale(${thumbScale})`,
+              transformOrigin: 'top left',
+              pointerEvents: 'none',
+              background: '#fff',
+            }}
+          />
+        </div>
       </div>
     )
   }
@@ -261,7 +344,7 @@ function TemplateIframe({
       title={`Vista previa completa ${variant}`}
       src={src}
       onLoad={() => syncPreview({ alignToHash: true })}
-      sandbox="allow-scripts allow-popups allow-forms"
+      sandbox="allow-scripts allow-popups allow-forms allow-same-origin"
       style={{
         width: '100%',
         height: '100%',
@@ -284,22 +367,23 @@ function WizardHeader({ step }: { step: number }) {
   const isExtras = step === 9;
   const pct = isExtras ? 100 : (Math.min(step, 8) / steps.length) * 100;
   return (
-    <div style={{
-      borderBottom: `1px solid ${BORDER}`, background: "var(--lw-bg-elev)",
-      padding: "clamp(12px, 2vw, 16px) clamp(16px, 4vw, 32px)",
-    }}>
+    <div
+      className="lw-wizard-header"
+      style={{
+        borderBottom: `1px solid ${BORDER}`,
+        background: "var(--lw-bg-elev)",
+        padding: "clamp(12px, 2vw, 16px) clamp(16px, 4vw, 32px)",
+      }}
+    >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
         <Logo size={20}/>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <span style={{ fontSize: 12, color: "var(--lw-text-3)", fontWeight: 500 }}>
-            {isExtras ? (
-              <>Paso extra · <span style={{ color: "var(--lw-text)" }}>Configura tu Pro</span></>
-            ) : (
-              <>Paso <span style={{ color: "var(--lw-text)", fontVariantNumeric: "tabular-nums" }}>{step}</span> de 8</>
-            )}
-          </span>
-          <Btn kind="ghost" size="sm">Guardar y salir</Btn>
-        </div>
+        <span style={{ fontSize: 12, color: "var(--lw-text-3)", fontWeight: 500 }}>
+          {isExtras ? (
+            <>Paso extra · <span style={{ color: "var(--lw-text)" }}>Configura tu Pro</span></>
+          ) : (
+            <>Paso <span style={{ color: "var(--lw-text)", fontVariantNumeric: "tabular-nums" }}>{step}</span> de 8</>
+          )}
+        </span>
       </div>
       {/* progress bar */}
       <div style={{ height: 3, background: "var(--lw-surface)", borderRadius: 2, overflow: "hidden", marginBottom: 14 }}>
@@ -353,19 +437,61 @@ function WizardHeader({ step }: { step: number }) {
 }
 
 // ─── Wizard layout: split 52 / 48 ────────────────────────────
+const WIZARD_NARROW_PREVIEW_BP = "(max-width: 900px)";
+
+function subscribeWizardNarrowPreview(onChange: () => void) {
+  const mq = window.matchMedia(WIZARD_NARROW_PREVIEW_BP);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+
+function getWizardNarrowPreviewSnapshot() {
+  return window.matchMedia(WIZARD_NARROW_PREVIEW_BP).matches;
+}
+
 export function WizardLayout({
   step,
   children,
-  preview,
+  renderPreview,
+  previewTitle,
+  previewFocusDescription,
   footer,
 }: {
   step: number
   children: ReactNode
-  preview: ReactNode
+  /** Misma factoría que la vista en rail y en el modal (evita dos árboles desincronizados). */
+  renderPreview: () => ReactNode
+  /** Nombre de la plantilla en la cabecera del modal de vista completa. */
+  previewTitle: string
+  /** En viewport estrecho: texto del CTA y del modal (sección que enfoca la vista previa al abrirla). */
+  previewFocusDescription?: string
   footer?: ReactNode
 }) {
   const nav = useContext(WizardNavContext);
-  const [device, setDevice] = useState("desktop");
+  const [device, setDevice] = useState<"desktop" | "mobile">(() => {
+    if (typeof window === "undefined") return "desktop";
+    return window.matchMedia(WIZARD_NARROW_PREVIEW_BP).matches ? "mobile" : "desktop";
+  });
+  const narrowViewport = useSyncExternalStore(
+    subscribeWizardNarrowPreview,
+    getWizardNarrowPreviewSnapshot,
+    () => false,
+  );
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!previewModalOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPreviewModalOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [previewModalOpen]);
 
   const staticFooter = (
     <>
@@ -376,43 +502,181 @@ export function WizardLayout({
 
   const resolvedFooter = footer !== undefined && footer !== null ? footer : (nav?.footer ?? staticFooter);
 
+  const mobilePreviewCta = narrowViewport && step > 1;
+  const focusHint = (previewFocusDescription ?? "").trim();
+
+  /** En vista completa (modal) solo escritorio; en el panel lateral respeta `device`. */
+  const renderPreviewFrame = (placement: "rail" | "modal") => {
+    const effectiveDevice = placement === "modal" ? "desktop" : device;
+    return (
+      <div
+        style={{
+          /* Móvil: no ocupar todo el alto del rail con un bloque vacío (menos gris bajo el teléfono). */
+          flex: effectiveDevice === "mobile" ? "0 1 auto" : 1,
+          minHeight: 0,
+          display: "flex",
+          justifyContent: effectiveDevice === "mobile" ? "center" : "stretch",
+          /* Móvil: no estirar el marco en vertical (evita “bezel” inferior enorme al cargar logo / iframe). */
+          alignItems: "flex-start",
+          overflow: effectiveDevice === "mobile" ? "auto" : "hidden",
+        }}
+      >
+        {effectiveDevice === "mobile" ? (
+          <div className="lw-preview-phone-shell">
+            <div className="lw-preview-phone-notch" aria-hidden />
+            <div className="lw-preview-phone-screen">{renderPreview()}</div>
+          </div>
+        ) : (
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              minHeight: 0,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {renderPreview()}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className="lw-wizard-layout">
+    <div
+      className={`lw-wizard-layout${device === "mobile" ? " lw-wizard-layout--preview-mobile" : ""}${step === 1 ? " lw-wizard-layout--step1" : ""}${mobilePreviewCta ? " lw-wizard-layout--compact-preview-rail" : ""}`}
+    >
       <WizardHeader step={step}/>
       <div className="lw-wizard-split">
         {/* form */}
         <div className="lw-wizard-form lw-scroll">{children}</div>
         {/* preview */}
         <div className="lw-wizard-preview">
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span className="lw-small" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <Icon name="eye" size={13}/> Vista previa en tiempo real
-            </span>
-            <Segmented size="sm" value={device} onChange={setDevice} options={[
-              { value: "desktop", label: <Icon name="monitor" size={13}/> },
-              { value: "mobile",  label: <Icon name="smartphone" size={13}/> },
-            ]}/>
-          </div>
-          <div style={{
-            flex: 1, minHeight: 0,
-            display: "flex",
-            justifyContent: device === "mobile" ? "center" : "stretch",
-            alignItems: "flex-start",
-            overflow: "hidden",
-          }}>
-            <div style={{
-              width: device === "mobile" ? 320 : "100%",
-              maxWidth: "100%",
-              height: "100%",
-              minHeight: 0,
-            }}>{preview}</div>
-          </div>
+          {mobilePreviewCta ? (
+            <div className="lw-wizard-mobile-preview-cta">
+              <p className="lw-wizard-mobile-preview-cta-title">
+                <Icon name="eye" size={18} color="var(--lw-accent)" />
+                Vista previa
+              </p>
+              {focusHint ? (
+                <p className="lw-small lw-wizard-mobile-preview-cta-desc">{focusHint}</p>
+              ) : null}
+              <Btn
+                kind="primary"
+                size="md"
+                type="button"
+                fullWidth
+                iconRight="arrowRight"
+                onClick={() => setPreviewModalOpen(true)}
+              >
+                Ver mi página a pantalla completa
+              </Btn>
+            </div>
+          ) : (
+            <>
+              <div className="lw-wizard-preview-toolbar">
+                <span className="lw-small" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <Icon name="eye" size={13}/> Vista previa en tiempo real
+                </span>
+                <div className="lw-wizard-preview-toolbar-actions">
+                  <Btn
+                    kind="ghost"
+                    size="sm"
+                    type="button"
+                    onClick={() => setPreviewModalOpen(true)}
+                  >
+                    Vista completa
+                  </Btn>
+                  <Segmented
+                    size="sm"
+                    value={device}
+                    onChange={(v) => setDevice(v === "mobile" ? "mobile" : "desktop")}
+                    options={[
+                      { value: "desktop", label: <Icon name="monitor" size={13}/> },
+                      { value: "mobile", label: <Icon name="smartphone" size={13}/> },
+                    ]}
+                  />
+                </div>
+              </div>
+              {renderPreviewFrame("rail")}
+            </>
+          )}
         </div>
       </div>
       {/* footer */}
       <div className="lw-wizard-footer">
         {resolvedFooter}
       </div>
+      {previewModalOpen
+        ? createPortal(
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label={`Vista previa a pantalla completa: ${previewTitle}`}
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 9999,
+                background: "rgba(15, 23, 42, 0.55)",
+                backdropFilter: "blur(6px)",
+                display: "flex",
+                flexDirection: "column",
+                padding: "clamp(12px, 3vw, 24px)",
+              }}
+              onClick={() => setPreviewModalOpen(false)}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  marginBottom: 12,
+                  flexShrink: 0,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{previewTitle}</div>
+                  <div className="lw-small" style={{ color: "rgba(255,255,255,.75)", marginTop: 2 }}>
+                    {focusHint
+                      ? `${focusHint} Pulsa fuera o Esc para cerrar.`
+                      : "Vista a pantalla completa · Esc para cerrar"}
+                  </div>
+                </div>
+                <Btn
+                  kind="ghost"
+                  size="md"
+                  type="button"
+                  icon="x"
+                  onClick={() => setPreviewModalOpen(false)}
+                  style={{ color: "#fff" }}
+                >
+                  Cerrar
+                </Btn>
+              </div>
+              <div
+                className="lw-modal-preview"
+                style={{
+                  flex: 1,
+                  minHeight: 0,
+                  borderRadius: "var(--lw-r)",
+                  overflow: "hidden",
+                  border: "1px solid rgba(255,255,255,.2)",
+                  boxShadow: "0 24px 80px rgba(0,0,0,.35)",
+                  background: "#fff",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {renderPreviewFrame("modal")}
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }
@@ -423,20 +687,58 @@ const FALLBACK_TEMPLATES: Template[] = [
 ]
 
 // ─── Step 1 · Plantilla ──────────────────────────────────────
+const LOGO_SCALE_MIN = 0.55
+const LOGO_SCALE_MAX = 1.35
+
+function clampStep1LogoScale(n: number): number {
+  if (!Number.isFinite(n)) return 1
+  return Math.min(LOGO_SCALE_MAX, Math.max(LOGO_SCALE_MIN, n))
+}
+
 function Step1Plantilla({
   errors,
   isLoading: busy,
   templates = [],
   onTemplatePreviewChange,
-}: WizardStepProps & { templates?: Template[]; onTemplatePreviewChange?: (variant: Step1PreviewVariant) => void }) {
+  serverLogoPreviewUrl,
+  onStep1LogoPreviewChange,
+  logoScale,
+  onLogoScaleChange,
+}: WizardStepProps & {
+  templates?: Template[]
+  onTemplatePreviewChange?: (variant: Step1PreviewVariant) => void
+  /** Preview del logo (data URL o URL https; nunca blob: — el iframe no puede cargarlos). */
+  serverLogoPreviewUrl?: string
+  onStep1LogoPreviewChange?: (previewUrl: string | undefined) => void
+  logoScale?: number
+  onLogoScaleChange?: (scale: number) => void
+}) {
   const nav = useContext(WizardNavContext)
+  const logoInputRef = useRef<HTMLInputElement>(null)
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  /** Data URL para preview local + iframe (los blob: no son válidos en otro documento). */
+  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null)
+  const [pendingRemoveLogo, setPendingRemoveLogo] = useState(false)
   const list = useMemo(
     () => (templates.length > 0 ? templates : FALLBACK_TEMPLATES).slice(0, 2),
     [templates],
   )
   const [selectedId, setSelectedId] = useState<number | null>(list[0]?.id ?? null)
-  const [sector, setSector] = useState('peluqueria')
+  const signupSector = useMemo(() => {
+    try {
+      const raw = sessionStorage.getItem('lw_signup_prefill')
+      if (!raw?.trim()) return 'otros'
+      const parsed = JSON.parse(raw) as { sector?: unknown }
+      const s = parsed?.sector
+      if (typeof s === 'string' && s.trim()) return s.trim()
+      return 'otros'
+    } catch {
+      return 'otros'
+    }
+  }, [])
   const [fullscreen, setFullscreen] = useState<{ variant: Step1PreviewVariant; label: string } | null>(null)
+  const resolvedLogoScale = clampStep1LogoScale(logoScale ?? 1)
+  const [logoNatural, setLogoNatural] = useState<{ w: number; h: number } | null>(null)
 
   // Keep selection in sync when API data replaces cache/fallback (IDs in DB may not match stale template_id).
   useEffect(() => {
@@ -463,10 +765,12 @@ function Step1Plantilla({
   useLayoutEffect(() => {
     nav?.registerContinueHandler?.(() => ({
       template_id: selectedId ?? list[0]?.id ?? 1,
-      sector: sector.trim() || 'otros',
+      sector: signupSector,
+      logo: logoFile ?? undefined,
+      removeLogo: pendingRemoveLogo && !logoFile,
     }))
     return () => nav?.registerContinueHandler?.(null)
-  }, [nav, selectedId, sector, list])
+  }, [nav, selectedId, signupSector, list, logoFile, pendingRemoveLogo])
 
   useEffect(() => {
     const selected = list.find((t) => t.id === selectedId) ?? list[0]
@@ -474,6 +778,29 @@ function Step1Plantilla({
     const idx = Math.max(0, list.findIndex((t) => t.id === selected.id))
     onTemplatePreviewChange?.(resolveStep1PreviewVariant(selected, idx))
   }, [list, selectedId, onTemplatePreviewChange])
+
+  useEffect(() => {
+    const src = logoDataUrl ?? serverLogoPreviewUrl
+    if (!src?.trim()) {
+      setLogoNatural(null)
+      return
+    }
+    const img = new Image()
+    img.onload = () =>
+      setLogoNatural({
+        w: img.naturalWidth,
+        h: img.naturalHeight,
+      })
+    img.onerror = () => setLogoNatural(null)
+    img.src = src
+  }, [logoDataUrl, serverLogoPreviewUrl])
+
+  const logoUpscaleHint =
+    logoNatural &&
+    resolvedLogoScale > 1.02 &&
+    Math.min(logoNatural.w, logoNatural.h) < 180
+      ? 'Al aumentar el tamaño, una imagen de pocos píxeles puede verse menos nítida. Para máxima calidad usa PNG/WebP de al menos ~240–400 px en el lado mayor.'
+      : null
 
   return (
     <>
@@ -483,15 +810,135 @@ function Step1Plantilla({
           Empieza con un diseño hecho para tu sector. Podrás cambiarlo en cualquier momento, sin perder lo que ya hayas escrito.
         </p>
       </div>
-      <Field label="Sector" hint="Ej. peluquería, taller, bienestar…" error={errors?.sector}>
-        <Input
-          value={sector}
-          disabled={busy}
-          onChange={(e) => setSector(e.target.value)}
-          placeholder="peluqueria"
-        />
+      <Field
+        label="Logo del negocio (opcional)"
+        hint="Se muestra en la barra superior. Recomendado ≥240 px en el lado mayor para buena nitidez. JPG, PNG o WebP (máx. 2 MB)."
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+          <div
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: 12,
+              background: 'var(--lw-bg-elev)',
+              border: '1px solid var(--lw-border)',
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              fontSize: 11,
+              color: 'var(--lw-text-3)',
+              textAlign: 'center',
+              padding: 8,
+            }}
+          >
+            {logoDataUrl || serverLogoPreviewUrl ? (
+              <img
+                src={logoDataUrl ?? serverLogoPreviewUrl ?? ''}
+                alt=""
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  imageRendering: 'auto',
+                }}
+              />
+            ) : (
+              <span>Sin logo</span>
+            )}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <input
+              ref={logoInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const f = e.target.files?.[0]
+                if (!f) {
+                  return
+                }
+                setPendingRemoveLogo(false)
+                setLogoFile(f)
+                onLogoScaleChange?.(1)
+                const reader = new FileReader()
+                reader.onload = () => {
+                  const r = reader.result
+                  if (typeof r !== 'string') return
+                  setLogoDataUrl(r)
+                  onStep1LogoPreviewChange?.(r)
+                }
+                reader.readAsDataURL(f)
+              }}
+            />
+            <Btn type="button" size="sm" kind="outline" disabled={busy} onClick={() => logoInputRef.current?.click()}>
+              Subir logo
+            </Btn>
+            {logoDataUrl || serverLogoPreviewUrl ? (
+              <Btn
+                type="button"
+                size="sm"
+                kind="ghost"
+                disabled={busy}
+                onClick={() => {
+                  setLogoFile(null)
+                  setLogoDataUrl(null)
+                  setPendingRemoveLogo(true)
+                  if (logoInputRef.current) logoInputRef.current.value = ''
+                  onStep1LogoPreviewChange?.(undefined)
+                  onLogoScaleChange?.(1)
+                }}
+              >
+                Quitar logo
+              </Btn>
+            ) : null}
+          </div>
+        </div>
+        {logoDataUrl || serverLogoPreviewUrl ? (
+          <div style={{ marginTop: 14, maxWidth: 420 }}>
+            <div
+              className="lw-small"
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'baseline',
+                gap: 8,
+                marginBottom: 6,
+              }}
+            >
+              <span style={{ fontWeight: 600, color: 'var(--lw-text-2)' }}>Tamaño en la barra</span>
+              <span style={{ color: 'var(--lw-text-3)', fontVariantNumeric: 'tabular-nums' }}>
+                {Math.round(resolvedLogoScale * 100)}%
+              </span>
+            </div>
+            <input
+              type="range"
+              min={LOGO_SCALE_MIN}
+              max={LOGO_SCALE_MAX}
+              step={0.05}
+              value={resolvedLogoScale}
+              disabled={busy || !onLogoScaleChange}
+              onChange={(e) => onLogoScaleChange?.(clampStep1LogoScale(Number(e.target.value)))}
+              style={{ width: '100%', accentColor: 'var(--lw-accent)' }}
+              aria-valuemin={LOGO_SCALE_MIN}
+              aria-valuemax={LOGO_SCALE_MAX}
+              aria-valuenow={resolvedLogoScale}
+            />
+            <p className="lw-small" style={{ margin: '8px 0 0', color: 'var(--lw-text-3)', lineHeight: 1.45 }}>
+              Escala el hueco del logo en la navegación (como en la web publicada). El navegador usa interpolación
+              suavizada; evita subir mucho el tamaño si la imagen es muy pequeña.
+            </p>
+            {logoUpscaleHint ? (
+              <p className="lw-small" style={{ margin: '8px 0 0', color: 'var(--lw-warning)', lineHeight: 1.45 }}>
+                {logoUpscaleHint}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
       </Field>
       <div
+        className="lw-step1-template-grid"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 220px), 1fr))',
@@ -512,8 +959,11 @@ function Step1Plantilla({
                 boxShadow: isSel ? '0 0 0 3px var(--lw-accent-ring), var(--lw-shadow-1)' : 'var(--lw-shadow-1)',
               }}
             >
-              <div style={{ position: 'relative', height: 170, borderBottom: `1px solid ${BORDER}` }}>
-                <TemplateIframe variant={variant} mode="thumb" />
+              <div
+                className="lw-template-card-preview"
+                style={{ position: 'relative', width: '100%', borderBottom: `1px solid ${BORDER}` }}
+              >
+                <TemplateIframe variant={variant} mode="thumb" previewData={STEP1_TEMPLATE_PREVIEW_DEMO_BY_VARIANT[variant]} />
                 <div style={{ position: 'absolute', top: 8, left: 8 }}>
                   <Badge
                     tone={t.requires_pro ? 'pro' : 'success'}
@@ -678,15 +1128,31 @@ function PreviewBrowser({
   );
 }
 
-function TplPreview({ variant = 'noir-elite' }: { variant?: Step1PreviewVariant }) {
+function TplPreview({
+  variant = 'noir-elite',
+  previewData,
+}: {
+  variant?: Step1PreviewVariant
+  previewData?: TemplatePreviewData
+}) {
+  const mergedPreview = useMemo(
+    () => ({ ...STEP1_TEMPLATE_PREVIEW_DEMO_BY_VARIANT[variant], ...previewData }),
+    [variant, previewData],
+  )
   return (
     <PreviewBrowser url={variant === 'noir-elite' ? 'casa-lumen.localweb.es' : 'salon-margarita.localweb.es'}>
-      <TemplateIframe variant={variant} mode="full" embed />
+      <TemplateIframe variant={variant} mode="full" embed previewData={mergedPreview} />
     </PreviewBrowser>
   )
 }
 
 // ─── Step 2 · Portada ────────────────────────────────────────
+//
+// IMPORTANTE: este paso replica EXACTAMENTE el patrón de `Step3Sobre` para la subida de imagen
+// (el que funciona sin congelarse). Mismo `useState<string | null>` + `useEffect` con
+// `createObjectURL`/`revokeObjectURL` síncronos, mismo dropzone, mismo botón "Quitar"
+// superpuesto sobre la imagen. Sin URL gestionadas por el padre, sin probes, sin reset de input,
+// sin `useEffect` que reenvía `file` al padre. Si en otros pasos funciona, aquí también.
 function Step2Portada({
   errors,
   isLoading: busy,
@@ -703,27 +1169,16 @@ function Step2Portada({
   initialTagline?: string
 }) {
   const nav = useContext(WizardNavContext)
-  const fileRef = useRef<HTMLInputElement>(null)
+  const coverRef = useRef<HTMLInputElement>(null)
   const file = currentCoverFile ?? null
   const [businessName, setBusinessName] = useState(initialBusinessName)
   const [tagline, setTagline] = useState(initialTagline)
   const [coverThumbUrl, setCoverThumbUrl] = useState<string | null>(null)
-  const [coverMeta, setCoverMeta] = useState<{
-    width: number
-    height: number
-    ratio: number
-    ratioOk: boolean
-    minSizeOk: boolean
-  } | null>(null)
 
   useLayoutEffect(() => {
     nav?.registerContinueHandler?.(() => file as File)
     return () => nav?.registerContinueHandler?.(null)
   }, [nav, file])
-
-  useEffect(() => {
-    onCoverChange?.(file)
-  }, [file, onCoverChange])
 
   useEffect(() => {
     onBusinessMetaChange?.({
@@ -732,44 +1187,23 @@ function Step2Portada({
     })
   }, [businessName, tagline, onBusinessMetaChange])
 
+  // Mismo `useEffect` que Step3Sobre: crea la object URL, la guarda, revoca al cambiar/desmontar.
   useEffect(() => {
     if (!file) {
-      setCoverMeta(null)
       setCoverThumbUrl(null)
       return
     }
-
-    const objectUrl = URL.createObjectURL(file)
-    setCoverThumbUrl(objectUrl)
-    const img = new Image()
-    img.onload = () => {
-      const width = img.naturalWidth
-      const height = img.naturalHeight
-      const ratio = width / height
-      const targetRatio = 16 / 9
-      const ratioOk = Math.abs(ratio - targetRatio) <= 0.03
-      const minSizeOk = width >= 1200 && height >= 675
-
-      setCoverMeta({ width, height, ratio, ratioOk, minSizeOk })
-    }
-    img.onerror = () => {
-      setCoverMeta(null)
-    }
-    img.src = objectUrl
-
-    return () => {
-      URL.revokeObjectURL(objectUrl)
-    }
+    const u = URL.createObjectURL(file)
+    setCoverThumbUrl(u)
+    return () => URL.revokeObjectURL(u)
   }, [file])
-
-  const isCoverSuitable = coverMeta ? coverMeta.ratioOk && coverMeta.minSizeOk : null
 
   return (
     <>
       <div>
         <h1 className="lw-h2">Tu portada</h1>
         <p className="lw-body" style={{ marginTop: 6 }}>
-          Sube la foto principal de tu negocio. JPG o PNG, hasta 8 MB.
+          Sube la foto principal de tu negocio. JPG o PNG, hasta 8 MB. Recomendado 16:9 (p. ej. 1920×1080).
         </p>
       </div>
       <Field label="Nombre del negocio">
@@ -789,7 +1223,7 @@ function Step2Portada({
         />
       </Field>
       <input
-        ref={fileRef}
+        ref={coverRef}
         type="file"
         accept="image/jpeg,image/png,image/webp"
         style={{ display: 'none' }}
@@ -799,119 +1233,63 @@ function Step2Portada({
         <div
           role="button"
           tabIndex={0}
-          onClick={() => !busy && fileRef.current?.click()}
+          onClick={() => !busy && coverRef.current?.click()}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault()
-              fileRef.current?.click()
+              coverRef.current?.click()
             }
           }}
           style={{
             border: `1.5px dashed var(--lw-border-2)`,
             borderRadius: 'var(--lw-r)',
-            padding: 28,
+            padding: 0,
             background: 'var(--lw-bg-elev)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 10,
-            textAlign: 'center',
             cursor: busy ? 'not-allowed' : 'pointer',
             opacity: busy ? 0.6 : 1,
+            overflow: 'hidden',
           }}
         >
           {coverThumbUrl ? (
-            <div
-              style={{
-                width: '100%',
-                borderRadius: 'var(--lw-r-sm)',
-                overflow: 'hidden',
-                border: `1px solid ${BORDER}`,
-                background: '#0b1220',
-              }}
-            >
+            <div style={{ position: 'relative', width: '100%' }}>
               <img
                 src={coverThumbUrl}
                 alt="Vista previa de portada seleccionada"
-                style={{
-                  width: '100%',
-                  height: 170,
-                  objectFit: 'cover',
-                  display: 'block',
-                }}
+                style={{ width: '100%', height: 220, objectFit: 'cover', display: 'block' }}
               />
+              <Btn
+                kind="ghost"
+                size="sm"
+                icon="trash"
+                type="button"
+                disabled={busy}
+                style={{
+                  position: 'absolute',
+                  top: 10,
+                  right: 10,
+                  color: '#fff',
+                  background: 'rgba(15,23,42,.65)',
+                }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onCoverChange?.(null)
+                }}
+              >
+                Quitar
+              </Btn>
             </div>
-          ) : null}
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 999,
-              background: 'var(--lw-accent-soft)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--lw-accent)',
-            }}
-          >
-            <Icon name="upload" size={18} />
-          </div>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 500 }}>
-              Pulsa para elegir archivo
-              <span style={{ color: ACCENT, textDecoration: 'underline' }}> · portada 16:9</span>
+          ) : (
+            <div style={{ padding: 28, textAlign: 'center' }}>
+              <Icon name="upload" size={22} />
+              <div style={{ fontSize: 14, fontWeight: 500, marginTop: 8 }}>
+                Pulsa para elegir foto de portada
+                <span style={{ color: ACCENT, textDecoration: 'underline' }}> · 16:9</span>
+              </div>
+              <div className="lw-small" style={{ marginTop: 4 }}>
+                JPG o PNG · recomendado 1920 × 1080
+              </div>
             </div>
-            <div className="lw-small" style={{ marginTop: 4 }}>
-              {file ? file.name : 'Ningún archivo seleccionado'}
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
-            {coverMeta ? (
-              <>
-                <Badge tone="neutral" size="sm">
-                  {coverMeta.width} × {coverMeta.height}
-                </Badge>
-                <Badge tone="neutral" size="sm">
-                  {coverMeta.ratio.toFixed(2)}:1
-                </Badge>
-                <Badge tone={isCoverSuitable ? 'success' : 'pro'} size="sm">
-                  {isCoverSuitable ? 'Apta para portada' : 'No apta (usa 16:9)'}
-                </Badge>
-              </>
-            ) : (
-              <>
-                <Badge tone="neutral" size="sm">
-                  Recomendado: 1920 × 1080
-                </Badge>
-                <Badge tone="neutral" size="sm">
-                  Formato: 16:9
-                </Badge>
-              </>
-            )}
-          </div>
-          {coverMeta ? (
-            <div className="lw-small" style={{ color: isCoverSuitable ? 'var(--lw-success)' : 'var(--lw-danger)' }}>
-              {isCoverSuitable
-                ? 'La imagen encaja bien para portada.'
-                : 'La imagen no cumple 16:9 o es muy pequeña (mínimo 1200×675).'}
-            </div>
-          ) : null}
-          {file ? (
-            <Btn
-              kind="ghost"
-              size="sm"
-              icon="trash"
-              type="button"
-              disabled={busy}
-              style={{ color: 'var(--lw-danger)' }}
-              onClick={(e) => {
-                e.stopPropagation()
-                onCoverChange?.(null)
-              }}
-            >
-              Quitar foto
-            </Btn>
-          ) : null}
+          )}
         </div>
       </Field>
       {errors?.message ? (
@@ -1114,10 +1492,17 @@ function Step3Sobre({
   )
 }
 
+/** Resultado del paso 4 para `goNext`: borrador (todas las fotos) o solo nuevas tras Pro (append en BD). */
+export type Step4ContinueResult = File[] | { __step4Append: true; newPhotos: File[] }
+
 // ─── Step 4 · Galería (con upsell Free → Pro) ────────────────
 function Step4Galeria({
   pro = false,
   postCheckoutProBanner,
+  galleryAppendMode = false,
+  existingPhotoUrls = [],
+  newPhotos = [],
+  onNewPhotosChange,
   errors,
   isLoading: busy,
   photos,
@@ -1127,7 +1512,15 @@ function Step4Galeria({
   pro?: boolean
   /** Tras volver de Stripe Pro: mensaje de celebración y límite ampliado. */
   postCheckoutProBanner?: boolean
-  /** Estado elevado: se mantiene al ir al siguiente paso y volver atrás. */
+  /**
+   * Modo append: la galería ya está en R2/`business_images`. `existingPhotoUrls` son solo vista;
+   * solo `newPhotos` se envían en step4.
+   */
+  galleryAppendMode?: boolean
+  existingPhotoUrls?: string[]
+  newPhotos?: File[]
+  onNewPhotosChange?: (files: File[]) => void
+  /** Modo borrador (pre-business): todas las fotos en un solo array. */
   photos: File[]
   onPhotosChange: (files: File[]) => void
   onGalleryPreviewUrlsChange?: (urls: string[]) => void
@@ -1138,37 +1531,63 @@ function Step4Galeria({
   const [thumbUrls, setThumbUrls] = useState<string[]>([])
   const [qualities, setQualities] = useState<GalleryImageQuality[]>([])
 
+  const existingCount = galleryAppendMode ? existingPhotoUrls.length : 0
+  const localFiles = galleryAppendMode ? (newPhotos ?? []) : photos
+  const totalCount = existingCount + localFiles.length
+
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const urls = await filesToDataUrls(photos)
-      if (!cancelled) {
-        setThumbUrls(urls)
-        onGalleryPreviewUrlsChange?.(urls)
+      if (galleryAppendMode) {
+        const newThumbs = await filesToDataUrls(newPhotos ?? [])
+        if (!cancelled) {
+          setThumbUrls([...(existingPhotoUrls ?? []), ...newThumbs])
+          onGalleryPreviewUrlsChange?.([])
+        }
+      } else {
+        const urls = await filesToDataUrls(photos)
+        if (!cancelled) {
+          setThumbUrls(urls)
+          onGalleryPreviewUrlsChange?.(urls)
+        }
       }
     })()
     return () => {
       cancelled = true
     }
-  }, [photos, onGalleryPreviewUrlsChange])
+  }, [galleryAppendMode, existingPhotoUrls, newPhotos, photos, onGalleryPreviewUrlsChange])
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const scores = await Promise.all(photos.map((f) => evaluateGalleryImageQuality(f)))
+      const scores = await Promise.all(localFiles.map((f) => evaluateGalleryImageQuality(f)))
       if (!cancelled) setQualities(scores.map((s) => s.quality))
     })()
     return () => {
       cancelled = true
     }
-  }, [photos])
+  }, [localFiles])
 
   useLayoutEffect(() => {
+    if (galleryAppendMode) {
+      nav?.registerContinueHandler?.(
+        () => ({ __step4Append: true as const, newPhotos: newPhotos ?? [] }) satisfies Step4ContinueResult,
+      )
+      return () => nav?.registerContinueHandler?.(null)
+    }
     nav?.registerContinueHandler?.(() => photos)
     return () => nav?.registerContinueHandler?.(null)
-  }, [nav, photos])
+  }, [nav, galleryAppendMode, newPhotos, photos])
 
-  const removeAt = (idx: number) => onPhotosChange(photos.filter((_, i) => i !== idx))
+  const removeAt = (idx: number) => {
+    if (galleryAppendMode) {
+      if (idx < existingCount) return
+      const j = idx - existingCount
+      onNewPhotosChange?.((newPhotos ?? []).filter((_, i) => i !== j))
+      return
+    }
+    onPhotosChange(photos.filter((_, i) => i !== idx))
+  }
 
   const qualityBadge = (q: GalleryImageQuality | undefined) => {
     if (!q) return null
@@ -1226,10 +1645,16 @@ function Step4Galeria({
           </p>
         </div>
         <div className="lw-small" style={{ whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
-          <span style={{ color: 'var(--lw-text)', fontWeight: 600 }}>{photos.length}</span>
+          <span style={{ color: 'var(--lw-text)', fontWeight: 600 }}>{totalCount}</span>
           <span> de {slots} fotos</span>
         </div>
       </div>
+
+      {galleryAppendMode ? (
+        <p className="lw-small" style={{ marginTop: -8, color: 'var(--lw-text-3)' }}>
+          Las fotos que ya estaban en tu web se muestran arriba; solo las nuevas se suben al continuar.
+        </p>
+      ) : null}
 
       {!pro && (
         <div
@@ -1251,9 +1676,6 @@ function Step4Galeria({
               Una galería más rica convierte mejor las visitas.
             </div>
           </div>
-          <Btn size="sm" kind="dark" iconRight="arrowRight" type="button">
-            Mejorar a Pro
-          </Btn>
         </div>
       )}
 
@@ -1264,62 +1686,121 @@ function Step4Galeria({
         multiple
         style={{ display: 'none' }}
         onChange={(e) => {
-          const next = [...photos, ...(Array.from(e.target.files ?? []) as File[])].slice(0, slots)
-          onPhotosChange(next)
+          const picked = Array.from(e.target.files ?? []) as File[]
+          const room = Math.max(0, slots - existingCount)
+          const nextLocal = [...localFiles, ...picked].slice(0, room)
+          if (galleryAppendMode) {
+            onNewPhotosChange?.(nextLocal)
+          } else {
+            onPhotosChange(nextLocal)
+          }
           e.target.value = ''
         }}
       />
 
       <Field error={errors?.photos}>
-        <Btn kind="outline" type="button" disabled={busy || photos.length >= slots} onClick={() => galleryRef.current?.click()}>
+        <Btn
+          kind="outline"
+          type="button"
+          disabled={busy || totalCount >= slots}
+          onClick={() => galleryRef.current?.click()}
+        >
           Añadir fotos
         </Btn>
       </Field>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-        {photos.map((file, i) => (
-          <div key={`gal-${i}-${file.lastModified}-${file.name}`} style={{ position: 'relative' }}>
-            <div
-              style={{
-                aspectRatio: '1/1',
-                borderRadius: 'var(--lw-r-sm)',
-                overflow: 'hidden',
-                border: `1px solid var(--lw-border)`,
-                background: 'var(--lw-bg-elev)',
-              }}
-            >
-              {thumbUrls[i] ? (
-                <img src={thumbUrls[i]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              ) : (
-                <Placeholder ratio="1:1" label={file.name.slice(0, 12)} />
-              )}
+      <div className="lw-wizard-gallery-grid">
+        {galleryAppendMode
+          ? (existingPhotoUrls ?? []).map((url, i) => (
+              <div key={`gal-existing-${i}-${url.slice(-24)}`} style={{ position: 'relative' }}>
+                <div
+                  style={{
+                    aspectRatio: '1/1',
+                    borderRadius: 'var(--lw-r-sm)',
+                    overflow: 'hidden',
+                    border: `1px solid var(--lw-border)`,
+                    background: 'var(--lw-bg-elev)',
+                  }}
+                >
+                  <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                </div>
+                <button
+                  type="button"
+                  title="Ya publicadas · gestiona la galería desde el panel cuando termines"
+                  disabled
+                  aria-label="Foto ya en tu web"
+                  style={{
+                    position: 'absolute',
+                    top: 6,
+                    right: 6,
+                    width: 28,
+                    height: 28,
+                    borderRadius: 999,
+                    background: 'rgba(15,23,42,.45)',
+                    color: '#fff',
+                    border: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'not-allowed',
+                    opacity: 0.85,
+                  }}
+                >
+                  <Icon name="lock" size={12} />
+                </button>
+              </div>
+            ))
+          : null}
+        {localFiles.map((file, i) => {
+          const gridIndex = existingCount + i
+          return (
+            <div key={`gal-${gridIndex}-${file.lastModified}-${file.name}`} style={{ position: 'relative' }}>
+              <div
+                style={{
+                  aspectRatio: '1/1',
+                  borderRadius: 'var(--lw-r-sm)',
+                  overflow: 'hidden',
+                  border: `1px solid var(--lw-border)`,
+                  background: 'var(--lw-bg-elev)',
+                }}
+              >
+                {thumbUrls[gridIndex] ? (
+                  <img
+                    src={thumbUrls[gridIndex]}
+                    alt=""
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                ) : (
+                  <Placeholder ratio="1:1" label={file.name.slice(0, 12)} />
+                )}
+              </div>
+              {qualityBadge(qualities[i])}
+              <button
+                type="button"
+                aria-label="Quitar foto"
+                style={{
+                  position: 'absolute',
+                  top: 6,
+                  right: 6,
+                  width: 28,
+                  height: 28,
+                  borderRadius: 999,
+                  background: 'rgba(15,23,42,.75)',
+                  color: '#fff',
+                  border: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                }}
+                onClick={() => removeAt(gridIndex)}
+              >
+                <Icon name="x" size={12} />
+              </button>
             </div>
-            {qualityBadge(qualities[i])}
-            <button
-              type="button"
-              aria-label="Quitar foto"
-              style={{
-                position: 'absolute',
-                top: 6,
-                right: 6,
-                width: 28,
-                height: 28,
-                borderRadius: 999,
-                background: 'rgba(15,23,42,.75)',
-                color: '#fff',
-                border: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-              }}
-              onClick={() => removeAt(i)}
-            >
-              <Icon name="x" size={12} />
-            </button>
-          </div>
-        ))}
-        {Array.from({ length: Math.max(0, Math.min(slots, 9) - photos.length) }).map((_, i) => (
+          )
+        })}
+        {Array.from({ length: Math.max(0, Math.min(slots, 9) - totalCount) }).map((_, i) => (
           <div
             key={`empty-${i}`}
             style={{
@@ -1485,17 +1966,7 @@ function Step5Horarios({
 
       <Field error={errors?.schedule} hint="Horas en una fila; el interruptor marca si abre ese día.">
         <Card padding={0}>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '92px 1fr auto',
-              alignItems: 'center',
-              gap: 8,
-              padding: '6px 12px',
-              background: 'var(--lw-surface)',
-              borderBottom: `1px solid ${BORDER}`,
-            }}
-          >
+          <div className="lw-schedule-table-header">
             <span className="lw-small" style={{ fontWeight: 600, color: 'var(--lw-text-3)', fontSize: 11 }}>
               Día
             </span>
@@ -1510,7 +1981,7 @@ function Step5Horarios({
               Abierto
             </span>
           </div>
-          {DAY_KEYS.map((key, i) => {
+          {DAY_KEYS.map((key) => {
             const row = schedule[key]
             const label = DAY_LABEL_ES[key]
             const timeInputStyle = {
@@ -1521,17 +1992,7 @@ function Step5Horarios({
               cursor: 'pointer' as const,
             }
             return (
-              <div
-                key={key}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '92px 1fr auto',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '6px 12px',
-                  borderBottom: i < DAY_KEYS.length - 1 ? `1px solid ${BORDER}` : 'none',
-                }}
-              >
+              <div key={key} className="lw-schedule-day-row">
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--lw-text)' }}>{label}</div>
                 {row.closed ? (
                   <div className="lw-small" style={{ color: 'var(--lw-text-4)', fontSize: 12 }}>
@@ -1556,6 +2017,7 @@ function Step5Horarios({
                       onChange={(e) =>
                         onScheduleChange({ ...schedule, [key]: { ...schedule[key], open: e.target.value } })
                       }
+                      className="lw-schedule-time-field"
                       style={timeInputStyle}
                     />
                     <span style={{ color: 'var(--lw-text-4)', fontSize: 13, userSelect: 'none' }} aria-hidden>
@@ -1571,6 +2033,7 @@ function Step5Horarios({
                       onChange={(e) =>
                         onScheduleChange({ ...schedule, [key]: { ...schedule[key], close: e.target.value } })
                       }
+                      className="lw-schedule-time-field"
                       style={timeInputStyle}
                     />
                   </div>
@@ -1616,6 +2079,14 @@ function HorariosPreview({
 }
 
 // ─── Step 6 · Ubicación ──────────────────────────────────────
+//
+// IMPORTANTE: este paso es 100% controlado.
+// La fuente de verdad de `address`, `phone` y `email` está en el padre
+// (`OnboardingPage`: `previewAddress`, `previewPhone`, `previewEmail`).
+//
+// Antes manteníamos estado local + sincronización bidireccional con las props
+// `initial*`. Esa duplicidad genera un feedback loop (parent->child->parent)
+// y al pulsar dos teclas seguidas cae en `Maximum update depth exceeded`.
 function Step6Ubicacion({
   errors,
   isLoading: busy,
@@ -1641,51 +2112,47 @@ function Step6Ubicacion({
   mapLng?: number
 }) {
   const nav = useContext(WizardNavContext)
-  const [address, setAddress] = useState(initialAddress)
-  const [phone, setPhone] = useState(initialPhone)
-  const [email, setEmail] = useState(initialEmail)
+  // El nombre `initialAddress`/`initialPhone`/`initialEmail` se mantiene por compatibilidad,
+  // pero aquí los tratamos como las props controladas (`address`, `phone`, `email`).
+  const address = initialAddress
+  const phone = initialPhone
+  const email = initialEmail
   const [geocodedLabel, setGeocodedLabel] = useState('')
   const [geoBusy, setGeoBusy] = useState(false)
   const [geoMessage, setGeoMessage] = useState<string | null>(null)
 
+  // Mantenemos refs siempre con el último valor para que el handler de "Continuar"
+  // (que se registra una sola vez con [nav]) lea siempre los valores frescos.
+  const addressRef = useRef(address)
+  const phoneRef = useRef(phone)
+  const emailRef = useRef(email)
+  useEffect(() => {
+    addressRef.current = address
+  }, [address])
+  useEffect(() => {
+    phoneRef.current = phone
+  }, [phone])
+  useEffect(() => {
+    emailRef.current = email
+  }, [email])
+
   useLayoutEffect(() => {
     nav?.registerContinueHandler?.(() => ({
-      address: address.trim(),
-      phone: phone.trim(),
-      email: email.trim(),
+      address: addressRef.current.trim(),
+      phone: phoneRef.current.trim(),
+      email: emailRef.current.trim(),
     }))
     return () => nav?.registerContinueHandler?.(null)
-  }, [nav, address, phone, email])
+  }, [nav])
 
   useEffect(() => {
-    onPhoneChange?.(phone.trim() || undefined)
-  }, [phone, onPhoneChange])
-
-  useEffect(() => {
-    onAddressChange?.(address.trim() || undefined)
-  }, [address, onAddressChange])
-
-  useEffect(() => {
-    onEmailChange?.(email.trim() || undefined)
-  }, [email, onEmailChange])
-
-  useEffect(() => {
-    setAddress(initialAddress)
-  }, [initialAddress])
-
-  useEffect(() => {
-    setPhone(initialPhone)
-  }, [initialPhone])
-
-  useEffect(() => {
-    setEmail(initialEmail)
-  }, [initialEmail])
-
-  useEffect(() => {
-    if (Number.isFinite(mapLat) && Number.isFinite(mapLng) && initialAddress.trim()) {
-      setGeocodedLabel(initialAddress.trim())
+    if (Number.isFinite(mapLat) && Number.isFinite(mapLng) && address.trim()) {
+      setGeocodedLabel((prev) => (prev === address.trim() ? prev : address.trim()))
     }
-  }, [initialAddress, mapLat, mapLng])
+    // Solo nos interesa volver a marcar `geocodedLabel` si el padre nos pasa
+    // coords nuevas con una dirección concreta. No dependemos de `address` aquí
+    // para no resetearlo cada tecla.
+  }, [mapLat, mapLng, address])
 
   useEffect(() => {
     if (!geocodedLabel) return
@@ -1695,8 +2162,29 @@ function Step6Ubicacion({
     }
   }, [address, geocodedLabel, onMapCoordsChange])
 
+  const handleAddressInput = useCallback(
+    (next: string) => {
+      onAddressChange?.(next ? next : undefined)
+    },
+    [onAddressChange],
+  )
+
+  const handlePhoneInput = useCallback(
+    (next: string) => {
+      onPhoneChange?.(next ? next : undefined)
+    },
+    [onPhoneChange],
+  )
+
+  const handleEmailInput = useCallback(
+    (next: string) => {
+      onEmailChange?.(next ? next : undefined)
+    },
+    [onEmailChange],
+  )
+
   const runAddressSearch = useCallback(async () => {
-    const q = address.trim()
+    const q = addressRef.current.trim()
     if (!q) {
       setGeoMessage('Escribe una dirección o lugar.')
       return
@@ -1720,7 +2208,7 @@ function Step6Ubicacion({
     } finally {
       setGeoBusy(false)
     }
-  }, [address, onMapCoordsChange])
+  }, [onMapCoordsChange])
 
   return (
     <>
@@ -1735,11 +2223,11 @@ function Step6Ubicacion({
         error={errors?.address}
         hint="Escribe tu dirección y pulsa «Buscar» para situarla en el mapa. Puedes cambiarla cuando quieras."
       >
-        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+        <div className="lw-wizard-address-row" style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
           <Input
             value={address}
             disabled={busy}
-            onChange={(e) => setAddress(e.target.value)}
+            onChange={(e) => handleAddressInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault()
@@ -1754,6 +2242,7 @@ function Step6Ubicacion({
             type="button"
             kind="outline"
             size="sm"
+            className="lw-wizard-address-search-btn"
             disabled={busy || geoBusy}
             loading={geoBusy}
             onClick={() => void runAddressSearch()}
@@ -1795,12 +2284,12 @@ function Step6Ubicacion({
           lng={mapLng}
         />
       </Card>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+      <div className="lw-wizard-two-col">
         <Field label="Teléfono" error={errors?.phone}>
           <Input
             value={phone}
             disabled={busy}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => handlePhoneInput(e.target.value)}
             prefix={<Icon name="phone" size={14} />}
             placeholder="+34 …"
           />
@@ -1809,7 +2298,7 @@ function Step6Ubicacion({
           <Input
             value={email}
             disabled={busy}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => handleEmailInput(e.target.value)}
             prefix={<Icon name="mail" size={14} />}
             placeholder="hola@…"
           />
@@ -1842,110 +2331,12 @@ function PlanPreview({
   variant?: Step1PreviewVariant
   previewData?: TemplatePreviewData
 }) {
-  const [fullscreen, setFullscreen] = useState(false)
   const previewUrl = variant === 'noir-elite' ? 'casa-lumen.localweb.es' : 'salon-margarita.localweb.es'
 
-  useEffect(() => {
-    if (!fullscreen) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setFullscreen(false)
-    }
-    window.addEventListener('keydown', onKey)
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      window.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prev
-    }
-  }, [fullscreen])
-
   return (
-    <>
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%',
-          minHeight: 0,
-          gap: 8,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexShrink: 0 }}>
-          <span className="lw-small" style={{ color: 'var(--lw-text-3)' }}>
-            Vista completa con todo lo que has configurado
-          </span>
-          <Btn type="button" size="sm" kind="outline" icon="monitor" onClick={() => setFullscreen(true)}>
-            Pantalla completa
-          </Btn>
-        </div>
-        <div style={{ flex: 1, minHeight: 0 }}>
-          <PreviewBrowser url={previewUrl}>
-            <TemplateIframe variant={variant} mode="full" embed previewData={previewData} initialHash="" />
-          </PreviewBrowser>
-        </div>
-      </div>
-      {fullscreen
-        ? createPortal(
-            <div
-              role="dialog"
-              aria-modal="true"
-              aria-label="Vista previa de tu web a pantalla completa"
-              style={{
-                position: 'fixed',
-                inset: 0,
-                zIndex: 9999,
-                background: 'rgba(15, 23, 42, 0.55)',
-                backdropFilter: 'blur(6px)',
-                display: 'flex',
-                flexDirection: 'column',
-                padding: 'clamp(12px, 3vw, 24px)',
-              }}
-              onClick={() => setFullscreen(false)}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                  marginBottom: 12,
-                  flexShrink: 0,
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>Tu web · revisión final</div>
-                  <div className="lw-small" style={{ color: 'rgba(255,255,255,.75)', marginTop: 2 }}>
-                    Desplázate por todas las secciones · Esc para cerrar
-                  </div>
-                </div>
-                <Btn kind="ghost" size="md" type="button" icon="x" onClick={() => setFullscreen(false)} style={{ color: '#fff' }}>
-                  Cerrar
-                </Btn>
-              </div>
-              <div
-                style={{
-                  flex: 1,
-                  minHeight: 0,
-                  borderRadius: 'var(--lw-r)',
-                  overflow: 'hidden',
-                  border: '1px solid rgba(255,255,255,.2)',
-                  boxShadow: '0 24px 80px rgba(0,0,0,.35)',
-                  background: '#fff',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <PreviewBrowser url={previewUrl}>
-                  <TemplateIframe variant={variant} mode="full" embed={false} previewData={previewData} initialHash="" />
-                </PreviewBrowser>
-              </div>
-            </div>,
-            document.body,
-          )
-        : null}
-    </>
+    <PreviewBrowser url={previewUrl}>
+      <TemplateIframe variant={variant} mode="full" embed previewData={previewData} initialHash="" />
+    </PreviewBrowser>
   )
 }
 

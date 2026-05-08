@@ -8,7 +8,6 @@ use App\Models\PageVisit;
 use App\Services\BusinessService;
 use App\Services\GeocodingService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class BusinessController extends BaseApiController
 {
@@ -38,7 +37,7 @@ class BusinessController extends BaseApiController
     {
         $business = $request->user()->business;
 
-        foreach (['google_maps_url', 'google_business_url', 'booking_url'] as $field) {
+        foreach (['google_maps_url', 'google_business_url', 'booking_url', 'instagram_url', 'tiktok_url', 'facebook_url'] as $field) {
             if (! $request->has($field)) {
                 continue;
             }
@@ -61,9 +60,12 @@ class BusinessController extends BaseApiController
             'address' => ['nullable', 'string'],
             'template_id' => ['nullable', 'integer'],
             'schedule' => ['nullable', 'array'],
-            'google_maps_url' => ['nullable', 'string', 'max:500', 'regex:#^https?://.+#i'],
-            'google_business_url' => ['nullable', 'string', 'max:500', 'regex:#^https?://.+#i'],
-            'booking_url' => ['nullable', 'string', 'max:500', 'regex:#^https?://.+#i'],
+            'google_maps_url' => ['nullable', 'string', 'max:2048', 'regex:#^https?://.+#i'],
+            'google_business_url' => ['nullable', 'string', 'max:2048', 'regex:#^https?://.+#i'],
+            'booking_url' => ['nullable', 'string', 'max:2048', 'regex:#^https?://.+#i'],
+            'instagram_url' => ['nullable', 'string', 'max:2048', 'regex:#^https?://.+#i'],
+            'tiktok_url' => ['nullable', 'string', 'max:2048', 'regex:#^https?://.+#i'],
+            'facebook_url' => ['nullable', 'string', 'max:2048', 'regex:#^https?://.+#i'],
             'vcard_enabled' => ['sometimes', 'boolean'],
         ]);
 
@@ -76,8 +78,8 @@ class BusinessController extends BaseApiController
             }
         }
 
+        // BusinessObserver invalida public_page:{subdomain} en saved.
         $updated = $service->update($business, $data);
-        Cache::forget("public_page:{$updated->subdomain}");
         $updated->load(['template', 'services', 'images' => fn ($q) => $q->ordered()]);
 
         return $this->success(new BusinessResource($updated));

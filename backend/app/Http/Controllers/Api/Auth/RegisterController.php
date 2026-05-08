@@ -24,6 +24,8 @@ class RegisterController extends BaseApiController
             'password' => $data['password'],
         ]);
 
+        $user->sendEmailVerificationNotification();
+
         $token = $user->createToken('lw-spa', ['*'], now()->addDays(90))->plainTextToken;
 
         return $this->success([

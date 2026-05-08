@@ -28,10 +28,16 @@ export default function MiPagina() {
   const wa = pro ? stats.whatsapp_clicks : business.stats?.whatsapp_click
   const ph = pro ? stats.phone_clicks : business.stats?.phone_click
 
-  const publicUrl =
-    typeof window !== 'undefined' && business.subdomain
-      ? `${window.location.origin}/${business.subdomain}`
-      : ''
+  const publicPageHost = import.meta.env.VITE_PUBLIC_PAGE_HOST ?? 'localweb.es'
+  const canonicalPublicUrl = business.subdomain ? `https://${business.subdomain}.${publicPageHost}` : ''
+  const devReachableUrl =
+    typeof window !== 'undefined' && business.subdomain ? `${window.location.origin}/${business.subdomain}` : ''
+  const localHost =
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  // En local (localhost), el wildcard DNS de subdominios no existe por defecto.
+  // Mostramos una URL que sí carga aquí y mantenemos la canónica para producción.
+  const publicUrl = localHost ? devReachableUrl : canonicalPublicUrl
 
   const copyPublicUrl = useCallback(async () => {
     if (!publicUrl) return
@@ -99,7 +105,7 @@ export default function MiPagina() {
           iconRight="arrowUpRight"
           type="button"
           onClick={() => {
-            if (sub) window.open(`/${sub}`, '_blank', 'noopener,noreferrer')
+            if (publicUrl) window.open(publicUrl, '_blank', 'noopener,noreferrer')
           }}
         >
           Ver mi página

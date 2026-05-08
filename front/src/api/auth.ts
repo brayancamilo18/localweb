@@ -29,3 +29,11 @@ export async function me(): Promise<{ user: User; business: Business | null }> {
   const response = await apiClient.get<ApiResponse<{ user: User; business: Business | null }>>('/auth/me')
   return response.data.data
 }
+
+export async function resendEmailVerification(): Promise<{ message: string; alreadyVerified: boolean }> {
+  const response = await apiClient.post<{ message: string }>('/auth/email/verification-notification')
+  return {
+    message: response.data?.message ?? '',
+    alreadyVerified: response.status === 200,
+  }
+}

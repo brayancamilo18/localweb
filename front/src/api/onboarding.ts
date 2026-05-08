@@ -12,8 +12,24 @@ export async function getStatus(): Promise<OnboardingStatus> {
   return response.data.data
 }
 
-export async function step1(data: { template_id: number; sector: string }): Promise<StepResponse> {
-  const response = await apiClient.post<ApiResponse<StepResponse>>('/onboarding/step/1', data)
+export async function step1(data: {
+  template_id: number
+  sector: string
+  logo?: File | null
+  removeLogo?: boolean
+}): Promise<StepResponse> {
+  const formData = new FormData()
+  formData.append('template_id', String(data.template_id))
+  formData.append('sector', data.sector)
+  if (data.removeLogo) {
+    formData.append('remove_logo', '1')
+  }
+  if (data.logo) {
+    const ready = await compressImageForUpload(data.logo, { maxSide: 1600, quality: 0.88 })
+    formData.append('logo', ready)
+  }
+
+  const response = await apiClient.post<ApiResponse<StepResponse>>('/onboarding/step/1', formData)
   return response.data.data
 }
 
@@ -52,9 +68,11 @@ export async function step3(data: {
 }
 
 export async function step4(photos: File[]): Promise<StepResponse> {
-  const ready = await compressImagesForUpload(photos, { maxSide: 2200, quality: 0.86 })
   const formData = new FormData()
-  ready.forEach((photo) => formData.append('photos[]', photo))
+  if (photos.length > 0) {
+    const ready = await compressImagesForUpload(photos, { maxSide: 2200, quality: 0.86 })
+    ready.forEach((photo) => formData.append('photos[]', photo))
+  }
 
   const response = await apiClient.post<ApiResponse<StepResponse>>('/onboarding/step/4', formData)
   return response.data.data

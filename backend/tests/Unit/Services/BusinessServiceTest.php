@@ -52,3 +52,67 @@ it('isSubdomainAvailable returns false when subdomain already exists', function 
 
     expect($service->isSubdomainAvailable('abc-def-ghij'))->toBeFalse();
 });
+
+it('getSubdomainRejectionReason flags reserved subdomains from config', function () {
+    $service = new BusinessService();
+
+    foreach (['admin', 'api', 'www', 'login'] as $reserved) {
+        expect($service->getSubdomainRejectionReason($reserved))->toBe('reserved');
+        expect($service->isSubdomainAvailable($reserved))->toBeFalse();
+    }
+});
+
+it('getSubdomainRejectionReason flags too short and too long', function () {
+    $service = new BusinessService();
+
+    expect($service->getSubdomainRejectionReason('ab'))->toBe('too_short');
+
+    $tooLong = str_repeat('a', 64);
+    expect($service->getSubdomainRejectionReason($tooLong))->toBe('too_long');
+});
+
+it('getSubdomainRejectionReason flags invalid format', function () {
+    $service = new BusinessService();
+
+    expect($service->getSubdomainRejectionReason('-leading'))->toBe('invalid_format');
+    expect($service->getSubdomainRejectionReason('trailing-'))->toBe('invalid_format');
+    expect($service->getSubdomainRejectionReason('with space'))->toBe('invalid_format');
+    expect($service->getSubdomainRejectionReason('emoji😀'))->toBe('invalid_format');
+    // Las mayúsculas no son inválidas: el servicio normaliza a minúsculas antes de validar.
+    expect($service->getSubdomainRejectionReason('UPPER'))->toBeNull();
+});
+
+it('getSubdomainRejectionReason flags taken subdomains', function () {
+    Business::create([
+        'name' => 'Owned',
+        'subdomain' => 'mi-tienda',
+        'subdomain_type' => 'custom',
+        'sector' => 'otros',
+    ]);
+
+    $service = new BusinessService();
+
+    expect($service->getSubdomainRejectionReason('mi-tienda'))->toBe('taken');
+});
+
+it('getSubdomainRejectionReason returns null for valid available subdomains', function () {
+    $service = new BusinessService();
+
+    expect($service->getSubdomainRejectionReason('mi-marca-2026'))->toBeNull();
+    expect($service->isSubdomainAvailable('mi-marca-2026'))->toBeTrue();
+});
+
+it('getSubdomainRejectionReason normalises to lowercase and trims spaces', function () {
+    Business::create([
+        'name' => 'Owned',
+        'subdomain' => 'cafe-nube',
+        'subdomain_type' => 'custom',
+        'sector' => 'otros',
+    ]);
+
+    $service = new BusinessService();
+
+    // Variantes con mayúsculas/espacios se normalizan y detectan como ya tomado.
+    expect($service->getSubdomainRejectionReason('  CAFE-NUBE  '))->toBe('taken');
+    expect($service->getSubdomainRejectionReason('CAFE-NUBE'))->toBe('taken');
+});

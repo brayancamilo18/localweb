@@ -42,6 +42,28 @@ it('dashboard update business persists changes', function () {
     expect($business->fresh()->name)->toBe('Nuevo Nombre');
 });
 
+it('dashboard update business persists social urls', function () {
+    $business = Business::create(['name' => 'B', 'subdomain' => 'soc-url-test-aaaa', 'subdomain_type' => 'random', 'sector' => 'otros']);
+    $user = User::factory()->create(['business_id' => $business->id]);
+    $token = $user->createToken('lw-spa')->plainTextToken;
+
+    test()->withHeader('Authorization', "Bearer {$token}")
+        ->putJson('/api/v1/dashboard/business', [
+            'instagram_url' => 'https://instagram.com/mine',
+            'tiktok_url' => 'tiktok.com/@mine',
+            'facebook_url' => null,
+        ])
+        ->assertStatus(200)
+        ->assertJsonPath('data.instagram_url', 'https://instagram.com/mine')
+        ->assertJsonPath('data.tiktok_url', 'https://tiktok.com/@mine')
+        ->assertJsonPath('data.facebook_url', null);
+
+    $fresh = $business->fresh();
+    expect($fresh->instagram_url)->toBe('https://instagram.com/mine')
+        ->and($fresh->tiktok_url)->toBe('https://tiktok.com/@mine')
+        ->and($fresh->facebook_url)->toBeNull();
+});
+
 it('stats free user returns upgrade required', function () {
     $business = Business::create(['name' => 'B', 'subdomain' => 'ccc-dddd-eeee', 'subdomain_type' => 'random', 'sector' => 'otros', 'plan' => 'free']);
     $user = User::factory()->create(['business_id' => $business->id]);

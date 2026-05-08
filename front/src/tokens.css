@@ -257,6 +257,75 @@ textarea::placeholder {
   text-align: left;
 }
 
+/* Menos aire bajo la maqueta móvil (el rail sigue en flex alto; recortamos padding/gap inferiores). */
+.lw-wizard-layout--preview-mobile .lw-wizard-preview {
+  padding-bottom: clamp(6px, 1.5vw, 12px);
+  gap: 8px;
+}
+
+.lw-wizard-layout--preview-mobile .lw-preview-phone-shell {
+  padding-bottom: 12px;
+}
+
+/* Marco tipo smartphone para el modo móvil del onboarding (altura fija: no crece con el iframe). */
+.lw-preview-phone-shell {
+  flex-shrink: 0;
+  align-self: flex-start;
+  width: min(402px, 100%);
+  max-width: 100%;
+  padding: 14px 14px 20px;
+  border-radius: 44px;
+  background: linear-gradient(165deg, #3d3d42 0%, #1c1c1f 42%, #121214 100%);
+  box-sizing: border-box;
+  height: fit-content;
+  max-height: 100%;
+}
+
+.lw-preview-phone-notch {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.lw-preview-phone-notch::after {
+  content: '';
+  width: 118px;
+  height: 28px;
+  border-radius: 20px;
+  background: #0a0a0c;
+}
+
+.lw-preview-phone-screen {
+  border-radius: 32px;
+  overflow: hidden;
+  background: #0f0f10;
+  width: 100%;
+  /* Bisel interior blanco uniforme (todos los lados igual; evita que el borde inferior se vea más fino/apagado). */
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-sizing: border-box;
+  /* Capa propia para bordes nítidos en esquinas redondeadas */
+  isolation: isolate;
+  transform: translateZ(0);
+  /* Alto fijo (un poco alargado, ratio más “móvil actual”); el contenido hace scroll dentro. */
+  height: min(720px, calc(100svh - 200px));
+  max-height: min(720px, calc(100svh - 200px));
+  min-height: 0;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.lw-preview-phone-screen > * {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  /* El mini BrowserChrome lleva borde gris + sombra: compite con el bisel blanco y rompe la simetría. */
+  border: none !important;
+  box-shadow: none !important;
+}
+
 .lw-wizard-footer {
   flex-shrink: 0;
   border-top: 1px solid var(--lw-border);
@@ -278,32 +347,280 @@ textarea::placeholder {
   scrollbar-width: thin;
 }
 
-@media (max-width: 960px) {
+/* Paso 1 plantilla: miniatura iframe escala al 100% del ancho de la tarjeta */
+.lw-step1-template-grid {
+  min-width: 0;
+}
+
+.lw-step1-template-grid > * {
+  min-width: 0;
+}
+
+.lw-template-card-preview,
+.lw-template-thumb-wrap {
+  min-width: 0;
+}
+
+/* Galería del wizard: 3 columnas escritorio, 2 en móvil (reglas abajo) */
+.lw-wizard-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.lw-wizard-preview-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.lw-wizard-preview-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+/* Viewport estrecho: CTA que abre la vista previa a pantalla completa (sin marco teléfono en el rail). */
+.lw-wizard-mobile-preview-cta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--lw-r);
+  background: var(--lw-bg-elev);
+  border: 1px solid var(--lw-border);
+  box-shadow: var(--lw-shadow-1);
+}
+
+.lw-wizard-mobile-preview-cta-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--lw-text);
+}
+
+.lw-wizard-mobile-preview-cta-desc {
+  margin: 0;
+  line-height: 1.45;
+  color: var(--lw-text-3);
+}
+
+.lw-wizard-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Horarios: tabla en escritorio; filas con clase para overrides en móvil */
+.lw-schedule-table-header {
+  display: grid;
+  grid-template-columns: 92px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--lw-surface);
+  border-bottom: 1px solid var(--lw-border);
+}
+
+.lw-schedule-day-row {
+  display: grid;
+  grid-template-columns: 92px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+}
+
+.lw-schedule-day-row:not(:last-child) {
+  border-bottom: 1px solid var(--lw-border);
+}
+
+/* Tablet estrecho: columna única como en móvil, sin recortar el formulario */
+@media (max-width: 960px) and (min-width: 901px) {
   .lw-wizard-split {
     flex-direction: column;
   }
 
   .lw-wizard-form {
     flex: 0 1 auto;
-    max-height: min(52vh, 520px);
-    padding-bottom: 24px;
+    max-height: none;
+    overflow: visible;
   }
 
   .lw-wizard-preview {
     flex: 1 1 auto;
     border-left: none;
     border-top: 1px solid var(--lw-border);
-    min-height: min(40vh, 360px);
+    min-height: min(36vh, 320px);
   }
 }
 
-@media (max-width: 600px) {
+/*
+ * Móvil / configuración desde pantalla pequeña:
+ * — sin max-height en el formulario (antes ~52vh era inusable)
+ * — scroll de página natural + barra de acciones fija con safe-area
+ * — vista previa con altura razonable; marco teléfono más bajo para caber
+ */
+@media (max-width: 900px) {
+  .lw-wizard-split {
+    flex: 0 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    overflow: visible;
+  }
+
   .lw-wizard-form {
+    flex: 0 1 auto;
     max-height: none;
+    overflow: visible;
+    padding: 16px 16px 20px;
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    gap: 20px;
+  }
+
+  .lw-wizard-form .lw-h2 {
+    font-size: clamp(1.25rem, 4.8vw, 1.65rem);
+    line-height: 1.2;
   }
 
   .lw-wizard-preview {
-    min-height: 280px;
+    flex: 0 1 auto;
+    min-width: 0;
+    min-height: min(38svh, 340px);
+    max-height: none;
+    border-left: none;
+    border-top: 1px solid var(--lw-border);
+    padding: 14px 16px 20px;
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+
+  .lw-wizard-layout--preview-mobile .lw-wizard-preview {
+    min-height: min(36svh, 320px);
+  }
+
+  /* Rail solo con botón “ver página” (sin iframe ni marco teléfono). */
+  .lw-wizard-layout--compact-preview-rail .lw-wizard-preview {
+    min-height: 0;
+    padding-top: 12px;
+    padding-bottom: 16px;
+  }
+
+  /* Paso 1 (plantilla): en móvil no mostrar el rail; cada tarjeta tiene «Ver» a pantalla completa. */
+  .lw-wizard-layout--step1 .lw-wizard-preview {
+    display: none;
+  }
+
+  .lw-preview-phone-screen {
+    height: min(520px, calc(100svh - 300px));
+    max-height: min(520px, calc(100svh - 300px));
+  }
+
+  .lw-wizard-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    box-shadow: 0 -8px 28px rgba(15, 23, 42, 0.08);
+    gap: 10px;
+  }
+
+  .lw-wizard-footer > * {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .lw-wizard-layout::after {
+    content: '';
+    display: block;
+    flex: 0 0 auto;
+    height: calc(84px + env(safe-area-inset-bottom));
+    width: 100%;
+    pointer-events: none;
+  }
+
+  .lw-wizard-preview-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .lw-wizard-preview-toolbar-actions {
+    margin-left: 0;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .lw-wizard-steps [role='button'] {
+    min-height: 44px;
+    padding: 8px 12px;
+  }
+
+  .lw-wizard-gallery-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lw-wizard-header {
+    padding-left: max(16px, env(safe-area-inset-left)) !important;
+    padding-right: max(16px, env(safe-area-inset-right)) !important;
+    padding-top: max(12px, env(safe-area-inset-top)) !important;
+  }
+
+  .lw-schedule-table-header {
+    display: none;
+  }
+
+  .lw-schedule-day-row {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 10px !important;
+    align-items: start !important;
+  }
+
+  .lw-schedule-day-row > div:first-child {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .lw-schedule-day-row > div:nth-child(2) {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+  }
+
+  .lw-schedule-day-row > div:last-child {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+    align-self: center;
+  }
+
+  .lw-schedule-time-field {
+    width: min(142px, 42vw) !important;
+    min-width: 0 !important;
+  }
+
+  .lw-wizard-address-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .lw-wizard-address-row .lw-wizard-address-search-btn {
+    width: 100%;
+    margin-top: 0 !important;
+  }
+
+  .lw-wizard-two-col {
+    grid-template-columns: 1fr !important;
   }
 }
 

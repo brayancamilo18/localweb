@@ -35,6 +35,19 @@ services:
       "
     restart: "no"
 
+  # Captura SMTP en local. UI web en http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: webappdef-mailpit
+    restart: unless-stopped
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # UI web
+
   php:
     build:
       context: .
@@ -60,6 +73,8 @@ services:
         condition: service_healthy
       minio-init:
         condition: service_completed_successfully
+      mailpit:
+        condition: service_started
 
   nginx:
     image: nginx:alpine

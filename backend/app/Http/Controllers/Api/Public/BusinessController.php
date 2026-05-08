@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Resources\PublicBusinessResource;
 use App\Jobs\RegisterPageVisit;
 use App\Models\Business;
+use App\Support\PublicPageCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -14,9 +15,11 @@ class BusinessController extends BaseApiController
 {
     public function show(Request $request, string $subdomain)
     {
-        $cached = Cache::get("public_page:{$subdomain}");
+        $cacheKey = PublicPageCache::KEY_PREFIX.$subdomain;
+        $cached = Cache::get($cacheKey);
         if ($cached) {
             RegisterPageVisit::dispatch($cached['id'], EventType::Visit, $request->ip(), $request->userAgent());
+
             return $this->success($cached);
         }
 
@@ -32,7 +35,9 @@ class BusinessController extends BaseApiController
 
         RegisterPageVisit::dispatch($business->id, EventType::Visit, $request->ip(), $request->userAgent());
         $data = (new PublicBusinessResource($business))->resolve();
-        Cache::put("public_page:{$subdomain}", $data, 60);
+        // TTL 300s: con observers de invalidación, podemos cachear más tiempo y reducir la carga
+        // a la BD en páginas con tráfico sin perder coherencia.
+        Cache::put($cacheKey, $data, 300);
 
         return $this->success($data);
     }

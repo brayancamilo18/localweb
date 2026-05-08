@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Btn } from '../../components/primitives'
+import { apiClient } from '../../api/client'
 import { getBusiness } from '../../api/dashboard'
 import { getServices } from '../../api/services'
 import { fetchOnboardingTemplates, hydrateGalleryFromServerUrls } from '../../api/onboarding'
@@ -10,8 +11,11 @@ import { useOnboarding } from './useOnboarding'
 import Step9ProSetup from './steps/Step9ProSetup'
 import {
   dataUrlToFile,
+  galleryPreviewUrlsFromDraft,
+  isDraftGallerySyncedFromBusiness,
   isPersistableSchedule,
   loadOnboardingPersist,
+  mergeGalleryFiles,
   scheduleSaveOnboardingPersist,
 } from './onboardingPersist'
 import { useAuthStore } from '../../store/authStore'
@@ -75,18 +79,30 @@ export default function OnboardingPage() {
   const continueHandlerRef = useRef<(() => unknown) | null>(null)
   const wizardHydratedRef = useRef(false)
   const [galleryPreviewUrls, setGalleryPreviewUrls] = useState<string[]>([])
-  /** Conserva las fotos de galería al navegar entre pasos (igual que portada / sobre nosotros). */
+  /** Modo borrador: todas las fotos del paso 4 en un solo array. */
   const [galleryPhotoFiles, setGalleryPhotoFiles] = useState<File[]>([])
+  /** Modo append (negocio ya en BD): URLs R2 ya guardadas — solo vista. */
+  const [existingGalleryUrls, setExistingGalleryUrls] = useState<string[]>([])
+  /** Modo append: solo estas se envían en step4. */
+  const [newGalleryFiles, setNewGalleryFiles] = useState<File[]>([])
   const [schedulePreview, setSchedulePreview] = useState<Schedule>(DEFAULT_SCHEDULE)
   const [step1PreviewVariant, setStep1PreviewVariant] = useState<Step1PreviewVariant>('noir-elite')
+  const [step1LogoPreviewUrl, setStep1LogoPreviewUrl] = useState<string | undefined>(undefined)
+  const [step1LogoScale, setStep1LogoScale] = useState(1)
   const [coverFile, setCoverFile] = useState<File | null>(null)
   const [previewName, setPreviewName] = useState('')
   const [previewTagline, setPreviewTagline] = useState('')
   const [previewPhone, setPreviewPhone] = useState('')
-  const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | undefined>(undefined)
+  /** Base64 solo para guardar el borrador local (localStorage); no usar en postMessage al iframe. */
+  const [coverPersistDataUrl, setCoverPersistDataUrl] = useState<string | undefined>(undefined)
+  /** URL efímera para vista previa en vivo (misma pestaña que el iframe → mismo origen). */
+  const [coverLiveObjectUrl, setCoverLiveObjectUrl] = useState<string | undefined>(undefined)
   const [previewDescription, setPreviewDescription] = useState('')
   const [aboutTeamFile, setAboutTeamFile] = useState<File | null>(null)
-  const [previewAboutPhotoUrl, setPreviewAboutPhotoUrl] = useState<string | undefined>(undefined)
+  const [aboutPersistDataUrl, setAboutPersistDataUrl] = useState<string | undefined>(undefined)
+  const [aboutLiveObjectUrl, setAboutLiveObjectUrl] = useState<string | undefined>(undefined)
+  /** Objetos blob por archivo de galería; evita enviar base64 enorme al iframe. */
+  const [galleryLiveObjectUrls, setGalleryLiveObjectUrls] = useState<string[]>([])
   const [previewAddress, setPreviewAddress] = useState('')
   const [previewEmail, setPreviewEmail] = useState('')
   const [previewMapLat, setPreviewMapLat] = useState<number | undefined>(undefined)
@@ -104,6 +120,15 @@ export default function OnboardingPage() {
   const businessIsPro = useAuthStore((s) => s.business?.is_pro ?? false)
   const businessPlan = useAuthStore((s) => s.business?.plan)
   const galleryProExperience = businessIsPro || businessPlan === 'pending' || postCheckoutProGallery
+
+  /** Paso 4 con negocio ya creado: galería en R2; no mezclar con `File[]` del borrador. */
+  const galleryAppendMode = useMemo(() => {
+    if (currentStep !== 4) return false
+    return (
+      postCheckoutProGallery ||
+      isDraftGallerySyncedFromBusiness(serverDraft as Record<string, unknown> | undefined)
+    )
+  }, [currentStep, postCheckoutProGallery, serverDraft])
 
   const step9Active = currentStep === 9
   const businessSnapQuery = useQuery({
@@ -153,32 +178,138 @@ export default function OnboardingPage() {
     }
   }, [])
 
+  // Handlers estables para evitar bucles de render:
+  // el hijo depende de la identidad de `onPhoneChange`/`onAddressChange`/`onEmailChange`.
+  const handlePhoneChange = useCallback((phone?: string) => {
+    const next = phone ?? ''
+    setPreviewPhone((prev) => (prev === next ? prev : next))
+  }, [])
+
+  const handleAddressChange = useCallback((addr?: string) => {
+    const next = addr ?? ''
+    setPreviewAddress((prev) => (prev === next ? prev : next))
+  }, [])
+
+  const handleEmailChange = useCallback((em?: string) => {
+    const next = em ?? ''
+    setPreviewEmail((prev) => (prev === next ? prev : next))
+  }, [])
+
+  /**
+   * Handler estable para evitar bucles: con un arrow inline, `Step2Portada` ve una identidad nueva
+   * en cada render del padre y dispara su `useEffect` continuamente, lo que multiplica los renders
+   * y los `postMessage` al iframe — y deja la UI inutilizable al cambiar la portada.
+   */
+  const handleBusinessMetaChange = useCallback(
+    (payload: { businessName?: string; tagline?: string }) => {
+      const nextName = payload.businessName ?? ''
+      const nextTagline = payload.tagline ?? ''
+      setPreviewName((prev) => (prev === nextName ? prev : nextName))
+      setPreviewTagline((prev) => (prev === nextTagline ? prev : nextTagline))
+    },
+    [],
+  )
+
+  // Mismo patrón que `aboutTeamFile` (que funciona sin congelar): crea la object URL para el iframe
+  // y la revoca síncronamente al cambiar el archivo. La miniatura del paso usa su propia URL local.
   useEffect(() => {
     if (!coverFile) {
-      setCoverPreviewUrl(undefined)
+      setCoverLiveObjectUrl(undefined)
       return
     }
+    const url = URL.createObjectURL(coverFile)
+    setCoverLiveObjectUrl(url)
+    return () => {
+      URL.revokeObjectURL(url)
+    }
+  }, [coverFile])
+
+  useEffect(() => {
+    if (!coverFile) {
+      setCoverPersistDataUrl(undefined)
+      return
+    }
+    let cancelled = false
     const reader = new FileReader()
     reader.onload = () => {
+      if (cancelled) return
       const value = typeof reader.result === 'string' ? reader.result : undefined
-      setCoverPreviewUrl(value)
+      setCoverPersistDataUrl(value)
     }
-    reader.onerror = () => setCoverPreviewUrl(undefined)
+    reader.onerror = () => {
+      if (cancelled) return
+      setCoverPersistDataUrl(undefined)
+    }
     reader.readAsDataURL(coverFile)
+    return () => {
+      cancelled = true
+      try {
+        if (reader.readyState === 1 /* LOADING */) reader.abort()
+      } catch {
+        /* ignore: abort can throw in some edge browsers */
+      }
+    }
   }, [coverFile])
 
   useEffect(() => {
     if (!aboutTeamFile) {
-      setPreviewAboutPhotoUrl(undefined)
+      setAboutLiveObjectUrl(undefined)
       return
     }
+    const url = URL.createObjectURL(aboutTeamFile)
+    setAboutLiveObjectUrl(url)
+    return () => {
+      URL.revokeObjectURL(url)
+    }
+  }, [aboutTeamFile])
+
+  useEffect(() => {
+    if (!aboutTeamFile) {
+      setAboutPersistDataUrl(undefined)
+      return
+    }
+    let cancelled = false
     const reader = new FileReader()
     reader.onload = () => {
-      setPreviewAboutPhotoUrl(typeof reader.result === 'string' ? reader.result : undefined)
+      if (cancelled) return
+      setAboutPersistDataUrl(typeof reader.result === 'string' ? reader.result : undefined)
     }
-    reader.onerror = () => setPreviewAboutPhotoUrl(undefined)
+    reader.onerror = () => {
+      if (cancelled) return
+      setAboutPersistDataUrl(undefined)
+    }
     reader.readAsDataURL(aboutTeamFile)
+    return () => {
+      cancelled = true
+      try {
+        if (reader.readyState === 1) reader.abort()
+      } catch {
+        /* ignore */
+      }
+    }
   }, [aboutTeamFile])
+
+  useEffect(() => {
+    if (galleryAppendMode) {
+      const blobUrls = newGalleryFiles.map((f) => URL.createObjectURL(f))
+      setGalleryLiveObjectUrls([...existingGalleryUrls, ...blobUrls])
+      return () => {
+        blobUrls.forEach((u) => URL.revokeObjectURL(u))
+      }
+    }
+    if (galleryPhotoFiles.length > 0) {
+      const urls = galleryPhotoFiles.map((f) => URL.createObjectURL(f))
+      setGalleryLiveObjectUrls(urls)
+      return () => {
+        urls.forEach((u) => URL.revokeObjectURL(u))
+      }
+    }
+    if (existingGalleryUrls.length > 0) {
+      setGalleryLiveObjectUrls(existingGalleryUrls)
+      return
+    }
+    setGalleryLiveObjectUrls([])
+  }, [galleryAppendMode, galleryPhotoFiles, newGalleryFiles, existingGalleryUrls])
 
   useEffect(() => {
     wizardHydratedRef.current = false
@@ -186,14 +317,21 @@ export default function OnboardingPage() {
     setGalleryPhotoFiles([])
     setSchedulePreview(DEFAULT_SCHEDULE)
     setStep1PreviewVariant('noir-elite')
+    setStep1LogoPreviewUrl(undefined)
+    setStep1LogoScale(1)
     setCoverFile(null)
     setAboutTeamFile(null)
     setPreviewName('')
     setPreviewTagline('')
     setPreviewPhone('')
-    setCoverPreviewUrl(undefined)
+    setCoverPersistDataUrl(undefined)
+    setCoverLiveObjectUrl(undefined)
     setPreviewDescription('')
-    setPreviewAboutPhotoUrl(undefined)
+    setAboutPersistDataUrl(undefined)
+    setAboutLiveObjectUrl(undefined)
+    setGalleryLiveObjectUrls([])
+    setExistingGalleryUrls([])
+    setNewGalleryFiles([])
     setPreviewAddress('')
     setPreviewEmail('')
     setPreviewMapLat(undefined)
@@ -215,6 +353,7 @@ export default function OnboardingPage() {
 
     const p = loadOnboardingPersist(persistUserId)
     const d = serverDraft
+    const maxGallerySlots = galleryProExperience ? 20 : 3
 
     setPreviewName(String(p?.previewName ?? d.business_name ?? ''))
     setPreviewTagline(String(p?.previewTagline ?? d.tagline ?? ''))
@@ -227,28 +366,41 @@ export default function OnboardingPage() {
       setStep1PreviewVariant(p.step1PreviewVariant)
     }
 
+    if (
+      typeof p?.step1LogoScale === 'number' &&
+      Number.isFinite(p.step1LogoScale) &&
+      p.step1LogoScale >= 0.45 &&
+      p.step1LogoScale <= 1.5
+    ) {
+      setStep1LogoScale(p.step1LogoScale)
+    }
+
     if (isPersistableSchedule(p?.schedule)) {
       setSchedulePreview(p.schedule)
     } else if (isPersistableSchedule(d.schedule)) {
       setSchedulePreview(d.schedule as Schedule)
     }
 
-    const serverGalleryUrls = Array.isArray(d.gallery_preview_urls)
-      ? (d.gallery_preview_urls as unknown[]).filter((u): u is string => typeof u === 'string' && u.trim().length > 0)
-      : []
+    const serverGalleryUrls = galleryPreviewUrlsFromDraft(d as Record<string, unknown>)
+    const syncedGallery = isDraftGallerySyncedFromBusiness(d as Record<string, unknown>)
 
-    if (p?.galleryDataUrls?.length) {
+    if (syncedGallery) {
+      setExistingGalleryUrls(serverGalleryUrls)
+      setGalleryPhotoFiles([])
+      setNewGalleryFiles([])
+      setGalleryPreviewUrls([])
+    } else if (p?.galleryDataUrls?.length) {
       setGalleryPreviewUrls(p.galleryDataUrls)
       void Promise.all(p.galleryDataUrls.map((url, i) => dataUrlToFile(url, `gallery-${i}.jpg`))).then(
         (files) => {
           const ok = files.filter((f): f is File => f != null)
-          if (ok.length) setGalleryPhotoFiles(ok)
+          if (ok.length) setGalleryPhotoFiles((prev) => mergeGalleryFiles(prev, ok, maxGallerySlots))
         },
       )
     } else if (serverGalleryUrls.length > 0) {
       void hydrateGalleryFromServerUrls(serverGalleryUrls)
         .then((files) => {
-          if (files.length) setGalleryPhotoFiles(files)
+          if (files.length) setGalleryPhotoFiles((prev) => mergeGalleryFiles(prev, files, maxGallerySlots))
         })
         .catch(() => {
           /* URLs inaccesibles: el usuario puede volver a subir la galería */
@@ -256,18 +408,62 @@ export default function OnboardingPage() {
     }
 
     if (p?.coverDataUrl) {
-      setCoverPreviewUrl(p.coverDataUrl)
+      setCoverPersistDataUrl(p.coverDataUrl)
       void dataUrlToFile(p.coverDataUrl, 'portada.jpg').then((f) => f && setCoverFile(f))
     }
 
     if (p?.aboutDataUrl) {
-      setPreviewAboutPhotoUrl(p.aboutDataUrl)
+      setAboutPersistDataUrl(p.aboutDataUrl)
       void dataUrlToFile(p.aboutDataUrl, 'equipo.jpg').then((f) => f && setAboutTeamFile(f))
     }
-  }, [isPendingStatus, serverDraft, persistUserId])
+  }, [isPendingStatus, serverDraft, persistUserId, galleryProExperience])
+
+  /**
+   * Solo borrador sintético `draftFromBusiness` (`gallery_paths` = `__synced__`): tras Stripe,
+   * `getStatus` sustituye `serverDraft` pero el wizard ya está hidratado; hay que volver a
+   * poblar URLs sin tocar el flujo borrador (rutas reales bajo onboarding/...).
+   */
+  useEffect(() => {
+    if (isPendingStatus || serverDraft === undefined) return
+    if (!isDraftGallerySyncedFromBusiness(serverDraft as Record<string, unknown>)) return
+    const urls = galleryPreviewUrlsFromDraft(serverDraft as Record<string, unknown>)
+    setExistingGalleryUrls(urls)
+    setGalleryPhotoFiles([])
+  }, [isPendingStatus, serverDraft])
+
+  useEffect(() => {
+    if (isPendingStatus) return
+    if (serverDraft === undefined) return
+    if (typeof serverDraft.logo_preview_url !== 'string' || !serverDraft.logo_preview_url.trim()) {
+      return
+    }
+    let cancelled = false
+    void apiClient
+      .get('/onboarding/draft-logo', { responseType: 'blob' })
+      .then((res) => {
+        if (cancelled) return
+        const blob = res.data as Blob
+        const reader = new FileReader()
+        reader.onload = () => {
+          if (cancelled) return
+          const s = reader.result
+          if (typeof s === 'string') {
+            setStep1LogoPreviewUrl(s)
+          }
+        }
+        reader.readAsDataURL(blob)
+      })
+      .catch(() => undefined)
+    return () => {
+      cancelled = true
+    }
+  }, [isPendingStatus, serverDraft?.logo_preview_url])
 
   useEffect(() => {
     if (isPendingStatus || !wizardHydratedRef.current || persistUserId == null) return
+    const persistGalleryAsDataUrls =
+      !galleryAppendMode &&
+      !isDraftGallerySyncedFromBusiness(serverDraft as Record<string, unknown> | undefined)
     scheduleSaveOnboardingPersist(persistUserId, {
       step: currentStep,
       previewName,
@@ -278,10 +474,16 @@ export default function OnboardingPage() {
       previewEmail,
       schedule: schedulePreview,
       step1PreviewVariant,
-      coverDataUrl: coverPreviewUrl,
-      aboutDataUrl: previewAboutPhotoUrl,
-      galleryDataUrls:
-        galleryPhotoFiles.length === 0 ? [] : galleryPreviewUrls.length > 0 ? galleryPreviewUrls : undefined,
+      step1LogoScale,
+      coverDataUrl: coverPersistDataUrl,
+      aboutDataUrl: aboutPersistDataUrl,
+      galleryDataUrls: !persistGalleryAsDataUrls
+        ? []
+        : galleryPhotoFiles.length === 0
+          ? []
+          : galleryPreviewUrls.length > 0
+            ? galleryPreviewUrls
+            : undefined,
     })
   }, [
     isPendingStatus,
@@ -295,20 +497,27 @@ export default function OnboardingPage() {
     previewEmail,
     schedulePreview,
     step1PreviewVariant,
-    coverPreviewUrl,
-    previewAboutPhotoUrl,
+    step1LogoScale,
+    coverPersistDataUrl,
+    aboutPersistDataUrl,
     galleryPreviewUrls,
     galleryPhotoFiles.length,
+    galleryAppendMode,
+    serverDraft,
   ])
 
   const templatePreviewData = useMemo<TemplatePreviewData>(() => {
     const b = businessSnapQuery.data
+    const serverCover =
+      step9Active && b?.images?.cover?.[0]?.url ? String(b.images.cover[0].url).trim() : ''
+    const serverAbout =
+      step9Active && b?.images?.about?.[0]?.url ? String(b.images.about[0].url).trim() : ''
     const galleryUrls =
-      galleryPreviewUrls.length > 0
-        ? galleryPreviewUrls
+      galleryLiveObjectUrls.length > 0
+        ? galleryLiveObjectUrls
         : step9Active && b?.images?.gallery?.length
           ? b.images.gallery.map((g) => g.url).filter(Boolean)
-          : galleryPreviewUrls
+          : []
     const schedule = step9Active && b?.schedule ? b.schedule : schedulePreview
     const mapLat =
       step9Active && b?.lat != null && Number.isFinite(Number(b.lat)) ? Number(b.lat) : previewMapLat
@@ -329,12 +538,14 @@ export default function OnboardingPage() {
     }
 
     return {
+      logoUrl: step1LogoPreviewUrl ?? (step9Active ? b?.logo_url ?? undefined : undefined),
+      logoScale: step1LogoScale,
       businessName: name,
       tagline: previewTagline || undefined,
       phone: (previewPhone.trim() || b?.phone || '').trim() || undefined,
-      coverUrl: coverPreviewUrl,
+      coverUrl: coverLiveObjectUrl || serverCover || undefined,
       description: previewDescription || undefined,
-      aboutPhotoUrl: previewAboutPhotoUrl,
+      aboutPhotoUrl: aboutLiveObjectUrl || serverAbout || undefined,
       address: (previewAddress.trim() || b?.address || '').trim() || undefined,
       email: previewEmail.trim() || undefined,
       galleryUrls,
@@ -346,12 +557,17 @@ export default function OnboardingPage() {
       vcardEnabled: step9Active ? Boolean(b?.vcard_enabled) : undefined,
       isProCustomer: step9Active ? Boolean(b?.is_pro || b?.plan === 'pending') : undefined,
       customerSubdomain: step9Active ? (b?.subdomain ?? '') : undefined,
+      instagramUrl: step9Active ? (b?.instagram_url ?? '') : undefined,
+      tiktokUrl: step9Active ? (b?.tiktok_url ?? '') : undefined,
+      facebookUrl: step9Active ? (b?.facebook_url ?? '') : undefined,
     }
   }, [
+    step1LogoPreviewUrl,
+    step1LogoScale,
     businessSnapQuery.data,
-    coverPreviewUrl,
-    galleryPreviewUrls,
-    previewAboutPhotoUrl,
+    coverLiveObjectUrl,
+    galleryLiveObjectUrls,
+    aboutLiveObjectUrl,
     previewDescription,
     previewName,
     previewPhone,
@@ -424,10 +640,47 @@ export default function OnboardingPage() {
     ],
   )
 
-  const preview = useMemo(() => {
+  const previewTitle = useMemo(() => {
+    const match = templates.find((t, i) => resolveStep1PreviewVariant(t, i) === step1PreviewVariant)
+    const name = match?.name?.trim()
+    if (name) return name
+    return step1PreviewVariant === 'bloom-studio' ? 'Bloom Studio' : 'Noir Elite'
+  }, [templates, step1PreviewVariant])
+
+  const previewFocusDescription = useMemo(() => {
+    switch (currentStep) {
+      case 2:
+        return 'Se abrirá en la portada, con nombre, tagline y foto si ya los has añadido.'
+      case 3:
+        return 'Enfocamos la sección «Sobre nosotros».'
+      case 4:
+        return 'Enfocamos la galería de fotos.'
+      case 5:
+        return 'Enfocamos el bloque de horarios.'
+      case 6:
+        return 'Enfocamos contacto y mapa.'
+      case 7:
+        return 'Ves la web completa con todo lo que llevas en el asistente.'
+      case 8:
+        return 'Última revisión visual antes de publicar.'
+      case 9:
+        return proSetupPhase === 'services'
+          ? 'Enfocamos la sección de servicios de tu plantilla.'
+          : 'Enfocamos enlaces y datos de contacto (Google Business, vCard…).'
+      default:
+        return ''
+    }
+  }, [currentStep, proSetupPhase])
+
+  const renderPreview = useCallback(() => {
     switch (currentStep) {
       case 1:
-        return <TplPreview variant={step1PreviewVariant} />
+        return (
+          <TplPreview
+            variant={step1PreviewVariant}
+            previewData={{ logoUrl: step1LogoPreviewUrl, logoScale: step1LogoScale }}
+          />
+        )
       case 2:
         return <PortadaPreview variant={step1PreviewVariant} previewData={templatePreviewData} />
       case 3:
@@ -451,7 +704,7 @@ export default function OnboardingPage() {
       default:
         return null
     }
-  }, [currentStep, proSetupPhase, schedulePreview, step1PreviewVariant, templatePreviewData])
+  }, [currentStep, proSetupPhase, step1PreviewVariant, step1LogoPreviewUrl, step1LogoScale, templatePreviewData])
 
   const stepBody = useMemo(() => {
     const common = { errors, isLoading }
@@ -462,6 +715,10 @@ export default function OnboardingPage() {
             {...common}
             templates={templates}
             onTemplatePreviewChange={setStep1PreviewVariant}
+            serverLogoPreviewUrl={step1LogoPreviewUrl}
+            onStep1LogoPreviewChange={setStep1LogoPreviewUrl}
+            logoScale={step1LogoScale}
+            onLogoScaleChange={setStep1LogoScale}
           />
         )
       case 2:
@@ -472,10 +729,7 @@ export default function OnboardingPage() {
             initialBusinessName={previewName}
             initialTagline={previewTagline}
             onCoverChange={setCoverFile}
-            onBusinessMetaChange={({ businessName, tagline }) => {
-              setPreviewName(businessName ?? '')
-              setPreviewTagline(tagline ?? '')
-            }}
+            onBusinessMetaChange={handleBusinessMetaChange}
           />
         )
       case 3:
@@ -498,6 +752,10 @@ export default function OnboardingPage() {
             {...common}
             pro={galleryProExperience}
             postCheckoutProBanner={postCheckoutProGallery}
+            galleryAppendMode={galleryAppendMode}
+            existingPhotoUrls={existingGalleryUrls}
+            newPhotos={newGalleryFiles}
+            onNewPhotosChange={setNewGalleryFiles}
             photos={galleryPhotoFiles}
             onPhotosChange={setGalleryPhotoFiles}
             onGalleryPreviewUrlsChange={setGalleryPreviewUrls}
@@ -516,9 +774,9 @@ export default function OnboardingPage() {
             initialEmail={previewEmail}
             mapLat={previewMapLat}
             mapLng={previewMapLng}
-            onPhoneChange={(phone) => setPreviewPhone(phone ?? '')}
-            onAddressChange={(addr) => setPreviewAddress(addr ?? '')}
-            onEmailChange={(em) => setPreviewEmail(em ?? '')}
+            onPhoneChange={handlePhoneChange}
+            onAddressChange={handleAddressChange}
+            onEmailChange={handleEmailChange}
             onMapCoordsChange={onPreviewMapCoordsChange}
           />
         )
@@ -546,17 +804,24 @@ export default function OnboardingPage() {
     isLoading,
     templates,
     coverFile,
+    handleBusinessMetaChange,
     previewName,
     previewTagline,
     previewPhone,
     previewDescription,
     aboutTeamFile,
     galleryPhotoFiles,
+    galleryAppendMode,
+    existingGalleryUrls,
+    newGalleryFiles,
     schedulePreview,
     previewAddress,
     previewEmail,
     previewMapLat,
     previewMapLng,
+    handlePhoneChange,
+    handleAddressChange,
+    handleEmailChange,
     onPreviewMapCoordsChange,
     reservedSubdomain,
     galleryProExperience,
@@ -564,6 +829,8 @@ export default function OnboardingPage() {
     proOffersServices,
     proSetupPhase,
     resetProExtrasFlow,
+    step1LogoPreviewUrl,
+    step1LogoScale,
   ])
 
   useEffect(() => {
@@ -577,7 +844,12 @@ export default function OnboardingPage() {
 
   return (
     <WizardNavContext.Provider value={navValue}>
-      <WizardLayout step={currentStep} preview={preview}>
+      <WizardLayout
+        step={currentStep}
+        renderPreview={renderPreview}
+        previewTitle={previewTitle}
+        previewFocusDescription={previewFocusDescription}
+      >
         {stepBody}
       </WizardLayout>
     </WizardNavContext.Provider>

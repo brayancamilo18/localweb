@@ -17,8 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
+            'admin' => \App\Http\Middleware\EnsureIsAdmin::class,
             'business.complete' => \App\Http\Middleware\EnsureBusinessComplete::class,
             'pro.features' => \App\Http\Middleware\EnsureProFeatures::class,
+            'verified.api' => \App\Http\Middleware\EnsureEmailVerified::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

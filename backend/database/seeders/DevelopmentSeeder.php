@@ -31,7 +31,7 @@ class DevelopmentSeeder extends Seeder
             ]
         );
 
-        User::updateOrCreate(
+        $testUser = User::updateOrCreate(
             ['email' => 'test@localweb.com'],
             [
                 'name' => 'Test User',
@@ -39,6 +39,17 @@ class DevelopmentSeeder extends Seeder
                 'business_id' => $business->id,
             ]
         );
+        $testUser->forceFill(['is_admin' => false])->save();
+
+        $adminUser = User::updateOrCreate(
+            ['email' => 'admin@local.test'],
+            [
+                'name' => 'Admin Local',
+                'password' => Hash::make('password'),
+                'business_id' => null,
+            ]
+        );
+        $adminUser->forceFill(['is_admin' => true])->save();
 
         $images = [
             ['path' => 'placeholders/cover.jpg', 'section' => 'cover', 'display_order' => 0],
@@ -52,5 +63,7 @@ class DevelopmentSeeder extends Seeder
                 $image + ['width' => 1200, 'height' => 800]
             );
         }
+
+        $this->call(PageVisitsSeeder::class);
     }
 }

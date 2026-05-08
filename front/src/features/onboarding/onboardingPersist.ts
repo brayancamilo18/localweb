@@ -19,6 +19,8 @@ export type OnboardingPersistedV1 = {
   previewEmail: string
   schedule: Schedule
   step1PreviewVariant?: OnboardingStep1VariantPersist
+  /** Escala del logo en barra (paso 1), ~0.55–1.35 */
+  step1LogoScale?: number
   coverDataUrl?: string
   aboutDataUrl?: string
   galleryDataUrls?: string[]
@@ -93,6 +95,7 @@ export function scheduleSaveOnboardingPersist(
         previewEmail: data.previewEmail ?? prev?.previewEmail ?? '',
         schedule: data.schedule ?? prev?.schedule ?? DEFAULT_SCHEDULE,
         step1PreviewVariant: data.step1PreviewVariant ?? prev?.step1PreviewVariant,
+        step1LogoScale: data.step1LogoScale ?? prev?.step1LogoScale,
         coverDataUrl: data.coverDataUrl ?? prev?.coverDataUrl,
         aboutDataUrl: data.aboutDataUrl ?? prev?.aboutDataUrl,
         galleryDataUrls: data.galleryDataUrls ?? prev?.galleryDataUrls,
@@ -132,4 +135,52 @@ export async function dataUrlToFile(dataUrl: string, filename: string): Promise<
   } catch {
     return null
   }
+}
+
+const galleryFileKey = (f: File) => `${f.name}\u0000${f.size}\u0000${f.lastModified}`
+
+/**
+ * Fusiona fotos locales con las descargadas del servidor sin pisar lo que el usuario ya añadió.
+ * Orden: primero `fromServer` (orden del API), después `existing` que no estén duplicadas.
+ * Respeta `maxSlots` (p. ej. 3 Free / 20 Pro).
+ */
+export function mergeGalleryFiles(existing: File[], fromServer: File[], maxSlots: number): File[] {
+  const cap = Math.max(0, Math.min(maxSlots, 20))
+  const seen = new Set<string>()
+  const out: File[] = []
+
+  for (const f of fromServer) {
+    const k = galleryFileKey(f)
+    if (seen.has(k) || out.length >= cap) continue
+    seen.add(k)
+    out.push(f)
+  }
+  for (const f of existing) {
+    const k = galleryFileKey(f)
+    if (seen.has(k) || out.length >= cap) continue
+    seen.add(k)
+    out.push(f)
+  }
+  return out
+}
+
+/** URLs de vista previa de galería en el borrador del servidor (`OnboardingPage` / status API). */
+export function galleryPreviewUrlsFromDraft(draft: Record<string, unknown> | undefined): string[] {
+  const raw = draft?.gallery_preview_urls
+  if (!Array.isArray(raw)) return []
+  return raw
+    .filter((u): u is string => typeof u === 'string' && u.trim().length > 0)
+    .map((u) => u.trim())
+}
+
+/**
+ * Borrador devuelto por `draftFromBusiness()` tras step7 Pro: las fotos ya están en R2 / `business_images`.
+ * `gallery_paths` son marcadores `__synced__`, no rutas bajo `onboarding/{id}/gallery`.
+ */
+export function isDraftGallerySyncedFromBusiness(draft: Record<string, unknown> | undefined): boolean {
+  const paths = draft?.gallery_paths
+  if (!Array.isArray(paths) || paths.length === 0) {
+    return false
+  }
+  return paths.every((p) => p === '__synced__')
 }

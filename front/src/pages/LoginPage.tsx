@@ -34,6 +34,14 @@ export default function LoginPage() {
         navigate(returnTo)
         return
       }
+      if (data.user?.is_admin) {
+        navigate('/admin')
+        return
+      }
+      if (data.user && data.user.email_verified_at == null) {
+        navigate('/verify-email')
+        return
+      }
       navigate(nextRouteFromBusiness(data.business?.plan))
     },
   })

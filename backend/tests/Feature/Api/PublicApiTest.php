@@ -67,3 +67,15 @@ it('public track valid type returns 200 and page visit in db', function () {
         'event_type' => 'phone_click',
     ]);
 });
+
+it('public subdomain rules endpoint exposes config payload', function () {
+    test()->getJson('/api/v1/public/subdomain-rules')
+        ->assertStatus(200)
+        ->assertJsonPath('data.min_length', (int) config('subdomains.min_length'))
+        ->assertJsonPath('data.max_length', (int) config('subdomains.max_length'))
+        ->assertJsonPath('data.pattern', (string) config('subdomains.pattern'))
+        ->assertJsonStructure(['data' => ['reserved', 'min_length', 'max_length', 'pattern']]);
+
+    $reserved = test()->getJson('/api/v1/public/subdomain-rules')->json('data.reserved');
+    expect($reserved)->toContain('admin')->toContain('login')->toContain('www');
+});
