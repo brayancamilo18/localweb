@@ -1,9 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { me } from '../../api/auth'
-import { keys } from '../../api/queryKeys'
-import { hasBearerToken } from '../../lib/authSession'
-import { useAuthStore } from '../../store/authStore'
+import { useAuth } from '../../hooks/useAuth'
 
 function AdminLoading() {
   return (
@@ -25,25 +21,14 @@ function AdminLoading() {
 }
 
 export default function AdminRoute() {
-  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('lw_token') : null
-  const user = useAuthStore((s) => s.user)
+  const { isLoading, isAuthenticated, user } = useAuth()
 
-  const { isLoading, isFetching } = useQuery({
-    queryKey: keys.auth.me,
-    queryFn: me,
-    enabled: Boolean(token ?? hasBearerToken()),
-    staleTime: 5 * 60_000,
-    refetchOnWindowFocus: false,
-  })
-
-  const loading = Boolean(token ?? hasBearerToken()) && (isLoading || isFetching) && !user
-
-  if (!(token ?? hasBearerToken())) {
-    return <Navigate to="/login" replace />
+  if (isLoading && !user) {
+    return <AdminLoading />
   }
 
-  if (loading) {
-    return <AdminLoading />
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
   }
 
   if (!user?.is_admin) {

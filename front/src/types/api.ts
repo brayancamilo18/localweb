@@ -269,9 +269,13 @@ export interface ApiError {
   errors?: Record<string, string[]>
 }
 
+/**
+ * Auth: Sanctum SPA mode. Tras login/register el backend NO devuelve token — la
+ * autenticación viaja por la cookie HttpOnly de sesión. El SPA solo recibe el user
+ * y el business (si existe) para hidratar la UI sin tener que esperar a /auth/me.
+ */
 export interface AuthResponse {
   user: User
-  token: string
   business: Business | null
 }
 

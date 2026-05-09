@@ -1,13 +1,18 @@
 import { Navigate, Outlet } from 'react-router-dom'
-import { hasBearerToken } from '../../lib/authSession'
+import { useAuth } from '../../hooks/useAuth'
 import { useAuthStore } from '../../store/authStore'
 
 export default function ProtectedRoute() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const { isLoading, isAuthenticated } = useAuth()
   const hasCompletedOnboarding = useAuthStore((state) => state.hasCompletedOnboarding)
   const user = useAuthStore((state) => state.user)
 
-  if (!isAuthenticated && !hasBearerToken()) {
+  // Primera carga: aún no sabemos si la cookie es válida. No redirigir todavía.
+  if (isLoading && !isAuthenticated) {
+    return null
+  }
+
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
 

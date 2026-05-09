@@ -4,24 +4,32 @@ import { me } from '../api/auth'
 import { keys } from '../api/queryKeys'
 import { useAuthStore } from '../store/authStore'
 
+/**
+ * Auth: Sanctum SPA mode.
+ *
+ * La verdad la dicta /auth/me: si responde 200 estamos logueados (cookie de sesión
+ * válida), si responde 401 no. El store local solo cachea user/business para evitar
+ * parpadeos al pintar la UI.
+ *
+ * Este hook se monta una vez en el árbol (en App) y todos los demás consumidores leen
+ * el resultado del mismo `queryKey: keys.auth.me`, así no hay refetches duplicados.
+ */
 export function useAuth() {
-  const token = localStorage.getItem('lw_token')
   const { user, business, isAuthenticated, setAuth, clearAuth } = useAuthStore()
 
   const query = useQuery({
     queryKey: keys.auth.me,
     queryFn: me,
-    enabled: Boolean(token),
     retry: false,
     staleTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   })
 
   useEffect(() => {
-    if (query.data && token) {
-      setAuth(token, query.data.user, query.data.business)
+    if (query.data) {
+      setAuth(query.data.user, query.data.business)
     }
-  }, [query.data, setAuth, token])
+  }, [query.data, setAuth])
 
   useEffect(() => {
     if (!query.isError) return
@@ -35,6 +43,7 @@ export function useAuth() {
     user,
     business,
     isLoading: query.isLoading,
+    isFetching: query.isFetching,
     isAuthenticated,
   }
 }

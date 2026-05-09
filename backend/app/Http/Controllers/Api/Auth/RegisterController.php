@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class RegisterController extends BaseApiController
 {
@@ -26,11 +27,13 @@ class RegisterController extends BaseApiController
 
         $user->sendEmailVerificationNotification();
 
-        $token = $user->createToken('lw-spa', ['*'], now()->addDays(90))->plainTextToken;
+        // Sanctum SPA: arrancamos sesión vía guard `web`. Regeneramos el ID de sesión
+        // tras crear la cuenta (defensa contra session-fixation).
+        Auth::guard('web')->login($user);
+        $request->session()->regenerate();
 
         return $this->success([
             'user' => new UserResource($user),
-            'token' => $token,
             'business' => null,
         ], 'Usuario registrado', 201);
     }

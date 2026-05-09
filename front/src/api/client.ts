@@ -1,24 +1,96 @@
-import axios from 'axios'
+import axios, { type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios'
 import { isOnboardingPreviewWithoutAuth } from '../config/devFlags'
 
+/**
+ * Auth: Sanctum SPA mode (cookie HttpOnly + CSRF).
+ *
+ * Producción: SPA y API comparten eTLD+1 (p. ej. localweb.es / api.localweb.es) con
+ * SESSION_DOMAIN=.localweb.es. El SPA llama al backend en su URL absoluta vía
+ * VITE_API_URL.
+ *
+ * Dev: Vite proxy redirige /api a nginx → Laravel; baseURL es '/api/v1' relativo y
+ * las cookies se comparten porque ambos viajan por el mismo origin (puerto del dev
+ * server). Para que las cookies de sesión Sanctum funcionen, el SPA debe correr en
+ * un dominio listado en SANCTUM_STATEFUL_DOMAINS y CORS debe permitir credentials.
+ */
+
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? '/api/v1'
+
+/** Origen del backend (sin /api/v1) para llamar /sanctum/csrf-cookie por debajo del prefijo. */
+function backendOrigin(): string {
+  if (API_BASE_URL.startsWith('http://') || API_BASE_URL.startsWith('https://')) {
+    return API_BASE_URL.replace(/\/api\/v\d+\/?$/, '')
+  }
+  return API_BASE_URL.replace(/\/api\/v\d+\/?$/, '')
+}
+
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? '/api/v1',
-  withCredentials: false,
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+  // axios usa estos defaults; los explicito para evitar regresiones si cambia.
+  xsrfCookieName: 'XSRF-TOKEN',
+  xsrfHeaderName: 'X-XSRF-TOKEN',
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
   },
 })
 
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('lw_token')
+const MUTATING_METHODS = new Set(['post', 'put', 'patch', 'delete'])
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+function readCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null
+  const all = document.cookie ? document.cookie.split('; ') : []
+  for (const raw of all) {
+    const eq = raw.indexOf('=')
+    const key = eq === -1 ? raw : raw.slice(0, eq)
+    if (key === name) {
+      return eq === -1 ? '' : decodeURIComponent(raw.slice(eq + 1))
+    }
+  }
+  return null
+}
+
+let csrfFetchInFlight: Promise<void> | null = null
+
+/**
+ * Asegura que la cookie XSRF-TOKEN esté presente antes de una mutación. Llama a
+ * /sanctum/csrf-cookie una sola vez por sesión (no por request). Si varias mutaciones
+ * se disparan a la vez, comparten la misma promesa.
+ */
+async function ensureCsrfCookie(): Promise<void> {
+  if (readCookie('XSRF-TOKEN')) return
+  if (csrfFetchInFlight) return csrfFetchInFlight
+
+  csrfFetchInFlight = axios
+    .get(`${backendOrigin()}/sanctum/csrf-cookie`, { withCredentials: true })
+    .then(() => undefined)
+    .catch((err) => {
+      // No bloqueamos la mutación si csrf-cookie falla por red; el backend devolverá
+      // 419 y el caller lo verá. Limpiamos el lock para reintentar en el siguiente.
+      csrfFetchInFlight = null
+      throw err
+    })
+    .finally(() => {
+      csrfFetchInFlight = null
+    })
+
+  return csrfFetchInFlight
+}
+
+apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
+  const method = (config.method ?? 'get').toLowerCase()
+  if (MUTATING_METHODS.has(method)) {
+    try {
+      await ensureCsrfCookie()
+    } catch {
+      /* dejamos seguir; backend responderá 419 si CSRF falta */
+    }
   }
 
   if (config.data instanceof FormData) {
-    delete config.headers['Content-Type']
+    delete (config.headers as Record<string, unknown> | undefined)?.['Content-Type']
   }
 
   return config
@@ -28,15 +100,8 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error?.response?.status
-    /** Solo 401 = sesión inválida. 403 suele ser “no permitido” con sesión válida (no borrar token). */
+    /** Solo 401 = sesión inválida. 403 suele ser “no permitido” con sesión válida (no purgar). */
     if (status === 401) {
-      localStorage.removeItem('lw_token')
-      try {
-        localStorage.removeItem('lw-auth-store')
-      } catch {
-        /* ignore */
-      }
-
       const skipRedirectToLogin =
         isOnboardingPreviewWithoutAuth() && window.location.pathname.startsWith('/onboarding')
 
@@ -49,3 +114,10 @@ apiClient.interceptors.response.use(
     return Promise.reject(error)
   },
 )
+
+/** Útil en tests para forzar un nuevo pre-flight de CSRF (jsdom no lo cachea). */
+export function __resetCsrfCookieFetchForTests(): void {
+  csrfFetchInFlight = null
+}
+
+export type { AxiosRequestConfig }

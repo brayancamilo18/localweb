@@ -5,7 +5,6 @@ import { logout, me, resendEmailVerification } from '../api/auth'
 import { keys } from '../api/queryKeys'
 import { Btn } from '../components/primitives/primitives'
 import { AuthSplitLayout } from '../layouts/AuthSplitLayout'
-import { hasBearerToken } from '../lib/authSession'
 import { useAuthStore } from '../store/authStore'
 
 const RESEND_COOLDOWN_SECONDS = 60
@@ -20,12 +19,10 @@ export default function VerifyEmailPage() {
   const [cooldown, setCooldown] = useState(0)
   const [feedback, setFeedback] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
 
-  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('lw_token') : null
-
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: keys.auth.me,
     queryFn: me,
-    enabled: Boolean(token ?? hasBearerToken()),
+    retry: false,
     refetchInterval: (query) => {
       const verifiedAt = query.state.data?.user?.email_verified_at
       if (verifiedAt) return false
@@ -36,10 +33,10 @@ export default function VerifyEmailPage() {
   })
 
   useEffect(() => {
-    if (data && token) {
-      setAuth(token, data.user, data.business)
+    if (data) {
+      setAuth(data.user, data.business)
     }
-  }, [data, setAuth, token])
+  }, [data, setAuth])
 
   useEffect(() => {
     if (cooldown <= 0) return
@@ -51,7 +48,6 @@ export default function VerifyEmailPage() {
 
   useEffect(() => {
     if (verifiedAt) {
-      // Cuando se detecta verificación, refrescar /auth/me y enviar al onboarding.
       void queryClient.invalidateQueries({ queryKey: keys.auth.me })
       navigate('/onboarding', { replace: true })
     }
@@ -97,7 +93,9 @@ export default function VerifyEmailPage() {
     return `Disponible en ${cooldown}s`
   }, [cooldown])
 
-  if (!token && !hasBearerToken()) {
+  // Si /auth/me devuelve 401 directamente, no hay sesión y mandamos al login.
+  const status401 = isError && (error as { response?: { status?: number } })?.response?.status === 401
+  if (status401) {
     return <Navigate to="/login" replace />
   }
 

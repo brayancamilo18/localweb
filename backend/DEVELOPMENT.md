@@ -1,3 +1,56 @@
+# Auth: Sanctum SPA mode (cookie + CSRF)
+
+El SPA propio se autentica con **cookies de sesión HttpOnly + CSRF**, no con
+bearer tokens. Esto elimina la superficie de XSS contra el token (90 días de
+sesión robable desde `localStorage` → 0).
+
+## Cómo funciona el flujo en el navegador
+
+1. El SPA llama `GET /sanctum/csrf-cookie` antes de la primera mutación. La
+   respuesta es `204 No Content` con dos cookies: `XSRF-TOKEN` (legible por JS,
+   solo para que axios la lea y reenvíe) y `localweb_session` (HttpOnly).
+2. Cualquier `POST/PUT/PATCH/DELETE` debe llevar el header `X-XSRF-TOKEN` con
+   el valor de la cookie `XSRF-TOKEN`. Axios lo hace automáticamente cuando
+   `withCredentials: true` y los nombres por defecto coinciden.
+3. `EnsureFrontendRequestsAreStateful` (registrado en `bootstrap/app.php` con
+   `$middleware->statefulApi()`) detecta que `Origin`/`Referer` está en
+   `SANCTUM_STATEFUL_DOMAINS` y, solo entonces, aplica `StartSession +
+   ValidateCsrfToken`. Para orígenes externos sigue siendo bearer puro.
+4. `auth:sanctum` resuelve el usuario por la cookie de sesión (guard `web`)
+   primero; si no, intenta bearer (compat third-party).
+
+## Variables de entorno (revisar antes de desplegar)
+
+| Variable | Dev | Prod |
+|---|---|---|
+| `APP_URL` | `http://localhost` | `https://api.localweb.es` (con HTTPS, dominio, no IP) |
+| `SESSION_DRIVER` | `redis` | `redis` |
+| `SESSION_DOMAIN` | `localhost` | `.localweb.es` (punto inicial: comparte cookie entre `localweb.es` y `api.localweb.es`) |
+| `SESSION_SAME_SITE` | `lax` | `lax` |
+| `SESSION_SECURE_COOKIE` | `false` | **`true`** (obligatorio bajo HTTPS) |
+| `SANCTUM_STATEFUL_DOMAINS` | `localhost:5173,localhost:4173,127.0.0.1:5173,127.0.0.1:4173` | `app.localweb.es,localweb.es` |
+| `CORS_ALLOWED_ORIGINS` | (default) | `https://localweb.es,https://app.localweb.es` |
+
+Requisito de arquitectura: SPA y API deben compartir eTLD+1. Si despliegas el
+SPA en un dominio totalmente distinto (Vercel, etc.), la cookie de sesión no
+viajará y debes volver a un esquema con tokens.
+
+## Pruebas
+
+- Feature tests existentes (Pest): autenticación con `actingAs($user)` (web
+  guard); el `TestCase` base inyecta `Origin: http://localhost` para que el
+  middleware stateful active `StartSession`.
+- `tests/Feature/Api/SanctumCookieFlowTest.php`: simula el contrato real
+  (`csrf-cookie → login con XSRF-TOKEN → me con cookie → logout invalida`).
+
+## Compatibilidad con tokens
+
+`HasApiTokens` sigue en `User` y `auth:sanctum` resuelve bearer si la cookie
+no aplica. Útil si en el futuro se expone una API pública para integraciones
+third-party. Para el SPA propio NO se generan ya tokens en login/register.
+
+---
+
 # Desarrollo local con Stripe
 
 ## Requisitos

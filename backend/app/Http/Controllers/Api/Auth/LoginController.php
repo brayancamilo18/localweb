@@ -9,6 +9,7 @@ use App\Http\Resources\BusinessResource;
 use App\Http\Resources\UserResource;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends BaseApiController
 {
@@ -33,13 +34,15 @@ class LoginController extends BaseApiController
             return $this->error('Credenciales incorrectas', [], 401);
         }
 
-        $user->load(['business.template', 'business.images']);
+        // Sanctum SPA: la cookie HttpOnly de sesión sustituye al bearer token.
+        // Regeneramos el ID de sesión para mitigar session-fixation tras login.
+        Auth::guard('web')->login($user);
+        $request->session()->regenerate();
 
-        $token = $user->createToken('lw-spa', ['*'], now()->addDays(90))->plainTextToken;
+        $user->load(['business.template', 'business.images']);
 
         return $this->success([
             'user' => new UserResource($user),
-            'token' => $token,
             'business' => $user->business ? new BusinessResource($user->business) : null,
         ]);
     }

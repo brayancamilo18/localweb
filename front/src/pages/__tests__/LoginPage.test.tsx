@@ -10,6 +10,7 @@ const navigateMock = vi.fn()
 vi.mock('react-router-dom', () => ({
   MemoryRouter: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useNavigate: () => navigateMock,
+  useSearchParams: () => [new URLSearchParams(), vi.fn()] as const,
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
     <a href={to}>{children}</a>
   ),
@@ -50,7 +51,6 @@ describe('LoginPage', () => {
             () =>
               resolve({
                 user: { id: 1, name: 'A', email: 'a@a.com' },
-                token: 'tok',
                 business: null,
               } as never),
             100,
@@ -82,8 +82,7 @@ describe('LoginPage', () => {
 
   it('navega a /dashboard tras login exitoso sin 2FA', async () => {
     vi.spyOn(authApi, 'login').mockResolvedValue({
-      user: { id: 1, name: 'A', email: 'a@a.com' },
-      token: 'tok',
+      user: { id: 1, name: 'A', email: 'a@a.com', email_verified_at: '2026-05-01T00:00:00Z' },
       business: { plan: 'pro' } as never,
     })
     renderPage()
@@ -95,8 +94,7 @@ describe('LoginPage', () => {
 
   it('navega a /onboarding cuando negocio esta pending', async () => {
     vi.spyOn(authApi, 'login').mockResolvedValue({
-      user: { id: 1, name: 'A', email: 'a@a.com' },
-      token: 'tok',
+      user: { id: 1, name: 'A', email: 'a@a.com', email_verified_at: '2026-05-01T00:00:00Z' },
       business: { plan: 'pending' } as never,
     } as never)
     renderPage()

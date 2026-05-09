@@ -9,27 +9,30 @@ use Illuminate\Support\Facades\Notification;
 
 uses(RefreshDatabase::class);
 
-it('full auth flow: register verification email, login unblocked, onboarding blocked until verified, resend, then onboarding allowed', function () {
+it('full auth flow: register verification email, onboarding blocked until verified, resend, then onboarding allowed', function () {
     Notification::fake();
 
-    $register = test()->postJson('/api/v1/auth/register', [
+    test()->postJson('/api/v1/auth/register', [
         'name' => 'Flow User',
         'email' => 'auth-flow@test.example',
         'password' => 'password123',
         'password_confirmation' => 'password123',
-    ])->assertStatus(201);
-
-    $token = $register->json('data.token');
-    expect($token)->not->toBeEmpty();
+    ])
+        ->assertStatus(201)
+        ->assertJsonMissingPath('data.token')
+        ->assertJsonPath('data.user.email', 'auth-flow@test.example');
 
     $user = User::where('email', 'auth-flow@test.example')->firstOrFail();
     expect($user->email_verified_at)->toBeNull();
     Notification::assertSentTo($user, VerifyEmailEs::class);
 
+    // Login también deja la sesión iniciada (cookie en HTTP real, sin token).
     test()->postJson('/api/v1/auth/login', [
         'email' => 'auth-flow@test.example',
         'password' => 'password123',
-    ])->assertStatus(200)->assertJsonPath('data.token', fn ($t) => is_string($t) && $t !== '');
+    ])
+        ->assertStatus(200)
+        ->assertJsonMissingPath('data.token');
 
     $template = Template::create([
         'name' => 'Noir Elite',
@@ -39,7 +42,8 @@ it('full auth flow: register verification email, login unblocked, onboarding blo
         'requires_pro' => false,
     ]);
 
-    test()->withHeader('Authorization', "Bearer {$token}")
+    // En el flujo SPA usamos actingAs($user) para inyectar la sesión web.
+    test()->actingAs($user)
         ->postJson('/api/v1/onboarding/step/1', [
             'template_id' => $template->id,
             'sector' => 'restaurante',
@@ -49,7 +53,7 @@ it('full auth flow: register verification email, login unblocked, onboarding blo
 
     Notification::fake();
 
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($user)
         ->postJson('/api/v1/auth/email/verification-notification')
         ->assertStatus(202)
         ->assertJsonPath('message', 'Email reenviado');
@@ -63,7 +67,7 @@ it('full auth flow: register verification email, login unblocked, onboarding blo
     // PHPUnit reutiliza instancias de guard entre llamadas HTTP en el mismo test.
     Auth::forgetGuards();
 
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($user->fresh())
         ->postJson('/api/v1/onboarding/step/1', [
             'template_id' => $template->id,
             'sector' => 'restaurante',

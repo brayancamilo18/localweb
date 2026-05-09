@@ -71,7 +71,6 @@ describe('RegisterPage', () => {
   it('llama a register API con los datos correctos', async () => {
     const registerSpy = vi.spyOn(authApi, 'register').mockResolvedValue({
       user: { id: 1, name: 'Brayan', email: 'b@b.com' },
-      token: 'tok',
       business: null,
     })
     renderPage()
@@ -85,7 +84,6 @@ describe('RegisterPage', () => {
   it('navega a /verify-email tras registro exitoso (correo aún sin verificar)', async () => {
     vi.spyOn(authApi, 'register').mockResolvedValue({
       user: { id: 1, name: 'Brayan', email: 'b@b.com', email_verified_at: null },
-      token: 'tok',
       business: null,
     })
     renderPage()
@@ -99,7 +97,6 @@ describe('RegisterPage', () => {
   it('navega a /onboarding tras registro si el backend ya devuelve email verificado', async () => {
     vi.spyOn(authApi, 'register').mockResolvedValue({
       user: { id: 1, name: 'Brayan', email: 'b@b.com', email_verified_at: '2026-05-07T18:00:00+00:00' },
-      token: 'tok',
       business: null,
     })
     renderPage()

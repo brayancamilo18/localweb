@@ -1,7 +1,8 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { login } from '../api/auth'
+import { keys } from '../api/queryKeys'
 import { Btn, Icon, Input } from '../components/primitives/primitives'
 import { AuthSplitLayout } from '../layouts/AuthSplitLayout'
 import { useAuthStore } from '../store/authStore'
@@ -20,6 +21,7 @@ function safeNextPath(raw: string | null): string | null {
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [searchParams] = useSearchParams()
   const returnTo = safeNextPath(searchParams.get('next'))
   const setAuth = useAuthStore((state) => state.setAuth)
@@ -28,8 +30,12 @@ export default function LoginPage() {
 
   const mutation = useMutation({
     mutationFn: () => login(email, password),
-    onSuccess(data) {
-      setAuth(data.token, data.user, data.business)
+    async onSuccess(data) {
+      setAuth(data.user, data.business)
+      // /auth/me ya no necesita refetch — la respuesta de login trae el mismo payload
+      // que /auth/me. Solo marcamos la query como fresh para que el useAuth global no
+      // se quede en estado loading inicial.
+      queryClient.setQueryData(keys.auth.me, { user: data.user, business: data.business })
       if (returnTo) {
         navigate(returnTo)
         return

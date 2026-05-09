@@ -17,18 +17,14 @@ it('admin ping without token returns 401', function () {
 
 it('admin ping with non-admin token returns 403', function () {
     $user = User::factory()->create(['is_admin' => false]);
-    $token = $user->createToken('lw-spa')->plainTextToken;
-
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($user)
         ->getJson('/api/v1/admin/ping')
         ->assertStatus(403);
 });
 
 it('admin ping with admin token returns ok', function () {
     $user = User::factory()->create(['is_admin' => true]);
-    $token = $user->createToken('lw-spa')->plainTextToken;
-
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($user)
         ->getJson('/api/v1/admin/ping')
         ->assertStatus(200)
         ->assertJsonPath('data.ok', true);
@@ -36,17 +32,13 @@ it('admin ping with admin token returns ok', function () {
 
 it('admin stats overview forbids non-admin', function () {
     $user = User::factory()->create(['is_admin' => false]);
-    $token = $user->createToken('lw-spa')->plainTextToken;
-
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($user)
         ->getJson('/api/v1/admin/stats/overview')
         ->assertStatus(403);
 });
 
 it('admin stats overview returns aggregates', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     Business::create([
         'name' => 'Pro Pub',
         'subdomain' => 'adm-pro-pub-aaaa',
@@ -64,7 +56,7 @@ it('admin stats overview returns aggregates', function () {
         'is_published' => false,
     ]);
 
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($admin)
         ->getJson('/api/v1/admin/stats/overview')
         ->assertStatus(200)
         ->assertJsonPath('data.total_businesses', 2)
@@ -81,8 +73,6 @@ it('admin stats overview returns aggregates', function () {
 
 it('admin stats sectors lists all configured sectors ordered by total', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $expectedCount = count(config('sectors', []));
 
     Business::create([
@@ -110,7 +100,7 @@ it('admin stats sectors lists all configured sectors ordered by total', function
         'is_published' => false,
     ]);
 
-    $response = test()->withHeader('Authorization', "Bearer {$token}")
+    $response = test()->actingAs($admin)
         ->getJson('/api/v1/admin/stats/sectors')
         ->assertStatus(200);
 
@@ -129,8 +119,6 @@ it('admin stats sectors lists all configured sectors ordered by total', function
 
 it('admin stats templates lists all templates with usage ordered desc', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $hiUse = Template::create([
         'name' => 'High use',
         'slug' => 'hi-use-'.uniqid(),
@@ -167,7 +155,7 @@ it('admin stats templates lists all templates with usage ordered desc', function
         'is_published' => true,
     ]);
 
-    $response = test()->withHeader('Authorization', "Bearer {$token}")
+    $response = test()->actingAs($admin)
         ->getJson('/api/v1/admin/stats/templates')
         ->assertStatus(200);
 
@@ -185,8 +173,6 @@ it('admin stats templates lists all templates with usage ordered desc', function
 
 it('admin stats top-pages returns published businesses ordered by filter', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $hot = Business::create([
         'name' => 'Hot',
         'subdomain' => 'top-hot-'.uniqid(),
@@ -231,7 +217,7 @@ it('admin stats top-pages returns published businesses ordered by filter', funct
         'visited_at' => now(),
     ]);
 
-    $pages = test()->withHeader('Authorization', "Bearer {$token}")
+    $pages = test()->actingAs($admin)
         ->getJson('/api/v1/admin/stats/top-pages?event_type=visit&limit=10')
         ->assertStatus(200)
         ->json('data.pages');
@@ -240,7 +226,7 @@ it('admin stats top-pages returns published businesses ordered by filter', funct
         ->and($pages[0]['visits'])->toBe(5)
         ->and($pages[0])->toHaveKeys(['business_id', 'name', 'subdomain', 'sector', 'plan', 'visits', 'whatsapp_clicks', 'phone_clicks']);
 
-    $wa = test()->withHeader('Authorization', "Bearer {$token}")
+    $wa = test()->actingAs($admin)
         ->getJson('/api/v1/admin/stats/top-pages?event_type=whatsapp_click')
         ->json('data.pages');
 
@@ -250,26 +236,20 @@ it('admin stats top-pages returns published businesses ordered by filter', funct
 
 it('admin stats top-pages rejects invalid query params', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($admin)
         ->getJson('/api/v1/admin/stats/top-pages?range=nope')
         ->assertStatus(422);
 });
 
 it('admin stats timeseries requires metric', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($admin)
         ->getJson('/api/v1/admin/stats/timeseries')
         ->assertStatus(422);
 });
 
 it('admin stats timeseries registrations fills daily gaps', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     Business::create([
         'name' => 'Ts Reg',
         'subdomain' => 'ts-reg-'.uniqid(),
@@ -278,7 +258,7 @@ it('admin stats timeseries registrations fills daily gaps', function () {
         'created_at' => Carbon::now()->subDays(3),
     ]);
 
-    $response = test()->withHeader('Authorization', "Bearer {$token}")
+    $response = test()->actingAs($admin)
         ->getJson('/api/v1/admin/stats/timeseries?metric=registrations&range=7d&granularity=day')
         ->assertStatus(200);
 
@@ -290,8 +270,6 @@ it('admin stats timeseries registrations fills daily gaps', function () {
 
 it('admin stats timeseries visits uses page_visits', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $b = Business::create([
         'name' => 'Ts Visit',
         'subdomain' => 'ts-vis-'.uniqid(),
@@ -305,7 +283,7 @@ it('admin stats timeseries visits uses page_visits', function () {
         'visited_at' => Carbon::now(),
     ]);
 
-    $response = test()->withHeader('Authorization', "Bearer {$token}")
+    $response = test()->actingAs($admin)
         ->getJson('/api/v1/admin/stats/timeseries?metric=visits&range=7d&granularity=day')
         ->assertStatus(200);
 
@@ -314,16 +292,14 @@ it('admin stats timeseries visits uses page_visits', function () {
 
 it('admin stats timeseries defaults granularity by range', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
-    $r90 = test()->withHeader('Authorization', "Bearer {$token}")
+    $r90 = test()->actingAs($admin)
         ->getJson('/api/v1/admin/stats/timeseries?metric=registrations&range=90d')
         ->assertStatus(200)
         ->json('data.granularity');
 
     expect($r90)->toBe('week');
 
-    $r365 = test()->withHeader('Authorization', "Bearer {$token}")
+    $r365 = test()->actingAs($admin)
         ->getJson('/api/v1/admin/stats/timeseries?metric=registrations&range=365d')
         ->json('data.granularity');
 
@@ -332,8 +308,6 @@ it('admin stats timeseries defaults granularity by range', function () {
 
 it('admin templates index lists all with usage like stats templates', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $hiUse = Template::create([
         'name' => 'Admin hi',
         'slug' => 'adm-hi-'.uniqid(),
@@ -361,7 +335,7 @@ it('admin templates index lists all with usage like stats templates', function (
         ]);
     }
 
-    $response = test()->withHeader('Authorization', "Bearer {$token}")
+    $response = test()->actingAs($admin)
         ->getJson('/api/v1/admin/templates')
         ->assertStatus(200);
 
@@ -379,8 +353,6 @@ it('admin templates index lists all with usage like stats templates', function (
 
 it('admin templates toggle-active returns updated template', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $tpl = Template::create([
         'name' => 'Toggle act',
         'slug' => 'tog-act-'.uniqid(),
@@ -389,7 +361,7 @@ it('admin templates toggle-active returns updated template', function () {
         'requires_pro' => false,
     ]);
 
-    $response = test()->withHeader('Authorization', "Bearer {$token}")
+    $response = test()->actingAs($admin)
         ->patchJson("/api/v1/admin/templates/{$tpl->id}/toggle-active")
         ->assertStatus(200);
 
@@ -401,8 +373,6 @@ it('admin templates toggle-active returns updated template', function () {
 
 it('admin users index paginates with search and filters', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $biz = Business::create([
         'name' => 'Linked Co',
         'subdomain' => 'adm-u-biz-'.uniqid(),
@@ -426,7 +396,7 @@ it('admin users index paginates with search and filters', function () {
         'is_admin' => false,
     ]);
 
-    $response = test()->withHeader('Authorization', "Bearer {$token}")
+    $response = test()->actingAs($admin)
         ->getJson('/api/v1/admin/users?search=alice-find&has_business=1&email_verified=1')
         ->assertStatus(200);
 
@@ -436,7 +406,7 @@ it('admin users index paginates with search and filters', function () {
         ->and($item['business']['subdomain'])->toBe($biz->subdomain)
         ->and($item['email_verified_at'])->not->toBeNull();
 
-    $noBiz = test()->withHeader('Authorization', "Bearer {$token}")
+    $noBiz = test()->actingAs($admin)
         ->getJson('/api/v1/admin/users?has_business=0&email_verified=0')
         ->assertStatus(200);
 
@@ -449,15 +419,13 @@ it('admin users resend verification sends notification when unverified', functio
     Notification::fake();
 
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $target = User::factory()->unverified()->create([
         'name' => 'Unverified',
         'email' => 'need-verify@test.example',
         'is_admin' => false,
     ]);
 
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($admin)
         ->postJson("/api/v1/admin/users/{$target->id}/resend-verification")
         ->assertStatus(200)
         ->assertJsonPath('data.resent', true);
@@ -467,14 +435,12 @@ it('admin users resend verification sends notification when unverified', functio
 
 it('admin users pagination supports page parameter', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     User::factory()->create([
         'email' => 'older-pagination@test.example',
         'created_at' => now()->subDays(5),
     ]);
 
-    $r2 = test()->withHeader('Authorization', "Bearer {$token}")
+    $r2 = test()->actingAs($admin)
         ->getJson('/api/v1/admin/users?per_page=1&page=2')
         ->assertStatus(200);
 
@@ -485,9 +451,7 @@ it('admin users pagination supports page parameter', function () {
 
 it('admin stats top-pages returns at most limit rows', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
-    $response = test()->withHeader('Authorization', "Bearer {$token}")
+    $response = test()->actingAs($admin)
         ->getJson('/api/v1/admin/stats/top-pages?limit=50&range=all&event_type=visit')
         ->assertStatus(200);
 
@@ -498,14 +462,12 @@ it('admin users resend verification rejects when already verified', function () 
     Notification::fake();
 
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $target = User::factory()->create([
         'email_verified_at' => now(),
         'is_admin' => false,
     ]);
 
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($admin)
         ->postJson("/api/v1/admin/users/{$target->id}/resend-verification")
         ->assertStatus(422);
 
@@ -514,8 +476,6 @@ it('admin users resend verification rejects when already verified', function () 
 
 it('admin templates toggle-pro returns updated template', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $tpl = Template::create([
         'name' => 'Toggle pro',
         'slug' => 'tog-pro-'.uniqid(),
@@ -524,7 +484,7 @@ it('admin templates toggle-pro returns updated template', function () {
         'requires_pro' => false,
     ]);
 
-    $response = test()->withHeader('Authorization', "Bearer {$token}")
+    $response = test()->actingAs($admin)
         ->patchJson("/api/v1/admin/templates/{$tpl->id}/toggle-pro")
         ->assertStatus(200);
 

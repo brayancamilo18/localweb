@@ -1,7 +1,8 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register } from '../api/auth'
+import { keys } from '../api/queryKeys'
 import { Btn, Field, Icon, Input } from '../components/primitives/primitives'
 import { AuthSplitLayout } from '../layouts/AuthSplitLayout'
 import { useApiError } from '../hooks/useApiError'
@@ -95,6 +96,7 @@ function SocialApple() {
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const setAuth = useAuthStore((state) => state.setAuth)
   const [step, setStep] = useState(1)
 
@@ -148,7 +150,8 @@ export default function RegisterPage() {
         /* ignore */
       }
       clearAllOnboardingPersist()
-      setAuth(data.token, data.user, data.business)
+      setAuth(data.user, data.business)
+      queryClient.setQueryData(keys.auth.me, { user: data.user, business: data.business })
       // El onboarding está bloqueado tras el muro de verificación de email.
       navigate(data.user?.email_verified_at ? '/onboarding' : '/verify-email')
     },

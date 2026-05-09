@@ -12,9 +12,7 @@ it('returns 401 on POST /api/v1/billing/checkout when unauthenticated', function
 
 it('returns 403 on POST /api/v1/billing/checkout when the user has no business', function () {
     $user = User::factory()->create();
-    $token = $user->createToken('lw-spa')->plainTextToken;
-
-    $response = test()->withHeader('Authorization', "Bearer {$token}")
+    $response = test()->actingAs($user)
         ->postJson('/api/v1/billing/checkout');
 
     $response->assertStatus(403)
@@ -30,9 +28,7 @@ it('returns 422 on POST /api/v1/billing/checkout when the business is already Pr
         'plan' => 'pro',
     ]);
     $user = User::factory()->create(['business_id' => $business->id]);
-    $token = $user->createToken('lw-spa')->plainTextToken;
-
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($user)
         ->postJson('/api/v1/billing/checkout')
         ->assertStatus(422)
         ->assertJsonPath('message', 'Ya tienes el plan Pro activo');
@@ -49,9 +45,7 @@ it('returns a valid checkout_url in testing environment on POST /api/v1/billing/
         'plan' => 'free',
     ]);
     $user = User::factory()->create(['business_id' => $business->id]);
-    $token = $user->createToken('lw-spa')->plainTextToken;
-
-    $response = test()->withHeader('Authorization', "Bearer {$token}")
+    $response = test()->actingAs($user)
         ->postJson('/api/v1/billing/checkout');
 
     $response->assertOk()
@@ -74,9 +68,7 @@ it('returns 422 on POST /api/v1/billing/portal when the user has no active subsc
     $user = User::factory()->create(['business_id' => $business->id]);
     expect($user->subscribed('default'))->toBeFalse();
 
-    $token = $user->createToken('lw-spa')->plainTextToken;
-
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($user)
         ->postJson('/api/v1/billing/portal')
         ->assertStatus(422)
         ->assertJsonPath('message', 'No tienes una suscripción activa');
@@ -92,9 +84,7 @@ it('returns the business plan on GET /api/v1/billing/status', function () {
         'is_published' => true,
     ]);
     $user = User::factory()->create(['business_id' => $business->id]);
-    $token = $user->createToken('lw-spa')->plainTextToken;
-
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($user)
         ->getJson('/api/v1/billing/status')
         ->assertOk()
         ->assertJsonPath('data.plan', 'pro')

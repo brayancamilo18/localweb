@@ -12,17 +12,13 @@ uses(RefreshDatabase::class);
 
 it('admin businesses index forbids non-admin', function () {
     $user = User::factory()->create(['is_admin' => false]);
-    $token = $user->createToken('lw-spa')->plainTextToken;
-
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($user)
         ->getJson('/api/v1/admin/businesses')
         ->assertStatus(403);
 });
 
 it('admin businesses index returns items with owner email and visit count', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $business = Business::create([
         'name' => 'Café Nube',
         'subdomain' => 'adm-biz-'.uniqid(),
@@ -45,7 +41,7 @@ it('admin businesses index returns items with owner email and visit count', func
         'visited_at' => now(),
     ]);
 
-    $response = test()->withHeader('Authorization', "Bearer {$token}")
+    $response = test()->actingAs($admin)
         ->getJson('/api/v1/admin/businesses')
         ->assertStatus(200);
 
@@ -64,8 +60,6 @@ it('admin businesses index returns items with owner email and visit count', func
 
 it('admin businesses index filters search sector and onboarding_completed', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $match = Business::create([
         'name' => 'Alpha Shop',
         'subdomain' => 'adm-f-a-'.uniqid(),
@@ -85,7 +79,7 @@ it('admin businesses index filters search sector and onboarding_completed', func
         'onboarding_completed_at' => null,
     ]);
 
-    $response = test()->withHeader('Authorization', "Bearer {$token}")
+    $response = test()->actingAs($admin)
         ->getJson('/api/v1/admin/businesses?search=Alpha&sector=bar&onboarding_completed=1')
         ->assertStatus(200);
 
@@ -95,8 +89,6 @@ it('admin businesses index filters search sector and onboarding_completed', func
 
 it('admin businesses show includes relations visit_counts and soft deleted', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $business = Business::create([
         'name' => 'Detail Co',
         'subdomain' => 'adm-show-'.uniqid(),
@@ -116,7 +108,7 @@ it('admin businesses show includes relations visit_counts and soft deleted', fun
 
     $business->delete();
 
-    $response = test()->withHeader('Authorization', "Bearer {$token}")
+    $response = test()->actingAs($admin)
         ->getJson("/api/v1/admin/businesses/{$business->id}")
         ->assertStatus(200);
 
@@ -132,8 +124,6 @@ it('admin businesses show includes relations visit_counts and soft deleted', fun
 
 it('admin businesses patch updates plan to pro sets plan_activated_at', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $business = Business::create([
         'name' => 'Upgrade',
         'subdomain' => 'adm-up-'.uniqid(),
@@ -144,7 +134,7 @@ it('admin businesses patch updates plan to pro sets plan_activated_at', function
         'plan_activated_at' => null,
     ]);
 
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($admin)
         ->patchJson("/api/v1/admin/businesses/{$business->id}", ['plan' => 'pro'])
         ->assertStatus(200);
 
@@ -155,8 +145,6 @@ it('admin businesses patch updates plan to pro sets plan_activated_at', function
 
 it('admin businesses toggle publish flips is_published', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $business = Business::create([
         'name' => 'Toggle',
         'subdomain' => 'adm-tog-'.uniqid(),
@@ -166,7 +154,7 @@ it('admin businesses toggle publish flips is_published', function () {
         'is_published' => false,
     ]);
 
-    $response = test()->withHeader('Authorization', "Bearer {$token}")
+    $response = test()->actingAs($admin)
         ->patchJson("/api/v1/admin/businesses/{$business->id}/toggle-publish")
         ->assertStatus(200);
 
@@ -178,8 +166,6 @@ it('admin businesses toggle publish flips is_published', function () {
 
 it('admin businesses index with_trashed includes soft deleted', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $b = Business::create([
         'name' => 'Gone',
         'subdomain' => 'adm-tr-'.uniqid(),
@@ -190,11 +176,11 @@ it('admin businesses index with_trashed includes soft deleted', function () {
     ]);
     $b->delete();
 
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($admin)
         ->getJson('/api/v1/admin/businesses')
         ->assertJsonPath('data.pagination.total', 0);
 
-    $withTrashed = test()->withHeader('Authorization', "Bearer {$token}")
+    $withTrashed = test()->actingAs($admin)
         ->getJson('/api/v1/admin/businesses?with_trashed=1')
         ->assertJsonPath('data.pagination.total', 1)
         ->json('data.items.0');
@@ -204,8 +190,6 @@ it('admin businesses index with_trashed includes soft deleted', function () {
 
 it('admin businesses soft delete returns 204', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $business = Business::create([
         'name' => 'Del',
         'subdomain' => 'adm-del-'.uniqid(),
@@ -215,7 +199,7 @@ it('admin businesses soft delete returns 204', function () {
         'is_published' => true,
     ]);
 
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($admin)
         ->deleteJson("/api/v1/admin/businesses/{$business->id}")
         ->assertStatus(204);
 
@@ -224,8 +208,6 @@ it('admin businesses soft delete returns 204', function () {
 
 it('admin businesses restore returns 204', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $business = Business::create([
         'name' => 'Rest',
         'subdomain' => 'adm-rst-'.uniqid(),
@@ -236,7 +218,7 @@ it('admin businesses restore returns 204', function () {
     ]);
     $business->delete();
 
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($admin)
         ->postJson("/api/v1/admin/businesses/{$business->id}/restore")
         ->assertStatus(204);
 
@@ -246,8 +228,6 @@ it('admin businesses restore returns 204', function () {
 
 it('admin businesses force delete rejects when not trashed', function () {
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $business = Business::create([
         'name' => 'Live',
         'subdomain' => 'adm-fd0-'.uniqid(),
@@ -257,7 +237,7 @@ it('admin businesses force delete rejects when not trashed', function () {
         'is_published' => true,
     ]);
 
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($admin)
         ->deleteJson("/api/v1/admin/businesses/{$business->id}/force")
         ->assertStatus(422);
 });
@@ -266,8 +246,6 @@ it('admin businesses force delete removes related rows and storage', function ()
     $disk = Storage::fake('r2');
 
     $admin = User::factory()->create(['is_admin' => true]);
-    $token = $admin->createToken('lw-spa')->plainTextToken;
-
     $business = Business::create([
         'name' => 'Purge',
         'subdomain' => 'adm-fd1-'.uniqid(),
@@ -309,7 +287,7 @@ it('admin businesses force delete removes related rows and storage', function ()
 
     $id = $business->id;
 
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($admin)
         ->deleteJson("/api/v1/admin/businesses/{$id}/force")
         ->assertStatus(204);
 

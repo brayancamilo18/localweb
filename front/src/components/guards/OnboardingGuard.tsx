@@ -1,15 +1,18 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { isOnboardingPreviewWithoutAuth } from '../../config/devFlags'
-import { hasBearerToken } from '../../lib/authSession'
+import { useAuth } from '../../hooks/useAuth'
 import { useAuthStore } from '../../store/authStore'
 
 export default function OnboardingGuard() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const { isLoading, isAuthenticated } = useAuth()
   const hasCompletedOnboarding = useAuthStore((state) => state.hasCompletedOnboarding)
   const user = useAuthStore((state) => state.user)
 
-  /** Tras volver de Stripe (recarga completa) el store puede tardar en hidratar; lw_token sigue válido. */
-  if (!isAuthenticated && !hasBearerToken() && !isOnboardingPreviewWithoutAuth()) {
+  if (isLoading && !isAuthenticated) {
+    return null
+  }
+
+  if (!isAuthenticated && !isOnboardingPreviewWithoutAuth()) {
     return <Navigate to="/login" replace />
   }
 

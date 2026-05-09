@@ -7,7 +7,6 @@ import AdminRoute from './components/guards/AdminRoute'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 import { ToastProvider } from './components/ui/Toast'
 import { useAuth } from './hooks/useAuth'
-import { useAuthStore } from './store/authStore'
 import LoginPage from './pages/LoginPage'
 import OnboardingPage from './pages/OnboardingPage'
 import RegisterPage from './pages/RegisterPage'
@@ -30,15 +29,21 @@ import AdminBusinessDetailPage from './features/admin/AdminBusinessDetailPage'
 import AdminTemplatesPage from './features/admin/AdminTemplatesPage'
 import AdminUsersPage from './features/admin/AdminUsersPage'
 import AdminTopPagesPage from './features/admin/AdminTopPagesPage'
-import { hasBearerToken } from './lib/authSession'
+import { useAuthStore } from './store/authStore'
 
 const queryClient = new QueryClient()
 
 function RootRedirect() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const { isLoading, isAuthenticated } = useAuth()
   const hasCompletedOnboarding = useAuthStore((state) => state.hasCompletedOnboarding)
   const user = useAuthStore((state) => state.user)
-  if (!isAuthenticated && !hasBearerToken()) {
+
+  // Mientras /auth/me está en vuelo no decidimos: evita el "flash de /login" y el subsiguiente
+  // /onboarding cuando la cookie es válida.
+  if (isLoading && !isAuthenticated) {
+    return null
+  }
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
   if (user?.is_admin) {

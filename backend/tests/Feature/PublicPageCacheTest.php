@@ -199,12 +199,10 @@ it('updating a service via the dashboard endpoint invalidates the public cache',
         'onboarding_completed_at' => now(),
     ]);
     $user->update(['business_id' => $business->id]);
-    $token = $user->createToken('lw-spa')->plainTextToken;
-
     test()->getJson("/api/v1/public/{$business->subdomain}")->assertStatus(200);
     expect(Cache::has(publicPageCacheKey($business->subdomain)))->toBeTrue();
 
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($user)
         ->postJson('/api/v1/dashboard/services', [
             'name' => 'Manicura',
             'price' => 12,

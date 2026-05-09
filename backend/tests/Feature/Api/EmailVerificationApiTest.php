@@ -36,9 +36,7 @@ it('onboarding step1 returns 403 with code email_not_verified for unverified use
     ]);
 
     $user = User::factory()->unverified()->create();
-    $token = $user->createToken('lw-spa')->plainTextToken;
-
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($user)
         ->postJson('/api/v1/onboarding/step/1', [
             'template_id' => $template->id,
             'sector' => 'restaurante',
@@ -58,9 +56,7 @@ it('onboarding step1 succeeds once email_verified_at is set', function () {
     ]);
 
     $user = User::factory()->create(); // factory verifica por defecto
-    $token = $user->createToken('lw-spa')->plainTextToken;
-
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($user)
         ->postJson('/api/v1/onboarding/step/1', [
             'template_id' => $template->id,
             'sector' => 'restaurante',
@@ -74,9 +70,7 @@ it('resending verification returns 202 with the message', function () {
     Notification::fake();
 
     $user = User::factory()->unverified()->create();
-    $token = $user->createToken('lw-spa')->plainTextToken;
-
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($user)
         ->postJson('/api/v1/auth/email/verification-notification')
         ->assertStatus(202)
         ->assertJsonPath('message', 'Email reenviado');
@@ -88,9 +82,7 @@ it('resending verification for an already-verified user returns 200 ya verificad
     Notification::fake();
 
     $user = User::factory()->create(); // verified by default
-    $token = $user->createToken('lw-spa')->plainTextToken;
-
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($user)
         ->postJson('/api/v1/auth/email/verification-notification')
         ->assertStatus(200)
         ->assertJsonPath('message', 'Ya verificado');
@@ -100,9 +92,7 @@ it('resending verification for an already-verified user returns 200 ya verificad
 
 it('me endpoint exposes email_verified_at as ISO string for verified users', function () {
     $verified = User::factory()->create(['email_verified_at' => now()]);
-    $token = $verified->createToken('lw-spa')->plainTextToken;
-
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($verified)
         ->getJson('/api/v1/auth/me')
         ->assertStatus(200)
         ->assertJsonPath('data.user.email_verified_at', fn ($v) => is_string($v) && $v !== '');
@@ -110,9 +100,7 @@ it('me endpoint exposes email_verified_at as ISO string for verified users', fun
 
 it('me endpoint exposes email_verified_at as null for unverified users', function () {
     $unverified = User::factory()->create(['email_verified_at' => null]);
-    $token = $unverified->createToken('lw-spa')->plainTextToken;
-
-    test()->withHeader('Authorization', "Bearer {$token}")
+    test()->actingAs($unverified)
         ->getJson('/api/v1/auth/me')
         ->assertStatus(200)
         ->assertJsonPath('data.user.email_verified_at', null);
