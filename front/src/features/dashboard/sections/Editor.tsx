@@ -46,10 +46,22 @@ export default function Editor() {
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: keys.dashboard.business })
       refetch()
-      showToast('Cambios guardados', 'success')
+      showToast({
+        type: 'success',
+        title: 'Cambios guardados',
+        description: 'El contenido público se ha actualizado.',
+      })
     },
     onError: () => {
-      showToast('No se pudo guardar', 'error')
+      // `mutation.mutate()` no toma argumentos: la mutación lee los inputs del state
+      // local, así que reintentar = volver a llamar a `mutate()` con los mismos valores
+      // todavía visibles en el formulario.
+      showToast({
+        type: 'error',
+        title: 'No se pudo guardar',
+        description: 'Revisa tu conexión y vuelve a intentarlo.',
+        action: { label: 'Reintentar', onClick: () => mutation.mutate() },
+      })
     },
   })
 

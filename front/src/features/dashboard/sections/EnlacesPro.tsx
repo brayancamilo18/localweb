@@ -67,9 +67,19 @@ export default function EnlacesPro() {
         saveLabel="Guardar cambios"
         onSaved={() => {
           refetchDashboard()
-          showToast('Enlaces guardados', 'success')
+          showToast({
+            type: 'success',
+            title: 'Enlaces guardados',
+            description: 'Tus integraciones ya están en tu web pública.',
+          })
         }}
-        onSaveError={() => showToast('No se pudo guardar. Revisa la URL de Google Business.', 'error')}
+        onSaveError={() =>
+          showToast({
+            type: 'error',
+            title: 'No se pudo guardar',
+            description: 'Revisa la URL de Google Business y vuelve a intentarlo.',
+          })
+        }
       />
     </div>
   )

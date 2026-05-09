@@ -87,13 +87,22 @@ export default function AdminBusinessesPage() {
       void qc.invalidateQueries({ queryKey: ['admin', 'businesses'] })
       void qc.invalidateQueries({ queryKey: keys.admin.business(id) })
     },
-    onError: () => showToast('No se pudo cambiar la publicación', 'error'),
+    onError: () =>
+      showToast({
+        type: 'error',
+        title: 'No se pudo cambiar la publicación',
+        description: 'Revisa que el negocio tenga datos completos.',
+      }),
   })
 
   const softDel = useMutation({
     mutationFn: (id: number) => softDeleteAdminBusiness(id),
     onSuccess: (_void, id) => {
-      showToast('Negocio archivado', 'success')
+      showToast({
+        type: 'success',
+        title: 'Negocio archivado',
+        description: 'Puedes restaurarlo desde el filtro «incluir archivados».',
+      })
       void qc.invalidateQueries({ queryKey: ['admin', 'businesses'] })
       void qc.invalidateQueries({ queryKey: keys.admin.business(id) })
     },

@@ -132,12 +132,25 @@ export default function AdminBusinessDetailPage() {
     mutationFn: (body: Record<string, unknown>) => patchAdminBusiness(numericId, body),
     onSuccess: (res) => {
       qc.setQueryData(keys.admin.business(numericId), res)
-      showToast('Cambios guardados', 'success')
+      showToast({
+        type: 'success',
+        title: 'Cambios guardados',
+        description: 'Los datos del negocio se han actualizado.',
+      })
       setEditing(false)
       setDraft(null)
       void qc.invalidateQueries({ queryKey: ['admin', 'businesses'] })
     },
-    onError: () => showToast('No se pudo guardar', 'error'),
+    // `vars` es el mismo `payload` que llegó a `mutationFn`. Reintentar en el toast =
+    // re-disparar la mutación con el cuerpo original sin que el usuario tenga que volver
+    // a tocar el formulario.
+    onError: (_err, vars) =>
+      showToast({
+        type: 'error',
+        title: 'No se pudo guardar',
+        description: 'Inténtalo de nuevo o revisa los campos marcados.',
+        action: { label: 'Reintentar', onClick: () => saveMutation.mutate(vars) },
+      }),
   })
 
   const restoreMut = useMutation({
@@ -153,7 +166,11 @@ export default function AdminBusinessDetailPage() {
   const forceMut = useMutation({
     mutationFn: () => forceDeleteAdminBusiness(numericId),
     onSuccess: () => {
-      showToast('Eliminado permanentemente', 'success')
+      showToast({
+        type: 'success',
+        title: 'Negocio eliminado',
+        description: 'Acción permanente. No se puede deshacer.',
+      })
       void qc.invalidateQueries({ queryKey: ['admin', 'businesses'] })
       navigate('/admin/businesses', { replace: true })
     },
@@ -178,7 +195,11 @@ export default function AdminBusinessDetailPage() {
       try {
         schedule = JSON.parse(draft.scheduleJson)
       } catch {
-        showToast('Horarios: JSON inválido', 'error')
+        showToast({
+          type: 'error',
+          title: 'Horarios: JSON inválido',
+          description: 'Revisa la sintaxis del bloque de horarios y vuelve a guardar.',
+        })
         return
       }
     }

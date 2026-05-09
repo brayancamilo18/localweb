@@ -45,7 +45,11 @@ export default function AdminUsersPage() {
   const resend = useMutation({
     mutationFn: (userId: number) => resendAdminUserVerification(userId),
     onSuccess: () => {
-      showToast('Correo de verificación enviado', 'success')
+      showToast({
+        type: 'success',
+        title: 'Correo de verificación enviado',
+        description: 'El usuario lo recibirá en unos minutos.',
+      })
       void qc.invalidateQueries({ queryKey: ['admin', 'users'] })
     },
     onError: () => showToast('No se pudo reenviar el correo', 'error'),
