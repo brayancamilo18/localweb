@@ -1361,6 +1361,10 @@ function Step3Sobre({
   const aboutRef = useRef<HTMLInputElement>(null)
   const [aboutThumbUrl, setAboutThumbUrl] = useState<string | null>(null)
   const descMax = 300
+  // Si por lo que sea (paso 2 saltado, borrador antiguo, etc.) llegamos aquí sin nombre, el
+  // backend devuelve 422 en business_name y goNext setea ese error: tenemos que mostrarlo
+  // explícitamente porque este paso no expone su input para Nombre/Tagline.
+  const missingMetaError = errors?.business_name ?? errors?.tagline ?? null
 
   useLayoutEffect(() => {
     nav?.registerContinueHandler?.(() => ({
@@ -1391,6 +1395,36 @@ function Step3Sobre({
           folleto.
         </p>
       </div>
+      {missingMetaError ? (
+        <div
+          role="alert"
+          style={{
+            border: '1px solid var(--lw-danger)',
+            borderRadius: 'var(--lw-r)',
+            padding: '10px 12px',
+            background: 'rgba(239, 68, 68, 0.06)',
+            color: 'var(--lw-danger)',
+            fontSize: 14,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 12,
+          }}
+        >
+          <span>
+            Falta el nombre del negocio (lo escribes en el paso anterior, "Tu portada").
+          </span>
+          <Btn
+            kind="ghost"
+            size="sm"
+            type="button"
+            disabled={busy}
+            onClick={() => nav?.onJumpToStep?.(2)}
+          >
+            Volver al paso 2
+          </Btn>
+        </div>
+      ) : null}
       <Field
         label="Descripción"
         error={errors?.description}

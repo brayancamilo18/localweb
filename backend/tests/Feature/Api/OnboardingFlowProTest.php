@@ -43,23 +43,21 @@ it('pro onboarding returns checkout_url then activates via Stripe webhook and se
     ]);
 
     $user = User::factory()->create();
-    $token = $user->createToken('lw-spa')->plainTextToken;
-    $auth = ['Authorization' => "Bearer {$token}"];
 
-    test()->withHeaders($auth)
+    test()->actingAs($user)
         ->post('/api/v1/onboarding/step/1', [
             'template_id' => $template->id,
             'sector' => 'otros',
         ])
         ->assertStatus(200);
 
-    test()->withHeaders($auth)
+    test()->actingAs($user)
         ->post('/api/v1/onboarding/step/2', [
             'cover' => UploadedFile::fake()->image('cover.jpg', 800, 600),
         ])
         ->assertStatus(200);
 
-    test()->withHeaders($auth)
+    test()->actingAs($user)
         ->post('/api/v1/onboarding/step/3', [
             'business_name' => 'Pro Flow Negocio',
             'tagline' => 'Etiqueta',
@@ -67,7 +65,7 @@ it('pro onboarding returns checkout_url then activates via Stripe webhook and se
         ])
         ->assertStatus(200);
 
-    test()->withHeaders($auth)
+    test()->actingAs($user)
         ->post('/api/v1/onboarding/step/4', [
             'photos' => [
                 UploadedFile::fake()->image('g1.jpg', 200, 200),
@@ -75,11 +73,11 @@ it('pro onboarding returns checkout_url then activates via Stripe webhook and se
         ])
         ->assertStatus(200);
 
-    test()->withHeaders($auth)
+    test()->actingAs($user)
         ->postJson('/api/v1/onboarding/step/5', $schedulePayload)
         ->assertStatus(200);
 
-    test()->withHeaders($auth)
+    test()->actingAs($user)
         ->postJson('/api/v1/onboarding/step/6', [
             'address' => 'Gran Vía 10',
             'phone' => '+34987654321',
@@ -89,7 +87,7 @@ it('pro onboarding returns checkout_url then activates via Stripe webhook and se
 
     $subdomain = 'proflow-'.substr(bin2hex(random_bytes(4)), 0, 10);
 
-    $step7 = test()->withHeaders($auth)
+    $step7 = test()->actingAs($user)
         ->postJson('/api/v1/onboarding/step/7', [
             'plan' => 'pro',
             'subdomain' => $subdomain,

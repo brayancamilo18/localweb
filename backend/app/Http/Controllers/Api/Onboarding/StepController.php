@@ -13,6 +13,7 @@ use App\Services\BusinessService;
 use App\Services\GeocodingService;
 use App\Services\ImageService;
 use App\Services\TemplateService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -368,11 +369,38 @@ class StepController extends BaseApiController
         if (! $business) {
             return $this->error('Business no encontrado', [], 404);
         }
+
         $service->publish($business);
+
+        // Para Free no hay paso 9 (extras Pro), así que cerramos el onboarding aquí mismo.
+        // Para Pro/Pending lo difiere `completeOnboarding()` (POST /onboarding/finalize),
+        // que es lo que dispara Step9 al pulsar «Ir a mi dashboard». Si lo cerráramos aquí,
+        // el OnboardingGuard del frontend echaría al usuario fuera del wizard antes de
+        // poder configurar servicios e integraciones (bug del bucle reportado).
+        if ($business->plan === Plan::Free) {
+            $service->completeOnboarding($business->refresh());
+        }
 
         return $this->success([
             'ok' => true,
             'public_url' => "http://{$business->subdomain}.localhost",
         ]);
+    }
+
+    /**
+     * Cierra el onboarding tras Step9 (extras Pro). Idempotente: si ya estaba cerrado,
+     * sigue devolviendo 200 sin tocar la fecha (así Step9 no rompe si el usuario hace
+     * doble click o vuelve atrás y reintenta). Solo accesible si el negocio existe.
+     */
+    public function completeOnboarding(Request $request, BusinessService $service): JsonResponse
+    {
+        $business = $request->user()->business;
+        if (! $business) {
+            return $this->error('Business no encontrado', [], 404);
+        }
+
+        $service->completeOnboarding($business);
+
+        return $this->success(['ok' => true]);
     }
 }

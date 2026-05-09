@@ -65,6 +65,10 @@ Route::prefix('v1')->group(function (): void {
             Route::post('/step/6', [StepController::class, 'step6'])->middleware('throttle:60,1');
             Route::post('/step/7', [StepController::class, 'step7'])->middleware('throttle:60,1');
             Route::post('/step/8', [StepController::class, 'step8'])->middleware('throttle:60,1');
+            // Cierra el onboarding (set onboarding_completed_at). Lo dispara Step9 al
+            // pulsar «Ir a mi dashboard» en planes Pro/Pending; para Free lo hace step8.
+            Route::post('/finalize', [StepController::class, 'completeOnboarding'])
+                ->middleware('throttle:30,1');
         });
 
         Route::prefix('dashboard')->middleware(['verified.api', 'business.complete', 'throttle:60,1'])->group(function (): void {

@@ -43,12 +43,31 @@ class BusinessService
         return $business->refresh();
     }
 
+    /**
+     * Marca el negocio como publicado (visible en su subdominio).
+     *
+     * Antes esto también seteaba `onboarding_completed_at`, pero eso provocaba que el
+     * `OnboardingGuard` del frontend echara al usuario Pro fuera del wizard antes de
+     * poder configurar los extras (paso 9: servicios + integraciones). Ahora ese
+     * marcado se hace en `completeOnboarding()`, que step8 invoca solo para Free
+     * (y el endpoint /onboarding/finalize para Pro/Pending tras step9).
+     */
     public function publish(Business $business): void
     {
-        $business->forceFill([
-            'is_published' => true,
-            'onboarding_completed_at' => $business->onboarding_completed_at ?? now(),
-        ])->save();
+        $business->forceFill(['is_published' => true])->save();
+    }
+
+    /**
+     * Marca el onboarding como terminado. Es lo que activa la entrada al dashboard
+     * (`hasCompletedOnboarding` en el front, vía `business.onboarding_completed_at`).
+     * Idempotente: si ya estaba marcado, no lo sobrescribe.
+     */
+    public function completeOnboarding(Business $business): void
+    {
+        if ($business->onboarding_completed_at !== null) {
+            return;
+        }
+        $business->forceFill(['onboarding_completed_at' => now()])->save();
     }
 
     public function isSubdomainAvailable(string $subdomain, ?int $excludeId = null): bool

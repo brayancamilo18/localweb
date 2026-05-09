@@ -130,3 +130,13 @@ export async function step8(): Promise<{ ok: boolean; public_url: string }> {
   const response = await apiClient.post<ApiResponse<{ ok: boolean; public_url: string }>>('/onboarding/step/8')
   return response.data.data
 }
+
+/**
+ * Cierra el onboarding (set onboarding_completed_at en backend). En Free lo dispara
+ * step8; en Pro/Pending step8 publica pero no cierra, y este endpoint se llama desde
+ * Step9 «Ir a mi dashboard». Idempotente: si ya estaba cerrado devuelve 200 igual.
+ */
+export async function finalizeOnboarding(): Promise<{ ok: boolean }> {
+  const response = await apiClient.post<ApiResponse<{ ok: boolean }>>('/onboarding/finalize')
+  return response.data.data
+}

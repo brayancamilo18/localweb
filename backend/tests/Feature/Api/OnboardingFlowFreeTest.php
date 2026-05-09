@@ -41,12 +41,10 @@ it('completes free onboarding over HTTP and exposes data on the public page', fu
     ]);
 
     $user = User::factory()->create();
-    $token = $user->createToken('lw-spa')->plainTextToken;
-    $auth = ['Authorization' => "Bearer {$token}"];
 
     // Step 1 — template + sector + optional logo
     $logo = UploadedFile::fake()->image('logo.png', 100, 100);
-    test()->withHeaders($auth)
+    test()->actingAs($user)
         ->post('/api/v1/onboarding/step/1', [
             'template_id' => $template->id,
             'sector' => 'peluqueria',
@@ -57,14 +55,14 @@ it('completes free onboarding over HTTP and exposes data on the public page', fu
 
     // Step 2 — cover
     $cover = UploadedFile::fake()->image('cover.jpg', 800, 600);
-    test()->withHeaders($auth)
+    test()->actingAs($user)
         ->post('/api/v1/onboarding/step/2', ['cover' => $cover])
         ->assertStatus(200)
         ->assertJsonPath('data.ok', true);
 
     // Step 3 — business info (+ optional about photo)
     $about = UploadedFile::fake()->image('about.jpg', 400, 400);
-    test()->withHeaders($auth)
+    test()->actingAs($user)
         ->post('/api/v1/onboarding/step/3', [
             'business_name' => 'Salón Integración',
             'tagline' => 'Corte y color',
@@ -79,19 +77,19 @@ it('completes free onboarding over HTTP and exposes data on the public page', fu
         UploadedFile::fake()->image('g1.jpg', 200, 200),
         UploadedFile::fake()->image('g2.jpg', 200, 200),
     ];
-    test()->withHeaders($auth)
+    test()->actingAs($user)
         ->post('/api/v1/onboarding/step/4', ['photos' => $photos])
         ->assertStatus(200)
         ->assertJsonPath('data.ok', true);
 
     // Step 5 — schedule
-    test()->withHeaders($auth)
+    test()->actingAs($user)
         ->postJson('/api/v1/onboarding/step/5', $schedulePayload)
         ->assertStatus(200)
         ->assertJsonPath('data.ok', true);
 
     // Step 6 — address + phone + email (geocoding mocked)
-    test()->withHeaders($auth)
+    test()->actingAs($user)
         ->postJson('/api/v1/onboarding/step/6', [
             'address' => 'Calle Mayor 1, Madrid',
             'phone' => '+34900111222',
@@ -102,7 +100,7 @@ it('completes free onboarding over HTTP and exposes data on the public page', fu
         ->assertJsonPath('data.ok', true);
 
     // Step 7 — free plan → create business, finalize media to R2
-    test()->withHeaders($auth)
+    test()->actingAs($user)
         ->postJson('/api/v1/onboarding/step/7', ['plan' => 'free'])
         ->assertStatus(200)
         ->assertJsonPath('data.plan', 'free')

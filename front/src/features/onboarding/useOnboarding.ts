@@ -128,11 +128,8 @@ export function useOnboarding(): UseOnboardingResult {
 
     void (async () => {
       try {
-        const token = localStorage.getItem('lw_token')
-        if (token) {
-          const fresh = await me()
-          useAuthStore.getState().setAuth(token, fresh.user, fresh.business)
-        }
+        const fresh = await me()
+        useAuthStore.getState().setAuth(fresh.user, fresh.business)
         await queryClient.invalidateQueries({ queryKey: keys.auth.me })
         /** Sin esto `serverDraft` en memoria sigue siendo el de antes de Stripe y `gallery_preview_urls`
          * no refleja las fotos ya guardadas — el paso 4 no puede rehidratar ni fusionar bien. */
@@ -256,16 +253,19 @@ export function useOnboarding(): UseOnboardingResult {
           }
           case 8: {
             await step8()
-            const token = localStorage.getItem('lw_token')
-            if (token) {
-              const fresh = await me()
-              useAuthStore.getState().setAuth(token, fresh.user, fresh.business)
-              if (fresh.business?.is_pro) {
-                setProExtrasSource('publish')
-                setCurrentStep(9)
-                window.scrollTo({ top: 0, behavior: 'smooth' })
-                return
-              }
+            const fresh = await me()
+            useAuthStore.getState().setAuth(fresh.user, fresh.business)
+            // Sin esto se dispara el bucle onboarding ↔ dashboard al publicar: la cache de
+            // useQuery(keys.auth.me) sigue con el business previo (sin onboarding_completed_at);
+            // cuando ProtectedRoute monta y useAuth corre su useEffect con esa data antigua,
+            // setAuth(viejo) sobreescribe lo que acabamos de hacer y `hasCompletedOnboarding`
+            // vuelve a false → ping-pong de redirects entre /dashboard y /onboarding.
+            queryClient.setQueryData(keys.auth.me, fresh)
+            if (fresh.business?.is_pro) {
+              setProExtrasSource('publish')
+              setCurrentStep(9)
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+              return
             }
             const uid = useAuthStore.getState().user?.id
             if (uid != null) clearOnboardingPersistForUser(uid)
@@ -286,7 +286,7 @@ export function useOnboarding(): UseOnboardingResult {
         setIsLoading(false)
       }
     },
-    [currentStep, navigate, postCheckoutProGallery],
+    [currentStep, navigate, postCheckoutProGallery, queryClient],
   )
 
   const goPrev = useCallback(() => {

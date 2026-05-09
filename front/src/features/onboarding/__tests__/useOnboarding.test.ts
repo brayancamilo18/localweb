@@ -82,7 +82,9 @@ describe('useOnboarding', () => {
       await result.current.goNext({ template_id: 1, sector: 'peluqueria' })
     })
 
-    expect(onboardingApi.step1).toHaveBeenCalledWith({ template_id: 1, sector: 'peluqueria' })
+    expect(onboardingApi.step1).toHaveBeenCalledWith(
+      expect.objectContaining({ template_id: 1, sector: 'peluqueria' }),
+    )
     expect(result.current.currentStep).toBe(2)
   })
 

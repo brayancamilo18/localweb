@@ -1,8 +1,10 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { Btn, Card, Icon, Switch } from '../../../components/primitives/primitives'
 import { useToast } from '../../../components/ui/Toast'
+import { me } from '../../../api/auth'
+import { finalizeOnboarding } from '../../../api/onboarding'
 import { keys } from '../../../api/queryKeys'
 import { useAuthStore } from '../../../store/authStore'
 import { clearOnboardingPersistForUser } from '../onboardingPersist'
@@ -29,12 +31,35 @@ export default function Step9ProSetup({
   const qc = useQueryClient()
   const { showToast } = useToast()
   const userId = useAuthStore((s) => s.user?.id)
+  const setAuth = useAuthStore((s) => s.setAuth)
+  const [finishing, setFinishing] = useState(false)
 
-  const onDashboard = useCallback(() => {
-    if (userId != null) clearOnboardingPersistForUser(userId)
-    onFinishToDashboard?.()
-    navigate('/dashboard')
-  }, [navigate, onFinishToDashboard, userId])
+  // Tras los extras Pro: cerramos el onboarding en backend (set onboarding_completed_at),
+  // sincronizamos /auth/me en cache + store y navegamos. Sin la sincronización de la cache,
+  // ProtectedRoute en /dashboard rehidrata con el business previo y reaparece el bucle.
+  const onDashboard = useCallback(async () => {
+    if (finishing) return
+    setFinishing(true)
+    try {
+      try {
+        await finalizeOnboarding()
+      } catch {
+        // Si ya estaba cerrado o falla puntualmente seguimos: el usuario ya pulsó publicar.
+      }
+      try {
+        const fresh = await me()
+        qc.setQueryData(keys.auth.me, fresh)
+        setAuth(fresh.user, fresh.business)
+      } catch {
+        // /auth/me caído: dejamos que ProtectedRoute decida con la cache que haya.
+      }
+      if (userId != null) clearOnboardingPersistForUser(userId)
+      onFinishToDashboard?.()
+      navigate('/dashboard')
+    } finally {
+      setFinishing(false)
+    }
+  }, [finishing, qc, setAuth, userId, navigate, onFinishToDashboard])
 
   return (
     <div style={{ maxWidth: 640 }}>
@@ -93,7 +118,11 @@ export default function Step9ProSetup({
               compact
               saveLabel="Guardar"
               onSaved={() => {
-                showToast('Cambios guardados', 'success')
+                showToast({
+                  type: 'success',
+                  title: 'Enlaces guardados',
+                  description: 'Ya están conectados a tu web pública.',
+                })
                 void qc.invalidateQueries({ queryKey: keys.dashboard.business })
               }}
             />
@@ -103,7 +132,17 @@ export default function Step9ProSetup({
             <Btn type="button" kind="outline" size="md" icon="chevronLeft" onClick={() => onSetupPhaseChange('services')}>
               Volver a servicios
             </Btn>
-            <Btn type="button" kind="primary" size="lg" iconRight="arrowRight" onClick={onDashboard}>
+            <Btn
+              type="button"
+              kind="primary"
+              size="lg"
+              iconRight="arrowRight"
+              loading={finishing}
+              disabled={finishing}
+              onClick={() => {
+                void onDashboard()
+              }}
+            >
               Ir a mi dashboard
             </Btn>
           </div>

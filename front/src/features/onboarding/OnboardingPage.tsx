@@ -355,11 +355,27 @@ export default function OnboardingPage() {
     const d = serverDraft
     const maxGallerySlots = galleryProExperience ? 20 : 3
 
-    setPreviewName(String(p?.previewName ?? d.business_name ?? ''))
+    // RegisterPage guarda lo del onboarding rápido (nombre/sector/ciudad) en sessionStorage.
+    // Si el wizard arranca limpio (sin borrador local ni del backend) propagamos esos valores
+    // para que el paso 3 no falle silenciosamente por business_name vacío al saltar el paso 2.
+    let signupBusinessName = ''
+    let signupAddress = ''
+    try {
+      const raw = sessionStorage.getItem('lw_signup_prefill')
+      if (raw?.trim()) {
+        const parsed = JSON.parse(raw) as { business_name?: unknown; address?: unknown }
+        if (typeof parsed.business_name === 'string') signupBusinessName = parsed.business_name.trim()
+        if (typeof parsed.address === 'string') signupAddress = parsed.address.trim()
+      }
+    } catch {
+      /* sandbox / privacy mode: ignorar */
+    }
+
+    setPreviewName(String(p?.previewName ?? d.business_name ?? signupBusinessName ?? ''))
     setPreviewTagline(String(p?.previewTagline ?? d.tagline ?? ''))
     setPreviewPhone(String(p?.previewPhone ?? d.phone ?? ''))
     setPreviewDescription(String(p?.previewDescription ?? d.description ?? ''))
-    setPreviewAddress(String(p?.previewAddress ?? d.address ?? ''))
+    setPreviewAddress(String(p?.previewAddress ?? d.address ?? signupAddress ?? ''))
     setPreviewEmail(String(p?.previewEmail ?? d.email ?? ''))
 
     if (p?.step1PreviewVariant === 'noir-elite' || p?.step1PreviewVariant === 'bloom-studio') {
