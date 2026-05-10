@@ -26,6 +26,7 @@ class Business extends Tenant
         'description',
         'tagline',
         'phone',
+        'email',
         'address',
         'lat',
         'lng',

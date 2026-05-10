@@ -114,6 +114,7 @@ class StatusController extends BaseApiController
             'schedule' => $business->schedule,
             'address' => $business->address,
             'phone' => $business->phone,
+            'email' => $business->email,
         ];
     }
 }

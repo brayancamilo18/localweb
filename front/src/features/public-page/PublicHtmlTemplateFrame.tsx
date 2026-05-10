@@ -5,6 +5,7 @@ import { publicBusinessToTemplatePayload } from './publicTemplatePayload'
 const TEMPLATE_SRC: Record<string, string> = {
   'noir-elite': '/templates/noir-elite.html',
   'bloom-studio': '/templates/bloom-studio.html',
+  'urban-bold': '/templates/urban-bold.html',
 }
 
 type Props = {
@@ -19,7 +20,7 @@ export default function PublicHtmlTemplateFrame({ templateSlug, business }: Prop
    * solo acepte mensajes de este origen (defensa contra postMessage spoofing en el iframe).
    */
   const src = useMemo(() => {
-    const base = TEMPLATE_SRC[templateSlug] ?? TEMPLATE_SRC['noir-elite']
+    const base = TEMPLATE_SRC[templateSlug] ?? TEMPLATE_SRC['urban-bold']
     const sep = base.includes('?') ? '&' : '?'
     return `${base}${sep}parentOrigin=${encodeURIComponent(window.location.origin)}`
   }, [templateSlug])

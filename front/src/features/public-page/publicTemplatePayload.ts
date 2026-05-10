@@ -141,7 +141,7 @@ export function publicBusinessToTemplatePayload(business: PublicBusiness): HtmlT
     descripcion: business.description ?? '',
     foto_equipo: about[0]?.url ?? '',
     direccion: business.address ?? '',
-    correo: '',
+    correo: (business.email ?? '').trim(),
     galeria: gallery.map((g) => g.url).filter((u): u is string => Boolean(u)),
     horario: business.schedule ?? null,
     map_lat: business.lat,

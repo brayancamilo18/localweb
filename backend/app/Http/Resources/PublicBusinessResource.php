@@ -22,6 +22,9 @@ class PublicBusinessResource extends JsonResource
             'description' => $this->description,
             'tagline' => $this->tagline,
             'phone' => $this->phone,
+            /** Email público de contacto del negocio (columna propia en
+             * `businesses`). Independiente del email de login del owner. */
+            'email' => $this->email,
             'address' => $this->address,
             'lat' => $this->lat,
             'lng' => $this->lng,

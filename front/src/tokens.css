@@ -347,8 +347,11 @@ textarea::placeholder {
   scrollbar-width: thin;
 }
 
-/* Paso 1 plantilla: miniatura iframe escala al 100% del ancho de la tarjeta */
+/* Paso 1 plantilla: rejilla 4×2 (8 por página) con miniatura iframe escala al 100% del ancho de la tarjeta */
 .lw-step1-template-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
   min-width: 0;
 }
 
@@ -356,9 +359,40 @@ textarea::placeholder {
   min-width: 0;
 }
 
+@media (max-width: 1100px) {
+  .lw-step1-template-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 820px) {
+  .lw-step1-template-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .lw-step1-template-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .lw-template-card-preview,
 .lw-template-thumb-wrap {
   min-width: 0;
+}
+
+/*
+ * Paso 1 (biblioteca de plantillas): no se monta el rail de preview, así que el
+ * formulario ocupa toda la franja del split. Capamos el ancho para que el grid
+ * respire en pantallas muy anchas (4 tarjetas con `auto-fill` minmax 220 px se
+ * ven mejor centradas que estiradas a 4K).
+ */
+.lw-wizard-layout--step1 .lw-wizard-form {
+  flex: 1 1 100%;
+  max-width: 1280px;
+  margin: 0 auto;
 }
 
 /* Galería del wizard: 3 columnas escritorio, 2 en móvil (reglas abajo) */

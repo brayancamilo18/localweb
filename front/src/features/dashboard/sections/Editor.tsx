@@ -3,9 +3,16 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Btn, Field, Input, Textarea } from '../../../components/primitives/primitives'
 import Select from '../../../components/primitives/Select'
 import { useToast } from '../../../components/ui/Toast'
+import { CharCounter } from '../../../components/ui/CharCounter'
 import { getTemplates, updateBusiness } from '../../../api/dashboard'
 import { keys } from '../../../api/queryKeys'
 import { useDashboard } from '../context/DashboardContext'
+
+/** Límites duros del backend (`StepController`/`BusinessController` validan con
+ * `max:120` y `max:500`). Si cambian allí, deben cambiar aquí para que el
+ * counter visual coincida con la validación del servidor. */
+const TAGLINE_MAX = 120
+const DESCRIPTION_MAX = 500
 
 export default function Editor() {
   const { business, refetch } = useDashboard()
@@ -16,6 +23,7 @@ export default function Editor() {
   const [tagline, setTagline] = useState(business.tagline ?? '')
   const [description, setDescription] = useState(business.description ?? '')
   const [phone, setPhone] = useState(business.phone ?? '')
+  const [email, setEmail] = useState(business.email ?? '')
   const [address, setAddress] = useState(business.address ?? '')
   const [templateId, setTemplateId] = useState(String(business.template.id))
 
@@ -24,6 +32,7 @@ export default function Editor() {
     setTagline(business.tagline ?? '')
     setDescription(business.description ?? '')
     setPhone(business.phone ?? '')
+    setEmail(business.email ?? '')
     setAddress(business.address ?? '')
     setTemplateId(String(business.template.id))
   }, [business])
@@ -40,6 +49,7 @@ export default function Editor() {
         tagline: tagline.trim() || null,
         description: description.trim() || null,
         phone: phone.trim() || null,
+        email: email.trim() || null,
         address: address.trim() || null,
         template_id: Number(templateId),
       }),
@@ -83,14 +93,56 @@ export default function Editor() {
         <Field label="Nombre del negocio">
           <Input value={name} onChange={(e) => setName(e.target.value)} />
         </Field>
-        <Field label="Tagline" optional>
-          <Input value={tagline} onChange={(e) => setTagline(e.target.value)} />
+        <Field
+          label="Tagline"
+          optional
+          counter={
+            <CharCounter
+              value={tagline.length}
+              max={TAGLINE_MAX}
+              ariaLabel={`Tagline: ${tagline.length} de ${TAGLINE_MAX} caracteres`}
+            />
+          }
+        >
+          <Input
+            value={tagline}
+            onChange={(e) => setTagline(e.target.value)}
+            maxLength={TAGLINE_MAX}
+          />
         </Field>
-        <Field label="Descripción" optional>
-          <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
+        <Field
+          label="Descripción"
+          optional
+          counter={
+            <CharCounter
+              value={description.length}
+              max={DESCRIPTION_MAX}
+              ariaLabel={`Descripción: ${description.length} de ${DESCRIPTION_MAX} caracteres`}
+            />
+          }
+        >
+          <Textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={4}
+            maxLength={DESCRIPTION_MAX}
+          />
         </Field>
         <Field label="Teléfono" optional>
           <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </Field>
+        <Field
+          label="Email de contacto"
+          optional
+          hint="Email público que se mostrará en el footer y en la sección de contacto. Puede ser distinto al email con el que inicias sesión."
+        >
+          <Input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="info@tu-negocio.com"
+            maxLength={191}
+          />
         </Field>
         <Field label="Dirección" optional>
           <Input value={address} onChange={(e) => setAddress(e.target.value)} />

@@ -68,8 +68,35 @@ class BillingController extends BaseApiController
             'is_pro' => (bool) ($business?->is_pro ?? false),
             'is_free' => (bool) ($business?->is_free ?? true),
             'subscription_status' => $subscription?->stripe_status,
-            'renewal_date' => $stripeSubscription?->current_period_end,
+            'renewal_date' => $this->resolveCurrentPeriodEnd($stripeSubscription),
             'cancel_at_period_end' => (bool) ($stripeSubscription?->cancel_at_period_end ?? false),
         ]);
+    }
+
+    /**
+     * Devuelve el timestamp UNIX del próximo cobro.
+     *
+     * En la API moderna de Stripe `current_period_end` se movió del nivel raíz
+     * a cada `subscription_item`, así que en suscripciones nuevas la propiedad
+     * top-level es `null` y la UI mostraba «—». Hacemos fallback al primer item.
+     */
+    private function resolveCurrentPeriodEnd(?\Stripe\Subscription $sub): ?int
+    {
+        if (! $sub) {
+            return null;
+        }
+        $topLevel = $sub->current_period_end ?? null;
+        if (is_int($topLevel) && $topLevel > 0) {
+            return $topLevel;
+        }
+        $items = $sub->items?->data ?? [];
+        foreach ($items as $item) {
+            $itemEnd = $item->current_period_end ?? null;
+            if (is_int($itemEnd) && $itemEnd > 0) {
+                return $itemEnd;
+            }
+        }
+
+        return null;
     }
 }

@@ -5,12 +5,24 @@ import { DEFAULT_SCHEDULE } from './wizard'
 const LEGACY_STORAGE_KEY = 'lw.onboarding.wizard.v1'
 const KEY_PREFIX = 'lw.onboarding.wizard.v1'
 
-export type OnboardingStep1VariantPersist = 'noir-elite' | 'bloom-studio'
+export type OnboardingStep1VariantPersist =
+  | 'noir-elite'
+  | 'bloom-studio'
+  | 'urban-bold'
+  | 'coastal-calm'
+  | 'craft-pro'
+  | 'tavola-warm'
+  | 'tech-sleek'
+  | 'trust-clinic'
+
+export type OnboardingStep1SubStepPersist = 'logo' | 'template'
 
 export type OnboardingPersistedV1 = {
   v: 1
   updatedAt: number
   step: number
+  /** Sub-paso dentro del paso 1: logo antes de elegir plantilla. */
+  step1SubStep?: OnboardingStep1SubStepPersist
   previewName: string
   previewTagline: string
   previewPhone: string
@@ -87,6 +99,7 @@ export function scheduleSaveOnboardingPersist(
         v: 1,
         updatedAt: Date.now(),
         step: data.step ?? prev?.step ?? 1,
+        step1SubStep: data.step1SubStep ?? prev?.step1SubStep,
         previewName: data.previewName ?? prev?.previewName ?? '',
         previewTagline: data.previewTagline ?? prev?.previewTagline ?? '',
         previewPhone: data.previewPhone ?? prev?.previewPhone ?? '',

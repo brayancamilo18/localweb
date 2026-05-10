@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>{{nombre}} — {{oficio}} profesional en {{ciudad}}</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFFFFF; --bg-2:#F4F4F2; --bg-3:#E8E8E5;
+    --ink:#0F1114; --ink-2:#3A3D43; --ink-3:#7A7D84;
+    --line:#D8D8D4; --line-2:#BFBFBA;
+    --orange:#FF5C00; --orange-2:#E04E00; --orange-soft:#FFE8D8;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:"Inter",system-ui,sans-serif;font-size:15.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--orange);color:#fff}
+  a{color:inherit;text-decoration:none}
+  img{display:block;max-width:100%}
+  .cond{font-family:"Barlow Condensed",Impact,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.005em}
+  .container{max-width:1280px;margin:0 auto;padding:0 32px}
+  .eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:"Inter";font-size:11.5px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.14em}
+  .eyebrow::before{content:"";width:24px;height:2px;background:var(--orange)}
+
+  .embar{background:var(--orange);color:#fff;padding:10px 0;font-size:13.5px;font-weight:600}
+  .embar-inner{max-width:1280px;margin:0 auto;padding:0 32px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+  .embar-left{display:inline-flex;align-items:center;gap:10px}
+  .embar-left::before{content:"";width:8px;height:8px;background:#fff;border-radius:50%;animation:pulse 1.5s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .embar a{font-weight:700;text-decoration:underline;text-underline-offset:3px}
+
+  .nav{position:sticky;top:0;z-index:50;background:var(--ink);color:#fff;border-bottom:3px solid var(--orange)}
+  .nav-inner{max-width:1280px;margin:0 auto;padding:14px 32px;display:flex;justify-content:space-between;align-items:center;gap:20px}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand-mark{width:48px;height:48px;background:var(--orange);color:#fff;display:grid;place-items:center;font-family:"Barlow Condensed",sans-serif;font-size:24px;font-weight:800;letter-spacing:-.01em;flex-shrink:0;clip-path:polygon(0 0,100% 0,100% 78%,82% 100%,0 100%)}
+  .brand-name{display:flex;flex-direction:column;line-height:1.1}
+  .brand-name strong{font-family:"Barlow Condensed",sans-serif;font-size:24px;color:#fff;font-weight:700;letter-spacing:.005em;text-transform:uppercase}
+  .brand-name small{font-size:11px;color:#9A9D9F;text-transform:uppercase;letter-spacing:.12em;font-weight:500;margin-top:1px}
+  .nav ul{list-style:none;display:flex;gap:32px;align-items:center}
+  .nav ul a{font-family:"Barlow Condensed",sans-serif;font-size:16px;color:#D8D8D4;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:6px 0;position:relative;transition:color .15s}
+  .nav ul a:hover{color:#fff}
+  .nav ul a:hover::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:2px;background:var(--orange)}
+  .nav-phone{display:inline-flex;align-items:center;gap:10px;padding:10px 18px;background:transparent;color:#fff;font-family:"Inter";font-size:14px;font-weight:600;border:1.5px solid #fff;transition:background .15s,color .15s}
+  .nav-phone::before{content:"☏";font-size:14px}
+  .nav-phone:hover{background:#fff;color:var(--ink)}
+  .nav-cta{display:inline-flex;align-items:center;gap:10px;padding:11px 22px;background:var(--orange);color:#fff;font-family:"Inter";font-size:14px;font-weight:700;letter-spacing:.005em;transition:background .15s}
+  .nav-cta:hover{background:var(--orange-2)}
+  .burger{display:none;width:44px;height:44px;background:transparent;border:1.5px solid #fff;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0}
+  .burger span{display:block;width:20px;height:2px;background:#fff;transition:.25s}
+  .burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .burger.open span:nth-child(2){opacity:0}
+  .burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+  .mobile-menu{display:flex;flex-direction:column;position:fixed;top:0;right:0;bottom:0;width:88%;max-width:380px;background:var(--ink);z-index:200;padding:80px 32px 32px;transform:translateX(100%);transition:transform .35s cubic-bezier(.5,.05,.2,1);overflow-y:auto;border-left:3px solid var(--orange)}
+  .mobile-menu.open{transform:translateX(0)}
+  .mobile-menu ul{list-style:none}
+  .mobile-menu ul li{border-bottom:1px solid rgba(255,255,255,.1)}
+  .mobile-menu ul a{display:flex;align-items:center;justify-content:space-between;padding:18px 0;font-family:"Barlow Condensed",sans-serif;font-size:24px;color:#fff;font-weight:600;text-transform:uppercase;letter-spacing:.02em}
+  .mobile-menu ul a::after{content:"→";color:var(--orange);font-family:"Inter";font-size:18px;font-weight:400}
+  .mobile-cta{display:block;margin-top:32px;padding:18px;text-align:center;background:var(--orange);color:#fff;font-family:"Barlow Condensed";font-size:18px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+  .mobile-phone{display:flex;align-items:center;gap:14px;margin-top:14px;padding:18px;border:2px solid rgba(255,255,255,.2);color:#fff}
+  .mobile-phone strong{display:block;font-family:"Barlow Condensed";font-size:22px;font-weight:700;letter-spacing:.02em}
+  .mobile-phone small{font-size:12px;color:#9A9D9F}
+  .scrim{display:none;position:fixed;inset:0;background:rgba(15,17,20,.6);z-index:150;opacity:0;transition:opacity .3s}
+  .scrim.open{opacity:1}
+
+  .hero{padding:0;position:relative;overflow:hidden;background:var(--bg)}
+  .hero-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:0;align-items:stretch;min-height:78vh}
+  .hero-text{padding:80px 60px 80px 0;display:flex;flex-direction:column;justify-content:center}
+  .hero-badge{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;background:var(--ink);color:#fff;font-family:"Barlow Condensed";font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;width:fit-content;margin-bottom:32px}
+  .hero-badge::before{content:"";width:6px;height:6px;background:var(--orange);border-radius:50%}
+  .hero h1{font-family:"Barlow Condensed",sans-serif;font-size:clamp(56px,8vw,124px);font-weight:800;line-height:.92;letter-spacing:-.005em;text-transform:uppercase;color:var(--ink);margin-bottom:32px}
+  .hero h1 span{color:var(--orange)}
+  .hero h1 small{display:block;font-family:"Barlow Condensed",sans-serif;font-size:.32em;font-weight:600;line-height:1.2;letter-spacing:.04em;color:var(--ink-2);margin-top:18px;text-transform:uppercase}
+  .hero-lede{font-size:18px;line-height:1.6;color:var(--ink-2);max-width:520px;margin-bottom:36px;font-weight:400}
+  .hero-lede strong{color:var(--ink);font-weight:600}
+  .hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:48px}
+  .btn-p{display:inline-flex;align-items:center;gap:12px;padding:18px 32px;background:var(--orange);color:#fff;font-family:"Barlow Condensed";font-size:17px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;transition:background .15s}
+  .btn-p:hover{background:var(--orange-2)}
+  .btn-p::after{content:"→"}
+  .btn-g{display:inline-flex;align-items:center;gap:10px;padding:18px 28px;background:transparent;color:var(--ink);font-family:"Barlow Condensed";font-size:17px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;border:2px solid var(--ink);transition:background .15s,color .15s}
+  .btn-g:hover{background:var(--ink);color:#fff}
+  .hero-stamps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:2px solid var(--ink);padding-top:24px}
+  .stamp{padding:0 16px 0 0;border-right:1px solid var(--line)}
+  .stamp:last-child{border-right:none}
+  .stamp:not(:first-child){padding-left:20px}
+  .stamp-num{font-family:"Barlow Condensed";font-size:48px;font-weight:800;line-height:1;color:var(--ink);letter-spacing:-.01em}
+  .stamp-num span{color:var(--orange)}
+  .stamp-lbl{font-size:11.5px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.1em;margin-top:6px;line-height:1.3}
+  .hero-img{position:relative;background:var(--ink) url('https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&w=1200&q=70') center/cover;min-height:560px}
+  .hero-img::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(15,17,20,.4) 0%,transparent 50%,rgba(255,92,0,.15) 100%)}
+  .hero-img-overlay{position:absolute;left:32px;bottom:32px;right:32px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;z-index:2}
+  .hero-stamp-rotated{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:140px;height:140px;background:var(--orange);color:#fff;border-radius:50%;font-family:"Barlow Condensed";text-transform:uppercase;text-align:center;transform:rotate(-8deg);box-shadow:0 12px 32px -8px rgba(0,0,0,.3)}
+  .hero-stamp-rotated .big{font-size:48px;font-weight:800;line-height:.9}
+  .hero-stamp-rotated .small{font-size:11px;font-weight:600;letter-spacing:.1em;margin-top:4px}
+  .hero-img-tag{display:inline-flex;flex-direction:column;background:#fff;color:var(--ink);padding:14px 18px;border-left:4px solid var(--orange);max-width:280px}
+  .hero-img-tag strong{font-family:"Barlow Condensed";font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;line-height:1.15;margin-bottom:4px}
+  .hero-img-tag small{font-size:12px;color:var(--ink-2);line-height:1.4}
+
+  .ticker{background:var(--ink);color:#fff;overflow:hidden;border-bottom:1px solid rgba(255,255,255,.08);padding:18px 0}
+  .ticker-track{display:flex;gap:48px;font-family:"Barlow Condensed";font-size:18px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;animation:scroll 40s linear infinite}
+  .ticker span{display:inline-flex;align-items:center;gap:14px}
+  .ticker span::before{content:"●";color:var(--orange);font-size:10px}
+  @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  section{padding:120px 0}
+  .section-head{display:grid;grid-template-columns:1fr 1.4fr;gap:60px;align-items:end;margin-bottom:72px;padding-bottom:32px;border-bottom:2px solid var(--ink)}
+  .section-head h2{font-family:"Barlow Condensed",sans-serif;font-size:clamp(48px,6vw,88px);font-weight:800;line-height:.92;letter-spacing:-.005em;text-transform:uppercase;margin-top:14px}
+  .section-head h2 span{color:var(--orange)}
+  .section-head .desc{font-size:16px;color:var(--ink-2);line-height:1.65;max-width:520px;padding-bottom:8px}
+
+  .services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:2px solid var(--ink);background:var(--ink)}
+  .svc{padding:36px 32px 32px;background:var(--bg);border-right:1px solid var(--line);position:relative;transition:background .2s,color .2s;display:flex;flex-direction:column}
+  .svc:nth-child(3n){border-right:none}
+  .svc:nth-child(n+4){border-top:1px solid var(--line)}
+  .svc:hover{background:var(--ink);color:#fff}
+  .svc-num{font-family:"Barlow Condensed";font-size:64px;font-weight:800;line-height:1;letter-spacing:-.01em;color:var(--bg-3);margin-bottom:24px;transition:color .2s}
+  .svc:hover .svc-num{color:var(--orange)}
+  .svc h3{font-family:"Barlow Condensed";font-size:28px;font-weight:700;text-transform:uppercase;letter-spacing:.005em;line-height:1.1;margin-bottom:14px}
+  .svc-body{font-size:14.5px;line-height:1.6;color:var(--ink-2);margin-bottom:24px;flex:1;transition:color .2s}
+  .svc:hover .svc-body{color:#C8C8C5}
+  .svc-foot{display:flex;justify-content:space-between;align-items:center;padding-top:20px;border-top:1px solid var(--line);margin-top:auto;transition:border-color .2s}
+  .svc:hover .svc-foot{border-color:rgba(255,255,255,.15)}
+  .svc-price{font-family:"Barlow Condensed";font-size:24px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.01em}
+  .svc-price small{font-size:13px;color:var(--ink-3);font-family:"Inter";font-weight:500;text-transform:none;letter-spacing:0;margin-left:4px}
+  .svc:hover .svc-price small{color:#9A9D9F}
+  .svc-link{font-family:"Barlow Condensed";font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:inherit;display:inline-flex;align-items:center;gap:8px;transition:gap .2s}
+  .svc:hover .svc-link{gap:12px;color:var(--orange)}
+
+  .promise{background:var(--bg-2);padding:80px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .promise-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:32px}
+  .promise-item{display:flex;flex-direction:column;gap:14px}
+  .promise-ico{width:56px;height:56px;background:var(--ink);color:var(--orange);display:grid;place-items:center;font-family:"Barlow Condensed";font-size:28px;font-weight:800}
+  .promise-item h4{font-family:"Barlow Condensed";font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:.01em;line-height:1.1}
+  .promise-item p{font-size:14px;color:var(--ink-2);line-height:1.6}
+
+  .steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:2px solid var(--ink)}
+  .step{padding:32px 28px;border-right:1px solid var(--ink);position:relative;background:var(--bg)}
+  .step:last-child{border-right:none}
+  .step-num{font-family:"Barlow Condensed";font-size:96px;font-weight:800;line-height:1;letter-spacing:-.02em;color:var(--orange);margin-bottom:14px}
+  .step h4{font-family:"Barlow Condensed";font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:.01em;line-height:1.15;margin-bottom:10px}
+  .step p{font-size:14px;color:var(--ink-2);line-height:1.6}
+  .step-time{display:inline-block;margin-top:16px;padding:4px 10px;background:var(--bg-2);font-family:"Barlow Condensed";font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)}
+
+  .reviews-bg{background:var(--ink);color:#fff}
+  .reviews-bg .section-head{border-bottom-color:var(--orange)}
+  .reviews-bg .section-head h2{color:#fff}
+  .reviews-bg .section-head .desc{color:#9A9D9F}
+  .reviews-list{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:2px solid var(--orange);background:var(--orange)}
+  .review{background:var(--bg);color:var(--ink);padding:32px 28px;display:flex;flex-direction:column}
+  .review:nth-child(2){background:var(--bg-2)}
+  .review-stars{font-family:"Barlow Condensed";font-size:13px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;display:inline-flex;gap:14px;align-items:center}
+  .review-stars::before{content:"★★★★★";letter-spacing:1px;font-size:18px;color:#F0A000}
+  .review-quote{font-size:16px;line-height:1.6;color:var(--ink);margin-bottom:24px;flex:1}
+  .review-foot{display:flex;align-items:center;gap:14px;padding-top:18px;border-top:1px solid var(--line)}
+  .review-av{width:44px;height:44px;background:var(--ink);color:#fff;display:grid;place-items:center;font-family:"Barlow Condensed";font-weight:700;font-size:17px;flex-shrink:0}
+  .review-name{font-family:"Barlow Condensed";font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;line-height:1.1}
+  .review-meta{font-size:12px;color:var(--ink-3);margin-top:3px}
+
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:2px solid var(--ink)}
+  .info-card{background:var(--bg);padding:48px 40px;border-right:1px solid var(--ink)}
+  .info-card:last-child{border-right:none;background:var(--bg-2)}
+  .info-card h3{font-family:"Barlow Condensed";font-size:32px;font-weight:800;text-transform:uppercase;letter-spacing:.005em;line-height:1.1;margin:14px 0 24px}
+  .schedule-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;padding:14px 0;border-bottom:1px dashed var(--line);font-size:15px}
+  .schedule-row:last-child{border-bottom:none}
+  .schedule-row .day{font-family:"Barlow Condensed";font-size:17px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--ink);min-width:120px}
+  .schedule-row .dots{border-bottom:1.5px dotted var(--line-2);transform:translateY(-4px);height:1px}
+  .schedule-row .time{font-family:"Barlow Condensed";font-size:17px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  .schedule-row .time.urgency{color:var(--orange)}
+  .schedule-row.today{background:var(--orange);margin:0 -16px;padding:14px 16px;border-bottom:1px dashed transparent}
+  .schedule-row.today .day,.schedule-row.today .time{color:#fff}
+  .schedule-row.today .day::after{content:" · HOY";color:rgba(255,255,255,.85);font-weight:700}
+  .schedule-row.today .dots{border-color:rgba(255,255,255,.4)}
+  .area-list{display:flex;flex-wrap:wrap;gap:8px}
+  .area-list span{padding:8px 14px;background:#fff;border:1.5px solid var(--ink);font-family:"Barlow Condensed";font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--ink)}
+  .area-list span.main{background:var(--ink);color:#fff}
+  .area-note{margin-top:24px;padding:18px 20px;background:var(--orange-soft);border-left:4px solid var(--orange);font-size:14px;color:var(--ink-2);line-height:1.6}
+  .area-note strong{display:block;font-family:"Barlow Condensed";font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--ink);margin-bottom:4px}
+
+  .cta-section{background:var(--orange);color:#fff;padding:96px 0;position:relative;overflow:hidden}
+  .cta-section::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent 0,transparent 60px,rgba(0,0,0,.03) 60px,rgba(0,0,0,.03) 61px);pointer-events:none}
+  .cta-inner{display:grid;grid-template-columns:1.4fr 1fr;gap:48px;align-items:center;position:relative}
+  .cta-section h2{font-family:"Barlow Condensed";font-size:clamp(48px,6vw,96px);font-weight:800;line-height:.92;letter-spacing:-.005em;text-transform:uppercase}
+  .cta-section h2 small{display:block;font-size:.36em;font-weight:600;letter-spacing:.04em;color:rgba(255,255,255,.85);margin-top:18px;line-height:1.3}
+  .cta-actions{display:flex;flex-direction:column;gap:14px}
+  .cta-btn{display:flex;align-items:center;justify-content:space-between;padding:22px 28px;background:#fff;color:var(--ink);font-family:"Barlow Condensed";font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;transition:background .15s,color .15s}
+  .cta-btn:hover{background:var(--ink);color:#fff}
+  .cta-btn.dark{background:var(--ink);color:#fff}
+  .cta-btn.dark:hover{background:#fff;color:var(--ink)}
+  .cta-btn .ico{width:40px;height:40px;background:var(--orange);color:#fff;display:grid;place-items:center;font-size:16px;flex-shrink:0}
+  .cta-btn .strong{font-size:22px;font-weight:800;display:block;letter-spacing:.02em}
+  .cta-btn .small{font-size:12px;font-weight:500;font-family:"Inter";text-transform:none;letter-spacing:0;color:var(--ink-3);margin-top:2px}
+  .cta-btn.dark .small{color:#9A9D9F}
+
+  footer{background:var(--ink);color:#9A9D9F;padding:80px 0 32px;border-top:4px solid var(--orange)}
+  .foot{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:48px;padding-bottom:48px;border-bottom:1px solid rgba(255,255,255,.1)}
+  .foot-brand-block{display:flex;flex-direction:column;gap:18px}
+  .foot p{font-size:14px;line-height:1.65;color:#9A9D9F;max-width:340px}
+  .foot h4{font-family:"Barlow Condensed";font-size:15px;font-weight:700;color:#fff;margin-bottom:18px;letter-spacing:.08em;text-transform:uppercase}
+  .foot ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+  .foot ul a{font-size:14px;color:#9A9D9F;transition:color .15s}
+  .foot ul a:hover{color:var(--orange)}
+  .foot-bot{padding-top:24px;display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:#666870;flex-wrap:wrap;gap:10px}
+  .foot-bot a{color:var(--orange)}
+  .foot-licence{font-family:"Barlow Condensed";font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+
+  @media (max-width:1080px){
+    .hero-grid{grid-template-columns:1fr}
+    .hero-text{padding:64px 0 48px}
+    .hero-img{min-height:480px;margin:0 -32px}
+    .services-grid{grid-template-columns:1fr 1fr}
+    .svc:nth-child(3n){border-right:1px solid var(--line)}
+    .svc:nth-child(2n){border-right:none}
+    .svc:nth-child(n+3){border-top:1px solid var(--line)}
+    .promise-grid{grid-template-columns:1fr 1fr}
+    .steps-grid{grid-template-columns:1fr 1fr}
+    .step{border-right:1px solid var(--ink);border-bottom:1px solid var(--ink)}
+    .step:nth-child(2n){border-right:none}
+    .step:nth-last-child(-n+2){border-bottom:none}
+    .reviews-list{grid-template-columns:1fr;gap:2px}
+    .info-grid{grid-template-columns:1fr}
+    .info-card{border-right:none;border-bottom:1px solid var(--ink)}
+    .info-card:last-child{border-bottom:none}
+    .cta-inner{grid-template-columns:1fr;gap:32px}
+    .foot{grid-template-columns:1fr 1fr;gap:32px}
+    .section-head{grid-template-columns:1fr;gap:24px}
+  }
+  @media (max-width:680px){
+    .container{padding:0 20px}
+    .embar-inner{padding:0 20px;font-size:13px;flex-wrap:wrap;justify-content:center;text-align:center}
+    .nav-inner{padding:12px 20px;gap:12px}
+    .nav ul,.nav-cta,.nav-phone{display:none}
+    .burger{display:flex}
+    .brand-mark{width:42px;height:42px;font-size:20px}
+    .brand-name strong{font-size:20px}
+    .brand-name small{font-size:10px}
+    .hero-text{padding:48px 0 40px}
+    .hero-img{min-height:380px;margin:0 -20px}
+    .hero-img-overlay{left:20px;bottom:20px;right:20px}
+    .hero-stamp-rotated{width:110px;height:110px}
+    .hero-stamp-rotated .big{font-size:36px}
+    .hero-stamps{grid-template-columns:1fr 1fr;gap:14px}
+    .stamp:nth-child(3){grid-column:span 2;border-top:1px solid var(--line);padding-top:14px}
+    .stamp{padding:0!important;border-right:none}
+    .stamp:first-child{border-right:1px solid var(--line);padding-right:14px!important}
+    section{padding:64px 0}
+    .section-head{margin-bottom:40px;padding-bottom:20px}
+    .services-grid{grid-template-columns:1fr}
+    .svc{border-right:none!important}
+    .svc:not(:first-child){border-top:1px solid var(--line)}
+    .promise-grid{grid-template-columns:1fr;gap:24px}
+    .steps-grid{grid-template-columns:1fr}
+    .step{border-right:none!important;border-bottom:1px solid var(--ink)!important}
+    .step:last-child{border-bottom:none!important}
+    .step-num{font-size:64px}
+    .info-card{padding:32px 24px}
+    .schedule-row.today{margin:0 -10px;padding:14px 10px}
+    .area-list span{font-size:13px;padding:7px 12px}
+    .cta-section{padding:64px 0}
+    .cta-btn{padding:18px 22px}
+    .cta-btn .strong{font-size:18px}
+    .foot{grid-template-columns:1fr;gap:32px}
+    .foot-bot{flex-direction:column;text-align:center;gap:8px}
+    .review-quote{font-size:15px}
+  }
+  /* Galería + lightbox */
+  .craft-gal-section{padding:80px 0;border-top:1px solid var(--line);background:var(--bg-2)}
+  .craft-gal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .craft-gal-grid img{width:100%;height:min(240px,32vw);object-fit:cover;border-radius:8px;border:1px solid var(--line);cursor:zoom-in}
+  @media (max-width:900px){.craft-gal-grid{grid-template-columns:1fr}}
+  #galeria img{cursor:zoom-in}
+  .lw-gallery-lightbox{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:max(12px,3vw);box-sizing:border-box}
+  .lw-gallery-lightbox[hidden]{display:none!important}
+  .lw-gallery-lightbox-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.9);border:0;cursor:pointer;padding:0}
+  .lw-gallery-lightbox-frame{position:relative;z-index:1;margin:0;max-width:min(96vw,1600px);max-height:92vh}
+  .lw-gallery-lightbox-img{display:block;max-width:min(96vw,1600px);max-height:92vh;width:auto;height:auto;object-fit:contain;box-shadow:0 24px 100px rgba(0,0,0,.75)}
+  .lw-gallery-lightbox-close{position:absolute;top:-8px;right:-8px;width:44px;height:44px;border:2px solid #fff;background:#0a0a0a;color:#fff;font-size:24px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0;font-family:system-ui,sans-serif}
+  @media (max-width:640px){.lw-gallery-lightbox-close{top:8px;right:8px}}
+</style>
+</head>
+<body>
+
+<div class="embar">
+  <div class="embar-inner">
+    <span class="embar-left">Urgencias 24/7 · llamamos en menos de 2 horas</span>
+    <a href="tel:{{telefono_urgencias}}">☏ {{telefono_urgencias}}</a>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="brand">
+      <span class="brand-mark">{{inicial}}</span>
+      <span class="brand-name">
+        <strong>{{nombre}}</strong>
+        <small>{{oficio}} · {{ciudad}}</small>
+      </span>
+    </a>
+    <ul>
+      <!-- Orden = orden visual de las secciones del HTML
+           (servicios → proceso → opiniones → galeria → zona → presupuesto). -->
+      <li><a href="#servicios">Servicios</a></li>
+      <li><a href="#proceso">Cómo trabajamos</a></li>
+      <li><a href="#opiniones">Opiniones</a></li>
+      <li><a href="#galeria">Galería</a></li>
+      <li><a href="#zona">Zona y horario</a></li>
+    </ul>
+    <a href="tel:{{telefono}}" class="nav-phone">{{telefono}}</a>
+    <a href="#presupuesto" class="nav-cta">Presupuesto gratis →</a>
+    <button class="burger" id="burger" aria-label="Menú"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="scrim" id="scrim"></div>
+<aside class="mobile-menu" id="mobile-menu">
+  <ul>
+    <!-- Mismo orden que el navbar de escritorio. -->
+    <li><a href="#servicios">Servicios</a></li>
+    <li><a href="#proceso">Cómo trabajamos</a></li>
+    <li><a href="#opiniones">Opiniones</a></li>
+    <li><a href="#galeria">Galería</a></li>
+    <li><a href="#zona">Zona y horario</a></li>
+    <li><a href="#presupuesto">Pedir presupuesto</a></li>
+  </ul>
+  <a href="#presupuesto" class="mobile-cta">Presupuesto gratis →</a>
+  <a href="tel:{{telefono}}" class="mobile-phone">
+    <div>
+      <strong>{{telefono}}</strong>
+      <small>llámanos · te respondemos en el momento</small>
+    </div>
+  </a>
+</aside>
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="hero-text">
+        <span class="hero-badge">{{oficio}} · {{ciudad}} y alrededores</span>
+        <h1 class="cond">
+          {{titular_corto}}<br/>
+          <span>al primer aviso.</span>
+          <small>Respondemos rápido. Cobramos lo justo. Lo dejamos como tiene que estar.</small>
+        </h1>
+        <p class="hero-lede"><strong>{{nombre}}</strong> es un equipo de {{oficio}} profesionales con base en {{ciudad}}. {{años}} años trabajando en la zona, sin subcontratar, con presupuesto cerrado por escrito antes de empezar.</p>
+        <div class="hero-cta">
+          <a href="tel:{{telefono}}" class="btn-p">Llamar ahora</a>
+          <a href="https://wa.me/{{whatsapp}}" target="_blank" class="btn-g">WhatsApp</a>
+        </div>
+        <div class="hero-stamps">
+          <div class="stamp">
+            <div class="stamp-num"><span>&lt;2h</span></div>
+            <div class="stamp-lbl">Respuesta media en urgencias</div>
+          </div>
+          <div class="stamp">
+            <div class="stamp-num">{{años}}</div>
+            <div class="stamp-lbl">Años de oficio en {{ciudad}}</div>
+          </div>
+          <div class="stamp">
+            <div class="stamp-num">100<span>%</span></div>
+            <div class="stamp-lbl">Presupuesto sin sorpresas</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-img">
+        <div class="hero-img-overlay">
+          <div class="hero-img-tag">
+            <strong>Trabajo terminado en Calle {{calle_ejemplo}}</strong>
+            <small>Reforma integral · 12 días · presupuesto cerrado · entregado a tiempo</small>
+          </div>
+          <div class="hero-stamp-rotated">
+            <span class="big">24h</span>
+            <span class="small">urgencias</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="ticker">
+  <div class="ticker-track">
+    <span>Presupuesto gratis y sin compromiso</span>
+    <span>Profesionales colegiados</span>
+    <span>Materiales con garantía de fábrica</span>
+    <span>Trabajo certificado por escrito</span>
+    <span>Respuesta en menos de 2 horas</span>
+    <span>Servicio en toda la provincia de {{ciudad}}</span>
+    <span>Presupuesto gratis y sin compromiso</span>
+    <span>Profesionales colegiados</span>
+    <span>Materiales con garantía de fábrica</span>
+    <span>Trabajo certificado por escrito</span>
+    <span>Respuesta en menos de 2 horas</span>
+    <span>Servicio en toda la provincia de {{ciudad}}</span>
+  </div>
+</div>
+
+<section id="servicios">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Lo que hacemos</span>
+        <h2 class="cond">Servicios <span>profesionales</span></h2>
+      </div>
+      <p class="desc">Desde la pequeña reparación urgente hasta la reforma completa. Todo con presupuesto cerrado por escrito antes de empezar y garantía firmada al terminar el trabajo.</p>
+    </div>
+    <div class="services-grid">
+      <article class="svc">
+        <div class="svc-num">01</div>
+        <h3>{{servicio_1}}</h3>
+        <p class="svc-body">{{desc_servicio_1}} Trabajo certificado, materiales con garantía de fábrica y limpieza de la zona al terminar.</p>
+        <div class="svc-foot">
+          <span class="svc-price">desde {{precio_1}}€<small>/ servicio</small></span>
+          <a href="#presupuesto" class="svc-link">Pedir →</a>
+        </div>
+      </article>
+      <article class="svc">
+        <div class="svc-num">02</div>
+        <h3>{{servicio_2}}</h3>
+        <p class="svc-body">{{desc_servicio_2}} Llegamos en menos de 2 horas, diagnóstico gratuito y solución en la misma visita.</p>
+        <div class="svc-foot">
+          <span class="svc-price">desde {{precio_2}}€<small>/ urgencia</small></span>
+          <a href="#presupuesto" class="svc-link">Pedir →</a>
+        </div>
+      </article>
+      <article class="svc">
+        <div class="svc-num">03</div>
+        <h3>{{servicio_3}}</h3>
+        <p class="svc-body">{{desc_servicio_3}} Te visitamos sin compromiso, medimos, te damos un precio cerrado y empezamos cuando tú digas.</p>
+        <div class="svc-foot">
+          <span class="svc-price">presupuesto<small>/ a medida</small></span>
+          <a href="#presupuesto" class="svc-link">Pedir →</a>
+        </div>
+      </article>
+      <article class="svc">
+        <div class="svc-num">04</div>
+        <h3>{{servicio_4}}</h3>
+        <p class="svc-body">{{desc_servicio_4}} Mantenimiento periódico para comunidades, locales comerciales y empresas con tarifas fijas.</p>
+        <div class="svc-foot">
+          <span class="svc-price">desde {{precio_4}}€<small>/ mes</small></span>
+          <a href="#presupuesto" class="svc-link">Pedir →</a>
+        </div>
+      </article>
+      <article class="svc">
+        <div class="svc-num">05</div>
+        <h3>{{servicio_5}}</h3>
+        <p class="svc-body">{{desc_servicio_5}} Si te ha fallado el sistema o tienes una avería complicada, somos tu segunda opinión técnica.</p>
+        <div class="svc-foot">
+          <span class="svc-price">{{precio_5}}€<small>/ visita</small></span>
+          <a href="#presupuesto" class="svc-link">Pedir →</a>
+        </div>
+      </article>
+      <article class="svc">
+        <div class="svc-num">06</div>
+        <h3>{{servicio_6}}</h3>
+        <p class="svc-body">{{desc_servicio_6}} Compatible con seguros del hogar — gestionamos los partes y la documentación por ti.</p>
+        <div class="svc-foot">
+          <span class="svc-price">según parte<small>/ con seguro</small></span>
+          <a href="#presupuesto" class="svc-link">Pedir →</a>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="sobre-nosotros" class="promise">
+  <div class="container">
+    <div class="promise-grid">
+      <div class="promise-item">
+        <div class="promise-ico">€</div>
+        <h4>Presupuesto cerrado</h4>
+        <p>Por escrito y firmado antes de tocar una herramienta. El precio que te decimos es el que pagas — sin sorpresas, sin extras inventados.</p>
+      </div>
+      <div class="promise-item">
+        <div class="promise-ico">⚡</div>
+        <h4>Respuesta rápida</h4>
+        <p>En urgencias estamos en tu casa en menos de 2 horas. Para reformas y trabajos planificados, llegamos cuando hemos quedado, a la hora.</p>
+      </div>
+      <div class="promise-item">
+        <div class="promise-ico">✓</div>
+        <h4>Trabajo garantizado</h4>
+        <p>Garantía por escrito en cada servicio. Si algo no queda bien, volvemos sin coste hasta que tú estés conforme. Sin letra pequeña.</p>
+      </div>
+      <div class="promise-item">
+        <div class="promise-ico">★</div>
+        <h4>Profesionales colegiados</h4>
+        <p>Equipo propio, no subcontratamos. Todos nuestros técnicos están dados de alta, formados y con seguro de responsabilidad civil.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="proceso">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Cómo trabajamos</span>
+        <h2 class="cond">Cuatro pasos.<br/><span>Sin enredos.</span></h2>
+      </div>
+      <p class="desc">Lo hacemos así con todos los clientes. Desde la primera llamada hasta el día que te entregamos el trabajo terminado y firmamos la garantía.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h4>Llamas o escribes</h4>
+        <p>Por teléfono, WhatsApp o el formulario. Te respondemos en menos de una hora durante el horario laboral.</p>
+        <div class="step-time">5 min</div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h4>Visita gratuita</h4>
+        <p>Pasamos por tu casa o negocio, vemos el trabajo, medimos, hacemos las preguntas necesarias.</p>
+        <div class="step-time">misma semana</div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h4>Presupuesto firmado</h4>
+        <p>Te enviamos el presupuesto detallado, materiales y plazos. Lo firmas si te encaja, no si no.</p>
+        <div class="step-time">en 48h</div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <h4>Trabajo y garantía</h4>
+        <p>Hacemos el trabajo en los plazos acordados. Te lo entregamos limpio y con garantía firmada.</p>
+        <div class="step-time">según trabajo</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="opiniones" class="reviews-bg">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Lo que dicen los vecinos</span>
+        <h2 class="cond">{{nº_reseñas}}+ trabajos.<br/><span>4,9/5 en Google.</span></h2>
+      </div>
+      <p class="desc">Reseñas reales de clientes que han confiado en nosotros para reparaciones urgentes, reformas o mantenimiento. Sin filtros, tal cual las dejaron en Google.</p>
+    </div>
+    <div class="reviews-list">
+      <article class="review">
+        <div class="review-stars">Hace 2 semanas</div>
+        <p class="review-quote">{{reseña_1}} Llamé a las 8 de la mañana porque tenía una fuga importante, a las 9:30 estaban en casa. Trabajo impecable, presupuesto justo y zona dejada limpia. Repetiré seguro.</p>
+        <div class="review-foot">
+          <div class="review-av">{{inicial_1}}</div>
+          <div>
+            <div class="review-name">{{nombre_1}}</div>
+            <div class="review-meta">{{barrio_1}} · vía Google</div>
+          </div>
+        </div>
+      </article>
+      <article class="review">
+        <div class="review-stars">Hace 1 mes</div>
+        <p class="review-quote">{{reseña_2}} Reformamos el baño completo. El presupuesto se cumplió al céntimo, los plazos también, y el resultado superó expectativas. Profesionales de los de toda la vida.</p>
+        <div class="review-foot">
+          <div class="review-av">{{inicial_2}}</div>
+          <div>
+            <div class="review-name">{{nombre_2}}</div>
+            <div class="review-meta">{{barrio_2}} · vía Google</div>
+          </div>
+        </div>
+      </article>
+      <article class="review">
+        <div class="review-stars">Hace 3 meses</div>
+        <p class="review-quote">{{reseña_3}} Llevo años llamándolos para todo lo que falla en el local. Responden rápido, cobran justo, no inventan averías que no existen. La gente honesta del oficio.</p>
+        <div class="review-foot">
+          <div class="review-av">{{inicial_3}}</div>
+          <div>
+            <div class="review-name">{{nombre_3}}</div>
+            <div class="review-meta">{{barrio_3}} · vía Google</div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="galeria" class="craft-gal-section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Galería</span>
+        <h2 class="cond">Trabajos en<br/><span>imágenes.</span></h2>
+      </div>
+      <p class="desc">Algunas intervenciones recientes en {{ciudad}} y alrededores.</p>
+    </div>
+    <div class="craft-gal-grid">
+      <div><img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200&q=70" alt="Reparación"/></div>
+      <div><img src="https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=1200&q=70" alt="Electricidad"/></div>
+      <div><img src="https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=1200&q=70" alt="Reforma"/></div>
+    </div>
+  </div>
+</section>
+
+<section id="zona">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Zona y disponibilidad</span>
+        <h2 class="cond">Dónde llegamos<br/><span>y cuándo.</span></h2>
+      </div>
+      <p class="desc">Trabajamos en {{ciudad}} capital y toda la zona de alrededor. Para urgencias, disponibilidad 24/7 incluyendo festivos. Para trabajos planificados, te encajamos en agenda esta misma semana.</p>
+    </div>
+    <div class="info-grid">
+      <div class="info-card">
+        <span class="eyebrow">Horario laboral</span>
+        <h3 class="cond">Cuándo trabajamos</h3>
+        <div id="schedule">
+          <div class="schedule-row" data-day="1"><span class="day">Lunes</span><span class="dots"></span><span class="time">{{lunes}}</span></div>
+          <div class="schedule-row" data-day="2"><span class="day">Martes</span><span class="dots"></span><span class="time">{{martes}}</span></div>
+          <div class="schedule-row" data-day="3"><span class="day">Miércoles</span><span class="dots"></span><span class="time">{{miercoles}}</span></div>
+          <div class="schedule-row" data-day="4"><span class="day">Jueves</span><span class="dots"></span><span class="time">{{jueves}}</span></div>
+          <div class="schedule-row" data-day="5"><span class="day">Viernes</span><span class="dots"></span><span class="time">{{viernes}}</span></div>
+          <div class="schedule-row" data-day="6"><span class="day">Sábado</span><span class="dots"></span><span class="time">{{sabado}}</span></div>
+          <div class="schedule-row" data-day="0"><span class="day">Domingo</span><span class="dots"></span><span class="time urgency">solo urgencias</span></div>
+        </div>
+      </div>
+      <div class="info-card">
+        <span class="eyebrow">Zona de servicio</span>
+        <h3 class="cond">Hasta dónde llegamos</h3>
+        <div class="area-list">
+          <span class="main">{{ciudad}} capital</span>
+          <span>{{zona_1}}</span>
+          <span>{{zona_2}}</span>
+          <span>{{zona_3}}</span>
+          <span>{{zona_4}}</span>
+          <span>{{zona_5}}</span>
+          <span>{{zona_6}}</span>
+          <span>+ alrededores</span>
+        </div>
+        <div class="area-note">
+          <strong>¿Tu zona no aparece?</strong>
+          Llámanos igual. Si está a menos de 30 km, casi seguro que cubrimos. Para distancias mayores, depende del tipo de trabajo y de la urgencia.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="presupuesto" class="cta-section">
+  <div class="container">
+    <div class="cta-inner">
+      <div>
+        <h2 class="cond">¿Tienes un trabajo<br/>en mente?<small>Llámanos. Te visitamos sin compromiso. Te damos un presupuesto cerrado en menos de 48 horas.</small></h2>
+      </div>
+      <div class="cta-actions">
+        <a href="tel:{{telefono}}" class="cta-btn dark">
+          <div>
+            <span class="strong">{{telefono}}</span>
+            <span class="small">Llámanos · respondemos al momento</span>
+          </div>
+          <span class="ico">☏</span>
+        </a>
+        <a href="https://wa.me/{{whatsapp}}" target="_blank" class="cta-btn">
+          <div>
+            <span class="strong">WhatsApp</span>
+            <span class="small">Cuéntanos por mensaje · respuesta en 1h</span>
+          </div>
+          <span class="ico">✆</span>
+        </a>
+        <a href="/cdn-cgi/l/email-protection#364d4d535b575f5a4b4b" class="cta-btn">
+          <div>
+            <span class="strong">Pedir presupuesto</span>
+            <span class="small">Por correo · ideal para reformas</span>
+          </div>
+          <span class="ico">@</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="foot">
+      <div class="foot-brand-block">
+        <a href="#" class="brand">
+          <span class="brand-mark">{{inicial}}</span>
+          <span class="brand-name">
+            <strong>{{nombre}}</strong>
+            <small>{{oficio}} · {{ciudad}}</small>
+          </span>
+        </a>
+        <p>{{descripcion_corta}} {{años}} años de oficio en {{ciudad}}. Equipo propio, presupuesto cerrado, garantía por escrito.</p>
+        <span class="foot-licence" style="color:#fff">Reg. industrial nº {{registro}}</span>
+      </div>
+      <div>
+        <h4>Servicios</h4>
+        <ul>
+          <li><a href="#servicios">{{servicio_1}}</a></li>
+          <li><a href="#servicios">{{servicio_2}}</a></li>
+          <li><a href="#servicios">{{servicio_3}}</a></li>
+          <li><a href="#servicios">{{servicio_4}}</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contacto</h4>
+        <ul>
+          <li><a href="tel:{{telefono}}">{{telefono}}</a></li>
+          <li><a href="tel:{{telefono_urgencias}}">Urgencias 24/7</a></li>
+          <li><a href="https://wa.me/{{whatsapp}}">WhatsApp</a></li>
+          <li><a href="/cdn-cgi/l/email-protection#3d464658505c54514040">{{email}}</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Información</h4>
+        <ul>
+          <li><a href="#zona">Zona de servicio</a></li>
+          <li><a href="#galeria">Galería</a></li>
+          <li><a href="#opiniones">Opiniones</a></li>
+          <li><a href="#">Aviso legal</a></li>
+          <li><a href="#">Política de privacidad</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bot">
+      <span>© {{año_actual}} {{nombre}} · CIF {{cif}} · {{ciudad}}, España</span>
+      <span>Web hecha con <a href="#">LocalWeb</a></span>
+    </div>
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+(function(){
+  const burger = document.getElementById('burger');
+  const menu = document.getElementById('mobile-menu');
+  const scrim = document.getElementById('scrim');
+  function toggle(open){
+    burger.classList.toggle('open',open);
+    menu.classList.toggle('open',open);
+    scrim.style.display = open ? 'block' : 'none';
+    requestAnimationFrame(()=>scrim.classList.toggle('open',open));
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+  burger.addEventListener('click',()=>toggle(!menu.classList.contains('open')));
+  scrim.addEventListener('click',()=>toggle(false));
+  menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>toggle(false)));
+  const today = new Date().getDay();
+  const row = document.querySelector(`.schedule-row[data-day="${today}"]`);
+  if(row) row.classList.add('today');
+})();
+</script>
+<div id="lw-gallery-lightbox" class="lw-gallery-lightbox" hidden aria-modal="true" role="dialog" aria-label="Imagen a tamaño completo">
+  <button type="button" class="lw-gallery-lightbox-backdrop" tabindex="-1" aria-label="Cerrar"></button>
+  <figure class="lw-gallery-lightbox-frame">
+    <button type="button" class="lw-gallery-lightbox-close" aria-label="Cerrar">×</button>
+    <img class="lw-gallery-lightbox-img" src="" alt="" decoding="async"/>
+  </figure>
+</div>
+<script>
+(function initLwGalleryLightbox(){
+  var lb=document.getElementById('lw-gallery-lightbox');
+  if(!lb)return;
+  var backdrop=lb.querySelector('.lw-gallery-lightbox-backdrop');
+  var closeBtn=lb.querySelector('.lw-gallery-lightbox-close');
+  var imgEl=lb.querySelector('.lw-gallery-lightbox-img');
+  var prevOverflow='';
+  function openLb(src,alt){
+    if(!src)return;
+    imgEl.src=src;
+    imgEl.alt=alt||'';
+    lb.hidden=false;
+    prevOverflow=document.body.style.overflow;
+    document.body.style.overflow='hidden';
+  }
+  function closeLb(){
+    lb.hidden=true;
+    imgEl.removeAttribute('src');
+    imgEl.alt='';
+    document.body.style.overflow=prevOverflow||'';
+  }
+  document.addEventListener('click',function(e){
+    var sec=document.getElementById('galeria');
+    if(!sec||!sec.contains(e.target))return;
+    if(e.target.closest('#lw-gallery-lightbox'))return;
+    var im=e.target.closest('img');
+    if(im&&sec.contains(im)){
+      e.preventDefault();
+      e.stopPropagation();
+      openLb(im.currentSrc||im.src,im.alt||'');
+      return;
+    }
+    var tile=e.target.closest('[data-lightbox-src]');
+    if(tile&&sec.contains(tile)){
+      var u=tile.getAttribute('data-lightbox-src');
+      if(u){ e.preventDefault(); openLb(u,''); }
+    }
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&!lb.hidden)closeLb();
+    if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.closest){
+      var t=e.target.closest('#galeria [data-lightbox-src]');
+      var g=document.getElementById('galeria');
+      if(t&&g&&g.contains(t)){
+        e.preventDefault();
+        var u=t.getAttribute('data-lightbox-src');
+        if(u)openLb(u,'');
+      }
+    }
+  });
+  if(backdrop)backdrop.addEventListener('click',closeLb);
+  if(closeBtn)closeBtn.addEventListener('click',closeLb);
+})();
+</script>
+
+</body>
+</html>

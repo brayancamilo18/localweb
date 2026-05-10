@@ -1,0 +1,768 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>{{nombre}} — Profesionales de confianza</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBFAF7;
+    --paper:#FFFFFF;
+    --ink:#0E1F1A;
+    --ink-2:#3A4A45;
+    --ink-3:#7A8A85;
+    --line:#E5E2D9;
+    --line-2:#D4D0C4;
+    --accent:#1A4F3F;       /* verde despacho */
+    --accent-2:#2D6855;
+    --accent-soft:#E8F0EC;
+    --gold:#A88B4A;
+    --warn:#B85C39;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:"Inter",-apple-system,sans-serif;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--accent);color:#fff}
+  a{color:inherit;text-decoration:none}
+  img{display:block;max-width:100%}
+  .serif{font-family:"Source Serif 4",Georgia,serif;font-weight:400;letter-spacing:-0.005em}
+  .container{max-width:1200px;margin:0 auto;padding:0 32px}
+  .eyebrow{display:inline-block;font-size:11.5px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:0.14em}
+  .rule{display:inline-block;width:32px;height:1px;background:var(--accent);vertical-align:4px;margin-right:14px}
+
+  /* ─── TOP BAR ─── */
+  .topbar{background:var(--ink);color:#E8E4D8;font-size:12.5px;letter-spacing:0.01em}
+  .topbar-inner{display:flex;justify-content:space-between;align-items:center;padding:9px 32px;max-width:1200px;margin:0 auto;gap:16px}
+  .topbar-meta{display:flex;gap:24px}
+  .topbar-meta span{display:inline-flex;align-items:center;gap:6px;color:#C9C4B5}
+  .topbar-meta strong{color:#fff;font-weight:500}
+  .topbar-cta a{color:#fff;font-weight:500;border-bottom:1px solid rgba(255,255,255,.3);padding-bottom:1px;transition:border-color .15s}
+  .topbar-cta a:hover{border-color:#fff}
+
+  /* ─── NAV ─── */
+  .nav{position:sticky;top:0;z-index:50;background:var(--paper);border-bottom:1px solid var(--line);transition:box-shadow .2s}
+  .nav.scrolled{box-shadow:0 1px 0 var(--line-2),0 8px 24px -16px rgba(14,31,26,.08)}
+  .nav-inner{display:flex;justify-content:space-between;align-items:center;padding:18px 32px;max-width:1200px;margin:0 auto}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand-mark{width:40px;height:40px;background:var(--accent);color:#fff;display:grid;place-items:center;font-family:"Source Serif 4",serif;font-size:20px;font-weight:600;letter-spacing:-0.01em}
+  .brand-name{display:flex;flex-direction:column;line-height:1.15}
+  .brand-name strong{font-family:"Source Serif 4",serif;font-size:19px;font-weight:600;letter-spacing:-0.01em;color:var(--ink)}
+  .brand-name small{font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.12em;font-weight:500;margin-top:2px}
+  .nav ul{list-style:none;display:flex;gap:36px;align-items:center}
+  .nav ul a{font-size:14px;font-weight:500;color:var(--ink-2);padding:6px 0;border-bottom:1px solid transparent;transition:color .15s,border-color .15s}
+  .nav ul a:hover,.nav ul a.active{color:var(--accent);border-color:var(--accent)}
+  .nav-cta{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;background:var(--accent);color:#fff;font-size:13.5px;font-weight:500;letter-spacing:0.005em;transition:background .15s}
+  .nav-cta:hover{background:var(--ink)}
+  .burger{display:none;width:42px;height:42px;background:transparent;border:1px solid var(--line);cursor:pointer;padding:0;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+  .burger span{display:block;width:18px;height:1.5px;background:var(--ink);transition:transform .25s,opacity .15s}
+  .burger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+  .burger.open span:nth-child(2){opacity:0}
+  .burger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+
+  /* mobile menu */
+  .mobile-menu{display:none;position:fixed;top:0;right:0;bottom:0;width:88%;max-width:380px;background:var(--paper);z-index:200;padding:80px 32px 32px;transform:translateX(100%);transition:transform .35s cubic-bezier(.5,.05,.2,1);box-shadow:-30px 0 60px -20px rgba(14,31,26,.2);overflow-y:auto}
+  .mobile-menu.open{transform:translateX(0)}
+  .mobile-menu ul{list-style:none;display:flex;flex-direction:column;gap:0;border-top:1px solid var(--line)}
+  .mobile-menu ul li{border-bottom:1px solid var(--line)}
+  .mobile-menu ul a{display:block;padding:18px 0;font-family:"Source Serif 4",serif;font-size:22px;font-weight:500;color:var(--ink);letter-spacing:-0.01em}
+  .mobile-menu ul a:hover{color:var(--accent)}
+  .mobile-cta{display:block;margin-top:32px;padding:16px;text-align:center;background:var(--accent);color:#fff;font-weight:600;font-size:14px}
+  .mobile-meta{margin-top:32px;padding-top:24px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-2);line-height:1.7}
+  .mobile-meta strong{display:block;color:var(--ink);font-size:14px;margin-bottom:2px}
+  .scrim{display:none;position:fixed;inset:0;background:rgba(14,31,26,.4);z-index:150;opacity:0;transition:opacity .3s}
+  .scrim.open{opacity:1}
+
+  /* ─── HERO ─── */
+  .hero{padding:96px 0 80px;border-bottom:1px solid var(--line);position:relative}
+  .hero-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:80px;align-items:start}
+  .hero-meta{display:flex;align-items:center;gap:14px;margin-bottom:36px}
+  .hero-meta .est{font-size:11.5px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.16em}
+  .hero h1{font-family:"Source Serif 4",serif;font-size:clamp(44px,5.5vw,72px);font-weight:500;line-height:1.07;letter-spacing:-0.025em;color:var(--ink);margin-bottom:32px}
+  .hero h1 em{font-style:italic;color:var(--accent);font-weight:400}
+  .hero-lede{font-size:17px;line-height:1.65;color:var(--ink-2);max-width:520px;margin-bottom:40px}
+  .hero-cta{display:flex;gap:14px;margin-bottom:48px;flex-wrap:wrap}
+  .btn-p{display:inline-flex;align-items:center;gap:10px;padding:15px 28px;background:var(--accent);color:#fff;font-size:14px;font-weight:500;transition:background .15s,transform .15s}
+  .btn-p:hover{background:var(--ink);transform:translateY(-1px)}
+  .btn-g{display:inline-flex;align-items:center;gap:10px;padding:15px 24px;background:transparent;color:var(--ink);font-size:14px;font-weight:500;border:1px solid var(--line-2);transition:border-color .15s,color .15s}
+  .btn-g:hover{border-color:var(--accent);color:var(--accent)}
+
+  .hero-trust{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--line);padding-top:32px}
+  .trust-item{padding-right:20px;border-right:1px solid var(--line)}
+  .trust-item:last-child{border-right:none;padding-right:0}
+  .trust-item:not(:first-child){padding-left:24px}
+  .trust-num{font-family:"Source Serif 4",serif;font-size:36px;font-weight:500;letter-spacing:-0.02em;color:var(--accent);line-height:1}
+  .trust-num small{font-size:14px;color:var(--ink-2);font-family:"Inter";font-weight:500;margin-left:2px}
+  .trust-lbl{font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.1em;margin-top:8px;font-weight:500}
+
+  /* hero card right */
+  .hero-card{background:var(--paper);border:1px solid var(--line);padding:8px;position:relative}
+  .hero-card::before{content:"";position:absolute;top:-8px;right:-8px;width:48px;height:48px;border-top:2px solid var(--accent);border-right:2px solid var(--accent)}
+  .hero-card::after{content:"";position:absolute;bottom:-8px;left:-8px;width:48px;height:48px;border-bottom:2px solid var(--accent);border-left:2px solid var(--accent)}
+  .hero-portrait{width:100%;aspect-ratio:4/5;background:#D8D5CA url('https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=900&q=70') center/cover;filter:saturate(.9)}
+  .hero-card-foot{padding:24px 24px 20px;border-top:1px solid var(--line);background:var(--paper);margin-top:0}
+  .hero-card-foot .name{font-family:"Source Serif 4",serif;font-size:20px;font-weight:600;letter-spacing:-0.015em;margin-bottom:2px}
+  .hero-card-foot .role{font-size:13px;color:var(--ink-2)}
+  .hero-card-foot .creds{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+  .hero-card-foot .creds span{padding:4px 10px;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase}
+
+  /* ─── REVIEWS BAR ─── */
+  .reviews-bar{background:var(--paper);border-bottom:1px solid var(--line);padding:32px 0}
+  .reviews-bar-inner{display:flex;justify-content:space-between;align-items:center;gap:32px;flex-wrap:wrap}
+  .rb-block{display:flex;align-items:center;gap:18px}
+  .rb-stars{font-size:22px;color:var(--gold);letter-spacing:2px}
+  .rb-score{font-family:"Source Serif 4",serif;font-size:38px;font-weight:600;letter-spacing:-0.02em;line-height:1}
+  .rb-score small{font-size:14px;color:var(--ink-3);font-family:"Inter";font-weight:400;margin-left:4px}
+  .rb-meta{font-size:13px;color:var(--ink-2);line-height:1.5}
+  .rb-meta strong{display:block;color:var(--ink);font-size:14.5px;font-weight:600;margin-bottom:2px}
+  .rb-google{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-3);font-weight:500;margin-top:4px}
+  .rb-google::before{content:"G";display:inline-flex;width:18px;height:18px;background:#fff;border:1px solid var(--line-2);align-items:center;justify-content:center;font-family:Arial,sans-serif;font-weight:700;color:var(--ink);font-size:11px}
+
+  /* ─── SECTIONS ─── */
+  section{padding:120px 0}
+  .section-head{display:grid;grid-template-columns:1fr 1.4fr;gap:80px;margin-bottom:72px;align-items:end}
+  .section-head h2{font-family:"Source Serif 4",serif;font-size:clamp(36px,4.5vw,56px);font-weight:500;line-height:1.1;letter-spacing:-0.025em;margin-top:18px}
+  .section-head h2 em{font-style:italic;color:var(--accent);font-weight:400}
+  .section-head .desc{font-size:16px;color:var(--ink-2);line-height:1.65;max-width:520px;padding-bottom:8px}
+
+  /* ─── SERVICES ─── */
+  .services-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0;border-top:1px solid var(--line)}
+  .svc{padding:40px 32px 36px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);position:relative;background:var(--paper);transition:background .2s}
+  .svc:nth-child(2n){border-right:none}
+  .svc:hover{background:#FDFCF8}
+  .svc-num{position:absolute;top:32px;right:32px;font-family:"Source Serif 4",serif;font-size:13px;color:var(--ink-3);font-style:italic}
+  .svc h3{font-family:"Source Serif 4",serif;font-size:24px;font-weight:600;letter-spacing:-0.015em;margin-bottom:8px;line-height:1.2;max-width:80%}
+  .svc-body{font-size:14.5px;color:var(--ink-2);line-height:1.65;margin-bottom:24px}
+  .svc-foot{display:flex;justify-content:space-between;align-items:flex-end;padding-top:16px;border-top:1px dashed var(--line-2)}
+  .svc-price{font-family:"Source Serif 4",serif;font-size:22px;font-weight:600;color:var(--accent);letter-spacing:-0.01em}
+  .svc-price small{font-size:12px;color:var(--ink-3);font-family:"Inter";font-weight:400;margin-left:4px}
+  .svc-price.consult{color:var(--ink-2);font-style:italic;font-size:16px;font-weight:500}
+  .svc-link{font-size:13px;color:var(--accent);font-weight:500;display:inline-flex;align-items:center;gap:6px;transition:gap .2s}
+  .svc:hover .svc-link{gap:10px}
+
+  /* ─── ABOUT / TRUST ─── */
+  .trust-section{background:var(--paper);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .trust-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+  .trust-img{aspect-ratio:5/6;background:#D8D5CA url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?auto=format&fit=crop&w=900&q=70') center/cover;position:relative}
+  .trust-img-cap{position:absolute;bottom:24px;left:24px;right:24px;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);padding:18px 22px;border-left:3px solid var(--accent)}
+  .trust-img-cap p{font-family:"Source Serif 4",serif;font-size:15px;font-style:italic;color:var(--ink);line-height:1.5}
+  .trust-img-cap small{display:block;font-size:11.5px;color:var(--ink-3);margin-top:8px;letter-spacing:0.06em;text-transform:uppercase;font-weight:600;font-style:normal;font-family:"Inter"}
+  .trust-content h2{font-family:"Source Serif 4",serif;font-size:clamp(34px,4vw,52px);font-weight:500;line-height:1.1;letter-spacing:-0.02em;margin:18px 0 28px}
+  .trust-content > p{font-size:16px;line-height:1.7;color:var(--ink-2);margin-bottom:20px;max-width:520px}
+  .credentials{margin-top:40px;display:grid;grid-template-columns:1fr;gap:0;border-top:1px solid var(--line)}
+  .cred{padding:18px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:20px}
+  .cred-name{font-size:14.5px;font-weight:500;color:var(--ink)}
+  .cred-name small{display:block;font-size:12px;color:var(--ink-3);font-weight:400;margin-top:2px;font-style:italic;font-family:"Source Serif 4",serif}
+  .cred-year{font-family:"Source Serif 4",serif;font-size:14px;color:var(--ink-3);font-style:italic;flex-shrink:0}
+
+  /* ─── REVIEWS ─── */
+  .reviews-bg{background:linear-gradient(180deg,var(--bg) 0%,#F5F2E8 100%)}
+  .reviews-list{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  .review{background:var(--paper);border:1px solid var(--line);padding:32px 28px;position:relative;display:flex;flex-direction:column}
+  .review-stars{color:var(--gold);font-size:16px;letter-spacing:2px;margin-bottom:18px}
+  .review-quote{font-family:"Source Serif 4",serif;font-size:17px;line-height:1.55;color:var(--ink);margin-bottom:24px;flex:1}
+  .review-quote::before{content:"";display:block;font-family:"Source Serif 4";font-size:54px;color:var(--accent);height:30px;line-height:.5;margin-bottom:12px;font-style:italic;font-weight:400}
+  .review-foot{display:flex;align-items:center;gap:14px;padding-top:20px;border-top:1px solid var(--line)}
+  .review-av{width:40px;height:40px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:600;font-size:14px;flex-shrink:0}
+  .review-name{font-size:14px;font-weight:600;color:var(--ink);line-height:1.2}
+  .review-meta{font-size:12px;color:var(--ink-3);margin-top:2px;display:flex;align-items:center;gap:8px}
+  .review-meta::after{content:"· vía Google";color:var(--ink-3)}
+
+  /* ─── HOURS / LOCATION ─── */
+  .info-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:32px;border-top:1px solid var(--line)}
+  .info-card{background:var(--paper);border:1px solid var(--line);padding:40px}
+  .info-card h3{font-family:"Source Serif 4",serif;font-size:24px;font-weight:600;margin:14px 0 24px;letter-spacing:-0.015em}
+  .schedule{margin-top:0}
+  .schedule-row{display:grid;grid-template-columns:1fr auto;padding:13px 0;border-bottom:1px solid var(--line);font-size:14.5px;align-items:center;gap:16px}
+  .schedule-row:last-child{border-bottom:none}
+  .schedule-row.today{background:var(--accent-soft);margin:0 -16px;padding:13px 16px;border-bottom:1px solid var(--line);position:relative}
+  .schedule-row.today::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+  .schedule-row.today .day{color:var(--accent);font-weight:600}
+  .schedule-row.today .day::after{content:" — hoy";font-weight:400;color:var(--ink-3);font-style:italic;font-family:"Source Serif 4"}
+  .schedule-row .day{color:var(--ink-2)}
+  .schedule-row .time{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:500}
+  .schedule-row .closed{color:var(--ink-3);font-style:italic;font-family:"Source Serif 4";font-weight:400}
+
+  .map{aspect-ratio:5/4;background:#E8E4D8;position:relative;overflow:hidden;border:1px solid var(--line)}
+  .map-bg{position:absolute;inset:0;background:
+    repeating-linear-gradient(45deg,transparent 0,transparent 18px,rgba(26,79,63,.04) 18px,rgba(26,79,63,.04) 19px),
+    repeating-linear-gradient(-45deg,transparent 0,transparent 18px,rgba(26,79,63,.04) 18px,rgba(26,79,63,.04) 19px),
+    linear-gradient(135deg,#E8E4D8,#D8D2C0)}
+  .map-pin{position:absolute;top:42%;left:48%;transform:translate(-50%,-100%);z-index:2}
+  .map-pin .body{width:42px;height:42px;border-radius:50% 50% 50% 0;background:var(--accent);transform:rotate(-45deg);display:grid;place-items:center;box-shadow:0 8px 16px -4px rgba(14,31,26,.3)}
+  .map-pin .body::after{content:"+";color:#fff;font-size:22px;font-weight:600;transform:rotate(45deg);line-height:1}
+  .map-pin::after{content:"";position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);width:14px;height:6px;background:rgba(14,31,26,.18);border-radius:50%;filter:blur(2px)}
+  .map-overlay{position:absolute;left:24px;bottom:24px;right:24px;background:var(--paper);padding:24px;border-left:3px solid var(--accent);z-index:3}
+  .map-overlay h4{font-family:"Source Serif 4",serif;font-size:18px;font-weight:600;letter-spacing:-0.01em;margin-bottom:6px}
+  .map-overlay p{font-size:13.5px;color:var(--ink-2);line-height:1.55}
+  .map-overlay a{display:inline-block;font-size:13px;color:var(--accent);font-weight:500;margin-top:10px;border-bottom:1px solid var(--accent)}
+
+  /* ─── CTA STRIP ─── */
+  .cta-strip{background:var(--ink);color:#fff;padding:80px 0;border-top:4px solid var(--accent)}
+  .cta-inner{display:grid;grid-template-columns:1.4fr 1fr;gap:48px;align-items:center}
+  .cta-strip h2{font-family:"Source Serif 4",serif;font-size:clamp(32px,4vw,48px);font-weight:500;line-height:1.15;letter-spacing:-0.02em}
+  .cta-strip h2 em{font-style:italic;color:#A8C9BC}
+  .cta-strip p{font-size:15.5px;color:#C9C4B5;line-height:1.65;max-width:480px;margin-top:18px}
+  .cta-actions{display:flex;flex-direction:column;gap:14px}
+  .cta-actions .btn-p{background:var(--paper);color:var(--ink);justify-content:center;padding:18px 24px;font-weight:600}
+  .cta-actions .btn-p:hover{background:var(--accent);color:#fff}
+  .cta-actions .btn-g{border-color:rgba(255,255,255,.2);color:#fff;justify-content:center;padding:18px 24px}
+  .cta-actions .btn-g:hover{border-color:#fff;color:#fff;background:rgba(255,255,255,.05)}
+  .cta-phone{display:flex;align-items:center;gap:14px;padding-top:18px;margin-top:6px;border-top:1px solid rgba(255,255,255,.12)}
+  .cta-phone .ico{width:42px;height:42px;border:1px solid rgba(255,255,255,.25);display:grid;place-items:center;color:#fff;font-size:16px;flex-shrink:0}
+  .cta-phone div{font-size:13px;color:#C9C4B5}
+  .cta-phone strong{display:block;font-family:"Source Serif 4",serif;font-size:22px;color:#fff;font-weight:600;letter-spacing:-0.01em;margin-bottom:1px}
+
+  /* ─── FOOTER ─── */
+  footer{background:var(--paper);padding:80px 0 32px;border-top:1px solid var(--line)}
+  .foot{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:48px;padding-bottom:48px;border-bottom:1px solid var(--line)}
+  .foot-brand{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+  .foot p{font-size:13.5px;color:var(--ink-2);line-height:1.65;max-width:340px}
+  .foot h4{font-family:"Source Serif 4",serif;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:18px;letter-spacing:-0.005em}
+  .foot ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+  .foot ul a{font-size:13.5px;color:var(--ink-2);transition:color .15s}
+  .foot ul a:hover{color:var(--accent)}
+  .foot-bot{display:flex;justify-content:space-between;align-items:center;padding-top:24px;font-size:12px;color:var(--ink-3);flex-wrap:wrap;gap:10px}
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width:980px){
+    .hero-grid{grid-template-columns:1fr;gap:48px}
+    .hero-card{max-width:380px}
+    .section-head{grid-template-columns:1fr;gap:24px}
+    .services-grid{grid-template-columns:1fr}
+    .svc{border-right:none}
+    .trust-grid{grid-template-columns:1fr;gap:40px}
+    .trust-img{max-width:480px;margin:0 auto;width:100%}
+    .reviews-list{grid-template-columns:1fr;gap:16px}
+    .info-grid{grid-template-columns:1fr;gap:16px}
+    .cta-inner{grid-template-columns:1fr;gap:32px}
+    .foot{grid-template-columns:1fr 1fr;gap:36px}
+  }
+  @media (max-width:680px){
+    .container{padding:0 20px}
+    .topbar-meta{display:none}
+    .topbar-inner{justify-content:center;padding:9px 20px}
+    .nav ul{display:none}
+    .nav-cta{display:none}
+    .burger{display:flex}
+    .nav-inner{padding:14px 20px}
+    .brand-mark{width:36px;height:36px;font-size:18px}
+    .brand-name strong{font-size:16px}
+    .brand-name small{font-size:9.5px}
+    .hero{padding:56px 0 56px}
+    .hero-trust{grid-template-columns:1fr;gap:0}
+    .trust-item{border-right:none;border-bottom:1px solid var(--line);padding:14px 0!important}
+    .trust-item:first-child{padding-top:0!important}
+    .trust-item:last-child{border-bottom:none;padding-bottom:0!important}
+    section{padding:64px 0}
+    .svc{padding:28px 22px}
+    .svc h3{max-width:100%}
+    .info-card{padding:24px}
+    .reviews-bar-inner{justify-content:center;text-align:center;flex-direction:column;gap:18px}
+    .foot{grid-template-columns:1fr;gap:32px}
+    .foot-bot{flex-direction:column;gap:8px;text-align:center}
+    .map{aspect-ratio:1/1}
+    .cta-strip{padding:48px 0}
+    .credentials{grid-template-columns:1fr}
+    .review-quote{font-size:15.5px}
+    .schedule-row.today{margin:0 -10px;padding:13px 10px}
+  }
+  /* Galería + lightbox */
+  .trust-gal-section{padding:72px 0;border-top:1px solid var(--line)}
+  .trust-gal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .trust-gal-grid img{width:100%;height:220px;object-fit:cover;border-radius:6px;cursor:zoom-in}
+  @media (max-width:900px){.trust-gal-grid{grid-template-columns:1fr}}
+  #galeria img{cursor:zoom-in}
+  .lw-gallery-lightbox{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:max(12px,3vw);box-sizing:border-box}
+  .lw-gallery-lightbox[hidden]{display:none!important}
+  .lw-gallery-lightbox-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.9);border:0;cursor:pointer;padding:0}
+  .lw-gallery-lightbox-frame{position:relative;z-index:1;margin:0;max-width:min(96vw,1600px);max-height:92vh}
+  .lw-gallery-lightbox-img{display:block;max-width:min(96vw,1600px);max-height:92vh;width:auto;height:auto;object-fit:contain;box-shadow:0 24px 100px rgba(0,0,0,.75)}
+  .lw-gallery-lightbox-close{position:absolute;top:-8px;right:-8px;width:44px;height:44px;border:2px solid #fff;background:#0a0a0a;color:#fff;font-size:24px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0;font-family:system-ui,sans-serif}
+  @media (max-width:640px){.lw-gallery-lightbox-close{top:8px;right:8px}}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ TOPBAR ═══════════════════ -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-meta">
+      <span><strong>{{telefono}}</strong></span>
+      <span>{{direccion_corta}}</span>
+      <span id="topbar-status">Atendiendo · {{horario_hoy}}</span>
+    </div>
+    <div class="topbar-cta">
+      <a href="#cita">Solicitar cita →</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ NAV ═══════════════════ -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="#" class="brand">
+      <span class="brand-mark">{{inicial}}</span>
+      <span class="brand-name">
+        <strong>{{nombre}}</strong>
+        <small>{{categoria_profesional}}</small>
+      </span>
+    </a>
+    <ul>
+      <li><a href="#servicios">Servicios</a></li>
+      <li><a href="#sobre-nosotros">Sobre nosotros</a></li>
+      <li><a href="#galeria">Galería</a></li>
+      <li><a href="#reseñas">Reseñas</a></li>
+      <li><a href="#contacto">Contacto</a></li>
+    </ul>
+    <a href="#cita" class="nav-cta">Pedir cita →</a>
+    <button class="burger" id="burger" aria-label="Menú"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- mobile menu -->
+<div class="scrim" id="scrim"></div>
+<aside class="mobile-menu" id="mobile-menu">
+  <ul>
+    <li><a href="#servicios">Servicios</a></li>
+    <li><a href="#sobre-nosotros">Sobre nosotros</a></li>
+    <li><a href="#galeria">Galería</a></li>
+    <li><a href="#reseñas">Reseñas</a></li>
+    <li><a href="#contacto">Contacto</a></li>
+  </ul>
+  <a href="#cita" class="mobile-cta">Pedir cita →</a>
+  <div class="mobile-meta">
+    <strong>{{telefono}}</strong>
+    {{direccion}}<br/>
+    <span id="mm-hours">{{horario_hoy}}</span>
+  </div>
+</aside>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-meta">
+          <span class="rule"></span>
+          <span class="est">Establecidos en {{año_fundacion}} · {{ciudad}}</span>
+        </div>
+        <h1 class="serif">Su <em>{{tipo_servicio}}</em> de confianza,<br/>en el centro de {{ciudad}}.</h1>
+        <p class="hero-lede">{{descripcion_larga}} En {{nombre}} llevamos {{años}} años acompañando a familias y profesionales en cada paso, con la atención personal y la rigurosidad que merecen.</p>
+        <div class="hero-cta">
+          <a href="#cita" class="btn-p">Solicitar primera consulta →</a>
+          <a href="#servicios" class="btn-g">Ver servicios</a>
+        </div>
+        <div class="hero-trust">
+          <div class="trust-item">
+            <div class="trust-num">{{años}}<small>años</small></div>
+            <div class="trust-lbl">De ejercicio</div>
+          </div>
+          <div class="trust-item">
+            <div class="trust-num">{{nº_clientes}}+</div>
+            <div class="trust-lbl">Casos atendidos</div>
+          </div>
+          <div class="trust-item">
+            <div class="trust-num">4.9<small>/5</small></div>
+            <div class="trust-lbl">Reseñas Google</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-portrait" role="img" aria-label="{{retrato_titular}}"></div>
+        <div class="hero-card-foot">
+          <div class="name serif">{{nombre_titular}}</div>
+          <div class="role">{{cargo}} · Colegiado nº {{nº_colegiado}}</div>
+          <div class="creds">
+            <span>{{titulación_1}}</span>
+            <span>{{titulación_2}}</span>
+            <span>{{especialidad}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ REVIEWS BAR ═══════════════════ -->
+<div class="reviews-bar">
+  <div class="container">
+    <div class="reviews-bar-inner">
+      <div class="rb-block">
+        <div class="rb-score serif">4,9<small>/ 5</small></div>
+        <div>
+          <div class="rb-stars">★★★★★</div>
+          <div class="rb-meta">
+            <strong>Excelente atención profesional</strong>
+            <span class="rb-google">Basado en {{nº_reseñas}} reseñas verificadas</span>
+          </div>
+        </div>
+      </div>
+      <div class="rb-block">
+        <span class="rule"></span>
+        <span class="eyebrow">Profesionales colegiados</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SERVICES ═══════════════════ -->
+<section id="servicios">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow"><span class="rule"></span>Servicios</span>
+        <h2 class="serif">Áreas de <em>especialización.</em></h2>
+      </div>
+      <p class="desc">Atendemos cada caso con la dedicación que merece. A continuación, las áreas en las que somos especialistas. Si su consulta no aparece en la lista, no dude en contactar — siempre podemos orientarle.</p>
+    </div>
+    <div class="services-grid">
+      <article class="svc">
+        <span class="svc-num">/ 01</span>
+        <h3 class="serif">{{servicio_1}}</h3>
+        <p class="svc-body">{{descripcion_servicio_1}} Primera consulta sin compromiso para evaluar su caso y proponerle un plan de actuación claro.</p>
+        <div class="svc-foot">
+          <div class="svc-price serif">{{precio_1}} €<small>/ sesión</small></div>
+          <a href="#cita" class="svc-link">Reservar →</a>
+        </div>
+      </article>
+      <article class="svc">
+        <span class="svc-num">/ 02</span>
+        <h3 class="serif">{{servicio_2}}</h3>
+        <p class="svc-body">{{descripcion_servicio_2}} Trabajamos con profesionales colegiados y con la actualización constante que exigen los nuevos protocolos.</p>
+        <div class="svc-foot">
+          <div class="svc-price consult serif">A consultar</div>
+          <a href="#cita" class="svc-link">Solicitar presupuesto →</a>
+        </div>
+      </article>
+      <article class="svc">
+        <span class="svc-num">/ 03</span>
+        <h3 class="serif">{{servicio_3}}</h3>
+        <p class="svc-body">{{descripcion_servicio_3}} Le acompañamos durante todo el proceso, con informes detallados y seguimiento periódico.</p>
+        <div class="svc-foot">
+          <div class="svc-price serif">{{precio_3}} €<small>/ desde</small></div>
+          <a href="#cita" class="svc-link">Más información →</a>
+        </div>
+      </article>
+      <article class="svc">
+        <span class="svc-num">/ 04</span>
+        <h3 class="serif">{{servicio_4}}</h3>
+        <p class="svc-body">{{descripcion_servicio_4}} Servicio integral con la documentación y los plazos legales gestionados desde el primer día.</p>
+        <div class="svc-foot">
+          <div class="svc-price consult serif">A consultar</div>
+          <a href="#cita" class="svc-link">Conocer detalles →</a>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ ABOUT / TRUST ═══════════════════ -->
+<section id="sobre-nosotros" class="trust-section">
+  <div class="container">
+    <div class="trust-grid">
+      <div class="trust-img">
+        <div class="trust-img-cap">
+          <p>«La rigurosidad y la atención personal son la base sobre la que construimos cada caso. Nada se delega, nada se improvisa.»</p>
+          <small>— {{nombre_titular}}, fundador/a</small>
+        </div>
+      </div>
+      <div class="trust-content">
+        <span class="eyebrow"><span class="rule"></span>Nuestra trayectoria</span>
+        <h2 class="serif">Más de <em>{{años}} años</em> al servicio de {{ciudad}}.</h2>
+        <p>Abrimos las puertas de {{nombre}} en {{año_fundacion}} con un objetivo sencillo: ofrecer un servicio profesional cercano, transparente en honorarios y técnicamente impecable. Hoy seguimos exactamente con la misma filosofía.</p>
+        <p>Cada caso lo lleva un profesional colegiado de principio a fin. No subcontratamos, no derivamos, no le pasamos de despacho en despacho. Usted siempre sabe quién está al otro lado del teléfono.</p>
+        <div class="credentials">
+          <div class="cred">
+            <div class="cred-name">Colegiado nº {{nº_colegiado}}<small>Ilustre Colegio de {{colegio}} de {{ciudad}}</small></div>
+            <div class="cred-year">desde {{año_colegiación}}</div>
+          </div>
+          <div class="cred">
+            <div class="cred-name">{{titulación_1}}<small>Universidad {{universidad_1}}</small></div>
+            <div class="cred-year">{{año_título_1}}</div>
+          </div>
+          <div class="cred">
+            <div class="cred-name">{{titulación_2}}<small>{{institución_2}}</small></div>
+            <div class="cred-year">{{año_título_2}}</div>
+          </div>
+          <div class="cred">
+            <div class="cred-name">Miembro de {{asociación}}<small>Asociación profesional reconocida</small></div>
+            <div class="cred-year">desde {{año_asociación}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="galeria" class="trust-gal-section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow"><span class="rule"></span>Instalaciones</span>
+        <h2 class="serif">Nuestras <em>instalaciones.</em></h2>
+      </div>
+      <p class="desc">Espacios pensados para la comodidad y la confidencialidad de cada consulta.</p>
+    </div>
+    <div class="trust-gal-grid">
+      <div><img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1200&q=70" alt="Sala de consulta"/></div>
+      <div><img src="https://images.unsplash.com/photo-1631217868264-e4b35d6a2f6b?auto=format&fit=crop&w=1200&q=70" alt="Recepción"/></div>
+      <div><img src="https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=1200&q=70" alt="Equipo médico"/></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ REVIEWS ═══════════════════ -->
+<section id="reseñas" class="reviews-bg">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow"><span class="rule"></span>Lo que dicen nuestros clientes</span>
+        <h2 class="serif">Reseñas <em>verificadas</em><br/>en Google.</h2>
+      </div>
+      <p class="desc">Cuatro de cada cinco clientes nos llegan recomendados por alguien que ya pasó por aquí. Estas son sus opiniones, sin filtros, tal como las dejaron en Google.</p>
+    </div>
+    <div class="reviews-list">
+      <article class="review">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-quote">{{reseña_1}} Después de años buscando un profesional con el que sentirme cómoda, por fin lo encontré. Trato cercano, honestidad en el presupuesto y resultados como prometió desde el primer día.</p>
+        <div class="review-foot">
+          <div class="review-av">{{inicial_reseña_1}}</div>
+          <div>
+            <div class="review-name">{{nombre_reseña_1}}</div>
+            <div class="review-meta">{{tiempo_reseña_1}}</div>
+          </div>
+        </div>
+      </article>
+      <article class="review">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-quote">{{reseña_2}} Vine recomendado por un amigo y ahora entiendo por qué. Te explican todo con claridad, sin tecnicismos innecesarios. Sin duda volveré y los recomendaré sin reservas.</p>
+        <div class="review-foot">
+          <div class="review-av">{{inicial_reseña_2}}</div>
+          <div>
+            <div class="review-name">{{nombre_reseña_2}}</div>
+            <div class="review-meta">{{tiempo_reseña_2}}</div>
+          </div>
+        </div>
+      </article>
+      <article class="review">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-quote">{{reseña_3}} Llevamos años confiando en ellos para todos los temas familiares. Profesionalidad, paciencia y resultados — todo lo que se puede pedir y más. Mil gracias por todo.</p>
+        <div class="review-foot">
+          <div class="review-av">{{inicial_reseña_3}}</div>
+          <div>
+            <div class="review-name">{{nombre_reseña_3}}</div>
+            <div class="review-meta">{{tiempo_reseña_3}}</div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ HOURS / LOCATION ═══════════════════ -->
+<section id="contacto">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow"><span class="rule"></span>Visítenos</span>
+        <h2 class="serif">Horario y <em>localización.</em></h2>
+      </div>
+      <p class="desc">Atendemos exclusivamente con cita previa. Si necesita una consulta urgente, llámenos directamente al teléfono — siempre haremos lo posible por encajarle el mismo día.</p>
+    </div>
+    <div class="info-grid">
+      <div class="info-card">
+        <span class="eyebrow"><span class="rule"></span>Horario de consulta</span>
+        <h3 class="serif">{{nombre}}</h3>
+        <div class="schedule" id="schedule">
+          <!-- JS will mark today -->
+          <div class="schedule-row" data-day="1"><span class="day">Lunes</span><span class="time">{{horario_lunes}}</span></div>
+          <div class="schedule-row" data-day="2"><span class="day">Martes</span><span class="time">{{horario_martes}}</span></div>
+          <div class="schedule-row" data-day="3"><span class="day">Miércoles</span><span class="time">{{horario_miercoles}}</span></div>
+          <div class="schedule-row" data-day="4"><span class="day">Jueves</span><span class="time">{{horario_jueves}}</span></div>
+          <div class="schedule-row" data-day="5"><span class="day">Viernes</span><span class="time">{{horario_viernes}}</span></div>
+          <div class="schedule-row" data-day="6"><span class="day">Sábado</span><span class="time closed">Solo urgencias</span></div>
+          <div class="schedule-row" data-day="0"><span class="day">Domingo</span><span class="time closed">Cerrado</span></div>
+        </div>
+      </div>
+      <div class="map">
+        <div class="map-bg"></div>
+        <div class="map-pin"><div class="body"></div></div>
+        <div class="map-overlay">
+          <h4 class="serif">{{nombre}}</h4>
+          <p>{{direccion}}<br/>{{cp}} {{ciudad}}</p>
+          <a href="https://maps.google.com/?q={{direccion_url}}" target="_blank">Abrir en Google Maps →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CTA STRIP ═══════════════════ -->
+<section id="cita" class="cta-strip">
+  <div class="container">
+    <div class="cta-inner">
+      <div>
+        <span class="eyebrow" style="color:#A8C9BC"><span class="rule" style="background:#A8C9BC"></span>Primera consulta</span>
+        <h2 class="serif">Pida cita ahora<br/>y le atenderemos <em>esta misma semana.</em></h2>
+        <p>Reserve su primera consulta sin compromiso. Le confirmamos disponibilidad en menos de 24 horas hábiles. Si lo prefiere, llámenos directamente al teléfono y le encajamos cuando mejor le venga.</p>
+      </div>
+      <div class="cta-actions">
+        <a href="#" class="btn-p">Reservar online →</a>
+        <a href="/cdn-cgi/l/email-protection#8ff4f4eae2eee6e3f2f2" class="btn-g">Escribirnos un correo</a>
+        <div class="cta-phone">
+          <span class="ico">☏</span>
+          <div>
+            Llamada directa
+            <strong>{{telefono}}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer>
+  <div class="container">
+    <div class="foot">
+      <div>
+        <div class="foot-brand">
+          <span class="brand-mark">{{inicial}}</span>
+          <span class="brand-name">
+            <strong>{{nombre}}</strong>
+            <small>{{categoria_profesional}}</small>
+          </span>
+        </div>
+        <p>{{descripcion_corta}} Despacho profesional con sede en {{ciudad}}. Colegiado y avalado por las principales asociaciones del sector.</p>
+      </div>
+      <div>
+        <h4>Despacho</h4>
+        <ul>
+          <li><a href="#servicios">Servicios</a></li>
+          <li><a href="#sobre-nosotros">El equipo</a></li>
+          <li><a href="#galeria">Galería</a></li>
+          <li><a href="#reseñas">Reseñas</a></li>
+          <li><a href="#cita">Pedir cita</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contacto</h4>
+        <ul>
+          <li><a href="tel:{{telefono}}">{{telefono}}</a></li>
+          <li><a href="/cdn-cgi/l/email-protection#8ef5f5ebe3efe7e2f3f3">{{email}}</a></li>
+          <li><a href="#">{{direccion_corta}}</a></li>
+          <li><a href="#">{{cp}} {{ciudad}}</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#">Aviso legal</a></li>
+          <li><a href="#">Política de privacidad</a></li>
+          <li><a href="#">Cookies</a></li>
+          <li><a href="#">Hoja de reclamaciones</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bot">
+      <span>© {{año_actual}} {{nombre}} · CIF {{cif}} · Colegiado nº {{nº_colegiado}}</span>
+      <span>Web creada con <a href="#" style="color:var(--accent);font-weight:500">LocalWeb</a></span>
+    </div>
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+(function(){
+  // Scroll shadow on nav
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>10),{passive:true});
+
+  // Burger
+  const burger = document.getElementById('burger');
+  const menu = document.getElementById('mobile-menu');
+  const scrim = document.getElementById('scrim');
+  function toggle(open){
+    burger.classList.toggle('open',open);
+    menu.classList.toggle('open',open);
+    scrim.style.display = open ? 'block' : 'none';
+    requestAnimationFrame(()=>scrim.classList.toggle('open',open));
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+  burger.addEventListener('click',()=>toggle(!menu.classList.contains('open')));
+  scrim.addEventListener('click',()=>toggle(false));
+  menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>toggle(false)));
+
+  // Today highlight
+  const today = new Date().getDay();
+  const row = document.querySelector(`.schedule-row[data-day="${today}"]`);
+  if(row) row.classList.add('today');
+})();
+</script>
+<div id="lw-gallery-lightbox" class="lw-gallery-lightbox" hidden aria-modal="true" role="dialog" aria-label="Imagen a tamaño completo">
+  <button type="button" class="lw-gallery-lightbox-backdrop" tabindex="-1" aria-label="Cerrar"></button>
+  <figure class="lw-gallery-lightbox-frame">
+    <button type="button" class="lw-gallery-lightbox-close" aria-label="Cerrar">×</button>
+    <img class="lw-gallery-lightbox-img" src="" alt="" decoding="async"/>
+  </figure>
+</div>
+<script>
+(function initLwGalleryLightbox(){
+  var lb=document.getElementById('lw-gallery-lightbox');
+  if(!lb)return;
+  var backdrop=lb.querySelector('.lw-gallery-lightbox-backdrop');
+  var closeBtn=lb.querySelector('.lw-gallery-lightbox-close');
+  var imgEl=lb.querySelector('.lw-gallery-lightbox-img');
+  var prevOverflow='';
+  function openLb(src,alt){
+    if(!src)return;
+    imgEl.src=src;
+    imgEl.alt=alt||'';
+    lb.hidden=false;
+    prevOverflow=document.body.style.overflow;
+    document.body.style.overflow='hidden';
+  }
+  function closeLb(){
+    lb.hidden=true;
+    imgEl.removeAttribute('src');
+    imgEl.alt='';
+    document.body.style.overflow=prevOverflow||'';
+  }
+  document.addEventListener('click',function(e){
+    var sec=document.getElementById('galeria');
+    if(!sec||!sec.contains(e.target))return;
+    if(e.target.closest('#lw-gallery-lightbox'))return;
+    var im=e.target.closest('img');
+    if(im&&sec.contains(im)){
+      e.preventDefault();
+      e.stopPropagation();
+      openLb(im.currentSrc||im.src,im.alt||'');
+      return;
+    }
+    var tile=e.target.closest('[data-lightbox-src]');
+    if(tile&&sec.contains(tile)){
+      var u=tile.getAttribute('data-lightbox-src');
+      if(u){ e.preventDefault(); openLb(u,''); }
+    }
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&!lb.hidden)closeLb();
+    if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.closest){
+      var t=e.target.closest('#galeria [data-lightbox-src]');
+      var g=document.getElementById('galeria');
+      if(t&&g&&g.contains(t)){
+        e.preventDefault();
+        var u=t.getAttribute('data-lightbox-src');
+        if(u)openLb(u,'');
+      }
+    }
+  });
+  if(backdrop)backdrop.addEventListener('click',closeLb);
+  if(closeBtn)closeBtn.addEventListener('click',closeLb);
+})();
+</script>
+
+</body>
+</html>

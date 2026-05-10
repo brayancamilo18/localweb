@@ -599,6 +599,15 @@
     canvas#particles{ display:none; }
     .scroll-cue::after{ animation:none; height:24px; }
   }
+  /* LW · lightbox galería */
+  #galeria img{cursor:zoom-in}
+  .lw-gallery-lightbox{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:max(12px,3vw);box-sizing:border-box}
+  .lw-gallery-lightbox[hidden]{display:none!important}
+  .lw-gallery-lightbox-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.9);border:0;cursor:pointer;padding:0}
+  .lw-gallery-lightbox-frame{position:relative;z-index:1;margin:0;max-width:min(96vw,1600px);max-height:92vh}
+  .lw-gallery-lightbox-img{display:block;max-width:min(96vw,1600px);max-height:92vh;width:auto;height:auto;object-fit:contain;box-shadow:0 24px 100px rgba(0,0,0,.75)}
+  .lw-gallery-lightbox-close{position:absolute;top:-8px;right:-8px;width:44px;height:44px;border:2px solid #fff;background:#0a0a0a;color:#fff;font-size:24px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0;font-family:system-ui,sans-serif}
+  @media (max-width:640px){ .lw-gallery-lightbox-close{top:8px;right:8px} }
 </style>
 </head>
 <body>
@@ -613,13 +622,15 @@
       <span id="navBrandName">{{nombre}}</span>
     </a>
     <div class="links" role="menu">
+      <!-- Orden = orden visual de las secciones del HTML (portada → sobre-nosotros
+           → galeria → servicios → opiniones → horario → contacto/footer). -->
       <a href="#portada">Portada</a>
       <a href="#sobre-nosotros">Sobre nosotros</a>
       <a href="#galeria">Galería</a>
+      <a href="#servicios" id="tplNavServicios" style="display:none;">Servicios</a>
       <a href="#opiniones" id="tplNavOpiniones" style="display:none;">Opiniones</a>
       <a href="#horario">Horario</a>
       <a href="#contacto">Contacto</a>
-      <a href="#servicios" id="tplNavServicios" style="display:none;">Servicios</a>
     </div>
     <a href="https://wa.me/{{telefono}}" class="btn outline sm desk-cta" data-cursor="lg" aria-label="WhatsApp" data-wa-link>
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.6-.8-1.9-.9-.3-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.2-.3.2-.5.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.5-1.7-1.6-2-.2-.3 0-.4.1-.6l.3-.4c.1-.2.2-.3.3-.5.1-.2 0-.3 0-.5-.1-.1-.6-1.5-.9-2-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.3-.8.8-.8 2 0 1.2.8 2.4 1 2.5.1.2 1.6 2.5 4 3.4.6.2 1 .4 1.4.5.6.2 1.1.2 1.5.1.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.2.2-1.3-.1-.1-.3-.2-.5-.2zM12 2C6.5 2 2 6.5 2 12c0 1.7.4 3.3 1.2 4.7L2 22l5.3-1.2c1.4.8 3 1.2 4.7 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18c-1.5 0-3-.4-4.3-1.2l-.3-.2-3.2.7.7-3.1-.2-.3C3.9 14.7 3.5 13.4 3.5 12 3.5 7.3 7.3 3.5 12 3.5S20.5 7.3 20.5 12 16.7 20 12 20z"/></svg>
@@ -631,13 +642,14 @@
 
 <div class="sheet" id="sheet">
   <ul>
+    <!-- Mismo orden que el navbar de escritorio (orden visual del HTML). -->
     <li><a href="#portada">Portada</a></li>
     <li><a href="#sobre-nosotros">Sobre nosotros</a></li>
     <li><a href="#galeria">Galería</a></li>
+    <li id="tplNavServiciosSheetLi" style="display:none;"><a href="#servicios">Servicios</a></li>
     <li id="tplNavOpinionesSheetLi" style="display:none;"><a href="#opiniones">Opiniones</a></li>
     <li><a href="#horario">Horario</a></li>
     <li><a href="#contacto">Contacto</a></li>
-    <li id="tplNavServiciosSheetLi" style="display:none;"><a href="#servicios">Servicios</a></li>
   </ul>
 </div>
 
@@ -647,7 +659,6 @@
   <canvas id="particles"></canvas>
   <div class="hero-inner" id="heroInner">
     <div class="h-line short"></div>
-    <span class="eyebrow reveal-up" style="margin-top:18px">Madrid · desde 2014</span>
     <h1 class="hero-title reveal-up delay-1" id="heroTitle">{{nombre}}</h1>
     <p class="hero-tagline reveal-up delay-2" id="heroTagline">
       {{tagline}}
@@ -1049,7 +1060,10 @@ function updatePreviewMapEmbed(lat, lon, addressLine) {
       noirPreviewMap = L.map(container, {
         zoomControl: true,
         attributionControl: false,
-        scrollWheelZoom: true,
+        /** Solo zoom desde los botones +/-: ver `urban-bold.html` para el detalle. */
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false,
       }).setView([lat, lon], NOIR_MAP_ZOOM);
       L.control.attribution({ prefix: false }).addTo(noirPreviewMap);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -1580,5 +1594,68 @@ setInterval(renderSchedule, 60_000);
   });
 })();
 </script>
+<div id="lw-gallery-lightbox" class="lw-gallery-lightbox" hidden aria-modal="true" role="dialog" aria-label="Imagen a tamaño completo">
+  <button type="button" class="lw-gallery-lightbox-backdrop" tabindex="-1" aria-label="Cerrar"></button>
+  <figure class="lw-gallery-lightbox-frame">
+    <button type="button" class="lw-gallery-lightbox-close" aria-label="Cerrar">×</button>
+    <img class="lw-gallery-lightbox-img" src="" alt="" decoding="async"/>
+  </figure>
+</div>
+<script>
+(function initLwGalleryLightbox(){
+  var lb=document.getElementById('lw-gallery-lightbox');
+  if(!lb)return;
+  var backdrop=lb.querySelector('.lw-gallery-lightbox-backdrop');
+  var closeBtn=lb.querySelector('.lw-gallery-lightbox-close');
+  var imgEl=lb.querySelector('.lw-gallery-lightbox-img');
+  var prevOverflow='';
+  function openLb(src,alt){
+    if(!src)return;
+    imgEl.src=src;
+    imgEl.alt=alt||'';
+    lb.hidden=false;
+    prevOverflow=document.body.style.overflow;
+    document.body.style.overflow='hidden';
+  }
+  function closeLb(){
+    lb.hidden=true;
+    imgEl.removeAttribute('src');
+    imgEl.alt='';
+    document.body.style.overflow=prevOverflow||'';
+  }
+  document.addEventListener('click',function(e){
+    var sec=document.getElementById('galeria');
+    if(!sec||!sec.contains(e.target))return;
+    if(e.target.closest('#lw-gallery-lightbox'))return;
+    var im=e.target.closest('img');
+    if(im&&sec.contains(im)){
+      e.preventDefault();
+      e.stopPropagation();
+      openLb(im.currentSrc||im.src,im.alt||'');
+      return;
+    }
+    var tile=e.target.closest('[data-lightbox-src]');
+    if(tile&&sec.contains(tile)){
+      var u=tile.getAttribute('data-lightbox-src');
+      if(u){ e.preventDefault(); openLb(u,''); }
+    }
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&!lb.hidden)closeLb();
+    if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.closest){
+      var t=e.target.closest('#galeria [data-lightbox-src]');
+      var g=document.getElementById('galeria');
+      if(t&&g&&g.contains(t)){
+        e.preventDefault();
+        var u=t.getAttribute('data-lightbox-src');
+        if(u)openLb(u,'');
+      }
+    }
+  });
+  if(backdrop)backdrop.addEventListener('click',closeLb);
+  if(closeBtn)closeBtn.addEventListener('click',closeLb);
+})();
+</script>
+
 </body>
 </html>

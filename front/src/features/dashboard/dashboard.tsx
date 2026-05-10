@@ -1,12 +1,25 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState, type ReactNode } from 'react'
 import { logout as logoutApi } from '../../api/auth'
-import { postCheckout } from '../../api/billing'
+import { getBillingStatus, postCheckout } from '../../api/billing'
 import type { Business } from '../../types/api'
 import { Icon, Btn, Card } from '../../components/primitives/primitives'
 import { useAuthStore } from '../../store/authStore'
 import './dashboard.css'
+
+/** «Renueva DD MMM» en español, abreviado, para el card del sidebar. */
+function formatRenewalShortEs(unixSeconds: number | null | undefined): string | null {
+  if (unixSeconds == null || !Number.isFinite(unixSeconds) || unixSeconds <= 0) {
+    return null
+  }
+  try {
+    const fmt = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short' })
+    return fmt.format(new Date(unixSeconds * 1000)).replace('.', '')
+  } catch {
+    return null
+  }
+}
 
 // LocalWeb — Dashboard (Free vs Pro)
 
@@ -37,16 +50,44 @@ function DashSidebar({
       navigate('/dashboard/billing')
     },
   })
+  /** Fecha real de próxima renovación. Solo se pide cuando el usuario es Pro;
+   * antes el sidebar mostraba «Renueva 12 nov» hardcodeado, lo que en planes
+   * mensuales (Stripe nos da el `current_period_end` real) era incoherente. */
+  const billingQ = useQuery({
+    queryKey: ['billing', 'status'],
+    queryFn: getBillingStatus,
+    enabled: pro,
+    staleTime: 60_000,
+  })
+  const renewalLabel = formatRenewalShortEs(billingQ.data?.renewal_date)
 
-  async function handleLogout() {
-    try {
-      await logoutApi()
-    } catch {
-      /* invalidar sesión local aunque falle la API */
-    }
-    clearAuth()
-    qc.clear()
-    navigate('/login', { replace: true })
+  /** Logout robusto: antes era una `async function` sin loading state ni
+   * deshabilitado, así que el usuario clicaba varias veces (cada click disparaba
+   * un POST `/auth/logout` distinto) y además `qc.clear()` se llamaba **después**
+   * de `clearAuth`, dejando viva la query `auth.me` cuyo `useEffect` re-llamaba
+   * `setAuth()` con la `query.data` aún en memoria → `GuestRoute` rebote a
+   * `/dashboard`. Ahora: `useMutation` desactiva el botón con `isPending`,
+   * cancelamos peticiones en vuelo, removemos el cache y limpiamos auth antes
+   * de navegar a `/login`. */
+  const logoutM = useMutation({
+    mutationFn: async () => {
+      try {
+        await logoutApi()
+      } catch {
+        /* el backend ya pudo invalidar la cookie; seguimos con el logout local */
+      }
+    },
+    onSettled: async () => {
+      await qc.cancelQueries()
+      qc.removeQueries()
+      clearAuth()
+      navigate('/login', { replace: true })
+    },
+  })
+
+  function handleLogoutClick() {
+    if (logoutM.isPending) return
+    logoutM.mutate()
   }
 
   const items = [
@@ -123,7 +164,9 @@ function DashSidebar({
           <Icon name="sparkle" size={14} color="var(--lw-pro)"/>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: "#78350F" }}>Plan Pro</div>
-            <div style={{ fontSize: 11, color: "#92400E" }}>Renueva 12 nov</div>
+            <div style={{ fontSize: 11, color: "#92400E" }}>
+              {renewalLabel ? `Renueva ${renewalLabel}` : 'Plan activo'}
+            </div>
           </div>
         </div>
       ) : (
@@ -146,7 +189,16 @@ function DashSidebar({
         </Card>
       )}
       <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--lw-border)' }}>
-        <Btn type="button" kind="ghost" size="sm" fullWidth icon="logOut" onClick={() => void handleLogout()}>
+        <Btn
+          type="button"
+          kind="ghost"
+          size="sm"
+          fullWidth
+          icon="logOut"
+          loading={logoutM.isPending}
+          disabled={logoutM.isPending}
+          onClick={handleLogoutClick}
+        >
           Cerrar sesión
         </Btn>
       </div>

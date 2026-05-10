@@ -100,12 +100,29 @@ class StepController extends BaseApiController
     {
         $request->validate([
             'cover' => ['required', 'image', 'max:10240', 'mimes:jpg,jpeg,png,webp'],
+            'logo' => ['nullable', 'image', 'max:2048', 'mimes:jpg,jpeg,png,webp'],
+            'remove_logo' => ['sometimes', 'boolean'],
         ]);
 
         $userId = $request->user()->id;
+        $draft = Cache::get($this->cacheKey($userId), []);
+
+        if ($request->boolean('remove_logo')) {
+            if (! empty($draft['logo_path']) && is_string($draft['logo_path'])) {
+                Storage::disk('local')->delete($draft['logo_path']);
+            }
+            unset($draft['logo_path']);
+        }
+
+        if ($request->hasFile('logo')) {
+            if (! empty($draft['logo_path']) && is_string($draft['logo_path'])) {
+                Storage::disk('local')->delete($draft['logo_path']);
+            }
+            $draft['logo_path'] = $request->file('logo')->store("onboarding/{$userId}/logo", 'local');
+        }
+
         $path = $request->file('cover')->store("onboarding/{$userId}/cover", 'local');
 
-        $draft = Cache::get($this->cacheKey($userId), []);
         $draft['cover_path'] = $path;
         $draft['step'] = 2;
         Cache::put($this->cacheKey($userId), $draft, now()->addHours(4));
@@ -272,6 +289,12 @@ class StepController extends BaseApiController
             'tagline' => $draft['tagline'] ?? null,
             'description' => $draft['description'] ?? null,
             'phone' => $draft['phone'] ?? null,
+            /** Email público de contacto del negocio (columna propia en
+             * `businesses`, ver migración add_email_to_businesses_table).
+             * Es independiente del email de login del owner: el dueño puede
+             * mostrar `info@…` o `reservas@…` aunque inicie sesión con su
+             * correo personal. Se recoge en step 6 y se persiste aquí. */
+            'email' => isset($draft['email']) ? trim((string) $draft['email']) : null,
             'address' => $draft['address'] ?? null,
             'lat' => $draft['lat'] ?? null,
             'lng' => $draft['lng'] ?? null,

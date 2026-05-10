@@ -60,7 +60,7 @@ export default function PublicPage() {
 
   const slug = (business.template?.slug ?? 'soft').toLowerCase()
 
-  if (slug === 'noir-elite' || slug === 'bloom-studio') {
+  if (slug === 'noir-elite' || slug === 'bloom-studio' || slug === 'urban-bold') {
     return <PublicHtmlTemplateFrame templateSlug={slug} business={business} />
   }
   if (slug === 'aurora') {

@@ -13,7 +13,7 @@ class DevelopmentSeeder extends Seeder
 {
     public function run(): void
     {
-        $template = Template::query()->where('slug', 'noir-elite')->firstOrFail();
+        $template = Template::query()->where('slug', 'urban-bold')->firstOrFail();
 
         $business = Business::updateOrCreate(
             ['subdomain' => 'demo'],

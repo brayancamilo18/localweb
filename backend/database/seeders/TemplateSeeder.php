@@ -10,12 +10,17 @@ class TemplateSeeder extends Seeder
 {
     public function run(): void
     {
-        $keepSlugs = ['noir-elite', 'bloom-studio'];
-
+        /*
+         * Catálogo visible para onboarding / selector de plantilla.
+         *
+         * Por ahora sólo expone **Urban Bold** (`--lime` #D4FF3A); el resto se irá
+         * activando añadiendo entradas aquí cuando cada plantilla esté lista.
+         */
         $templates = [
-            ['name' => 'Noir Elite', 'slug' => 'noir-elite', 'primary_color' => '#C9A84C', 'requires_pro' => false],
-            ['name' => 'Bloom Studio', 'slug' => 'bloom-studio', 'primary_color' => '#E8572A', 'requires_pro' => false],
+            ['name' => 'Urban Bold', 'slug' => 'urban-bold', 'primary_color' => '#D4FF3A', 'requires_pro' => false],
         ];
+
+        $keepSlugs = array_column($templates, 'slug');
 
         foreach ($templates as $template) {
             Template::updateOrCreate(
@@ -24,6 +29,13 @@ class TemplateSeeder extends Seeder
             );
         }
 
+        /*
+         * Limpieza de plantillas obsoletas: cualquier registro cuyo slug ya no figura
+         * en la lista de arriba se considera retirado. Antes de borrarlo desvinculamos
+         * cualquier negocio que lo estuviera usando para evitar romper la FK; el
+         * negocio queda con `template_id = null` y el flujo de dashboard/admin permite
+         * reasignarlo manualmente.
+         */
         $idsToRemove = Template::query()
             ->whereNotIn('slug', $keepSlugs)
             ->pluck('id');

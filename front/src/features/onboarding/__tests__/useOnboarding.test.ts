@@ -50,6 +50,20 @@ function wrapper({ children }: { children: ReactNode }) {
   )
 }
 
+function makeBillingSuccessWrapper() {
+  return function BillingSuccessWrapper({ children }: { children: ReactNode }) {
+    return createElement(
+      QueryClientProvider,
+      { client: queryClient },
+      createElement(
+        MemoryRouter,
+        { initialEntries: ['/onboarding?billing=success&session_id=cs_test'] },
+        children,
+      ),
+    )
+  }
+}
+
 describe('useOnboarding', () => {
   beforeEach(() => {
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -100,6 +114,34 @@ describe('useOnboarding', () => {
 
     expect(result.current.currentStep).toBe(1)
     expect(result.current.errors.message).toBe('Template inválido')
+  })
+
+  it('billing=success en URL → aterriza en step 4 (galería) aunque getStatus devuelva step 8', async () => {
+    /** Reproduce el bug post-Stripe: el backend reporta step=8 (negocio Pro creado pero
+     * onboarding sin finalizar) y el primer useEffect resolvía 8 sobrescribiendo el
+     * setCurrentStep(4) del efecto de billing=success. El usuario aterrizaba en Publicar. */
+    vi.mocked(onboardingApi.getStatus).mockResolvedValue({
+      is_complete: false,
+      step: 8,
+      draft: {
+        template_id: 1,
+        cover_path: 'x',
+        business_name: 'Test',
+        gallery_paths: ['g1'],
+        schedule: {},
+        address: 'a',
+        phone: 'p',
+      },
+    })
+
+    const { result } = renderHook(() => useOnboarding(), {
+      wrapper: makeBillingSuccessWrapper(),
+    })
+
+    await waitFor(() => expect(result.current.isPendingStatus).toBe(false))
+    await waitFor(() => expect(result.current.currentStep).toBe(4))
+    expect(result.current.postCheckoutProGallery).toBe(true)
+    expect(result.current.proExtrasSource).toBe('gallery')
   })
 
   it('goPrev desde step 3 → currentStep es 2, no llama ningún endpoint', async () => {

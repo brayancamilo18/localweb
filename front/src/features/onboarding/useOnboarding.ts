@@ -83,8 +83,18 @@ export function useOnboarding(): UseOnboardingResult {
 
   useEffect(() => {
     let mounted = true
+    /** Post-Stripe: el efecto de `billing=success` decide el paso (galería).
+     * El status del backend devuelve step=8 una vez creado el negocio Pro,
+     * y eso pisaría el `setCurrentStep(4)` del otro efecto. Aquí nos limitamos
+     * a leer el draft sin tocar `currentStep`. La detección se hace por URL
+     * sync, NO por `searchParams.get` (que se vacía con `setSearchParams({})`
+     * tras procesar el éxito y haría que la re-ejecución del efecto resolviera
+     * step=8 al cambiar `persistUserId`). */
+    const isBillingSuccess =
+      typeof window !== 'undefined' &&
+      new URLSearchParams(window.location.search).get('billing') === 'success'
     setIsPendingStatus(true)
-    setCurrentStep(1)
+    if (!isBillingSuccess) setCurrentStep(1)
     setServerDraft(undefined)
     getStatus()
       .then((status) => {
@@ -96,6 +106,10 @@ export function useOnboarding(): UseOnboardingResult {
         }
         const draft = (status.draft as Record<string, unknown> | undefined) ?? {}
         setServerDraft(draft)
+        if (isBillingSuccess || billingSuccessHandled.current) {
+          /** El efecto de `billing=success` controla el paso (galería). */
+          return
+        }
         const resolved = resolveOnboardingUiStep(draft)
         const serverStep = typeof status.step === 'number' ? status.step : 1
         const fromServer = Math.min(9, Math.max(resolved, serverStep))
@@ -187,13 +201,26 @@ export function useOnboarding(): UseOnboardingResult {
             })
             break
           }
-          case 2:
-            if (!(data instanceof File)) {
+          case 2: {
+            const raw = data
+            let cover: File | undefined
+            let logo: File | undefined
+            let removeLogo = false
+            if (raw instanceof File) {
+              cover = raw
+            } else if (raw && typeof raw === 'object' && raw !== null && 'cover' in raw) {
+              const d = raw as { cover?: File; logo?: File; removeLogo?: boolean }
+              cover = d.cover
+              logo = d.logo
+              removeLogo = Boolean(d.removeLogo)
+            }
+            if (!(cover instanceof File)) {
               setErrors({ cover: 'Selecciona una foto de portada' })
               return
             }
-            await step2(data)
+            await step2({ cover, logo, removeLogo })
             break
+          }
           case 3: {
             const d = data as { business_name?: string; tagline?: string; description?: string; about_photo?: File }
             if (!d?.business_name?.trim()) {

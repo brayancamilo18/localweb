@@ -41,6 +41,7 @@ import {
   WizardLayout,
   WizardNavContext,
   resolveStep1PreviewVariant,
+  STEP1_PREVIEW_VARIANTS,
   type Step1PreviewVariant,
   type TemplatePreviewData,
 } from './wizard'
@@ -86,9 +87,11 @@ export default function OnboardingPage() {
   /** Modo append: solo estas se envían en step4. */
   const [newGalleryFiles, setNewGalleryFiles] = useState<File[]>([])
   const [schedulePreview, setSchedulePreview] = useState<Schedule>(DEFAULT_SCHEDULE)
-  const [step1PreviewVariant, setStep1PreviewVariant] = useState<Step1PreviewVariant>('noir-elite')
+  const [step1PreviewVariant, setStep1PreviewVariant] = useState<Step1PreviewVariant>('urban-bold')
   const [step1LogoPreviewUrl, setStep1LogoPreviewUrl] = useState<string | undefined>(undefined)
   const [step1LogoScale, setStep1LogoScale] = useState(1)
+  const [step1LogoFile, setStep1LogoFile] = useState<File | null>(null)
+  const [step1PendingRemoveLogo, setStep1PendingRemoveLogo] = useState(false)
   const [coverFile, setCoverFile] = useState<File | null>(null)
   const [previewName, setPreviewName] = useState('')
   const [previewTagline, setPreviewTagline] = useState('')
@@ -316,9 +319,11 @@ export default function OnboardingPage() {
     setGalleryPreviewUrls([])
     setGalleryPhotoFiles([])
     setSchedulePreview(DEFAULT_SCHEDULE)
-    setStep1PreviewVariant('noir-elite')
+    setStep1PreviewVariant('urban-bold')
     setStep1LogoPreviewUrl(undefined)
     setStep1LogoScale(1)
+    setStep1LogoFile(null)
+    setStep1PendingRemoveLogo(false)
     setCoverFile(null)
     setAboutTeamFile(null)
     setPreviewName('')
@@ -378,8 +383,11 @@ export default function OnboardingPage() {
     setPreviewAddress(String(p?.previewAddress ?? d.address ?? signupAddress ?? ''))
     setPreviewEmail(String(p?.previewEmail ?? d.email ?? ''))
 
-    if (p?.step1PreviewVariant === 'noir-elite' || p?.step1PreviewVariant === 'bloom-studio') {
-      setStep1PreviewVariant(p.step1PreviewVariant)
+    if (
+      typeof p?.step1PreviewVariant === 'string' &&
+      (STEP1_PREVIEW_VARIANTS as string[]).includes(p.step1PreviewVariant)
+    ) {
+      setStep1PreviewVariant(p.step1PreviewVariant as Step1PreviewVariant)
     }
 
     if (
@@ -657,10 +665,13 @@ export default function OnboardingPage() {
   )
 
   const previewTitle = useMemo(() => {
-    const match = templates.find((t, i) => resolveStep1PreviewVariant(t, i) === step1PreviewVariant)
+    const match = templates.find((t) => resolveStep1PreviewVariant(t) === step1PreviewVariant)
     const name = match?.name?.trim()
     if (name) return name
-    return step1PreviewVariant === 'bloom-studio' ? 'Bloom Studio' : 'Noir Elite'
+    return step1PreviewVariant
+      .split('-')
+      .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+      .join(' ')
   }, [templates, step1PreviewVariant])
 
   const previewFocusDescription = useMemo(() => {
@@ -731,10 +742,8 @@ export default function OnboardingPage() {
             {...common}
             templates={templates}
             onTemplatePreviewChange={setStep1PreviewVariant}
-            serverLogoPreviewUrl={step1LogoPreviewUrl}
-            onStep1LogoPreviewChange={setStep1LogoPreviewUrl}
-            logoScale={step1LogoScale}
-            onLogoScaleChange={setStep1LogoScale}
+            logoFile={step1LogoFile}
+            pendingRemoveLogo={step1PendingRemoveLogo}
           />
         )
       case 2:
@@ -746,6 +755,14 @@ export default function OnboardingPage() {
             initialTagline={previewTagline}
             onCoverChange={setCoverFile}
             onBusinessMetaChange={handleBusinessMetaChange}
+            logoPreviewUrl={step1LogoPreviewUrl}
+            onLogoPreviewUrlChange={setStep1LogoPreviewUrl}
+            logoScale={step1LogoScale}
+            onLogoScaleChange={setStep1LogoScale}
+            logoFile={step1LogoFile}
+            onLogoFileChange={setStep1LogoFile}
+            pendingRemoveLogo={step1PendingRemoveLogo}
+            onPendingRemoveLogoChange={setStep1PendingRemoveLogo}
           />
         )
       case 3:
@@ -845,6 +862,8 @@ export default function OnboardingPage() {
     proOffersServices,
     proSetupPhase,
     resetProExtrasFlow,
+    step1LogoFile,
+    step1PendingRemoveLogo,
     step1LogoPreviewUrl,
     step1LogoScale,
   ])

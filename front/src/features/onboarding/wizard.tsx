@@ -47,7 +47,30 @@ export type { WizardStepProps } from './wizardNavContext'
 const ACCENT = "var(--lw-accent)";
 const BORDER = "var(--lw-border)";
 
-type Step1PreviewVariant = 'noir-elite' | 'bloom-studio'
+export type Step1PreviewVariant =
+  | 'noir-elite'
+  | 'bloom-studio'
+  | 'urban-bold'
+  | 'coastal-calm'
+  | 'craft-pro'
+  | 'tavola-warm'
+  | 'tech-sleek'
+  | 'trust-clinic'
+
+export const STEP1_PREVIEW_VARIANTS: Step1PreviewVariant[] = [
+  'noir-elite',
+  'bloom-studio',
+  'urban-bold',
+  'coastal-calm',
+  'craft-pro',
+  'tavola-warm',
+  'tech-sleek',
+  'trust-clinic',
+]
+
+function isStep1PreviewVariant(value: unknown): value is Step1PreviewVariant {
+  return typeof value === 'string' && (STEP1_PREVIEW_VARIANTS as string[]).includes(value)
+}
 type TemplatePreviewData = {
   /** Data URL o URL absoluta del logo (solo navbar). */
   logoUrl?: string
@@ -145,6 +168,12 @@ async function filesToDataUrls(files: File[]): Promise<string[]> {
 const TEMPLATE_URL_BY_VARIANT: Record<Step1PreviewVariant, string> = {
   'noir-elite': '/templates/noir-elite.html',
   'bloom-studio': '/templates/bloom-studio.html',
+  'urban-bold': '/templates/urban-bold.html',
+  'coastal-calm': '/templates/coastal-calm.html',
+  'craft-pro': '/templates/craft-pro.html',
+  'tavola-warm': '/templates/tavola-warm.html',
+  'tech-sleek': '/templates/tech-sleek.html',
+  'trust-clinic': '/templates/trust-clinic.html',
 }
 
 /** Texto de ejemplo para miniaturas y vista previa del paso 1 (sin portada, galería ni foto «Sobre nosotros»). */
@@ -163,22 +192,91 @@ const STEP1_TEMPLATE_PREVIEW_DEMO_BY_VARIANT: Record<Step1PreviewVariant, Templa
       'Equipo especializado en coloración, tratamientos de recuperación y cortes a medida en un salón tranquilo y luminoso.',
     phone: '+34 913 00 44 55',
   },
+  'urban-bold': {
+    businessName: 'Studio Barber',
+    tagline: 'Cortes precisos y barba a navaja con cita previa',
+    description:
+      'Barbería urbana: fades, degradados y perfilado de barba en un espacio directo y sin rodeos.',
+    phone: '+34 914 00 55 66',
+  },
+  'coastal-calm': {
+    businessName: 'Hotel Marea',
+    tagline: 'Hotel boutique frente al mar',
+    description:
+      'Habitaciones con vistas, desayuno casero y una experiencia tranquila a pocos metros de la playa.',
+    phone: '+34 968 00 22 33',
+  },
+  'craft-pro': {
+    businessName: 'Construcciones Lanza',
+    tagline: 'Reformas integrales y oficios profesionales',
+    description:
+      'Equipo certificado para reformas, fontanería y electricidad. Presupuesto sin compromiso y plazos claros.',
+    phone: '+34 911 22 33 44',
+  },
+  'tavola-warm': {
+    businessName: 'Tavola Roma',
+    tagline: 'Cocina italiana, vinos y barra de autor',
+    description:
+      'Pasta fresca, vinos por copa y un menú de mediodía pensado para disfrutar sin prisa en pleno barrio.',
+    phone: '+34 915 34 21 09',
+  },
+  'tech-sleek': {
+    businessName: 'Atlas Studio',
+    tagline: 'Estudio digital · diseño y producto',
+    description:
+      'Diseñamos productos digitales y branding para startups y equipos que quieren lanzarse rápido y bien.',
+    phone: '+34 600 12 34 56',
+  },
+  'trust-clinic': {
+    businessName: 'Clínica Vega',
+    tagline: 'Fisioterapia y rehabilitación de confianza',
+    description:
+      'Profesionales colegiados, sesiones personalizadas y seguimiento continuo para volver a moverte sin dolor.',
+    phone: '+34 912 99 88 77',
+  },
+}
+
+/** URL ficticia en la barra del navegador simulado del preview (solo cosmética). */
+function previewDemoHostForVariant(variant: Step1PreviewVariant): string {
+  switch (variant) {
+    case 'noir-elite':
+      return 'casa-lumen.localweb.es'
+    case 'bloom-studio':
+      return 'salon-margarita.localweb.es'
+    case 'urban-bold':
+      return 'studio-barber.localweb.es'
+    case 'coastal-calm':
+      return 'hotel-marea.localweb.es'
+    case 'craft-pro':
+      return 'construcciones-lanza.localweb.es'
+    case 'tavola-warm':
+      return 'tavola-roma.localweb.es'
+    case 'tech-sleek':
+      return 'atlas-studio.localweb.es'
+    case 'trust-clinic':
+      return 'clinica-vega.localweb.es'
+    default:
+      return 'studio-barber.localweb.es'
+  }
 }
 
 /** Iframe “thumb” del paso plantilla: documento renderizado a esta resolución y escalado al ancho real de la tarjeta. */
 const TEMPLATE_THUMB_DOC_W = 1280
 const TEMPLATE_THUMB_DOC_H = 760
 
-function resolveStep1PreviewVariant(template: Pick<Template, 'slug' | 'name'>, index = 0): Step1PreviewVariant {
-  const slug = template.slug.toLowerCase()
+function resolveStep1PreviewVariant(template: Pick<Template, 'slug' | 'name'>): Step1PreviewVariant {
+  const slug = template.slug.toLowerCase().trim()
+  if (isStep1PreviewVariant(slug)) return slug
   const name = template.name.toLowerCase()
-  if (slug.includes('noir') || name.includes('noir') || slug.includes('soft')) {
-    return 'noir-elite'
-  }
-  if (slug.includes('bloom') || name.includes('bloom') || slug.includes('aurora')) {
-    return 'bloom-studio'
-  }
-  return index % 2 === 0 ? 'noir-elite' : 'bloom-studio'
+  if (slug.includes('coastal') || name.includes('coastal') || slug.includes('hotel')) return 'coastal-calm'
+  if (slug.includes('craft') || name.includes('craft') || slug.includes('oficio')) return 'craft-pro'
+  if (slug.includes('tavola') || name.includes('tavola') || slug.includes('restaur')) return 'tavola-warm'
+  if (slug.includes('tech') || name.includes('tech') || slug.includes('digital')) return 'tech-sleek'
+  if (slug.includes('trust') || name.includes('trust') || slug.includes('clinic')) return 'trust-clinic'
+  if (slug.includes('urban') || slug.includes('bold') || name.includes('urban')) return 'urban-bold'
+  if (slug.includes('noir') || name.includes('noir') || slug.includes('soft')) return 'noir-elite'
+  if (slug.includes('bloom') || name.includes('bloom') || slug.includes('aurora')) return 'bloom-studio'
+  return 'urban-bold'
 }
 
 function TemplateIframe({
@@ -551,7 +649,13 @@ export function WizardLayout({
       <div className="lw-wizard-split">
         {/* form */}
         <div className="lw-wizard-form lw-scroll">{children}</div>
-        {/* preview */}
+        {/*
+          Paso 1 («biblioteca de plantillas»): no montamos el rail de preview.
+          Cada tarjeta abre su propio modal a pantalla completa con el botón «Ver»,
+          así evitamos el coste de un iframe extra y dejamos al usuario ver mejor
+          la galería. El form ocupa el 100 % gracias a `.lw-wizard-layout--step1`.
+        */}
+        {step !== 1 ? (
         <div className="lw-wizard-preview">
           {mobilePreviewCta ? (
             <div className="lw-wizard-mobile-preview-cta">
@@ -603,6 +707,7 @@ export function WizardLayout({
             </>
           )}
         </div>
+        ) : null}
       </div>
       {/* footer */}
       <div className="lw-wizard-footer">
@@ -681,12 +786,18 @@ export function WizardLayout({
   );
 }
 
+/** Coincide con `TemplateSeeder`: si la API falla, mostramos al menos Urban Bold. */
 const FALLBACK_TEMPLATES: Template[] = [
-  { id: 1, name: 'Noir Elite', slug: 'noir-elite', primary_color: '#C9A84C', requires_pro: false },
-  { id: 2, name: 'Bloom Studio', slug: 'bloom-studio', primary_color: '#E8572A', requires_pro: false },
+  { id: 1, name: 'Urban Bold', slug: 'urban-bold', primary_color: '#D4FF3A', requires_pro: false },
 ]
 
 // ─── Step 1 · Plantilla ──────────────────────────────────────
+/**
+ * Tope visual de tarjetas por página en el selector de plantilla. El usuario navega
+ * entre páginas con los puntos inferiores; mantenemos el mismo patrón que el selector
+ * de sectores en `RegisterPage` para coherencia (dots + slide horizontal de 220 ms).
+ */
+const TEMPLATES_PAGE_SIZE = 8
 const LOGO_SCALE_MIN = 0.55
 const LOGO_SCALE_MAX = 1.35
 
@@ -695,92 +806,32 @@ function clampStep1LogoScale(n: number): number {
   return Math.min(LOGO_SCALE_MAX, Math.max(LOGO_SCALE_MIN, n))
 }
 
-function Step1Plantilla({
+function Step1Logo({
   errors,
   isLoading: busy,
-  templates = [],
-  onTemplatePreviewChange,
-  serverLogoPreviewUrl,
-  onStep1LogoPreviewChange,
+  variant = 'intro',
+  previewUrl,
+  onPreviewUrlChange,
   logoScale,
   onLogoScaleChange,
+  onLogoFileChange,
+  onPendingRemoveLogoChange,
 }: WizardStepProps & {
-  templates?: Template[]
-  onTemplatePreviewChange?: (variant: Step1PreviewVariant) => void
-  /** Preview del logo (data URL o URL https; nunca blob: — el iframe no puede cargarlos). */
-  serverLogoPreviewUrl?: string
-  onStep1LogoPreviewChange?: (previewUrl: string | undefined) => void
+  /** `embedded`: sin título de paso (p. ej. dentro de Portada). */
+  variant?: 'intro' | 'embedded'
+  previewUrl?: string
+  onPreviewUrlChange?: (url: string | undefined) => void
   logoScale?: number
   onLogoScaleChange?: (scale: number) => void
+  onLogoFileChange?: (file: File | null) => void
+  onPendingRemoveLogoChange?: (v: boolean) => void
 }) {
-  const nav = useContext(WizardNavContext)
   const logoInputRef = useRef<HTMLInputElement>(null)
-  const [logoFile, setLogoFile] = useState<File | null>(null)
-  /** Data URL para preview local + iframe (los blob: no son válidos en otro documento). */
-  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null)
-  const [pendingRemoveLogo, setPendingRemoveLogo] = useState(false)
-  const list = useMemo(
-    () => (templates.length > 0 ? templates : FALLBACK_TEMPLATES).slice(0, 2),
-    [templates],
-  )
-  const [selectedId, setSelectedId] = useState<number | null>(list[0]?.id ?? null)
-  const signupSector = useMemo(() => {
-    try {
-      const raw = sessionStorage.getItem('lw_signup_prefill')
-      if (!raw?.trim()) return 'otros'
-      const parsed = JSON.parse(raw) as { sector?: unknown }
-      const s = parsed?.sector
-      if (typeof s === 'string' && s.trim()) return s.trim()
-      return 'otros'
-    } catch {
-      return 'otros'
-    }
-  }, [])
-  const [fullscreen, setFullscreen] = useState<{ variant: Step1PreviewVariant; label: string } | null>(null)
   const resolvedLogoScale = clampStep1LogoScale(logoScale ?? 1)
   const [logoNatural, setLogoNatural] = useState<{ w: number; h: number } | null>(null)
 
-  // Keep selection in sync when API data replaces cache/fallback (IDs in DB may not match stale template_id).
   useEffect(() => {
-    if (list.length === 0) return
-    setSelectedId((prev) =>
-      prev != null && list.some((t) => t.id === prev) ? prev : list[0]!.id,
-    )
-  }, [list])
-
-  useEffect(() => {
-    if (!fullscreen) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setFullscreen(null)
-    }
-    window.addEventListener('keydown', onKey)
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      window.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prev
-    }
-  }, [fullscreen])
-
-  useLayoutEffect(() => {
-    nav?.registerContinueHandler?.(() => ({
-      template_id: selectedId ?? list[0]?.id ?? 1,
-      sector: signupSector,
-      logo: logoFile ?? undefined,
-      removeLogo: pendingRemoveLogo && !logoFile,
-    }))
-    return () => nav?.registerContinueHandler?.(null)
-  }, [nav, selectedId, signupSector, list, logoFile, pendingRemoveLogo])
-
-  useEffect(() => {
-    const selected = list.find((t) => t.id === selectedId) ?? list[0]
-    if (!selected) return
-    const idx = Math.max(0, list.findIndex((t) => t.id === selected.id))
-    onTemplatePreviewChange?.(resolveStep1PreviewVariant(selected, idx))
-  }, [list, selectedId, onTemplatePreviewChange])
-
-  useEffect(() => {
-    const src = logoDataUrl ?? serverLogoPreviewUrl
+    const src = previewUrl
     if (!src?.trim()) {
       setLogoNatural(null)
       return
@@ -793,7 +844,7 @@ function Step1Plantilla({
       })
     img.onerror = () => setLogoNatural(null)
     img.src = src
-  }, [logoDataUrl, serverLogoPreviewUrl])
+  }, [previewUrl])
 
   const logoUpscaleHint =
     logoNatural &&
@@ -802,14 +853,24 @@ function Step1Plantilla({
       ? 'Al aumentar el tamaño, una imagen de pocos píxeles puede verse menos nítida. Para máxima calidad usa PNG/WebP de al menos ~240–400 px en el lado mayor.'
       : null
 
+  const hasLogoPreview = Boolean(previewUrl?.trim())
+
   return (
     <>
-      <div>
-        <h1 className="lw-h2">Elige tu plantilla</h1>
-        <p className="lw-body" style={{ marginTop: 6, maxWidth: 540 }}>
-          Empieza con un diseño hecho para tu sector. Podrás cambiarlo en cualquier momento, sin perder lo que ya hayas escrito.
-        </p>
-      </div>
+      {variant === 'intro' ? (
+        <div>
+          <h1 className="lw-h2">Tu logo</h1>
+          <p className="lw-body" style={{ marginTop: 6, maxWidth: 540 }}>
+            Opcional: súbelo ahora o más adelante. Aparecerá en la barra superior de tu web publicada.
+          </p>
+        </div>
+      ) : (
+        <div style={{ marginTop: 8 }}>
+          <p className="lw-body" style={{ margin: 0, maxWidth: 540, color: 'var(--lw-text-3)', fontSize: 14, lineHeight: 1.45 }}>
+            Logo opcional en la barra superior. Si no lo subiste al elegir plantilla, puedes hacerlo aquí.
+          </p>
+        </div>
+      )}
       <Field
         label="Logo del negocio (opcional)"
         hint="Se muestra en la barra superior. Recomendado ≥240 px en el lado mayor para buena nitidez. JPG, PNG o WebP (máx. 2 MB)."
@@ -833,9 +894,9 @@ function Step1Plantilla({
               padding: 8,
             }}
           >
-            {logoDataUrl || serverLogoPreviewUrl ? (
+            {hasLogoPreview ? (
               <img
-                src={logoDataUrl ?? serverLogoPreviewUrl ?? ''}
+                src={previewUrl ?? ''}
                 alt=""
                 style={{
                   width: '100%',
@@ -859,15 +920,14 @@ function Step1Plantilla({
                 if (!f) {
                   return
                 }
-                setPendingRemoveLogo(false)
-                setLogoFile(f)
+                onPendingRemoveLogoChange?.(false)
+                onLogoFileChange?.(f)
                 onLogoScaleChange?.(1)
                 const reader = new FileReader()
                 reader.onload = () => {
                   const r = reader.result
                   if (typeof r !== 'string') return
-                  setLogoDataUrl(r)
-                  onStep1LogoPreviewChange?.(r)
+                  onPreviewUrlChange?.(r)
                 }
                 reader.readAsDataURL(f)
               }}
@@ -875,18 +935,17 @@ function Step1Plantilla({
             <Btn type="button" size="sm" kind="outline" disabled={busy} onClick={() => logoInputRef.current?.click()}>
               Subir logo
             </Btn>
-            {logoDataUrl || serverLogoPreviewUrl ? (
+            {hasLogoPreview ? (
               <Btn
                 type="button"
                 size="sm"
                 kind="ghost"
                 disabled={busy}
                 onClick={() => {
-                  setLogoFile(null)
-                  setLogoDataUrl(null)
-                  setPendingRemoveLogo(true)
+                  onLogoFileChange?.(null)
+                  onPendingRemoveLogoChange?.(true)
                   if (logoInputRef.current) logoInputRef.current.value = ''
-                  onStep1LogoPreviewChange?.(undefined)
+                  onPreviewUrlChange?.(undefined)
                   onLogoScaleChange?.(1)
                 }}
               >
@@ -895,7 +954,7 @@ function Step1Plantilla({
             ) : null}
           </div>
         </div>
-        {logoDataUrl || serverLogoPreviewUrl ? (
+        {hasLogoPreview ? (
           <div style={{ marginTop: 14, maxWidth: 420 }}>
             <div
               className="lw-small"
@@ -937,17 +996,174 @@ function Step1Plantilla({
           </div>
         ) : null}
       </Field>
-      <div
-        className="lw-step1-template-grid"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 220px), 1fr))',
-          gap: 16,
-        }}
-      >
-        {list.map((t, idx) => {
+      {variant === 'intro' && errors?.message ? (
+        <div className="lw-small" style={{ color: 'var(--lw-danger)' }}>
+          {errors.message}
+        </div>
+      ) : null}
+    </>
+  )
+}
+
+function Step1Plantilla({
+  errors,
+  isLoading: busy,
+  templates = [],
+  onTemplatePreviewChange,
+  logoFile,
+  pendingRemoveLogo,
+}: WizardStepProps & {
+  templates?: Template[]
+  onTemplatePreviewChange?: (variant: Step1PreviewVariant) => void
+  /** Estado del logo elevado al padre (logo antes que plantilla). */
+  logoFile?: File | null
+  pendingRemoveLogo?: boolean
+}) {
+  const nav = useContext(WizardNavContext)
+  const list = useMemo(() => (templates.length > 0 ? templates : FALLBACK_TEMPLATES), [templates])
+  const [selectedId, setSelectedId] = useState<number | null>(list[0]?.id ?? null)
+  /*
+   * Paginación visual del grid (no toca la lista canónica de plantillas).
+   *  - `templatePage`  : página actual, 0-indexada.
+   *  - `animKey` + `animDir`: replicamos el truco de RegisterPage — al cambiar de página
+   *    bumpamos `animKey` para forzar un remount del contenedor interior y disparamos
+   *    el keyframe que toque (entra desde la derecha o desde la izquierda).
+   *  - `animKey > 0` : evitamos animar la primera renderización (sería un slide-in
+   *    espurio al hidratar el wizard).
+   */
+  const [templatePage, setTemplatePage] = useState(0)
+  const [animKey, setAnimKey] = useState(0)
+  const [animDir, setAnimDir] = useState<1 | -1>(1)
+  const pageCount = Math.max(1, Math.ceil(list.length / TEMPLATES_PAGE_SIZE))
+  const visibleList = useMemo(
+    () =>
+      list.slice(
+        templatePage * TEMPLATES_PAGE_SIZE,
+        templatePage * TEMPLATES_PAGE_SIZE + TEMPLATES_PAGE_SIZE,
+      ),
+    [list, templatePage],
+  )
+  const signupSector = useMemo(() => {
+    try {
+      const raw = sessionStorage.getItem('lw_signup_prefill')
+      if (!raw?.trim()) return 'otros'
+      const parsed = JSON.parse(raw) as { sector?: unknown }
+      const s = parsed?.sector
+      if (typeof s === 'string' && s.trim()) return s.trim()
+      return 'otros'
+    } catch {
+      return 'otros'
+    }
+  }, [])
+  const [fullscreen, setFullscreen] = useState<{ variant: Step1PreviewVariant; label: string } | null>(null)
+
+  // Keep selection in sync when API data replaces cache/fallback (IDs in DB may not match stale template_id).
+  useEffect(() => {
+    if (list.length === 0) return
+    setSelectedId((prev) =>
+      prev != null && list.some((t) => t.id === prev) ? prev : list[0]!.id,
+    )
+  }, [list])
+
+  /*
+   * Si el negocio ya tenía una plantilla elegida en otra página (p. ej. el server
+   * devuelve un `template_id` que cae en la página 2) saltamos a esa página sin
+   * animación al montar; cualquier cambio posterior por dot click sí anima.
+   */
+  useEffect(() => {
+    if (selectedId == null) return
+    const idx = list.findIndex((t) => t.id === selectedId)
+    if (idx < 0) return
+    const targetPage = Math.floor(idx / TEMPLATES_PAGE_SIZE)
+    setTemplatePage((prev) => (prev === targetPage ? prev : targetPage))
+  }, [selectedId, list])
+
+  /*
+   * Si la lista se acorta (p. ej. el admin retira una plantilla mientras estoy en
+   * la última página) recortamos `templatePage` para no quedarnos en una página vacía.
+   */
+  useEffect(() => {
+    if (templatePage > 0 && templatePage >= pageCount) {
+      setTemplatePage(pageCount - 1)
+    }
+  }, [pageCount, templatePage])
+
+  useEffect(() => {
+    if (!fullscreen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setFullscreen(null)
+    }
+    window.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prev
+    }
+  }, [fullscreen])
+
+  useLayoutEffect(() => {
+    nav?.registerContinueHandler?.(() => ({
+      template_id: selectedId ?? list[0]?.id ?? 1,
+      sector: signupSector,
+      logo: logoFile ?? undefined,
+      removeLogo: Boolean(pendingRemoveLogo && !logoFile),
+    }))
+    return () => nav?.registerContinueHandler?.(null)
+  }, [nav, selectedId, signupSector, list, logoFile, pendingRemoveLogo])
+
+  useEffect(() => {
+    const selected = list.find((t) => t.id === selectedId) ?? list[0]
+    if (!selected) return
+    onTemplatePreviewChange?.(resolveStep1PreviewVariant(selected))
+  }, [list, selectedId, onTemplatePreviewChange])
+
+  return (
+    <>
+      <div>
+        <h1 className="lw-h2">Elige tu plantilla</h1>
+        <p className="lw-body" style={{ marginTop: 6, maxWidth: 540 }}>
+          Empieza con un diseño hecho para tu sector. Podrás cambiarlo en cualquier momento, sin perder lo que ya hayas escrito.
+        </p>
+      </div>
+      <style>
+        {`
+@keyframes lw-tpl-slide-in-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes lw-tpl-slide-in-left {
+  from { transform: translateX(-100%); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Respeta el OS: cambio instantáneo de página, sin slide. */
+  .lw-step1-template-grid-anim { animation: none !important; }
+}
+`}
+      </style>
+      {/*
+        El grid real va dentro de un wrapper con `overflow:hidden` para que el slide
+        horizontal no provoque scroll lateral en el panel del wizard. Cambiar `key`
+        del hijo fuerza un remount y reinicia el keyframe sin necesidad de Web Animations.
+      */}
+      <div style={{ overflow: 'hidden' }}>
+        <div
+          key={animKey}
+          className={`lw-step1-template-grid${animKey > 0 ? ' lw-step1-template-grid-anim' : ''}`}
+          style={{
+            ...(animKey > 0
+              ? {
+                  animation: `${
+                    animDir === 1 ? 'lw-tpl-slide-in-right' : 'lw-tpl-slide-in-left'
+                  } 220ms ease-out`,
+                }
+              : {}),
+          }}
+        >
+        {visibleList.map((t) => {
           const isSel = t.id === selectedId
-          const variant = resolveStep1PreviewVariant(t, idx)
+          const variant = resolveStep1PreviewVariant(t)
           return (
             <Card
               key={t.id}
@@ -1037,7 +1253,53 @@ function Step1Plantilla({
             </Card>
           )
         })}
+        </div>
       </div>
+      {pageCount > 1 ? (
+        <div
+          role="tablist"
+          aria-label="Páginas de plantillas"
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 8,
+            marginTop: 4,
+          }}
+        >
+          {Array.from({ length: pageCount }).map((_, pi) => {
+            const active = pi === templatePage
+            return (
+              <button
+                key={pi}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                aria-label={`Ir a la página ${pi + 1} de ${pageCount}`}
+                onClick={() => {
+                  if (pi === templatePage) return
+                  /* `animDir` decide si el grid entra desde la derecha (avance) o
+                     desde la izquierda (retroceso); el remount via `animKey` lo
+                     dispara en el siguiente render. */
+                  setAnimDir(pi > templatePage ? 1 : -1)
+                  setAnimKey((k) => k + 1)
+                  setTemplatePage(pi)
+                }}
+                style={{
+                  padding: 0,
+                  border: 'none',
+                  cursor: 'pointer',
+                  height: 8,
+                  borderRadius: 999,
+                  background: active ? 'var(--lw-accent)' : 'var(--lw-border-2)',
+                  width: active ? 22 : 8,
+                  transition: 'width .25s ease, background .25s ease',
+                }}
+              />
+            )
+          })}
+        </div>
+      ) : null}
       {errors?.template_id ? (
         <div className="lw-small" style={{ color: 'var(--lw-danger)' }}>
           {errors.template_id}
@@ -1129,7 +1391,7 @@ function PreviewBrowser({
 }
 
 function TplPreview({
-  variant = 'noir-elite',
+  variant = 'urban-bold',
   previewData,
 }: {
   variant?: Step1PreviewVariant
@@ -1140,7 +1402,7 @@ function TplPreview({
     [variant, previewData],
   )
   return (
-    <PreviewBrowser url={variant === 'noir-elite' ? 'casa-lumen.localweb.es' : 'salon-margarita.localweb.es'}>
+    <PreviewBrowser url={previewDemoHostForVariant(variant)}>
       <TemplateIframe variant={variant} mode="full" embed previewData={mergedPreview} />
     </PreviewBrowser>
   )
@@ -1161,12 +1423,28 @@ function Step2Portada({
   onBusinessMetaChange,
   initialBusinessName = '',
   initialTagline = '',
+  logoPreviewUrl,
+  onLogoPreviewUrlChange,
+  logoScale,
+  onLogoScaleChange,
+  logoFile,
+  onLogoFileChange,
+  pendingRemoveLogo,
+  onPendingRemoveLogoChange,
 }: WizardStepProps & {
   currentCoverFile?: File | null
   onCoverChange?: (file: File | null) => void
   onBusinessMetaChange?: (payload: { businessName?: string; tagline?: string }) => void
   initialBusinessName?: string
   initialTagline?: string
+  logoPreviewUrl?: string
+  onLogoPreviewUrlChange?: (url: string | undefined) => void
+  logoScale?: number
+  onLogoScaleChange?: (scale: number) => void
+  logoFile?: File | null
+  onLogoFileChange?: (file: File | null) => void
+  pendingRemoveLogo?: boolean
+  onPendingRemoveLogoChange?: (v: boolean) => void
 }) {
   const nav = useContext(WizardNavContext)
   const coverRef = useRef<HTMLInputElement>(null)
@@ -1176,9 +1454,13 @@ function Step2Portada({
   const [coverThumbUrl, setCoverThumbUrl] = useState<string | null>(null)
 
   useLayoutEffect(() => {
-    nav?.registerContinueHandler?.(() => file as File)
+    nav?.registerContinueHandler?.(() => ({
+      cover: file as File,
+      logo: logoFile ?? undefined,
+      removeLogo: Boolean(pendingRemoveLogo && !logoFile),
+    }))
     return () => nav?.registerContinueHandler?.(null)
-  }, [nav, file])
+  }, [nav, file, logoFile, pendingRemoveLogo])
 
   useEffect(() => {
     onBusinessMetaChange?.({
@@ -1222,6 +1504,17 @@ function Step2Portada({
           placeholder="Cortes con criterio en el corazón de Lavapiés"
         />
       </Field>
+      <Step1Logo
+        variant="embedded"
+        errors={errors}
+        isLoading={busy}
+        previewUrl={logoPreviewUrl}
+        onPreviewUrlChange={onLogoPreviewUrlChange}
+        logoScale={logoScale}
+        onLogoScaleChange={onLogoScaleChange}
+        onLogoFileChange={onLogoFileChange}
+        onPendingRemoveLogoChange={onPendingRemoveLogoChange}
+      />
       <input
         ref={coverRef}
         type="file"
@@ -1301,28 +1594,29 @@ function Step2Portada({
   )
 }
 function PortadaPreview({
-  variant = 'noir-elite',
+  variant = 'urban-bold',
   previewData,
 }: {
   variant?: Step1PreviewVariant
   previewData?: TemplatePreviewData
 }) {
   return (
-    <PreviewBrowser url={variant === 'noir-elite' ? 'casa-lumen.localweb.es' : 'salon-margarita.localweb.es'}>
+    <PreviewBrowser url={previewDemoHostForVariant(variant)}>
       <TemplateIframe variant={variant} mode="full" embed previewData={previewData} />
     </PreviewBrowser>
   )
 }
 
 function SobrePreview({
-  variant = 'noir-elite',
+  variant = 'urban-bold',
   previewData,
 }: {
   variant?: Step1PreviewVariant
   previewData?: TemplatePreviewData
 }) {
+  /** Vista previa del paso 3: el iframe carga `#sobre-nosotros`; cada plantilla debe exponer ese id. */
   return (
-    <PreviewBrowser url={variant === 'noir-elite' ? 'casa-lumen.localweb.es' : 'salon-margarita.localweb.es'}>
+    <PreviewBrowser url={previewDemoHostForVariant(variant)}>
       <TemplateIframe
         variant={variant}
         mode="full"
@@ -1864,28 +2158,28 @@ function Step4Galeria({
   )
 }
 function GaleriaPreview({
-  variant = 'noir-elite',
+  variant = 'urban-bold',
   previewData,
 }: {
   variant?: Step1PreviewVariant
   previewData?: TemplatePreviewData
 }) {
   return (
-    <PreviewBrowser url={variant === 'noir-elite' ? 'casa-lumen.localweb.es' : 'salon-margarita.localweb.es'}>
+    <PreviewBrowser url={previewDemoHostForVariant(variant)}>
       <TemplateIframe variant={variant} mode="full" embed previewData={previewData} initialHash="#galeria" />
     </PreviewBrowser>
   )
 }
 
 function ServiciosPreview({
-  variant = 'noir-elite',
+  variant = 'urban-bold',
   previewData,
 }: {
   variant?: Step1PreviewVariant
   previewData?: TemplatePreviewData
 }) {
   return (
-    <PreviewBrowser url={variant === 'noir-elite' ? 'casa-lumen.localweb.es' : 'salon-margarita.localweb.es'}>
+    <PreviewBrowser url={previewDemoHostForVariant(variant)}>
       <TemplateIframe variant={variant} mode="full" embed previewData={previewData} initialHash="#servicios" />
     </PreviewBrowser>
   )
@@ -2099,14 +2393,14 @@ function Step5Horarios({
   )
 }
 function HorariosPreview({
-  variant = 'noir-elite',
+  variant = 'urban-bold',
   previewData,
 }: {
   variant?: Step1PreviewVariant
   previewData?: TemplatePreviewData
 }) {
   return (
-    <PreviewBrowser url={variant === 'noir-elite' ? 'casa-lumen.localweb.es' : 'salon-margarita.localweb.es'}>
+    <PreviewBrowser url={previewDemoHostForVariant(variant)}>
       <TemplateIframe variant={variant} mode="full" embed previewData={previewData} initialHash="#horario" />
     </PreviewBrowser>
   )
@@ -2359,13 +2653,13 @@ function UbicacionPreview({
 }
 
 function PlanPreview({
-  variant = 'noir-elite',
+  variant = 'urban-bold',
   previewData,
 }: {
   variant?: Step1PreviewVariant
   previewData?: TemplatePreviewData
 }) {
-  const previewUrl = variant === 'noir-elite' ? 'casa-lumen.localweb.es' : 'salon-margarita.localweb.es'
+  const previewUrl = previewDemoHostForVariant(variant)
 
   return (
     <PreviewBrowser url={previewUrl}>
@@ -2486,6 +2780,7 @@ function PublicarPreview() {
 }
 
 export {
+  Step1Logo,
   Step1Plantilla,
   Step2Portada,
   Step3Sobre,

@@ -34,12 +34,22 @@ export async function step1(data: {
 }
 
 export async function step2(
-  file: File,
+  data: {
+    cover: File
+    logo?: File | null
+    removeLogo?: boolean
+  },
   onProgress?: (pct: number) => void,
 ): Promise<StepResponse & { preview_url: string }> {
-  const ready = await compressImageForUpload(file, { maxSide: 2560, quality: 0.88 })
+  const readyCover = await compressImageForUpload(data.cover, { maxSide: 2560, quality: 0.88 })
   const formData = new FormData()
-  formData.append('cover', ready)
+  formData.append('cover', readyCover)
+  if (data.removeLogo) {
+    formData.append('remove_logo', '1')
+  }
+  if (data.logo) {
+    formData.append('logo', await compressImageForUpload(data.logo, { maxSide: 1600, quality: 0.88 }))
+  }
   const response = await apiClient.post<ApiResponse<StepResponse & { preview_url: string }>>('/onboarding/step/2', formData, {
     onUploadProgress(progressEvent) {
       if (!onProgress || !progressEvent.total) return

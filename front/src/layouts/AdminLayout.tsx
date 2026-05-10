@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { logout as logoutApi } from '../api/auth'
 import { Btn, Icon } from '../components/primitives/primitives'
@@ -19,15 +19,29 @@ function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const qc = useQueryClient()
   const clearAuth = useAuthStore((s) => s.clearAuth)
 
-  async function handleLogout() {
-    try {
-      await logoutApi()
-    } catch {
-      /* invalidar sesión local */
-    }
-    clearAuth()
-    qc.clear()
-    navigate('/login', { replace: true })
+  /** Mismo bug del sidebar de cliente: el botón no estaba deshabilitado
+   * mientras la petición a `/auth/logout` estaba en vuelo y `qc.clear()`
+   * disparaba refetches que reactivaban la sesión vía `useAuth`.
+   * Ver `dashboard.tsx` para la explicación completa. */
+  const logoutM = useMutation({
+    mutationFn: async () => {
+      try {
+        await logoutApi()
+      } catch {
+        /* el backend ya pudo invalidar la cookie; seguimos con el logout local */
+      }
+    },
+    onSettled: async () => {
+      await qc.cancelQueries()
+      qc.removeQueries()
+      clearAuth()
+      navigate('/login', { replace: true })
+    },
+  })
+
+  function handleLogoutClick() {
+    if (logoutM.isPending) return
+    logoutM.mutate()
   }
 
   return (
@@ -93,7 +107,16 @@ function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
         >
           Panel cliente
         </Btn>
-        <Btn type="button" kind="ghost" size="sm" fullWidth icon="logOut" onClick={() => void handleLogout()}>
+        <Btn
+          type="button"
+          kind="ghost"
+          size="sm"
+          fullWidth
+          icon="logOut"
+          loading={logoutM.isPending}
+          disabled={logoutM.isPending}
+          onClick={handleLogoutClick}
+        >
           Cerrar sesión
         </Btn>
       </div>

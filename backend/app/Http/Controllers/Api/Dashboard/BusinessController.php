@@ -57,6 +57,10 @@ class BusinessController extends BaseApiController
             'tagline' => ['nullable', 'string', 'max:120'],
             'description' => ['nullable', 'string', 'max:500'],
             'phone' => ['nullable', 'string', 'max:30'],
+            /** Email público de contacto, independiente del email de login del
+             * owner: el dueño puede mostrar `info@…` en su web aunque inicie
+             * sesión con su correo personal. */
+            'email' => ['nullable', 'email', 'max:191'],
             'address' => ['nullable', 'string'],
             'template_id' => ['nullable', 'integer'],
             'schedule' => ['nullable', 'array'],

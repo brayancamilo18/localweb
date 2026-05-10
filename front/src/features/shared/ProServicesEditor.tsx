@@ -188,6 +188,8 @@ export default function ProServicesEditor({
 
   const nameError = useMemo(() => fieldErrors.name ?? '', [fieldErrors])
 
+  const planMax = isPro ? PRO_MAX : FREE_MAX
+
   return (
     <>
       <div
@@ -197,6 +199,7 @@ export default function ProServicesEditor({
           justifyContent: 'space-between',
           marginBottom: onboarding ? 16 : 20,
           gap: 16,
+          flexWrap: 'wrap',
         }}
       >
         {title ? (
@@ -213,19 +216,71 @@ export default function ProServicesEditor({
         ) : (
           <span />
         )}
-        {!proAtLimit ? (
-          <Btn
-            type="button"
-            kind="primary"
-            icon="plus"
-            size={onboarding ? 'sm' : 'md'}
-            disabled={freeAtLimit || servicesQuery.isLoading}
-            onClick={() => (formMode === 'create' ? cancelForm() : openCreate())}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <span
+            className="lw-small"
+            style={{
+              fontVariantNumeric: 'tabular-nums',
+              color: atLimit ? 'var(--lw-text)' : 'var(--lw-text-2)',
+              fontWeight: 600,
+            }}
+            aria-live="polite"
           >
-            {formMode === 'create' ? (onboarding ? 'Cerrar' : 'Cerrar formulario') : 'Añadir servicio'}
-          </Btn>
-        ) : null}
+            {services.length} <span style={{ fontWeight: 500 }}>de {planMax} servicios</span>
+          </span>
+          {!proAtLimit ? (
+            <Btn
+              type="button"
+              kind="primary"
+              icon="plus"
+              size={onboarding ? 'sm' : 'md'}
+              disabled={freeAtLimit || servicesQuery.isLoading}
+              onClick={() => (formMode === 'create' ? cancelForm() : openCreate())}
+            >
+              {formMode === 'create' ? (onboarding ? 'Cerrar' : 'Cerrar formulario') : 'Añadir servicio'}
+            </Btn>
+          ) : null}
+        </div>
       </div>
+
+      {onboarding && isPro ? (
+        <Card
+          padding={14}
+          style={{
+            marginBottom: 16,
+            border: '1px solid var(--lw-border)',
+            background: 'var(--lw-bg-elev)',
+            display: 'flex',
+            gap: 12,
+            alignItems: 'flex-start',
+          }}
+        >
+          <Icon name="info" size={18} color="var(--lw-accent)" style={{ marginTop: 2 }} />
+          <div style={{ flex: 1, fontSize: 13, color: 'var(--lw-text-2)', lineHeight: 1.5 }}>
+            Con tu plan <strong>Pro</strong> puedes publicar hasta <strong>{PRO_MAX} servicios</strong>. Añade los que quieras
+            ahora; siempre podrás editarlos desde el dashboard.
+          </div>
+        </Card>
+      ) : null}
+
+      {onboarding && proAtLimit ? (
+        <Card
+          padding={14}
+          style={{
+            marginBottom: 16,
+            border: '1px solid var(--lw-border)',
+            background: 'var(--lw-bg-elev)',
+            display: 'flex',
+            gap: 12,
+            alignItems: 'center',
+          }}
+        >
+          <Icon name="info" size={18} color="var(--lw-accent)" />
+          <div style={{ flex: 1, fontSize: 13, color: 'var(--lw-text-2)', lineHeight: 1.5 }}>
+            Has alcanzado el límite de <strong>{PRO_MAX} servicios</strong> del plan Pro.
+          </div>
+        </Card>
+      ) : null}
 
       {!onboarding && !isPro ? (
         <Card

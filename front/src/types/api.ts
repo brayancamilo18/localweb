@@ -87,6 +87,7 @@ export interface AdminBusinessDetail {
   description: string | null
   tagline: string | null
   phone: string | null
+  email: string | null
   address: string | null
   lat: number | null
   lng: number | null
@@ -231,6 +232,8 @@ export interface Business {
   tagline: string | null
   description: string | null
   phone: string | null
+  /** Email público de contacto (independiente del email de login del owner). */
+  email: string | null
   address: string | null
   lat: number | null
   lng: number | null
