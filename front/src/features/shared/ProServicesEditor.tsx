@@ -318,7 +318,7 @@ export default function ProServicesEditor({
           <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#78350F' }}>
             Función exclusiva del plan Pro — has alcanzado el máximo de servicios en Gratis.
           </div>
-          <Link to="/dashboard/billing" style={{ textDecoration: 'none' }}>
+          <Link to="/dashboard/account?tab=plan" style={{ textDecoration: 'none' }}>
             <Btn type="button" kind="outline" size="sm">
               Ver planes
             </Btn>

@@ -35,6 +35,12 @@ class StepController extends BaseApiController
         if (! empty($draft['cover_path'])) {
             $imageService->uploadImage(Storage::disk('local')->path($draft['cover_path']), $business, ImageSection::Cover, 0);
         }
+        if (! empty($draft['cover_path_2'])) {
+            $imageService->uploadImage(Storage::disk('local')->path($draft['cover_path_2']), $business, ImageSection::Cover, 1);
+        }
+        if (! empty($draft['cover_path_3'])) {
+            $imageService->uploadImage(Storage::disk('local')->path($draft['cover_path_3']), $business, ImageSection::Cover, 2);
+        }
         if (! empty($draft['about_photo_path'])) {
             $imageService->uploadImage(Storage::disk('local')->path($draft['about_photo_path']), $business, ImageSection::About, 0);
         }
@@ -100,6 +106,8 @@ class StepController extends BaseApiController
     {
         $request->validate([
             'cover' => ['required', 'image', 'max:10240', 'mimes:jpg,jpeg,png,webp'],
+            'cover2' => ['nullable', 'image', 'max:10240', 'mimes:jpg,jpeg,png,webp'],
+            'cover3' => ['nullable', 'image', 'max:10240', 'mimes:jpg,jpeg,png,webp'],
             'logo' => ['nullable', 'image', 'max:2048', 'mimes:jpg,jpeg,png,webp'],
             'remove_logo' => ['sometimes', 'boolean'],
         ]);
@@ -121,13 +129,24 @@ class StepController extends BaseApiController
             $draft['logo_path'] = $request->file('logo')->store("onboarding/{$userId}/logo", 'local');
         }
 
-        $path = $request->file('cover')->store("onboarding/{$userId}/cover", 'local');
+        $draft['cover_path'] = $request->file('cover')->store("onboarding/{$userId}/cover", 'local');
 
-        $draft['cover_path'] = $path;
+        if ($request->hasFile('cover2')) {
+            $draft['cover_path_2'] = $request->file('cover2')->store("onboarding/{$userId}/cover", 'local');
+        } else {
+            unset($draft['cover_path_2']);
+        }
+
+        if ($request->hasFile('cover3')) {
+            $draft['cover_path_3'] = $request->file('cover3')->store("onboarding/{$userId}/cover", 'local');
+        } else {
+            unset($draft['cover_path_3']);
+        }
+
         $draft['step'] = 2;
         Cache::put($this->cacheKey($userId), $draft, now()->addHours(4));
 
-        return $this->success(['ok' => true, 'preview_url' => $path, 'next_step' => 3]);
+        return $this->success(['ok' => true, 'preview_url' => $draft['cover_path'], 'next_step' => 3]);
     }
 
     public function step3(Request $request)

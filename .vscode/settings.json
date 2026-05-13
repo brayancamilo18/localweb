@@ -1,0 +1,13 @@
+{
+  "files.associations": {
+    "*.blade.php": "blade"
+  },
+  "css.validate": true,
+  "[blade]": {
+    "css.validate": false
+  },
+  "css.lint.validProperties": [],
+  "emmet.includeLanguages": {
+    "blade": "html"
+  }
+}

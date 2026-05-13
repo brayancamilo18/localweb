@@ -36,7 +36,7 @@ import {
 } from '../public-page/publicTemplatePayload'
 import { WizardNavContext, type WizardStepProps } from './wizardNavContext'
 
-// LocalWeb — Onboarding wizard (8 pasos)
+// ONEZ — Onboarding wizard (8 pasos)
 // Each step is a self-contained component returning a desktop split (form + preview).
 // Mobile variants exposed separately.
 
@@ -80,6 +80,8 @@ type TemplatePreviewData = {
   tagline?: string
   phone?: string
   coverUrl?: string
+  coverUrl2?: string
+  coverUrl3?: string
   /** Texto “Sobre nosotros” / descripción del negocio */
   description?: string
   /** Imagen sección equipo (data URL) */
@@ -359,6 +361,8 @@ function TemplateIframe({
             tagline: previewData.tagline ?? '',
             telefono: previewData.phone ?? '',
             portada: previewData.coverUrl ?? '',
+            portada_2: previewData.coverUrl2 ?? '',
+            portada_3: previewData.coverUrl3 ?? '',
             descripcion: previewData.description ?? '',
             foto_equipo: previewData.aboutPhotoUrl ?? '',
             direccion: previewData.address ?? '',
@@ -474,7 +478,7 @@ function WizardHeader({ step }: { step: number }) {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-        <Logo size={20}/>
+        <Logo size={140}/>
         <span style={{ fontSize: 12, color: "var(--lw-text-3)", fontWeight: 500 }}>
           {isExtras ? (
             <>Paso extra · <span style={{ color: "var(--lw-text)" }}>Configura tu Pro</span></>
@@ -498,13 +502,14 @@ function WizardHeader({ step }: { step: number }) {
             active: { bg: "var(--lw-text)",         color: "#fff",                   border: "transparent" },
             todo:   { bg: "transparent",            color: "var(--lw-text-4)",       border: "var(--lw-border)" },
           }[state];
-          const clickable = typeof jump === "function";
+          const locked = step === 8;
+          const clickable = typeof jump === "function" && !locked;
           return (
             <span
               key={s}
               role={clickable ? "button" : undefined}
               tabIndex={clickable ? 0 : undefined}
-              title={clickable ? `Ir al paso ${n}: ${s}` : undefined}
+              title={locked ? 'Tu página ya está creada. Edita desde el dashboard.' : (clickable ? `Ir al paso ${n}: ${s}` : undefined)}
               onClick={clickable ? () => jump(n) : undefined}
               onKeyDown={clickable ? (e) => {
                 if (e.key === "Enter" || e.key === " ") {
@@ -521,8 +526,9 @@ function WizardHeader({ step }: { step: number }) {
               background: styles.bg, color: styles.color,
               border: `1px solid ${styles.border}`,
               display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5,
-              cursor: clickable ? "pointer" : "default",
+              cursor: clickable ? "pointer" : (locked ? "not-allowed" : "default"),
               userSelect: "none",
+              opacity: locked && state !== "active" ? 0.55 : 1,
             }}>
               {state === "done" ? <Icon name="check" size={11}/> : <span style={{ opacity: state === "todo" ? .6 : 1, fontVariantNumeric: "tabular-nums" }}>{n}</span>}
               {s}
@@ -788,7 +794,7 @@ export function WizardLayout({
 
 /** Coincide con `TemplateSeeder`: si la API falla, mostramos al menos Urban Bold. */
 const FALLBACK_TEMPLATES: Template[] = [
-  { id: 1, name: 'Urban Bold', slug: 'urban-bold', primary_color: '#D4FF3A', requires_pro: false },
+  { id: 1, name: 'Urban Bold', slug: 'urban-bold', primary_color: '#D4FF3A', requires_pro: false, hero_photo_slots: 1 },
 ]
 
 // ─── Step 1 · Plantilla ──────────────────────────────────────
@@ -1186,7 +1192,15 @@ function Step1Plantilla({
                     size="sm"
                     style={
                       t.requires_pro
-                        ? undefined
+                        ? {
+                            background:
+                              'linear-gradient(135deg, #78350f 0%, #92400e 22%, #b45309 48%, #d97706 72%, #f59e0b 100%)',
+                            color: '#fefce8',
+                            border: '1px solid rgba(253, 224, 71, 0.55)',
+                            boxShadow: '0 1px 3px rgba(120, 53, 15, 0.4)',
+                            fontWeight: 700,
+                            letterSpacing: '0.06em',
+                          }
                         : {
                             background:
                               'linear-gradient(135deg, #065f46 0%, #047857 28%, #059669 55%, #10b981 82%, #34d399 100%)',
@@ -1408,6 +1422,112 @@ function TplPreview({
   )
 }
 
+function CoverDropzone({
+  file: externalFile = null,
+  busy,
+  onFileChange,
+  placeholder = 'Pulsa para elegir foto de portada',
+}: {
+  file?: File | null
+  busy: boolean
+  onFileChange: (file: File | null) => void
+  placeholder?: string
+}) {
+  const ref = useRef<HTMLInputElement>(null)
+  const [localFile, setLocalFile] = useState<File | null>(externalFile)
+  const [thumbUrl, setThumbUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    setLocalFile(externalFile)
+  }, [externalFile])
+
+  useEffect(() => {
+    if (!localFile) { setThumbUrl(null); return }
+    const u = URL.createObjectURL(localFile)
+    setThumbUrl(u)
+    return () => URL.revokeObjectURL(u)
+  }, [localFile])
+
+  const handlePick = useCallback((f: File | null) => {
+    setLocalFile(f)
+    onFileChange(f)
+  }, [onFileChange])
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => !busy && ref.current?.click()}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          ref.current?.click()
+        }
+      }}
+      style={{
+        border: '1.5px dashed var(--lw-border-2)',
+        borderRadius: 'var(--lw-r)',
+        padding: 0,
+        background: 'var(--lw-bg-elev)',
+        cursor: busy ? 'not-allowed' : 'pointer',
+        opacity: busy ? 0.6 : 1,
+        overflow: 'hidden',
+      }}
+    >
+      <input
+        ref={ref}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        style={{ display: 'none' }}
+        onChange={(e) => {
+          handlePick(e.target.files?.[0] ?? null)
+          e.target.value = ''
+        }}
+      />
+      {thumbUrl ? (
+        <div style={{ position: 'relative', width: '100%' }}>
+          <img
+            src={thumbUrl}
+            alt="Vista previa de portada seleccionada"
+            style={{ width: '100%', height: 220, objectFit: 'cover', display: 'block' }}
+          />
+          <Btn
+            kind="ghost"
+            size="sm"
+            icon="trash"
+            type="button"
+            disabled={busy}
+            style={{
+              position: 'absolute',
+              top: 10,
+              right: 10,
+              color: '#fff',
+              background: 'rgba(15,23,42,.65)',
+            }}
+            onClick={(e) => {
+              e.stopPropagation()
+              handlePick(null)
+            }}
+          >
+            Quitar
+          </Btn>
+        </div>
+      ) : (
+        <div style={{ padding: 28, textAlign: 'center' }}>
+          <Icon name="upload" size={22} />
+          <div style={{ fontSize: 14, fontWeight: 500, marginTop: 8 }}>
+            {placeholder}
+            <span style={{ color: ACCENT, textDecoration: 'underline' }}> · 16:9</span>
+          </div>
+          <div className="lw-small" style={{ marginTop: 4 }}>
+            JPG o PNG · recomendado 1920 × 1080
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Step 2 · Portada ────────────────────────────────────────
 //
 // IMPORTANTE: este paso replica EXACTAMENTE el patrón de `Step3Sobre` para la subida de imagen
@@ -1420,6 +1540,11 @@ function Step2Portada({
   isLoading: busy,
   currentCoverFile,
   onCoverChange,
+  currentCoverFile2,
+  onCoverChange2,
+  currentCoverFile3,
+  onCoverChange3,
+  heroPhotoSlots = 1,
   onBusinessMetaChange,
   initialBusinessName = '',
   initialTagline = '',
@@ -1434,6 +1559,11 @@ function Step2Portada({
 }: WizardStepProps & {
   currentCoverFile?: File | null
   onCoverChange?: (file: File | null) => void
+  currentCoverFile2?: File | null
+  onCoverChange2?: (file: File | null) => void
+  currentCoverFile3?: File | null
+  onCoverChange3?: (file: File | null) => void
+  heroPhotoSlots?: number
   onBusinessMetaChange?: (payload: { businessName?: string; tagline?: string }) => void
   initialBusinessName?: string
   initialTagline?: string
@@ -1447,20 +1577,22 @@ function Step2Portada({
   onPendingRemoveLogoChange?: (v: boolean) => void
 }) {
   const nav = useContext(WizardNavContext)
-  const coverRef = useRef<HTMLInputElement>(null)
   const file = currentCoverFile ?? null
+  const file2 = currentCoverFile2 ?? null
+  const file3 = currentCoverFile3 ?? null
   const [businessName, setBusinessName] = useState(initialBusinessName)
   const [tagline, setTagline] = useState(initialTagline)
-  const [coverThumbUrl, setCoverThumbUrl] = useState<string | null>(null)
 
   useLayoutEffect(() => {
     nav?.registerContinueHandler?.(() => ({
       cover: file as File,
+      cover2: heroPhotoSlots >= 2 ? (file2 as File) : undefined,
+      cover3: heroPhotoSlots >= 3 ? (file3 as File) : undefined,
       logo: logoFile ?? undefined,
       removeLogo: Boolean(pendingRemoveLogo && !logoFile),
     }))
     return () => nav?.registerContinueHandler?.(null)
-  }, [nav, file, logoFile, pendingRemoveLogo])
+  }, [nav, file, file2, file3, heroPhotoSlots, logoFile, pendingRemoveLogo])
 
   useEffect(() => {
     onBusinessMetaChange?.({
@@ -1469,23 +1601,14 @@ function Step2Portada({
     })
   }, [businessName, tagline, onBusinessMetaChange])
 
-  // Mismo `useEffect` que Step3Sobre: crea la object URL, la guarda, revoca al cambiar/desmontar.
-  useEffect(() => {
-    if (!file) {
-      setCoverThumbUrl(null)
-      return
-    }
-    const u = URL.createObjectURL(file)
-    setCoverThumbUrl(u)
-    return () => URL.revokeObjectURL(u)
-  }, [file])
-
   return (
     <>
       <div>
         <h1 className="lw-h2">Tu portada</h1>
         <p className="lw-body" style={{ marginTop: 6 }}>
-          Sube la foto principal de tu negocio. JPG o PNG, hasta 8 MB. Recomendado 16:9 (p. ej. 1920×1080).
+          {heroPhotoSlots > 1
+            ? `Sube hasta ${heroPhotoSlots} fotos de portada para tu collage. JPG o PNG, hasta 8 MB cada una.`
+            : 'Sube la foto principal de tu negocio. JPG o PNG, hasta 8 MB. Recomendado 16:9 (p. ej. 1920\u00d71080).'}
         </p>
       </div>
       <Field label="Nombre del negocio">
@@ -1515,76 +1638,34 @@ function Step2Portada({
         onLogoFileChange={onLogoFileChange}
         onPendingRemoveLogoChange={onPendingRemoveLogoChange}
       />
-      <input
-        ref={coverRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        style={{ display: 'none' }}
-        onChange={(e) => onCoverChange?.(e.target.files?.[0] ?? null)}
-      />
-      <Field label="Foto de portada" error={errors?.cover}>
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => !busy && coverRef.current?.click()}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault()
-              coverRef.current?.click()
-            }
-          }}
-          style={{
-            border: `1.5px dashed var(--lw-border-2)`,
-            borderRadius: 'var(--lw-r)',
-            padding: 0,
-            background: 'var(--lw-bg-elev)',
-            cursor: busy ? 'not-allowed' : 'pointer',
-            opacity: busy ? 0.6 : 1,
-            overflow: 'hidden',
-          }}
-        >
-          {coverThumbUrl ? (
-            <div style={{ position: 'relative', width: '100%' }}>
-              <img
-                src={coverThumbUrl}
-                alt="Vista previa de portada seleccionada"
-                style={{ width: '100%', height: 220, objectFit: 'cover', display: 'block' }}
-              />
-              <Btn
-                kind="ghost"
-                size="sm"
-                icon="trash"
-                type="button"
-                disabled={busy}
-                style={{
-                  position: 'absolute',
-                  top: 10,
-                  right: 10,
-                  color: '#fff',
-                  background: 'rgba(15,23,42,.65)',
-                }}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onCoverChange?.(null)
-                }}
-              >
-                Quitar
-              </Btn>
-            </div>
-          ) : (
-            <div style={{ padding: 28, textAlign: 'center' }}>
-              <Icon name="upload" size={22} />
-              <div style={{ fontSize: 14, fontWeight: 500, marginTop: 8 }}>
-                Pulsa para elegir foto de portada
-                <span style={{ color: ACCENT, textDecoration: 'underline' }}> · 16:9</span>
-              </div>
-              <div className="lw-small" style={{ marginTop: 4 }}>
-                JPG o PNG · recomendado 1920 × 1080
-              </div>
-            </div>
-          )}
-        </div>
+      <Field label={heroPhotoSlots > 1 ? 'Foto principal' : 'Foto de portada'} error={errors?.cover}>
+        <CoverDropzone
+          file={file}
+          busy={busy}
+          onFileChange={(f) => onCoverChange?.(f)}
+          placeholder="Pulsa para elegir foto de portada"
+        />
       </Field>
+      {heroPhotoSlots >= 2 && (
+        <Field label="Foto 2" error={errors?.cover2}>
+          <CoverDropzone
+            file={file2}
+            busy={busy}
+            onFileChange={(f) => onCoverChange2?.(f)}
+            placeholder="Pulsa para elegir la segunda foto"
+          />
+        </Field>
+      )}
+      {heroPhotoSlots >= 3 && (
+        <Field label="Foto 3" error={errors?.cover3}>
+          <CoverDropzone
+            file={file3}
+            busy={busy}
+            onFileChange={(f) => onCoverChange3?.(f)}
+            placeholder="Pulsa para elegir la tercera foto"
+          />
+        </Field>
+      )}
       {errors?.message ? (
         <div className="lw-small" style={{ color: 'var(--lw-danger)' }}>
           {errors.message}
@@ -2690,15 +2771,15 @@ function Step8Publicar({ errors, reservedSubdomain }: WizardStepProps & { reserv
     { t: 'Horarios configurados', ok: true },
     { t: 'Dirección y contacto', ok: true },
     { t: 'Plan elegido', ok: true },
-    { t: 'Publicación', ok: true, hint: 'Pulsa Continuar para publicar' },
+    { t: 'Publicación', ok: true },
   ]
 
   return (
     <>
       <div>
-        <h1 className="lw-h2">Listo para publicar</h1>
+        <h1 className="lw-h2">¡Tu página está lista!</h1>
         <p className="lw-body" style={{ marginTop: 6 }}>
-          Repasamos lo que has hecho. Al continuar, confirmas la publicación.
+          Echa un vistazo a la vista previa y, cuando estés, entra al dashboard.
         </p>
       </div>
 
@@ -2713,6 +2794,18 @@ function Step8Publicar({ errors, reservedSubdomain }: WizardStepProps & { reserv
           <Badge tone="ghost" size="sm">
             Subdominio
           </Badge>
+        </div>
+      </Card>
+
+      <Card padding={16} style={{ background: 'var(--lw-warning-soft)', borderColor: 'transparent' }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+          <Icon name="info" size={18} />
+          <div>
+            <div style={{ fontWeight: 600, fontSize: 14 }}>¿Quieres cambiar algo?</div>
+            <div className="lw-small" style={{ marginTop: 4, color: 'var(--lw-text-2)' }}>
+              Desde tu dashboard podrás editar fotos, textos, horarios, ubicación y todo lo demás cuando quieras.
+            </div>
+          </div>
         </div>
       </Card>
 
@@ -2802,6 +2895,5 @@ export {
   evaluateGalleryImageQuality,
   resolveStep1PreviewVariant,
   type GalleryImageQuality,
-  type Step1PreviewVariant,
   type TemplatePreviewData,
 }

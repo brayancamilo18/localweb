@@ -2,11 +2,13 @@
 
 namespace App\Listeners;
 
+use App\Mail\WelcomeProOnez;
 use App\Models\Business;
 use App\Models\ProcessedStripeEvent;
 use App\Models\User;
 use App\Services\OnboardingMediaFinalizeService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Cashier\Events\WebhookReceived;
 use Throwable;
 
@@ -91,6 +93,8 @@ class StripeEventListener
                     'exception' => $e->getMessage(),
                 ]);
             }
+
+            $this->sendWelcomeProEmail($user, $business->fresh(), $object);
         }
 
         Log::info('Stripe checkout completed and business upgraded', [
@@ -98,6 +102,82 @@ class StripeEventListener
             'business_id' => $business->id,
             'payment_status' => $object['payment_status'] ?? null,
         ]);
+    }
+
+    /**
+     * Envía el correo de bienvenida Pro tras activar el plan.
+     *
+     * Va envuelto en su propio try/catch para que un fallo de SMTP no propague
+     * y deje el marcador `processed_stripe_events` sin tocar — si dejáramos
+     * que la excepción burbujease, el `handle()` borraría el marcador y
+     * Stripe reintentaría, lo que activaría el plan de nuevo y duplicaría el
+     * correo en cuanto el SMTP volviese.
+     *
+     * Usamos `sendNow()` para enviar inline (sin queue worker), porque el
+     * worker no está garantizado en local. El webhook sigue cumpliendo el
+     * SLA de Stripe (~30 s).
+     *
+     * @param  array<string, mixed>  $object  Payload `data.object` del checkout.
+     */
+    protected function sendWelcomeProEmail(User $user, ?Business $business, array $object): void
+    {
+        if (! $business) {
+            return;
+        }
+
+        try {
+            $frontend = rtrim((string) config('app.frontend_url'), '/');
+
+            $price = $this->formatStripeAmount($object['amount_total'] ?? null) ?? '8,99';
+            $cycle = 'Mensual';
+            $period = 'mes';
+            $renewalDate = now()->addMonth()->format('d/m/Y');
+
+            $mailable = new WelcomeProOnez(
+                name: $user->name ?: '',
+                email: $user->email,
+                businessName: $business->name ?: 'tu negocio',
+                dashboardUrl: $frontend.'/dashboard',
+                billingUrl: $frontend.'/dashboard/account?tab=plan',
+                cycle: $cycle,
+                price: $price,
+                period: $period,
+                renewalDate: $renewalDate,
+            );
+
+            Mail::to($user->email)->sendNow($mailable);
+
+            Log::info('Welcome Pro email sent after Stripe checkout', [
+                'user_id' => $user->id,
+                'business_id' => $business->id,
+                'to' => $user->email,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Welcome Pro email after Stripe checkout failed', [
+                'user_id' => $user->id,
+                'business_id' => $business->id,
+                'exception' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Convierte `amount_total` de Stripe (entero en céntimos) a un string
+     * con coma decimal (formato español). Devuelve null si el valor no es
+     * un entero válido para que el caller use su propio fallback.
+     */
+    protected function formatStripeAmount(mixed $amountCents): ?string
+    {
+        if (! is_int($amountCents) && ! (is_string($amountCents) && ctype_digit($amountCents))) {
+            return null;
+        }
+
+        $cents = (int) $amountCents;
+        if ($cents <= 0) {
+            return null;
+        }
+
+        return number_format($cents / 100, 2, ',', '.');
     }
 
     protected function handleSubscriptionDeleted(array $object): void

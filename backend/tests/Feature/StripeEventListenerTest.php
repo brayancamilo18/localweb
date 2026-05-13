@@ -1,15 +1,19 @@
 <?php
 
 use App\Listeners\StripeEventListener;
+use App\Mail\WelcomeProOnez;
 use App\Models\Business;
 use App\Models\ProcessedStripeEvent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Cashier\Events\WebhookReceived;
 
 uses(RefreshDatabase::class);
 
 it('sets business plan to pro and publishes on checkout.session.completed', function () {
+    Mail::fake();
+
     $business = Business::create([
         'name' => 'Checkout Biz',
         'subdomain' => 'chk-aabb-ccdd',
@@ -39,6 +43,71 @@ it('sets business plan to pro and publishes on checkout.session.completed', func
 
     expect($business->plan->value)->toBe('pro')
         ->and($business->is_published)->toBeTrue();
+});
+
+it('sends WelcomeProOnez email after a successful checkout', function () {
+    Mail::fake();
+
+    $business = Business::create([
+        'name' => 'Café Lila',
+        'subdomain' => 'lila-aabb-ccdd',
+        'subdomain_type' => 'random',
+        'sector' => 'restauracion',
+        'plan' => 'free',
+        'is_published' => false,
+    ]);
+    $user = User::factory()->create([
+        'business_id' => $business->id,
+        'name' => 'Brayan',
+        'email' => 'welcome-pro@onez.test',
+    ]);
+
+    $listener = new StripeEventListener;
+    $listener->handle(new WebhookReceived([
+        'id' => 'evt_test_welcome_'.uniqid(),
+        'type' => 'checkout.session.completed',
+        'data' => [
+            'object' => [
+                'metadata' => [
+                    'user_id' => (string) $user->id,
+                    'business_id' => (string) $business->id,
+                ],
+                'payment_status' => 'paid',
+                'amount_total' => 899,
+                'currency' => 'eur',
+            ],
+        ],
+    ]));
+
+    Mail::assertSent(WelcomeProOnez::class, function (WelcomeProOnez $mail) use ($user, $business) {
+        return $mail->hasTo($user->email)
+            && $mail->name === 'Brayan'
+            && $mail->businessName === $business->name
+            && $mail->price === '8,99'
+            && $mail->cycle === 'Mensual'
+            && str_contains($mail->dashboardUrl, '/dashboard');
+    });
+});
+
+it('does not send WelcomeProOnez when the business_id metadata is invalid', function () {
+    Mail::fake();
+
+    $listener = new StripeEventListener;
+    $listener->handle(new WebhookReceived([
+        'id' => 'evt_test_no_business_'.uniqid(),
+        'type' => 'checkout.session.completed',
+        'data' => [
+            'object' => [
+                'metadata' => [
+                    'user_id' => '999999',
+                    'business_id' => '999999',
+                ],
+                'payment_status' => 'paid',
+            ],
+        ],
+    ]));
+
+    Mail::assertNotSent(WelcomeProOnez::class);
 });
 
 it('downgrades plan to free on customer.subscription.deleted', function () {

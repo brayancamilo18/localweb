@@ -2,7 +2,7 @@ import type { Schedule } from '../../types/api'
 import { Btn, Badge, Icon, MiniMap, Placeholder } from '../../components/primitives/primitives'
 import { isOpenNow } from './utils/isOpenNow'
 
-// LocalWeb — Public business pages (3 plantillas)
+// ONEZ — Public business pages (3 plantillas)
 // Soft (peluquería) · Aurora (bienestar) · Negocio (servicios)
 
 export interface PublicSiteBusiness {
@@ -280,7 +280,7 @@ function PubSoft({ business, pro }: { business: PublicSiteBusiness; pro?: boolea
         <span>© {new Date().getFullYear()} {business.name}</span>
         {!pro ? (
           <span>
-            Creado con <span style={{ fontWeight: 600, color: 'var(--lw-accent)' }}>LocalWeb</span>
+            Creado con <span style={{ fontWeight: 600, color: 'var(--lw-accent)' }}>ONEZ</span>
           </span>
         ) : null}
       </div>
@@ -387,7 +387,7 @@ function PubNegocio({ business }: { business: PublicSiteBusiness }) {
       </div>
       <div style={{ padding: "20px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: "var(--lw-text-3)" }}>
         <span>© {new Date().getFullYear()} {business.name}{business.address ? ` · ${business.address}` : ''}</span>
-        <span>Creado con <span style={{ fontWeight: 600, color: "var(--lw-accent)" }}>LocalWeb</span></span>
+        <span>Creado con <span style={{ fontWeight: 600, color: "var(--lw-accent)" }}>ONEZ</span></span>
       </div>
     </div>
   );

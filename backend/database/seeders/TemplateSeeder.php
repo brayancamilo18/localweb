@@ -18,6 +18,13 @@ class TemplateSeeder extends Seeder
          */
         $templates = [
             ['name' => 'Urban Bold', 'slug' => 'urban-bold', 'primary_color' => '#D4FF3A', 'requires_pro' => false],
+            ['name' => 'Noir Elite', 'slug' => 'noir-elite', 'primary_color' => '#C8A96E', 'requires_pro' => false],
+            ['name' => 'Bloom Studio', 'slug' => 'bloom-studio', 'primary_color' => '#E8A0BF', 'requires_pro' => false],
+            ['name' => 'Coastal Calm', 'slug' => 'coastal-calm', 'primary_color' => '#5B9EA6', 'requires_pro' => false],
+            ['name' => 'Craft Pro', 'slug' => 'craft-pro', 'primary_color' => '#E8712A', 'requires_pro' => false],
+            ['name' => 'Tavola Warm', 'slug' => 'tavola-warm', 'primary_color' => '#C8553D', 'requires_pro' => true, 'hero_photo_slots' => 3],
+            ['name' => 'Tech Sleek', 'slug' => 'tech-sleek', 'primary_color' => '#00E5FF', 'requires_pro' => false],
+            ['name' => 'Trust Clinic', 'slug' => 'trust-clinic', 'primary_color' => '#2E86AB', 'requires_pro' => false],
         ];
 
         $keepSlugs = array_column($templates, 'slug');

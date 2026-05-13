@@ -13,12 +13,13 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     libsqlite3-dev \
+    libicu-dev \
     sqlite3 \
     supervisor \
     ca-certificates \
     gnupg \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
-    && docker-php-ext-install -j$(nproc) pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd zip \
+    && docker-php-ext-install -j$(nproc) pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd zip intl \
     && pecl install redis \
     && docker-php-ext-enable redis \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \

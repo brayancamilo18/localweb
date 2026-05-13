@@ -1,7 +1,9 @@
 import { useCallback, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Btn, Badge, Card, Placeholder } from '../../../components/primitives/primitives'
 import { StatCard } from '../dashboard'
 import { useDashboard } from '../context/DashboardContext'
+import MiPaginaQrSection from './MiPaginaQrSection'
 
 function fmtStat(n: number | undefined): string {
   return n === undefined || Number.isNaN(n) ? '—' : String(n)
@@ -21,6 +23,7 @@ function visitsWeekFromDaily(daily: { count: number }[]): number | undefined {
 
 export default function MiPagina() {
   const { business, stats } = useDashboard()
+  const navigate = useNavigate()
   const [copied, setCopied] = useState(false)
   const pro = business.is_pro
   const visitsToday = pro ? visitsTodayFromDaily(stats.daily_visits) : undefined
@@ -64,7 +67,13 @@ export default function MiPagina() {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <Btn kind="outline" icon="bell" size="md" style={{ width: 38, padding: 0 }} />
-          <Btn kind="outline" icon="user" size="md">
+          <Btn
+            kind="outline"
+            icon="user"
+            size="md"
+            type="button"
+            onClick={() => navigate('/dashboard/account')}
+          >
             Cuenta
           </Btn>
         </div>
@@ -158,6 +167,8 @@ export default function MiPagina() {
         <StatCard label="Clics WhatsApp" value={fmtStat(wa)} icon="whatsapp" locked={wa === undefined} />
         <StatCard label="Clics teléfono" value={fmtStat(ph)} icon="phone" locked={ph === undefined} />
       </div>
+
+      <MiPaginaQrSection />
     </>
   )
 }

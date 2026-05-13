@@ -1,13 +1,26 @@
 <!doctype html>
+<!--
+  ──────────────────────────────────────────────────────────────────────────────
+  Convención de mensajería SPA → template
+  ──────────────────────────────────────────────────────────────────────────────
+  Este template recibe datos del SPA padre vía window.postMessage (preview en
+  vivo del onboarding y de la página pública). Por seguridad, el SPA inyecta
+  su origen en la URL del iframe como `?parentOrigin=<origin>`. El listener
+  `message` solo procesa mensajes cuyo `event.origin` coincide con ese valor.
+  Si añades nuevos templates, replica el mismo patrón.
+  ──────────────────────────────────────────────────────────────────────────────
+-->
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<title>{{nombre}} — Cocina, vino y barra</title>
+<title>{{nombre}} — LocalWeb</title>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
 <style>
+  /* ═══════════ TAVOLA-WARM — ORIGINAL TOKENS ═══════════ */
   :root{
     --cream:#F5EBDA;
     --cream-2:#EDE0CB;
@@ -38,8 +51,10 @@
       url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence baseFrequency='1.2' numOctaves='1' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.2 0 0 0 0 0.1 0 0 0 0.04 0'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>");
     background-attachment:fixed;
   }
+  section[id],a[id]{scroll-margin-top:80px}
   ::selection{background:var(--wine);color:var(--cream)}
   a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer;border:none;background:none}
   img{display:block;max-width:100%}
   .display{font-family:"DM Serif Display",Georgia,serif;font-weight:400;letter-spacing:-0.005em}
   .sans{font-family:"Inter",sans-serif}
@@ -47,16 +62,8 @@
   .eyebrow{font-family:"Lora",serif;font-style:italic;font-size:14px;color:var(--wine);letter-spacing:0.02em}
   .eyebrow::before{content:"❦ ";font-style:normal;color:var(--terracotta);margin-right:2px}
 
-  /* ─── TOPBAR ─── */
-  .topbar{background:var(--wine);color:var(--cream);font-size:13px;letter-spacing:0.02em;font-style:italic}
-  .topbar-inner{max-width:1240px;margin:0 auto;padding:9px 32px;display:flex;justify-content:space-between;align-items:center;gap:16px}
-  .topbar-meta span{color:rgba(245,235,218,.85)}
-  .topbar-meta strong{color:var(--cream);font-weight:500;font-style:normal}
-  .topbar-cta{display:flex;gap:18px;align-items:center}
-  .topbar-cta a{color:var(--cream);font-style:normal;font-weight:500;border-bottom:1px solid rgba(245,235,218,.3);padding-bottom:1px}
-
   /* ─── NAV ─── */
-  .nav{position:sticky;top:0;z-index:50;background:rgba(245,235,218,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .nav{position:sticky;top:0;z-index:9000;background:rgba(245,235,218,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
   .nav-inner{max-width:1240px;margin:0 auto;padding:18px 32px;display:flex;justify-content:space-between;align-items:center}
   .brand{display:flex;align-items:center;gap:12px}
   .brand-mark{width:44px;height:44px;border-radius:50%;background:var(--wine);color:var(--cream);display:grid;place-items:center;font-family:"DM Serif Display",serif;font-size:22px;font-style:italic;flex-shrink:0;border:2px solid var(--terracotta-soft);position:relative}
@@ -64,42 +71,39 @@
   .brand-name{display:flex;flex-direction:column;line-height:1.1}
   .brand-name strong{font-family:"DM Serif Display",serif;font-size:22px;color:var(--ink);letter-spacing:-0.005em;font-weight:400}
   .brand-name small{font-family:"Lora",serif;font-style:italic;font-size:11.5px;color:var(--ink-2);margin-top:2px;letter-spacing:0.04em}
+  #navBrandName{font-family:"DM Serif Display",serif;font-size:22px;color:var(--ink);letter-spacing:-0.005em;font-weight:400}
+  .nav{--lw-logo-scale:1}
+  .nav .brand.brand-has-img .nav-brand-img{display:block;height:calc(36px * var(--lw-logo-scale,1));width:auto;max-width:calc(180px * var(--lw-logo-scale,1));object-fit:contain;image-rendering:auto}
+  .nav .brand.brand-has-img .brand-mark{display:none !important}
+  .nav .brand.brand-has-img #navBrandName{display:none !important}
   .nav ul{list-style:none;display:flex;gap:32px;align-items:center}
   .nav ul a{font-family:"Lora",serif;font-size:15px;color:var(--ink-2);transition:color .15s;position:relative;padding:4px 0}
   .nav ul a:hover{color:var(--wine)}
   .nav ul a:hover::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:1px;background:var(--terracotta)}
+  .nav ul a.is-active{color:var(--wine)}
+  .nav ul a.is-active::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:1px;background:var(--terracotta)}
+  .nav-actions{display:flex;align-items:center;gap:14px}
   .nav-cta{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;background:var(--wine);color:var(--cream);font-family:"Inter";font-size:13.5px;font-weight:500;border-radius:999px;transition:background .15s,transform .15s}
   .nav-cta:hover{background:var(--bottle);transform:translateY(-1px)}
-
-  .burger{display:none;width:42px;height:42px;background:transparent;border:1px solid var(--line-2);border-radius:50%;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0}
-  .burger span{display:block;width:18px;height:1.5px;background:var(--ink);transition:.25s}
-  .burger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
-  .burger.open span:nth-child(2){opacity:0}
-  .burger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
-
-  .mobile-menu{display:flex;flex-direction:column;position:fixed;top:0;right:0;bottom:0;width:88%;max-width:380px;background:var(--paper);z-index:200;padding:80px 32px 32px;transform:translateX(100%);transition:transform .35s cubic-bezier(.5,.05,.2,1);box-shadow:-30px 0 60px -20px rgba(42,31,24,.3);overflow-y:auto}
-  .mobile-menu.open{transform:translateX(0)}
-  .mobile-menu ul{list-style:none}
-  .mobile-menu ul li{border-bottom:1px dashed var(--line)}
-  .mobile-menu ul a{display:block;padding:18px 0;font-family:"DM Serif Display",serif;font-size:26px;color:var(--ink)}
-  .mobile-menu ul a:hover{color:var(--wine);font-style:italic}
-  .mobile-cta{display:block;margin-top:32px;padding:16px;text-align:center;background:var(--wine);color:var(--cream);font-family:"Inter";font-weight:600;border-radius:999px;font-size:14px}
-  .mobile-meta{margin-top:32px;padding-top:24px;border-top:1px solid var(--line);font-family:"Lora";font-size:14px;color:var(--ink-2);line-height:1.7;font-style:italic}
-  .mobile-meta strong{display:block;font-style:normal;color:var(--ink);font-size:15px;margin-bottom:4px}
-  .scrim{display:none;position:fixed;inset:0;background:rgba(42,31,24,.5);z-index:150;opacity:0;transition:opacity .3s}
-  .scrim.open{opacity:1}
+  .menu-toggle{display:none;width:42px;height:42px;background:transparent;border:1px solid var(--line-2);border-radius:50%;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0}
+  .menu-toggle span{display:block;width:18px;height:1.5px;background:var(--ink);transition:.25s}
+  .nav.is-open .menu-toggle span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+  .nav.is-open .menu-toggle span:nth-child(2){opacity:0}
+  .nav.is-open .menu-toggle span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
 
   /* ─── HERO ─── */
   .hero{padding:80px 0 96px;position:relative;overflow:hidden}
   .hero::before{content:"❦";position:absolute;top:60px;right:60px;font-family:"DM Serif Display";font-size:160px;color:var(--terracotta);opacity:.08;line-height:1;pointer-events:none}
   .hero-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:72px;align-items:center;position:relative}
-  .hero-meta{display:flex;align-items:center;gap:14px;margin-bottom:28px;font-family:"Lora";font-style:italic;color:var(--wine)}
-  .hero-meta::before{content:"";width:40px;height:1px;background:var(--wine)}
+  .hero-meta{display:flex;align-items:center;gap:14px;margin-bottom:28px}
+  .hero-meta .live{display:inline-flex;align-items:center;gap:8px;font-family:"Lora";font-style:italic;color:var(--wine)}
+  .hero-meta .live .dot{width:8px;height:8px;border-radius:50%;background:var(--terracotta);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
   .hero h1{font-family:"DM Serif Display",serif;font-size:clamp(56px,8vw,118px);font-weight:400;line-height:.96;letter-spacing:-0.02em;color:var(--ink);margin-bottom:32px}
   .hero h1 em{font-style:italic;color:var(--wine)}
   .hero h1 .amp{display:inline-block;font-style:italic;color:var(--terracotta);transform:translateY(4px) rotate(-4deg);margin:0 4px}
-  .hero-lede{font-size:19px;line-height:1.6;color:var(--ink-2);max-width:520px;margin-bottom:36px;font-style:italic}
-  .hero-lede strong{font-style:normal;color:var(--ink);font-weight:500}
+  .hero-tag{font-size:19px;line-height:1.6;color:var(--ink-2);max-width:520px;margin-bottom:36px;font-style:italic}
+  .hero-tag strong{font-style:normal;color:var(--ink);font-weight:500}
   .hero-cta{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:44px}
   .btn-p{display:inline-flex;align-items:center;gap:10px;padding:15px 28px;background:var(--wine);color:var(--cream);font-family:"Inter";font-size:14px;font-weight:500;border-radius:999px;transition:background .15s,transform .15s}
   .btn-p:hover{background:var(--bottle);transform:translateY(-1px)}
@@ -107,30 +111,19 @@
   .btn-g:hover{background:var(--ink);color:var(--cream)}
   .btn-wa{display:inline-flex;align-items:center;gap:10px;padding:15px 24px;background:#1F8A5B;color:#fff;font-family:"Inter";font-size:14px;font-weight:500;border-radius:999px;transition:background .15s,transform .15s}
   .btn-wa:hover{background:#16613F;transform:translateY(-1px)}
-  .btn-wa::before{content:"✆";font-size:16px}
 
-  .hero-tags{display:flex;gap:20px;flex-wrap:wrap;font-family:"Lora";font-style:italic;font-size:14px;color:var(--ink-2)}
-  .hero-tags span{display:inline-flex;align-items:center;gap:8px}
-  .hero-tags span::before{content:"";width:5px;height:5px;background:var(--terracotta);border-radius:50%;flex-shrink:0}
-
-  /* hero photo collage */
   .hero-photos{position:relative;height:560px}
   .photo{position:absolute;border-radius:6px;background:var(--cream-2);overflow:hidden;box-shadow:0 24px 48px -16px rgba(42,31,24,.35)}
   .photo img{width:100%;height:100%;object-fit:cover}
   .photo.p1{top:0;left:0;width:62%;height:55%;transform:rotate(-3deg);z-index:2}
   .photo.p2{top:30%;right:0;width:55%;height:50%;transform:rotate(4deg);z-index:3}
   .photo.p3{bottom:0;left:14%;width:50%;height:45%;transform:rotate(-1deg);z-index:1}
-  .photo-stamp{position:absolute;top:24px;right:-14px;background:var(--wine);color:var(--cream);font-family:"DM Serif Display";font-size:13px;padding:8px 18px;border-radius:999px;font-style:italic;transform:rotate(8deg);z-index:5;box-shadow:0 4px 12px rgba(42,31,24,.3)}
 
-  /* ─── INFO STRIP (status + small info) ─── */
-  .infostrip{background:var(--paper);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:24px 0}
-  .infostrip-inner{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
-  .info-item{display:flex;align-items:center;gap:14px;font-family:"Lora";font-size:14.5px;color:var(--ink-2);font-style:italic}
-  .info-item strong{display:block;font-family:"DM Serif Display";font-style:normal;font-size:18px;color:var(--ink);font-weight:400;margin-bottom:1px}
-  .info-item .ico{width:42px;height:42px;border-radius:50%;background:var(--cream-2);border:1px solid var(--line);color:var(--wine);display:grid;place-items:center;font-family:"DM Serif Display";font-style:italic;font-size:18px;flex-shrink:0}
-  .info-status{display:inline-flex;align-items:center;gap:9px;padding:7px 16px;background:rgba(31,138,91,.1);border:1px solid rgba(31,138,91,.4);color:#1F8A5B;border-radius:999px;font-family:"Inter";font-style:normal;font-size:12.5px;font-weight:600}
-  .info-status .pulse{width:8px;height:8px;border-radius:50%;background:#1F8A5B;animation:pulse 2s infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  /* ─── TICKER ─── */
+  .ticker{background:var(--paper);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:24px 0;overflow:hidden}
+  .ticker-track{display:flex;gap:32px;font-family:"Lora";font-style:italic;font-size:14px;color:var(--ink-2);white-space:nowrap;animation:scroll 40s linear infinite}
+  .ticker .star{color:var(--terracotta);font-size:10px;font-style:normal}
+  @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
   /* ─── SECTIONS ─── */
   section{padding:120px 0;position:relative}
@@ -141,12 +134,8 @@
   .ornament{display:inline-flex;align-items:center;gap:14px;color:var(--terracotta);font-family:"DM Serif Display";font-size:18px;font-style:italic;margin-bottom:8px}
   .ornament::before,.ornament::after{content:"";width:48px;height:1px;background:var(--terracotta)}
 
-  /* ─── MENU (services as carta) ─── */
+  /* ─── MENU / SERVICES (tavola-warm original) ─── */
   .menu-section{background:var(--paper);border-top:1px solid var(--line);border-bottom:1px solid var(--line);position:relative}
-  .menu-cats{display:flex;justify-content:center;gap:8px;margin-bottom:56px;flex-wrap:wrap}
-  .menu-cat{padding:8px 20px;background:transparent;border:1px solid var(--line-2);border-radius:999px;font-family:"Lora";font-size:13.5px;color:var(--ink-2);font-style:italic;cursor:pointer;transition:all .2s}
-  .menu-cat.active{background:var(--ink);color:var(--cream);border-color:var(--ink);font-style:normal;font-weight:500}
-  .menu-cat:hover:not(.active){border-color:var(--ink);color:var(--ink)}
   .menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px 80px}
   .dish{display:flex;flex-direction:column;padding-bottom:18px;border-bottom:1px dashed var(--line-2);position:relative}
   .dish:hover .dish-name{color:var(--wine)}
@@ -155,45 +144,30 @@
   .dish-dots{flex:1;border-bottom:1.5px dotted var(--line-2);transform:translateY(-6px);min-width:24px;height:1px}
   .dish-price{font-family:"DM Serif Display",serif;font-size:22px;color:var(--wine);font-weight:400;letter-spacing:-0.01em}
   .dish-desc{font-family:"Lora",serif;font-style:italic;font-size:14.5px;color:var(--ink-2);line-height:1.55;margin-bottom:10px;max-width:90%}
-  .dish-tags{display:flex;gap:6px;flex-wrap:wrap}
-  .dish-tags span{font-family:"Inter";font-size:10.5px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-3);padding:3px 8px;background:var(--cream-2);border-radius:3px}
-  .dish-tags .veg{color:var(--bottle);background:rgba(45,58,40,.08)}
-  .dish-tags .star{color:var(--wine);background:rgba(90,31,31,.08)}
-  .menu-cta{text-align:center;margin-top:64px}
-  .menu-cta-link{display:inline-flex;align-items:center;gap:10px;font-family:"Lora";font-style:italic;font-size:16px;color:var(--wine);border-bottom:1.5px solid var(--wine);padding-bottom:3px;transition:gap .2s}
-  .menu-cta-link:hover{gap:14px}
 
-  /* ─── GALLERY ─── */
+  /* ─── GALLERY (tavola-warm original) ─── */
   .gallery-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
   .gimg{background:var(--cream-2);overflow:hidden;border-radius:4px;position:relative;background-size:cover;background-position:center;transition:transform .4s}
   .gimg[data-lightbox-src]{cursor:zoom-in}
   .gimg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(42,31,24,.5));opacity:0;transition:opacity .3s}
   .gimg:hover{transform:scale(.98)}
   .gimg:hover::after{opacity:1}
-  .g1{grid-column:span 7;aspect-ratio:4/3;background-image:url('https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=1200&q=70')}
-  .g2{grid-column:span 5;aspect-ratio:1;background-image:url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=900&q=70')}
-  .g3{grid-column:span 4;aspect-ratio:1;background-image:url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=70')}
-  .g4{grid-column:span 4;aspect-ratio:1;background-image:url('https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=900&q=70')}
-  .g5{grid-column:span 4;aspect-ratio:1;background-image:url('https://images.unsplash.com/photo-1466637574441-749b8f19452f?auto=format&fit=crop&w=900&q=70')}
 
-  /* ─── STORY ─── */
+  /* ─── STORY / ABOUT (tavola-warm original) ─── */
   .story-section{background:var(--ink);color:var(--cream);position:relative;overflow:hidden;padding:120px 0}
   .story-section::before{content:"";position:absolute;inset:0;background:
     radial-gradient(ellipse 700px 400px at 70% 20%,rgba(194,100,62,.15),transparent),
     radial-gradient(ellipse 500px 300px at 10% 80%,rgba(90,31,31,.25),transparent);pointer-events:none}
   .story-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;position:relative}
-  .story-img{aspect-ratio:4/5;background-size:cover;background-position:center;border-radius:6px;background-image:url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=900&q=70');filter:brightness(.85) saturate(1.1);position:relative}
+  .story-img{aspect-ratio:4/5;background-size:cover;background-position:center;border-radius:6px;filter:brightness(.85) saturate(1.1);position:relative;background-color:var(--cream-2)}
   .story-img::after{content:"";position:absolute;inset:0;border:1px solid rgba(245,235,218,.15);border-radius:6px;transform:translate(14px,14px);pointer-events:none}
   .story-content .ornament{color:var(--terracotta-soft)}
   .story-content .ornament::before,.story-content .ornament::after{background:var(--terracotta-soft)}
   .story-content h2{font-family:"DM Serif Display",serif;font-size:clamp(40px,5vw,68px);font-weight:400;line-height:1.05;letter-spacing:-0.02em;color:var(--cream);margin:14px 0 28px}
   .story-content h2 em{font-style:italic;color:var(--terracotta-soft)}
   .story-content p{font-size:17px;line-height:1.75;color:rgba(245,235,218,.82);font-style:italic;margin-bottom:18px;max-width:520px}
-  .story-content p strong{font-style:normal;color:var(--cream);font-weight:500}
-  .signature{font-family:"DM Serif Display";font-size:32px;font-style:italic;color:var(--terracotta-soft);margin-top:32px;transform:rotate(-2deg)}
-  .signature small{display:block;font-family:"Lora";font-size:13px;color:rgba(245,235,218,.5);font-style:italic;margin-top:4px;transform:rotate(2deg);letter-spacing:0.04em}
 
-  /* ─── HOURS / VISIT ─── */
+  /* ─── HOURS / VISIT (tavola-warm original) ─── */
   .visit-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;border-top:1px solid var(--line)}
   .visit-card{background:var(--paper);border:1px solid var(--line);padding:40px;border-radius:6px}
   .visit-card h3{font-family:"DM Serif Display";font-size:30px;font-weight:400;letter-spacing:-0.015em;margin:14px 0 28px}
@@ -201,12 +175,17 @@
   .schedule-row:last-child{border-bottom:none}
   .schedule-row .day{color:var(--ink-2);font-style:italic}
   .schedule-row .time{color:var(--ink);font-family:"DM Serif Display";font-size:16px;font-variant-numeric:tabular-nums;letter-spacing:-0.005em}
-  .schedule-row .time small{display:block;font-family:"Lora";font-size:11.5px;font-style:italic;color:var(--ink-3);margin-top:2px;text-align:right;letter-spacing:0;font-variant-numeric:normal}
+  .schedule-row .time.closed{color:var(--ink-3);font-style:italic;font-family:"Lora";font-size:14px}
   .schedule-row.today{background:rgba(194,100,62,.1);margin:0 -16px;padding:14px 16px;border-radius:4px;border-bottom:1px dashed var(--line-2);position:relative}
   .schedule-row.today::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--terracotta);border-radius:3px 0 0 3px}
   .schedule-row.today .day{color:var(--wine);font-style:normal;font-weight:600}
   .schedule-row.today .day::after{content:" — hoy";font-style:italic;font-weight:400;color:var(--ink-2);font-family:"Lora"}
-  .schedule-row .closed{color:var(--ink-3);font-style:italic;font-family:"Lora";font-size:14px}
+  .schedule-status{display:inline-flex;align-items:center;gap:9px;padding:7px 16px;background:rgba(31,138,91,.1);border:1px solid rgba(31,138,91,.4);color:#1F8A5B;border-radius:999px;font-family:"Inter";font-style:normal;font-size:12.5px;font-weight:600;margin-bottom:14px}
+  .schedule-status .dot{width:8px;height:8px;border-radius:50%;background:#1F8A5B}
+  .schedule-status.open .dot{animation:statusPulse 2.4s infinite}
+  .schedule-status.closed{background:rgba(90,31,31,.08);border-color:rgba(90,31,31,.3);color:var(--wine)}
+  .schedule-status.closed .dot{background:var(--wine);animation:none}
+  @keyframes statusPulse{0%{box-shadow:0 0 0 0 rgba(31,138,91,.6)}70%{box-shadow:0 0 0 8px rgba(31,138,91,0)}100%{box-shadow:0 0 0 0 rgba(31,138,91,0)}}
 
   .visit-contact{display:flex;flex-direction:column;gap:0;margin-top:0}
   .vcontact{display:flex;align-items:center;gap:18px;padding:18px 0;border-bottom:1px dashed var(--line-2);transition:padding .2s}
@@ -216,7 +195,39 @@
   .vcontact strong{display:block;font-family:"DM Serif Display";font-size:18px;font-weight:400;color:var(--ink);letter-spacing:-0.005em}
   .vcontact small{display:block;font-family:"Lora";font-style:italic;font-size:13px;color:var(--ink-2);margin-top:2px}
 
-  /* ─── CTA ─── */
+  /* ─── MAP ─── */
+  .map-section{max-width:1240px;margin:24px auto 0;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+  .map-section.bold-map-empty{display:none}
+  .map-shell{position:relative;background:#1a0f0b}
+  .map-leaflet{height:min(340px,50vh);min-height:220px;width:100%;background:#1a0f0b}
+  .map-shell .leaflet-container{font-family:"Lora";background:#1a0f0b}
+  .map-shell .leaflet-control-zoom a{background:var(--paper);color:var(--wine);border:1px solid var(--line);border-radius:4px!important;font-weight:600}
+  .map-shell .leaflet-control-zoom a:hover{background:var(--wine);color:var(--cream)}
+  .map-shell .leaflet-bar{border:none;box-shadow:none}
+  .map-shell .leaflet-control-attribution{background:var(--paper)!important;color:var(--ink-3)!important;font-size:10px!important}
+  .map-shell .leaflet-control-attribution a{color:var(--terracotta)!important}
+  .bold-leaflet-divicon{background:transparent!important;border:none!important}
+  .bold-map-pin-wrap{position:relative;width:48px;height:48px;display:flex;align-items:center;justify-content:center;pointer-events:none}
+  .bold-map-core{width:12px;height:12px;background:var(--wine);border:3px solid var(--paper);border-radius:50%;box-shadow:0 0 0 1px var(--wine),0 4px 12px rgba(0,0,0,.25);position:relative;z-index:2}
+  .bold-map-radar-ring{position:absolute;left:50%;top:50%;width:40px;height:40px;margin:-20px 0 0 -20px;border:2px solid var(--wine);border-radius:50%;box-shadow:0 0 10px rgba(90,31,31,.25);animation:boldMapRadar 2.5s cubic-bezier(.2,.7,.2,1) infinite;pointer-events:none}
+  .bold-map-radar-ring.d2{animation-delay:1.25s}
+  @keyframes boldMapRadar{0%{transform:scale(0.4);opacity:.95}65%{opacity:.2}100%{transform:scale(2.15);opacity:0}}
+  .map-directions-row{display:none;justify-content:flex-start;align-items:center;padding:20px 32px;background:var(--paper)}
+  .map-directions-row.is-visible{display:flex}
+
+  /* ─── REVIEWS CTA ─── */
+  .reviews-cta-section{max-width:1240px;margin:24px auto 0;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:40px;display:none;flex-direction:column;gap:14px;align-items:flex-start}
+  .reviews-cta-section.is-visible{display:flex}
+  .reviews-cta-section h3{font-family:"DM Serif Display";font-size:30px;font-weight:400;line-height:1.05;letter-spacing:-.01em}
+  .reviews-cta-section p{font-size:14px;line-height:1.55;color:var(--ink-2);font-style:italic;max-width:520px}
+
+  /* ─── VCARD ─── */
+  .vcard-strip{max-width:1240px;margin:24px auto 0;background:var(--ink);color:var(--cream);border-radius:6px;padding:28px 36px;display:none;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  .vcard-strip.is-visible{display:flex}
+  .vcard-strip strong{font-family:"DM Serif Display";font-size:22px;font-weight:400;letter-spacing:-.01em}
+  .vcard-strip small{font-size:11px;color:var(--ink-3);display:block;margin-top:4px;font-style:italic;letter-spacing:.02em}
+
+  /* ─── CTA (tavola-warm original) ─── */
   .cta-section{background:linear-gradient(180deg,var(--cream) 0%,var(--cream-2) 100%);padding:120px 0;text-align:center;border-top:1px solid var(--line)}
   .cta-section h2{font-family:"DM Serif Display";font-size:clamp(48px,7vw,96px);font-weight:400;line-height:1;letter-spacing:-0.02em;margin:18px 0 24px;max-width:920px;margin-left:auto;margin-right:auto}
   .cta-section h2 em{font-style:italic;color:var(--wine)}
@@ -224,25 +235,31 @@
   .cta-section .desc{font-size:18px;color:var(--ink-2);font-style:italic;max-width:560px;margin:0 auto 40px;line-height:1.55}
   .cta-section .actions{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
 
-  /* ─── FOOTER ─── */
+  /* ─── FOOTER (tavola-warm original) ─── */
   footer{background:var(--ink);color:rgba(245,235,218,.7);padding:80px 0 32px;font-family:"Lora";position:relative;overflow:hidden}
   footer::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--terracotta-soft),transparent)}
   .foot{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:48px;padding-bottom:48px;border-bottom:1px solid rgba(245,235,218,.12)}
-  .foot-brand-block{display:flex;flex-direction:column;gap:18px}
+  .foot-brand{font-family:"DM Serif Display";font-size:42px;font-weight:400;letter-spacing:-.015em;line-height:1;margin-bottom:18px;color:var(--cream)}
+  .foot-brand .accent{color:var(--terracotta-soft)}
   .foot p{font-style:italic;font-size:14px;line-height:1.65;color:rgba(245,235,218,.65);max-width:340px}
   .foot h4{font-family:"DM Serif Display";font-size:17px;font-weight:400;color:var(--cream);margin-bottom:18px;letter-spacing:-0.005em;font-style:italic}
   .foot ul{list-style:none;display:flex;flex-direction:column;gap:11px}
   .foot ul a{font-size:14px;color:rgba(245,235,218,.7);font-style:italic;transition:color .15s}
   .foot ul a:hover{color:var(--terracotta-soft)}
-  .foot-bot{padding-top:24px;display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:rgba(245,235,218,.4);flex-wrap:wrap;gap:10px;font-style:italic}
+  .foot-bottom{padding-top:24px;display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:rgba(245,235,218,.4);flex-wrap:wrap;gap:10px;font-style:italic}
+  .foot-bottom a{color:var(--terracotta-soft)}
 
+  /* ─── EMBED ─── */
+  html.embed-preview-root{scroll-behavior:auto!important}
+
+  /* ─── RESPONSIVE ─── */
   @media (max-width:980px){
     .hero-grid{grid-template-columns:1fr;gap:48px}
     .hero-photos{height:480px;max-width:520px;margin:0 auto;width:100%}
     .menu-grid{grid-template-columns:1fr;gap:36px}
     .gallery-grid{grid-template-columns:repeat(6,1fr)}
-    .g1{grid-column:span 6}
-    .g2,.g3,.g4,.g5{grid-column:span 3}
+    .gimg{grid-column:span 3!important;aspect-ratio:1!important}
+    .gimg:first-child{grid-column:span 6!important;aspect-ratio:2/1!important}
     .story-grid{grid-template-columns:1fr;gap:48px}
     .story-img{max-width:480px;margin:0 auto;width:100%}
     .visit-grid{grid-template-columns:1fr;gap:16px}
@@ -250,234 +267,111 @@
   }
   @media (max-width:680px){
     .container{padding:0 20px}
-    .topbar-meta span:nth-child(n+2){display:none}
-    .topbar-cta a:not(:last-child){display:none}
-    .topbar-inner{padding:9px 20px;font-size:12px}
     .nav-inner{padding:14px 20px}
     .nav ul,.nav-cta{display:none}
-    .burger{display:flex}
+    .menu-toggle{display:flex}
     .brand-mark{width:38px;height:38px;font-size:18px}
-    .brand-name strong{font-size:18px}
+    #navBrandName{font-size:18px}
     .brand-name small{font-size:10.5px}
     .hero{padding:48px 0 64px}
     .hero::before{font-size:90px;top:30px;right:20px}
     .hero-photos{height:400px}
-    .hero-tags{gap:14px;font-size:13px}
     section{padding:64px 0}
     .section-head{margin-bottom:48px}
-    .menu-cats{margin-bottom:36px}
-    .menu-cat{font-size:12.5px;padding:7px 14px}
     .gallery-grid{grid-template-columns:repeat(2,1fr);gap:10px}
-    .g1,.g2,.g3,.g4,.g5{grid-column:span 1;aspect-ratio:1}
+    .gimg{grid-column:span 1!important;aspect-ratio:1!important}
     .visit-card{padding:28px 22px}
     .schedule-row.today{margin:0 -10px;padding:14px 10px}
     .foot{grid-template-columns:1fr;gap:32px}
-    .foot-bot{flex-direction:column;text-align:center;gap:8px}
-    .infostrip-inner{justify-content:center}
-    .info-item{flex:1;min-width:140px}
+    .foot-bottom{flex-direction:column;text-align:center;gap:8px}
+    .map-section,.reviews-cta-section,.vcard-strip{margin-left:0;margin-right:0}
+    .nav.is-open ul{display:flex;position:absolute;top:100%;left:0;right:0;flex-direction:column;gap:0;background:rgba(245,235,218,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:8px 20px 16px;z-index:100;box-shadow:0 14px 24px rgba(0,0,0,.12)}
+    .nav.is-open ul li{border-bottom:1px dashed var(--line)}
+    .nav.is-open ul li:last-child{border-bottom:none}
+    .nav.is-open ul a{display:block;padding:14px 4px;font-size:16px;color:var(--ink)}
   }
-  /* LW · lightbox galería */
-  #galeria img{cursor:zoom-in}
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+    html{scroll-behavior:auto!important}
+  }
+
+  /* ─── LIGHTBOX ─── */
+  #galeria .gimg{cursor:zoom-in}
   .lw-gallery-lightbox{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:max(12px,3vw);box-sizing:border-box}
   .lw-gallery-lightbox[hidden]{display:none!important}
   .lw-gallery-lightbox-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.9);border:0;cursor:pointer;padding:0}
   .lw-gallery-lightbox-frame{position:relative;z-index:1;margin:0;max-width:min(96vw,1600px);max-height:92vh}
   .lw-gallery-lightbox-img{display:block;max-width:min(96vw,1600px);max-height:92vh;width:auto;height:auto;object-fit:contain;box-shadow:0 24px 100px rgba(0,0,0,.75)}
   .lw-gallery-lightbox-close{position:absolute;top:-8px;right:-8px;width:44px;height:44px;border:2px solid #fff;background:#0a0a0a;color:#fff;font-size:24px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0;font-family:system-ui,sans-serif}
-  @media (max-width:640px){ .lw-gallery-lightbox-close{top:8px;right:8px} }
+  @media (max-width:640px){.lw-gallery-lightbox-close{top:8px;right:8px}}
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════ TOPBAR ═══════════════════ -->
-<div class="topbar">
-  <div class="topbar-inner">
-    <div class="topbar-meta">
-      <span><strong>{{telefono}}</strong></span>
-      &nbsp;·&nbsp;
-      <span>{{direccion_corta}}</span>
-      &nbsp;·&nbsp;
-      <span>Cocina hasta {{hora_cierre_cocina}}</span>
-    </div>
-    <div class="topbar-cta">
-      <a href="https://wa.me/{{whatsapp}}" target="_blank">WhatsApp</a>
-      <a href="#reserva">Reservar mesa →</a>
-    </div>
-  </div>
-</div>
-
 <!-- ═══════════════════ NAV ═══════════════════ -->
 <nav class="nav">
   <div class="nav-inner">
-    <a href="#" class="brand">
-      <span class="brand-mark">{{inicial}}</span>
-      <span class="brand-name">
-        <strong>{{nombre}}</strong>
-        <small>{{tagline_corto}}</small>
-      </span>
+    <a href="#" class="brand" id="navBrandWrap">
+      <img id="navBrandLogo" class="nav-brand-img" alt="" width="180" height="36" decoding="async" hidden style="display:none"/>
+      <span class="brand-mark" id="navBrandMark">★</span>
+      <span id="navBrandName">Tu negocio</span>
     </a>
-    <ul>
-      <li><a href="#carta">Carta</a></li>
-      <li><a href="#galeria">El sitio</a></li>
-      <li><a href="#sobre-nosotros">Historia</a></li>
-      <li><a href="#visitanos">Visítanos</a></li>
+    <ul role="menu" id="boldNavList">
+      <li><a href="#servicios" id="tplNavServicios" data-nav-link="servicios" style="display:none;">Carta</a></li>
+      <li><a href="#galeria" data-nav-link="galeria">Galería</a></li>
+      <li><a href="#sobre-nosotros" data-nav-link="sobre-nosotros">Historia</a></li>
+      <li><a href="#horario" data-nav-link="horario">Visítanos</a></li>
+      <li><a href="#contacto" data-nav-link="contacto">Contacto</a></li>
+      <li><a href="#opiniones" id="tplNavOpiniones" data-nav-link="opiniones" style="display:none;">Opiniones</a></li>
     </ul>
-    <a href="#reserva" class="nav-cta">Reservar mesa →</a>
-    <button class="burger" id="burger" aria-label="Menú"><span></span><span></span><span></span></button>
+    <div class="nav-actions">
+      <a href="https://wa.me/" class="nav-cta" data-wa-link>Reservar mesa →</a>
+      <button type="button" id="navMenuToggle" class="menu-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="boldNavList">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </div>
 </nav>
-
-<div class="scrim" id="scrim"></div>
-<aside class="mobile-menu" id="mobile-menu">
-  <ul>
-    <li><a href="#carta">Carta</a></li>
-    <li><a href="#galeria">El sitio</a></li>
-    <li><a href="#sobre-nosotros">Historia</a></li>
-    <li><a href="#visitanos">Visítanos</a></li>
-  </ul>
-  <a href="#reserva" class="mobile-cta">Reservar mesa →</a>
-  <div class="mobile-meta">
-    <strong>{{telefono}}</strong>
-    {{direccion}}<br/>
-    Cocina hasta {{hora_cierre_cocina}}
-  </div>
-</aside>
 
 <!-- ═══════════════════ HERO ═══════════════════ -->
 <section class="hero">
   <div class="container">
     <div class="hero-grid">
       <div>
-        <div class="hero-meta">{{ciudad}} · desde {{año_fundacion}}</div>
-        <h1 class="display">Cocina honesta, <em>vinos</em> <span class="amp">&amp;</span><br/>buena conversación.</h1>
-        <p class="hero-lede"><strong>{{nombre}}</strong> es {{tipo_negocio}} de barrio en {{ciudad}}. Hacemos lo de siempre — pero como tiene que estar hecho. {{descripcion_corta}}.</p>
+        <div class="hero-meta">
+          <span class="live" id="heroStatusPill"><span class="dot"></span><span id="heroStatusText">Comprobando…</span></span>
+        </div>
+        <h1 class="display" id="heroTitle">Tu negocio</h1>
+        <p class="hero-tag" id="heroTagline">Tagline corto que describe lo que hacéis.</p>
         <div class="hero-cta">
-          <a href="#reserva" class="btn-p">Reservar mesa →</a>
-          <a href="https://wa.me/{{whatsapp}}" target="_blank" class="btn-wa">WhatsApp</a>
-          <a href="#carta" class="btn-g">Ver la carta</a>
+          <a href="tel:" class="btn-p" data-tel-link>Llamar ahora →</a>
+          <a href="https://wa.me/" class="btn-wa" data-wa-link>WhatsApp</a>
+          <a href="#servicios" class="btn-g">Ver la carta</a>
         </div>
-        <div class="hero-tags">
-          <span>Cocina propia</span>
-          <span>Vinos naturales</span>
-          <span>Mesa al aire libre</span>
-          <span>Reservas solo cena</span>
         </div>
-      </div>
-      <div class="hero-photos">
-        <div class="photo p1"><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=900&q=70" alt=""/></div>
-        <div class="photo p2"><img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=900&q=70" alt=""/></div>
-        <div class="photo p3"><img src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=900&q=70" alt=""/></div>
-        <div class="photo-stamp">desde {{año_fundacion}}</div>
+      <div class="hero-photos" id="heroPhotoWrap">
+        <div class="photo p1"><img id="heroPhotoImg" src="" alt="" hidden style="display:none"/></div>
+        <div class="photo p2"><img id="heroPhotoImg2" src="" alt="" hidden style="display:none"/></div>
+        <div class="photo p3"><img id="heroPhotoImg3" src="" alt="" hidden style="display:none"/></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════ INFO STRIP ═══════════════════ -->
-<div class="infostrip">
-  <div class="container">
-    <div class="infostrip-inner">
-      <div class="info-item">
-        <span class="ico">⌖</span>
-        <div><strong>{{direccion_corta}}</strong>{{barrio}}, {{ciudad}}</div>
-      </div>
-      <div class="info-item">
-        <span class="ico">⏱</span>
-        <div><strong>{{horario_hoy}}</strong>cocina hasta {{hora_cierre_cocina}}</div>
-      </div>
-      <div class="info-item">
-        <span class="ico">☏</span>
-        <div><strong>{{telefono}}</strong>reservas grupos +6</div>
-      </div>
-      <div class="info-item">
-        <span class="info-status"><span class="pulse"></span>Abierto · sirviendo</span>
-      </div>
-    </div>
-  </div>
+<!-- TICKER -->
+<div class="ticker" id="tplTicker" style="display:none;">
+  <div class="ticker-track" id="tplTickerTrack"></div>
 </div>
 
-<!-- ═══════════════════ CARTA ═══════════════════ -->
-<section id="carta" class="menu-section">
+<!-- ═══════════════════ SERVICES / CARTA ═══════════════════ -->
+<section id="servicios" class="menu-section" style="display:none;">
   <div class="container">
     <div class="section-head">
       <div class="ornament">la carta</div>
       <h2 class="display">Lo que ponemos<br/>en la <em>mesa</em>.</h2>
-      <p class="desc">Cambiamos cosas según temporada y mercado. Esto es lo que está sonando esta semana — si quieres ver la carta entera, pídela en barra o pásate por aquí.</p>
+      <p class="desc">Todo lo que podemos ofrecerte, hecho con producto de temporada.</p>
     </div>
-
-    <div class="menu-cats">
-      <button class="menu-cat active">Para empezar</button>
-      <button class="menu-cat">Platos principales</button>
-      <button class="menu-cat">Pastas y arroces</button>
-      <button class="menu-cat">Postres</button>
-      <button class="menu-cat">Vinos por copa</button>
-    </div>
-
-    <div class="menu-grid">
-      <div class="dish">
-        <div class="dish-head">
-          <span class="dish-name display">{{plato_1}}</span>
-          <span class="dish-dots"></span>
-          <span class="dish-price">{{precio_1}} €</span>
-        </div>
-        <p class="dish-desc">{{desc_plato_1}} Aceite de la sierra, sal Maldon y un toque de pimienta de Espelette.</p>
-        <div class="dish-tags"><span class="star">de la casa</span><span>orgánico</span></div>
-      </div>
-
-      <div class="dish">
-        <div class="dish-head">
-          <span class="dish-name display">{{plato_2}}</span>
-          <span class="dish-dots"></span>
-          <span class="dish-price">{{precio_2}} €</span>
-        </div>
-        <p class="dish-desc">{{desc_plato_2}} Para compartir entre dos personas. Maridaje recomendado: vino tinto joven.</p>
-        <div class="dish-tags"><span>compartir</span></div>
-      </div>
-
-      <div class="dish">
-        <div class="dish-head">
-          <span class="dish-name display">{{plato_3}}</span>
-          <span class="dish-dots"></span>
-          <span class="dish-price">{{precio_3}} €</span>
-        </div>
-        <p class="dish-desc">{{desc_plato_3}} Versión vegetal, todo de huerta de proximidad. La salsa la hacemos nosotros.</p>
-        <div class="dish-tags"><span class="veg">vegetal</span><span>sin gluten</span></div>
-      </div>
-
-      <div class="dish">
-        <div class="dish-head">
-          <span class="dish-name display">{{plato_4}}</span>
-          <span class="dish-dots"></span>
-          <span class="dish-price">{{precio_4}} €</span>
-        </div>
-        <p class="dish-desc">{{desc_plato_4}} Receta de la abuela, sin atajos ni trucos. Como tiene que estar.</p>
-        <div class="dish-tags"><span class="star">clásico</span></div>
-      </div>
-
-      <div class="dish">
-        <div class="dish-head">
-          <span class="dish-name display">{{plato_5}}</span>
-          <span class="dish-dots"></span>
-          <span class="dish-price">{{precio_5}} €</span>
-        </div>
-        <p class="dish-desc">{{desc_plato_5}} Marinado 24 horas, a la brasa, con guarnición de patata y verduras de temporada.</p>
-        <div class="dish-tags"><span>brasa</span></div>
-      </div>
-
-      <div class="dish">
-        <div class="dish-head">
-          <span class="dish-name display">{{plato_6}}</span>
-          <span class="dish-dots"></span>
-          <span class="dish-price">{{precio_6}} €</span>
-        </div>
-        <p class="dish-desc">{{desc_plato_6}} Postre de la casa, hecho cada mañana. Acompañado de una bola de helado de vainilla.</p>
-        <div class="dish-tags"><span>casero</span></div>
-      </div>
-    </div>
-
-    <div class="menu-cta">
-      <a href="#" class="menu-cta-link display">Ver la carta completa →</a>
-    </div>
+    <div class="menu-grid" id="tplServicesList"></div>
   </div>
 </section>
 
@@ -487,105 +381,102 @@
     <div class="section-head">
       <div class="ornament">así somos</div>
       <h2 class="display">El sitio en <em>fotos</em>.</h2>
-      <p class="desc">Cinco mesas, una barra de mármol, las copas que heredamos de la abuela y mucha luz en las tardes de invierno. Pásate y véalo en persona.</p>
+      <p class="desc">Pásate y véalo en persona.</p>
     </div>
-    <div class="gallery-grid">
-      <div class="gimg g1" role="button" tabindex="0" aria-label="Ampliar foto" data-lightbox-src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&amp;fit=crop&amp;w=1600&amp;q=75"></div>
-      <div class="gimg g2" role="button" tabindex="0" aria-label="Ampliar foto" data-lightbox-src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&amp;fit=crop&amp;w=1600&amp;q=75"></div>
-      <div class="gimg g3" role="button" tabindex="0" aria-label="Ampliar foto" data-lightbox-src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&amp;fit=crop&amp;w=1600&amp;q=75"></div>
-      <div class="gimg g4" role="button" tabindex="0" aria-label="Ampliar foto" data-lightbox-src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&amp;fit=crop&amp;w=1600&amp;q=75"></div>
-      <div class="gimg g5" role="button" tabindex="0" aria-label="Ampliar foto" data-lightbox-src="https://images.unsplash.com/photo-1466637574441-749b8f19452f?auto=format&amp;fit=crop&amp;w=1600&amp;q=75"></div>
-    </div>
+    <div class="gallery-grid" id="galleryLive"></div>
   </div>
 </section>
 
-<!-- ═══════════════════ STORY ═══════════════════ -->
+<!-- ═══════════════════ STORY / ABOUT ═══════════════════ -->
 <section id="sobre-nosotros" class="story-section">
   <div class="container">
     <div class="story-grid">
-      <div class="story-img"></div>
-      <div class="story-content">
+      <div class="story-img" id="storyImgDiv" style="background-image:none"></div>
+      <div class="story-content" id="aboutPhotoWrap">
+        <img id="aboutPhotoImg" src="" alt="" hidden style="display:none"/>
         <div class="ornament">nuestra historia</div>
-        <h2 class="display">Empezamos en {{año_fundacion}}<br/>y aquí <em>seguimos</em>.</h2>
-        <p>Lo que era una <strong>vinoteca pequeña</strong> abierta solo por las tardes se fue convirtiendo, comida a comida, en lo que hoy conoces. Sin grandes planes, sin diseñador de restaurantes, sin marketing.</p>
-        <p>Cocina honesta, producto de proximidad y vinos de gente que conocemos personalmente. Si pides un vino raro y no nos gusta, te lo decimos. Si pides el plato del día, te lo recomendamos en función de cómo te veamos.</p>
-        <p>Aquí no servimos a clientes. Servimos a <strong>vecinos, amigos y curiosos</strong>. Pasa cuando quieras.</p>
-        <div class="signature display">— {{nombre_chef}}<small>Chef y propietario · desde {{año_fundacion}}</small></div>
+        <h2 class="display" id="aboutTitle">Tu negocio.</h2>
+        <p id="aboutDescripcion">Descripción del negocio: quiénes sois, qué hacéis y por qué importa.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════ VISIT ═══════════════════ -->
-<section id="visitanos">
+<!-- ═══════════════════ HOURS + CONTACT ═══════════════════ -->
+<section id="horario">
   <div class="container">
     <div class="section-head">
       <div class="ornament">cuándo venir</div>
       <h2 class="display">Horario y <em>cómo encontrarnos</em>.</h2>
-      <p class="desc">No tomamos reservas para comidas entre semana — vente y prueba suerte. Cenas y fines de semana, mejor llamar o por WhatsApp. Grupos de más de 6, siempre con reserva.</p>
+      <p class="desc" id="contactSub">Reserva con antelación o pásate sin avisar.</p>
     </div>
     <div class="visit-grid">
       <div class="visit-card">
-        <span class="eyebrow">cuándo</span>
+        <span class="schedule-status" id="statusPill">
+          <span class="dot"></span>
+          <span id="statusText">Comprobando…</span>
+        </span>
         <h3 class="display">Horario de la casa</h3>
-        <div id="schedule">
-          <div class="schedule-row" data-day="2"><span class="day">Martes</span><span class="time">{{martes}} <small>cocina hasta 23:00</small></span></div>
-          <div class="schedule-row" data-day="3"><span class="day">Miércoles</span><span class="time">{{miercoles}} <small>cocina hasta 23:00</small></span></div>
-          <div class="schedule-row" data-day="4"><span class="day">Jueves</span><span class="time">{{jueves}} <small>cocina hasta 23:30</small></span></div>
-          <div class="schedule-row" data-day="5"><span class="day">Viernes</span><span class="time">{{viernes}} <small>cocina hasta 00:00</small></span></div>
-          <div class="schedule-row" data-day="6"><span class="day">Sábado</span><span class="time">{{sabado}} <small>cocina hasta 00:00</small></span></div>
-          <div class="schedule-row" data-day="0"><span class="day">Domingo</span><span class="time">{{domingo}} <small>solo comidas</small></span></div>
-          <div class="schedule-row" data-day="1"><span class="day">Lunes</span><span class="time closed">descansamos</span></div>
-        </div>
+        <div id="schedule"></div>
       </div>
       <div class="visit-card">
+        <a id="contacto" aria-hidden="true" style="display:block;height:0;overflow:hidden"></a>
         <span class="eyebrow">dónde · cómo</span>
         <h3 class="display">Encuéntranos aquí</h3>
         <div class="visit-contact">
-          <a href="https://maps.google.com/?q={{direccion_url}}" target="_blank" class="vcontact">
-            <span class="ico">⌖</span>
-            <div>
-              <strong>{{direccion}}</strong>
-              <small>{{cp}} {{ciudad}} — esquina con {{calle_referencia}}</small>
-            </div>
-          </a>
-          <a href="tel:{{telefono}}" class="vcontact">
+          <a href="tel:" class="vcontact" data-tel-link>
             <span class="ico">☏</span>
-            <div>
-              <strong>{{telefono}}</strong>
-              <small>llamadas para reserva, mejor a partir de las 18:00</small>
-            </div>
+            <div><strong data-phone-display>Tu teléfono</strong><small>llamada directa</small></div>
           </a>
-          <a href="https://wa.me/{{whatsapp}}" target="_blank" class="vcontact">
-            <span class="ico">✆</span>
-            <div>
-              <strong>WhatsApp directo</strong>
-              <small>respondemos en menos de una hora durante el servicio</small>
-            </div>
-          </a>
-          <a href="/cdn-cgi/l/email-protection#0d767668606c64617070" class="vcontact">
+          <a href="mailto:" class="vcontact" id="contactEmailLink" hidden>
             <span class="ico">@</span>
-            <div>
-              <strong>{{email}}</strong>
-              <small>para grupos grandes, eventos privados o comidas de empresa</small>
-            </div>
+            <div><strong id="contactEmailDisplay"></strong><small>respondemos en 24h</small></div>
+          </a>
+          <a href="https://wa.me/" class="vcontact" data-wa-link>
+            <span class="ico">✆</span>
+            <div><strong>WhatsApp directo</strong><small>respondemos rápido</small></div>
+          </a>
+          <a href="#" class="vcontact" id="contactAddressRow" hidden>
+            <span class="ico">⌖</span>
+            <div><strong id="contactAddressText"></strong><small>nuestra dirección</small></div>
           </a>
         </div>
       </div>
     </div>
   </div>
+  <div class="map-section bold-map-empty" id="mapSection">
+    <div class="map-shell">
+      <div id="mapLeafletContainer" class="map-leaflet" role="img" aria-label="Mapa del negocio"></div>
+    </div>
+    <div class="map-directions-row" id="mapDirectionsRow">
+      <a href="#" id="tplMapsExternalLink" class="btn-p" target="_blank" rel="noopener noreferrer">Abrir en Google Maps →</a>
+    </div>
+  </div>
+  <section id="opiniones" class="reviews-cta-section">
+    <span class="eyebrow">lo que dicen de nosotros</span>
+    <h3 class="display">Lo que dicen quienes nos eligen.</h3>
+    <p>Lee experiencias reales y, si ya nos has visitado, deja tu valoración en Google.</p>
+    <a href="#" id="tplGbizLink" class="btn-p" target="_blank" rel="noopener noreferrer">Ver y escribir reseñas →</a>
+  </section>
+  <div class="vcard-strip" id="tplVcardWrap">
+    <div>
+      <strong>Guarda nuestro contacto.</strong>
+      <small>Descarga la tarjeta y añádenos a tu agenda con un toque.</small>
+    </div>
+    <a href="#" id="tplVcardLink" class="btn-p" download>Descargar vCard →</a>
+  </div>
 </section>
 
 <!-- ═══════════════════ CTA ═══════════════════ -->
-<section id="reserva" class="cta-section">
+<section class="cta-section">
   <div class="container">
     <div class="ornament">te esperamos</div>
-    <h2 class="display">Mesa <span class="amp">&amp;</span> <em>copa</em><br/>para cuando quieras.</h2>
-    <p class="desc">Reserva por teléfono, por WhatsApp o asómate sin avisar. Aquí siempre cabe alguien más.</p>
+    <h2 class="display" id="ctaTitle">Mesa <span class="amp">&amp;</span> <em>copa</em><br/>para cuando quieras.</h2>
+    <p class="desc">Reserva por teléfono, por WhatsApp o asómate sin avisar.</p>
     <div class="actions">
-      <a href="https://wa.me/{{whatsapp}}" target="_blank" class="btn-wa">WhatsApp ahora</a>
-      <a href="tel:{{telefono}}" class="btn-p">Llamar al {{telefono}}</a>
-      <a href="#carta" class="btn-g">Mirar la carta</a>
+      <a href="https://wa.me/" class="btn-wa" data-wa-link>WhatsApp ahora</a>
+      <a href="tel:" class="btn-p" data-tel-link>Llamar</a>
+      <a href="#servicios" class="btn-g">Mirar la carta</a>
     </div>
   </div>
 </section>
@@ -594,80 +485,890 @@
 <footer>
   <div class="container">
     <div class="foot">
-      <div class="foot-brand-block">
-        <a href="#" class="brand">
-          <span class="brand-mark">{{inicial}}</span>
-          <span class="brand-name">
-            <strong style="color:var(--cream)">{{nombre}}</strong>
-            <small style="color:rgba(245,235,218,.5)">{{tagline_corto}}</small>
-          </span>
-        </a>
-        <p>{{descripcion_corta}} En {{ciudad}} desde {{año_fundacion}}. Cocina honesta, vinos de gente que conocemos y un servicio que nunca tiene prisa.</p>
+      <div>
+        <div class="foot-brand" id="footBrand">Tu<br/><span class="accent">negocio</span></div>
+        <p id="footTagline">Tagline corto que describe lo que hacéis.</p>
       </div>
       <div>
         <h4>La casa</h4>
         <ul>
-          <li><a href="#carta">Carta</a></li>
-          <li><a href="#galeria">El sitio</a></li>
+          <li><a href="#servicios" id="footNavServicios" style="display:none;">Carta</a></li>
+          <li><a href="#galeria">Galería</a></li>
           <li><a href="#sobre-nosotros">Historia</a></li>
-          <li><a href="#">Eventos privados</a></li>
+          <li><a href="#horario">Horario</a></li>
+          <li><a href="#opiniones" id="footNavOpiniones" style="display:none;">Opiniones</a></li>
         </ul>
       </div>
       <div>
         <h4>Encontrarnos</h4>
         <ul>
-          <li><a href="tel:{{telefono}}">{{telefono}}</a></li>
-          <li><a href="https://wa.me/{{whatsapp}}" target="_blank">WhatsApp</a></li>
-          <li><a href="/cdn-cgi/l/email-protection#9de6e6f8f0fcf4f1e0e0">{{email}}</a></li>
-          <li><a href="#">{{direccion_corta}}</a></li>
+          <li><a href="tel:" data-tel-link><span data-phone-display>Tu teléfono</span></a></li>
+          <li id="footEmailRow" hidden><a id="footEmailLink" href="#"><span id="footEmailDisplay"></span></a></li>
+          <li><a href="https://wa.me/" data-wa-link>WhatsApp</a></li>
+          <li id="footAddressRow" hidden><a href="#" id="footAddressLink"><span id="footAddressText"></span></a></li>
         </ul>
       </div>
       <div>
         <h4>Síguenos</h4>
         <ul>
-          <li><a href="#">Instagram · @{{instagram}}</a></li>
-          <li><a href="#">TripAdvisor</a></li>
-          <li><a href="#">Google reseñas</a></li>
-          <li><a href="#">El Tenedor</a></li>
+          <li><a href="#" id="tplSocialInstagram" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+          <li><a href="#" id="tplSocialTiktok" target="_blank" rel="noopener noreferrer">TikTok</a></li>
+          <li><a href="#" id="tplSocialFacebook" target="_blank" rel="noopener noreferrer">Facebook</a></li>
         </ul>
       </div>
     </div>
-    <div class="foot-bot">
-      <span>© {{año_actual}} {{nombre}} · CIF {{cif}} — gracias por venir.</span>
-      <span>Web hecha con <a href="#" style="color:var(--terracotta-soft)">LocalWeb</a></span>
+    <div class="foot-bottom">
+      <span id="footBottomBrand">© 2026 · Tu negocio — gracias por venir.</span>
+      <span id="tpl-platform-branding">Web hecha con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
     </div>
   </div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-(function(){
-  // Burger
-  const burger = document.getElementById('burger');
-  const menu = document.getElementById('mobile-menu');
-  const scrim = document.getElementById('scrim');
-  function toggle(open){
-    burger.classList.toggle('open',open);
-    menu.classList.toggle('open',open);
-    scrim.style.display = open ? 'block' : 'none';
-    requestAnimationFrame(()=>scrim.classList.toggle('open',open));
-    document.body.style.overflow = open ? 'hidden' : '';
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+if (new URLSearchParams(window.location.search).get('embed') === '1') {
+  document.documentElement.classList.add('embed-preview-root');
+  document.body.classList.add('embed-preview');
+}
+
+/* ───── DATA: horario por defecto ────────────────────── */
+const BOLD_SCHEDULE_DEFAULT = [
+  { name:"Lun", full:"Lunes",     idx:1, open:"10:00", close:"20:00" },
+  { name:"Mar", full:"Martes",    idx:2, open:"10:00", close:"20:00" },
+  { name:"Mié", full:"Miércoles", idx:3, open:"10:00", close:"20:00" },
+  { name:"Jue", full:"Jueves",    idx:4, open:"10:00", close:"21:00" },
+  { name:"Vie", full:"Viernes",   idx:5, open:"10:00", close:"21:00" },
+  { name:"Sáb", full:"Sábado",    idx:6, open:"10:00", close:"18:00" },
+  { name:"Dom", full:"Domingo",   idx:0, open:null,    close:null    },
+];
+let SCHEDULE = BOLD_SCHEDULE_DEFAULT.map(function (d) {
+  return { name: d.name, full: d.full, idx: d.idx, open: d.open, close: d.close };
+});
+
+function syncBoldScheduleFromPreview(h) {
+  if (h == null || typeof h !== 'object') {
+    SCHEDULE = BOLD_SCHEDULE_DEFAULT.map(function (d) {
+      return { name: d.name, full: d.full, idx: d.idx, open: d.open, close: d.close };
+    });
+    return;
   }
-  burger.addEventListener('click',()=>toggle(!menu.classList.contains('open')));
-  scrim.addEventListener('click',()=>toggle(false));
-  menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>toggle(false)));
+  var map = [
+    ['mon', 'Lun', 'Lunes', 1],
+    ['tue', 'Mar', 'Martes', 2],
+    ['wed', 'Mié', 'Miércoles', 3],
+    ['thu', 'Jue', 'Jueves', 4],
+    ['fri', 'Vie', 'Viernes', 5],
+    ['sat', 'Sáb', 'Sábado', 6],
+    ['sun', 'Dom', 'Domingo', 0],
+  ];
+  SCHEDULE = map.map(function (t) {
+    var row = h[t[0]];
+    if (!row || row.closed) {
+      return { name: t[1], full: t[2], idx: t[3], open: null, close: null };
+    }
+    return { name: t[1], full: t[2], idx: t[3], open: row.open || '10:00', close: row.close || '20:00' };
+  });
+}
 
-  // Today highlight
-  const today = new Date().getDay();
-  const row = document.querySelector(`.schedule-row[data-day="${today}"]`);
-  if(row) row.classList.add('today');
+/* ───── GALERÍA ──────────────────────────────────────── */
+function escapeBoldGalleryAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
 
-  // Menu cats (visual only — switch active)
-  document.querySelectorAll('.menu-cat').forEach(b=>{
-    b.addEventListener('click',()=>{
-      document.querySelectorAll('.menu-cat').forEach(x=>x.classList.remove('active'));
-      b.classList.add('active');
+var BOLD_DEFAULT_GALLERY_INNER =
+  '<div class="gimg" style="grid-column:span 7;aspect-ratio:4/3;background-image:url(https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=1200&q=70)" role="button" tabindex="0" data-lightbox-src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=1600&q=75"></div>' +
+  '<div class="gimg" style="grid-column:span 5;aspect-ratio:1;background-image:url(https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=900&q=70)" role="button" tabindex="0" data-lightbox-src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1600&q=75"></div>' +
+  '<div class="gimg" style="grid-column:span 4;aspect-ratio:1;background-image:url(https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=70)" role="button" tabindex="0" data-lightbox-src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=75"></div>' +
+  '<div class="gimg" style="grid-column:span 4;aspect-ratio:1;background-image:url(https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=900&q=70)" role="button" tabindex="0" data-lightbox-src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1600&q=75"></div>' +
+  '<div class="gimg" style="grid-column:span 4;aspect-ratio:1;background-image:url(https://images.unsplash.com/photo-1466637574441-749b8f19452f?auto=format&fit=crop&w=900&q=70)" role="button" tabindex="0" data-lightbox-src="https://images.unsplash.com/photo-1466637574441-749b8f19452f?auto=format&fit=crop&w=1600&q=75"></div>';
+
+function renderBoldGallery(urls) {
+  var root = document.getElementById('galleryLive');
+  if (!root) return;
+  var list = Array.isArray(urls) ? urls.filter(Boolean) : [];
+  if (list.length === 0) {
+    root.innerHTML = BOLD_DEFAULT_GALLERY_INNER;
+    return;
+  }
+  root.innerHTML = list
+    .map(function (src, i) {
+      var spans = [7,5,4,4,4];
+      var ratios = ['4/3','1','1','1','1'];
+      var col = (i < spans.length) ? spans[i] : 4;
+      var rat = (i < ratios.length) ? ratios[i] : '1';
+      return (
+        '<div class="gimg" style="grid-column:span ' + col + ';aspect-ratio:' + rat + ';background-image:url(' + escapeBoldGalleryAttr(src) + ')" role="button" tabindex="0" data-lightbox-src="' + escapeBoldGalleryAttr(src) + '"></div>'
+      );
+    })
+    .join('');
+}
+
+function updateBoldGallerySlider(_isPro) {
+  // Mantenemos siempre el grid editorial con sus tarjetas + hover (sin slider en Pro).
+  var root = document.getElementById('galleryLive');
+  if (!root) return;
+  // No slider in tavola-warm — gallery uses CSS grid with .gimg divs.
+  return;
+}
+
+/* ───── HERO + ABOUT photo ───────────────────────────── */
+function updateBoldHeroPhoto(raw) {
+  var img = document.getElementById('heroPhotoImg');
+  if (!img) return;
+  var hasPortada = raw && Object.prototype.hasOwnProperty.call(raw, 'portada');
+  if (!hasPortada) return;
+  var src = (raw && raw.portada ? String(raw.portada).trim() : '');
+  if (!src) {
+    img.removeAttribute('src');
+    img.hidden = true;
+    img.style.display = 'none';
+    return;
+  }
+  var withCacheBust = src;
+  if (/^https?:\/\//i.test(src)) {
+    var sep = src.indexOf('?') >= 0 ? '&' : '?';
+    withCacheBust = src + sep + 'lwts=' + Date.now();
+  }
+  img.src = withCacheBust;
+  img.hidden = false;
+  img.style.display = 'block';
+}
+
+function updateBoldAboutPhoto(raw) {
+  var img = document.getElementById('aboutPhotoImg');
+  if (!img) return;
+  var hasFoto = raw && Object.prototype.hasOwnProperty.call(raw, 'foto_equipo');
+  if (!hasFoto) return;
+  var src = (raw && raw.foto_equipo ? String(raw.foto_equipo).trim() : '');
+  if (!src) {
+    img.removeAttribute('src');
+    img.hidden = true;
+    img.style.display = 'none';
+    return;
+  }
+  img.src = src;
+  img.hidden = false;
+  img.style.display = 'block';
+}
+
+/* ───── TICKER (frases derivadas del payload) ────────── */
+function updateBoldTicker(raw) {
+  var ticker = document.getElementById('tplTicker');
+  var track = document.getElementById('tplTickerTrack');
+  if (!ticker || !track) return;
+  var brand = (raw && raw.nombre ? String(raw.nombre) : '').trim();
+  var tagline = (raw && raw.tagline ? String(raw.tagline) : '').trim();
+  var phrases = [];
+  if (brand) phrases.push(brand);
+  if (tagline) phrases.push(tagline);
+  if (raw && raw.direccion) {
+    var parts = String(raw.direccion).split(',').map(function(s){return s.trim();}).filter(Boolean);
+    if (parts.length > 1) phrases.push(parts[parts.length - 1]);
+  }
+  if (phrases.length === 0) {
+    ticker.style.display = 'none';
+    track.innerHTML = '';
+    return;
+  }
+  ticker.style.display = 'block';
+  var bullet = ' <span class="star">●</span> ';
+  var seq = phrases.join(bullet);
+  track.innerHTML =
+    '<span>' + seq + bullet + seq + bullet + '</span>' +
+    '<span>' + seq + bullet + seq + bullet + '</span>';
+}
+
+/* ───── MAP (Leaflet) ────────────────────────────────── */
+var boldPreviewMap = null;
+var boldPreviewMarker = null;
+var BOLD_MAP_ZOOM = 18;
+
+function destroyBoldPreviewMap() {
+  if (boldPreviewMap) {
+    try { boldPreviewMap.remove(); } catch (e) {}
+    boldPreviewMap = null;
+    boldPreviewMarker = null;
+  }
+}
+
+function boldRadarIcon() {
+  if (typeof L === 'undefined') return null;
+  var html =
+    '<div class="bold-map-pin-wrap">' +
+    '<span class="bold-map-radar-ring"></span>' +
+    '<span class="bold-map-radar-ring d2"></span>' +
+    '<span class="bold-map-core"></span></div>';
+  return L.divIcon({
+    className: 'bold-leaflet-divicon',
+    html: html,
+    iconSize: [56, 56],
+    iconAnchor: [28, 28],
+  });
+}
+
+function updateBoldPreviewMap(lat, lon) {
+  var sec = document.getElementById('mapSection');
+  var container = document.getElementById('mapLeafletContainer');
+  if (!sec || !container) return;
+  var ok = typeof lat === 'number' && typeof lon === 'number' && isFinite(lat) && isFinite(lon);
+  if (!ok) {
+    destroyBoldPreviewMap();
+    sec.classList.add('bold-map-empty');
+    return;
+  }
+  if (typeof L === 'undefined') return;
+  sec.classList.remove('bold-map-empty');
+
+  function applyMap() {
+    if (!boldPreviewMap) {
+      boldPreviewMap = L.map(container, {
+        zoomControl: true,
+        attributionControl: false,
+        /** Solo se permite zoom desde los botones +/-: la rueda atrapaba el
+         * scroll de la página al pasar por encima del mapa, el doble-clic
+         * acercaba accidentalmente al hacer foco, y el shift+drag (boxZoom)
+         * confundía a usuarios con teclado. `touchZoom` se deja en el default
+         * (true) para que el pinch siga funcionando en móvil. */
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false,
+      }).setView([lat, lon], BOLD_MAP_ZOOM);
+      L.control.attribution({ prefix: false }).addTo(boldPreviewMap);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20,
+      }).addTo(boldPreviewMap);
+    } else {
+      boldPreviewMap.setView([lat, lon], BOLD_MAP_ZOOM);
+    }
+    if (boldPreviewMarker) boldPreviewMap.removeLayer(boldPreviewMarker);
+    boldPreviewMarker = L.marker([lat, lon], { icon: boldRadarIcon() }).addTo(boldPreviewMap);
+    setTimeout(function () { if (boldPreviewMap) boldPreviewMap.invalidateSize(); }, 80);
+    setTimeout(function () { if (boldPreviewMap) boldPreviewMap.invalidateSize(); }, 320);
+  }
+
+  requestAnimationFrame(function () {
+    requestAnimationFrame(applyMap);
+  });
+}
+
+/* ───── HELPERS ──────────────────────────────────────── */
+function escapeHtmlTextBold(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function formatBoldPrice(p) {
+  if (p === null || p === undefined || p === '') return 'Consultar';
+  var n = typeof p === 'number' ? p : parseFloat(String(p).replace(',', '.'));
+  if (!Number.isFinite(n)) return 'Consultar';
+  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits:0 }).format(n);
+}
+
+function buildDirectionsUrlBold(raw) {
+  raw = raw || {};
+  var manual = (raw.google_maps_url || '').trim();
+  if (manual) return manual;
+  var mlat = raw.map_lat;
+  var mlon = raw.map_lon;
+  var la = typeof mlat === 'number' ? mlat : parseFloat(mlat);
+  var lo = typeof mlon === 'number' ? mlon : parseFloat(mlon);
+  if (Number.isFinite(la) && Number.isFinite(lo)) {
+    return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(la + ',' + lo);
+  }
+  var addr = (raw.direccion || '').trim();
+  if (addr) return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
+  return '';
+}
+
+function syncBoldTemplateExtensions(raw) {
+  raw = raw || {};
+  var isPro = raw.is_pro === true || raw.is_pro === 'true' || raw.is_pro === 1;
+
+  var branding = document.getElementById('tpl-platform-branding');
+  if (branding) branding.style.display = isPro ? 'none' : '';
+
+  var services = Array.isArray(raw.services)
+    ? raw.services.filter(function (s) { return s && String(s.name || '').trim(); })
+    : [];
+  var sec = document.getElementById('servicios');
+  var list = document.getElementById('tplServicesList');
+  var navSvc = document.getElementById('tplNavServicios');
+  var footSvc = document.getElementById('footNavServicios');
+  if (sec && list) {
+    if (services.length === 0) {
+      sec.style.display = 'none';
+      list.innerHTML = '';
+      if (navSvc) navSvc.style.display = 'none';
+      if (footSvc) footSvc.style.display = 'none';
+    } else {
+      sec.style.display = '';
+      if (navSvc) navSvc.style.display = '';
+      if (footSvc) footSvc.style.display = '';
+      list.innerHTML = services
+        .slice(0, 9)
+        .map(function (s, i) {
+          var num = String(i + 1).padStart(2, '0');
+          var nm = escapeHtmlTextBold(String(s.name || ''));
+          var pr = escapeHtmlTextBold(formatBoldPrice(s.price));
+          var dc = s.description && String(s.description).trim();
+          var descHtml = dc
+            ? '<p>' + escapeHtmlTextBold(String(s.description)) + '</p>'
+            : '<p>&nbsp;</p>';
+          return (
+            '<div class="dish">' +
+            '<div class="dish-head">' +
+            '<span class="dish-name display">' + nm + '</span>' +
+            '<span class="dish-dots"></span>' +
+            '<span class="dish-price">' + pr + '</span>' +
+            '</div>' +
+            (dc ? '<p class="dish-desc">' + escapeHtmlTextBold(String(s.description)) + '</p>' : '') +
+            '</div>'
+          );
+        })
+        .join('');
+    }
+  }
+
+  var mapsUrl = buildDirectionsUrlBold(raw);
+  var mapsRow = document.getElementById('mapDirectionsRow');
+  var mapsA = document.getElementById('tplMapsExternalLink');
+  if (mapsRow && mapsA) {
+    if (mapsUrl) {
+      mapsRow.classList.add('is-visible');
+      mapsA.href = mapsUrl;
+    } else {
+      mapsRow.classList.remove('is-visible');
+      mapsA.removeAttribute('href');
+    }
+  }
+
+  var gUrl = (raw.google_business_url || '').trim();
+  var gSection = document.getElementById('opiniones');
+  var gLink = document.getElementById('tplGbizLink');
+  var navOp = document.getElementById('tplNavOpiniones');
+  var footOp = document.getElementById('footNavOpiniones');
+  if (gSection && gLink) {
+    if (gUrl) {
+      gSection.classList.add('is-visible');
+      gLink.href = gUrl;
+      if (navOp) navOp.style.display = '';
+      if (footOp) footOp.style.display = '';
+    } else {
+      gSection.classList.remove('is-visible');
+      gLink.removeAttribute('href');
+      if (navOp) navOp.style.display = 'none';
+      if (footOp) footOp.style.display = 'none';
+    }
+  }
+
+  var vcEnabled = raw.vcard_enabled === true || raw.vcard_enabled === 'true' || raw.vcard_enabled === 1;
+  var vcUrl = (raw.vcard_download_url || '').trim();
+  var vcWrap = document.getElementById('tplVcardWrap');
+  var vcA = document.getElementById('tplVcardLink');
+  if (vcWrap && vcA) {
+    if (vcEnabled && vcUrl) {
+      vcWrap.classList.add('is-visible');
+      vcA.href = vcUrl;
+    } else {
+      vcWrap.classList.remove('is-visible');
+      vcA.removeAttribute('href');
+    }
+  }
+
+  var LW_DEFAULT_SOCIAL_BOLD = {
+    instagram: 'https://www.instagram.com/localweb.es',
+    tiktok: 'https://www.tiktok.com/@localweb',
+    facebook: 'https://www.facebook.com/localweb'
+  };
+  function boldResolveSocialHref(raw, key, fallback) {
+    var u = (raw[key] || '').trim();
+    return u || fallback || '#';
+  }
+  var igEl = document.getElementById('tplSocialInstagram');
+  var ttEl = document.getElementById('tplSocialTiktok');
+  var fbEl = document.getElementById('tplSocialFacebook');
+  if (igEl) igEl.href = boldResolveSocialHref(raw, 'instagram_url', LW_DEFAULT_SOCIAL_BOLD.instagram);
+  if (ttEl) ttEl.href = boldResolveSocialHref(raw, 'tiktok_url', LW_DEFAULT_SOCIAL_BOLD.tiktok);
+  if (fbEl) fbEl.href = boldResolveSocialHref(raw, 'facebook_url', LW_DEFAULT_SOCIAL_BOLD.facebook);
+}
+
+/* ───── HORARIO render + estado abierto/cerrado ──────── */
+function renderBoldSchedule() {
+  var now = new Date();
+  var today = now.getDay();
+
+  var wrap = document.getElementById('schedule');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  var ordered = SCHEDULE.slice().sort(function (a, b) {
+    return ((a.idx + 6) % 7) - ((b.idx + 6) % 7);
+  });
+  ordered.forEach(function (d) {
+    var isToday = d.idx === today;
+    var openDay = Boolean(d.open);
+    var row = document.createElement('div');
+    row.className = 'schedule-row' + (isToday ? ' today' : '');
+    var dayLabel = isToday ? d.name + ' · hoy' : d.name;
+    row.innerHTML =
+      '<span class="day">' + dayLabel + '</span>' +
+      (openDay
+        ? '<span class="time">' + d.open + ' – ' + d.close + '</span>'
+        : '<span class="time closed">descansamos</span>');
+    wrap.appendChild(row);
+  });
+
+  var todayD = SCHEDULE.find(function (d) { return d.idx === today; });
+  var openToday = Boolean(todayD && todayD.open);
+  var pill = document.getElementById('statusPill');
+  var txt = document.getElementById('statusText');
+  if (pill && txt) {
+    pill.classList.toggle('open', openToday);
+    pill.classList.toggle('closed', !openToday);
+    txt.textContent = openToday ? 'Abierto hoy · cierra ' + todayD.close : 'Cerrado hoy';
+  }
+
+  var heroPill = document.getElementById('heroStatusPill');
+  var heroTxt = document.getElementById('heroStatusText');
+  if (heroPill && heroTxt) {
+    heroTxt.textContent = openToday
+      ? 'Abierto · cierra ' + todayD.close
+      : 'Cerrado hoy';
+    heroPill.style.color = openToday ? 'var(--terracotta)' : '#999';
+    var dot = heroPill.querySelector('.dot');
+    if (dot) {
+      dot.style.background = openToday ? 'var(--terracotta)' : '#999';
+      dot.style.animation = openToday ? 'pulse 2s infinite' : 'none';
+    }
+  }
+}
+
+function scrollEmbedPreviewToHash() {
+  if (new URLSearchParams(window.location.search).get('embed') !== '1') return;
+  var id = (window.location.hash || '').replace(/^#/, '');
+  if (!id) return;
+  function doScroll() {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var nav = document.querySelector('nav.nav');
+    var offset = nav ? Math.round(nav.getBoundingClientRect().height) + 10 : 10;
+    var y = el.getBoundingClientRect().top + window.pageYOffset - offset;
+    window.scrollTo({ top: Math.max(0, y), behavior: 'auto' });
+  }
+  requestAnimationFrame(function () { requestAnimationFrame(doScroll); });
+  setTimeout(doScroll, 80);
+  setTimeout(doScroll, 280);
+}
+
+/* ───── APPLY LIVE PREVIEW DATA ──────────────────────── */
+function applyLivePreviewData(raw, opts) {
+  opts = opts || {};
+  var defaults = {
+    name: 'Tu negocio',
+    tagline: 'Tagline corto que describe lo que hacéis.',
+    aboutText: 'Descripción del negocio: quiénes sois, qué hacéis y por qué importa.',
+    phoneWa: '',
+  };
+
+  var name = (raw && raw.nombre ? String(raw.nombre).trim() : '') || defaults.name;
+  var tagline = (raw && raw.tagline ? String(raw.tagline).trim() : '') || defaults.tagline;
+  var phoneRaw = (raw && raw.telefono ? String(raw.telefono).trim() : '');
+  var phoneWa = phoneRaw.replace(/\D/g, '') || defaults.phoneWa;
+  var descripcion = (raw && raw.descripcion ? String(raw.descripcion).trim() : '');
+  var direccion = (raw && raw.direccion ? String(raw.direccion).trim() : '');
+  var correo = (raw && raw.correo ? String(raw.correo).trim() : '');
+
+  document.title = name + ' — LocalWeb';
+
+  var logoUrl = (raw && raw.logo_url ? String(raw.logo_url).trim() : '');
+  var navEl = document.querySelector('nav.nav');
+  if (navEl) {
+    if (logoUrl) {
+      var lsc = (raw && typeof raw.logo_scale === 'number' && isFinite(raw.logo_scale)) ? raw.logo_scale : 1;
+      if (lsc < 0.45) lsc = 0.45;
+      if (lsc > 1.5) lsc = 1.5;
+      navEl.style.setProperty('--lw-logo-scale', String(lsc));
+    } else {
+      navEl.style.removeProperty('--lw-logo-scale');
+    }
+  }
+  var navBrandWrap = document.getElementById('navBrandWrap');
+  var navBrandLogo = document.getElementById('navBrandLogo');
+  var navBrandName = document.getElementById('navBrandName');
+  if (navBrandWrap && navBrandLogo && navBrandName) {
+    if (logoUrl) {
+      navBrandLogo.src = logoUrl;
+      navBrandLogo.alt = name + ' · logo';
+      navBrandLogo.hidden = false;
+      navBrandLogo.style.display = 'block';
+      navBrandName.style.display = 'none';
+      navBrandWrap.classList.add('brand-has-img');
+    } else {
+      navBrandLogo.removeAttribute('src');
+      navBrandLogo.hidden = true;
+      navBrandLogo.style.display = 'none';
+      navBrandName.style.display = '';
+      navBrandWrap.classList.remove('brand-has-img');
+    }
+  }
+  if (navBrandName) navBrandName.textContent = name;
+
+  var heroMetaBrand = document.getElementById('heroMetaBrand');
+  if (heroMetaBrand) heroMetaBrand.textContent = name;
+
+  var heroTitle = document.getElementById('heroTitle');
+  if (heroTitle) heroTitle.textContent = name;
+
+  var heroTagline = document.getElementById('heroTagline');
+  if (heroTagline) heroTagline.textContent = tagline;
+
+  var aboutTitle = document.getElementById('aboutTitle');
+  if (aboutTitle) aboutTitle.textContent = name + '.';
+
+  var aboutDescripcion = document.getElementById('aboutDescripcion');
+  if (aboutDescripcion) aboutDescripcion.textContent = descripcion || defaults.aboutText;
+
+  var footBrand = document.getElementById('footBrand');
+  if (footBrand) {
+    var parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      var first = parts[0];
+      var rest = parts.slice(1).join(' ');
+      footBrand.innerHTML = escapeHtmlTextBold(first) + '<br/><span class="accent">' + escapeHtmlTextBold(rest) + '</span>';
+    } else {
+      footBrand.innerHTML = '<span class="accent">' + escapeHtmlTextBold(name) + '</span>';
+    }
+  }
+
+  var footTagline = document.getElementById('footTagline');
+  if (footTagline) footTagline.textContent = tagline;
+
+  var footBottomBrand = document.getElementById('footBottomBrand');
+  if (footBottomBrand) {
+    footBottomBrand.textContent = '© ' + new Date().getFullYear() + ' · ' + name;
+  }
+
+  var ctaTitle = document.getElementById('ctaTitle');
+  if (ctaTitle && !ctaTitle.dataset.userOverride) {
+    ctaTitle.innerHTML = 'Mesa <span class="amp">&amp;</span> <em>copa</em><br/>para cuando quieras.';
+  }
+
+  document.querySelectorAll('[data-wa-link]').forEach(function (el) {
+    if (!(el instanceof HTMLAnchorElement)) return;
+    el.href = phoneWa ? 'https://wa.me/' + phoneWa : 'https://wa.me/';
+  });
+  var telHref = phoneWa ? 'tel:+' + phoneWa : 'tel:';
+  document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+    if (!(el instanceof HTMLAnchorElement)) return;
+    el.href = telHref;
+  });
+  document.querySelectorAll('[data-phone-display]').forEach(function (el) {
+    if (phoneRaw) el.textContent = phoneRaw;
+    else el.textContent = 'Tu teléfono';
+  });
+
+  var contactEmailLink = document.getElementById('contactEmailLink');
+  var contactEmailDisplay = document.getElementById('contactEmailDisplay');
+  if (contactEmailLink && contactEmailDisplay) {
+    if (correo) {
+      contactEmailLink.href = 'mailto:' + correo;
+      contactEmailDisplay.textContent = correo;
+      contactEmailLink.hidden = false;
+    } else {
+      contactEmailDisplay.textContent = '';
+      contactEmailLink.hidden = true;
+    }
+  }
+  var footEmailRow = document.getElementById('footEmailRow');
+  var footEmailLink = document.getElementById('footEmailLink');
+  var footEmailDisplay = document.getElementById('footEmailDisplay');
+  if (footEmailRow && footEmailLink && footEmailDisplay) {
+    if (correo) {
+      footEmailLink.href = 'mailto:' + correo;
+      footEmailDisplay.textContent = correo;
+      footEmailRow.hidden = false;
+    } else {
+      footEmailDisplay.textContent = '';
+      footEmailRow.hidden = true;
+    }
+  }
+
+  var contactAddressRow = document.getElementById('contactAddressRow');
+  var contactAddressText = document.getElementById('contactAddressText');
+  if (contactAddressRow && contactAddressText) {
+    if (direccion) {
+      contactAddressText.textContent = direccion;
+      contactAddressRow.hidden = false;
+      var dirUrl = buildDirectionsUrlBold(raw);
+      if (dirUrl) {
+        contactAddressRow.href = dirUrl;
+        contactAddressRow.target = '_blank';
+        contactAddressRow.rel = 'noopener noreferrer';
+      }
+    } else {
+      contactAddressText.textContent = '';
+      contactAddressRow.hidden = true;
+    }
+  }
+  var footAddressRow = document.getElementById('footAddressRow');
+  var footAddressLink = document.getElementById('footAddressLink');
+  var footAddressText = document.getElementById('footAddressText');
+  if (footAddressRow && footAddressLink && footAddressText) {
+    if (direccion) {
+      footAddressText.textContent = direccion;
+      footAddressRow.hidden = false;
+      var dirUrl2 = buildDirectionsUrlBold(raw);
+      if (dirUrl2) {
+        footAddressLink.href = dirUrl2;
+        footAddressLink.target = '_blank';
+        footAddressLink.rel = 'noopener noreferrer';
+      } else {
+        footAddressLink.href = '#';
+      }
+    } else {
+      footAddressText.textContent = '';
+      footAddressRow.hidden = true;
+    }
+  }
+
+  updateBoldHeroPhoto(raw || {});
+  updateBoldAboutPhoto(raw || {});
+
+  var galeria = (raw && Array.isArray(raw.galeria)) ? raw.galeria.filter(Boolean) : [];
+  renderBoldGallery(galeria);
+  var isPro = raw && (raw.is_pro === true || raw.is_pro === 'true' || raw.is_pro === 1);
+  updateBoldGallerySlider(isPro);
+
+  updateBoldTicker(raw || {});
+
+  var mlat = raw && raw.map_lat;
+  var mlon = raw && raw.map_lon;
+  var latN = typeof mlat === 'number' ? mlat : parseFloat(mlat);
+  var lonN = typeof mlon === 'number' ? mlon : parseFloat(mlon);
+  if (Number.isFinite(latN) && Number.isFinite(lonN)) {
+    updateBoldPreviewMap(latN, lonN);
+  } else {
+    updateBoldPreviewMap(NaN, NaN);
+  }
+
+  syncBoldScheduleFromPreview(raw && raw.horario);
+  renderBoldSchedule();
+
+  syncBoldTemplateExtensions(raw || {});
+
+  if (opts.alignToHash) scrollEmbedPreviewToHash();
+}
+
+/* ───── INIT FROM QUERY (fallback dev) ──────────────── */
+(function initLivePreviewFromQuery() {
+  var params = new URLSearchParams(window.location.search);
+  if (!params.has('preview')) {
+    syncBoldScheduleFromPreview(null);
+    renderBoldSchedule();
+    renderBoldGallery([]);
+    return;
+  }
+  applyLivePreviewData({
+    nombre: params.get('nombre') || '',
+    tagline: params.get('tagline') || '',
+    telefono: params.get('telefono') || '',
+    portada: params.get('portada') || '',
+    descripcion: params.get('descripcion') || '',
+    foto_equipo: params.get('foto_equipo') || '',
+    direccion: params.get('direccion') || '',
+    correo: params.get('correo') || '',
+  }, { alignToHash: !!window.location.hash.replace(/^#/, '') });
+})();
+
+/**
+ * Mensajería SPA → template.
+ * Whitelist de orígenes: el SPA padre nos pasa su `parentOrigin` en el query string al
+ * cargar el iframe; cualquier mensaje cuyo `event.origin` no coincida se descarta.
+ * Si `parentOrigin` está ausente (apertura directa del HTML, ej. previsualización local),
+ * caemos a la lista de orígenes de desarrollo.
+ */
+(function initSecureMessageListener() {
+  var queryOrigin = new URLSearchParams(location.search).get('parentOrigin') || '';
+  var DEV_ORIGINS = [
+    'http://localhost',
+    'http://localhost:5173',
+    'http://localhost:4173',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:4173',
+  ];
+  function isAllowedOrigin(origin) {
+    if (queryOrigin) return origin === queryOrigin;
+    return DEV_ORIGINS.indexOf(origin) !== -1;
+  }
+  window.addEventListener('message', function (event) {
+    if (!isAllowedOrigin(event.origin)) return;
+    var data = event.data;
+    if (!data || data.type !== 'lw:onboarding-preview') return;
+    applyLivePreviewData(data.payload || {}, { alignToHash: data.alignToHash === true });
+  });
+})();
+
+/* ───── NAV ACTIVO (IntersectionObserver) ────────────── */
+(function initBoldActiveNav() {
+  var navList = document.getElementById('boldNavList');
+  if (!navList) return;
+  var links = Array.prototype.slice.call(navList.querySelectorAll('a[data-nav-link]'));
+  if (links.length === 0) return;
+
+  // Mapa hash → enlace
+  var byId = {};
+  links.forEach(function (a) {
+    var key = a.getAttribute('data-nav-link');
+    if (key) byId[key] = a;
+  });
+
+  // IDs reales que existen en el DOM
+  var ids = Object.keys(byId).filter(function (id) {
+    return document.getElementById(id) != null;
+  });
+  if (ids.length === 0) return;
+
+  function setActive(id) {
+    links.forEach(function (a) {
+      a.classList.toggle('is-active', a.getAttribute('data-nav-link') === id);
+    });
+  }
+
+  // IntersectionObserver: el ítem activo es la sección cuya parte superior está
+  // más cerca del 25% superior del viewport
+  var visible = new Map();
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) visible.set(e.target.id, e.intersectionRatio);
+      else visible.delete(e.target.id);
+    });
+    // Elegir la sección con mayor ratio visible
+    var bestId = null;
+    var bestRatio = 0;
+    visible.forEach(function (ratio, id) {
+      if (ratio > bestRatio) { bestRatio = ratio; bestId = id; }
+    });
+    if (bestId) setActive(bestId);
+  }, {
+    // Margen superior negativo para que la sección "active" cambie cuando
+    // su título cruza un 25% por debajo del top del viewport
+    rootMargin: '-25% 0px -55% 0px',
+    threshold: [0, 0.1, 0.25, 0.5, 0.75, 1],
+  });
+
+  ids.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) io.observe(el);
+  });
+
+  // Click en un enlace marca su sección como activa de inmediato (UX inmediato
+  // antes de que el smooth scroll termine).
+  links.forEach(function (a) {
+    a.addEventListener('click', function () {
+      var id = a.getAttribute('data-nav-link');
+      if (id) setActive(id);
     });
   });
+
+  // Estado inicial: si hay hash, marcarlo
+  var initial = (window.location.hash || '').replace(/^#/, '');
+  if (initial && byId[initial]) setActive(initial);
+})();
+
+/* ───── MENÚ MÓVIL (hamburguesa) ─────────────────────── */
+(function initBoldMobileMenu() {
+  var nav = document.querySelector('nav.nav');
+  var btn = document.getElementById('navMenuToggle');
+  var list = document.getElementById('boldNavList');
+  if (!nav || !btn || !list) return;
+
+  function setOpen(open) {
+    nav.classList.toggle('is-open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    btn.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+  }
+
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    setOpen(!nav.classList.contains('is-open'));
+  });
+
+  // Cerrar al pulsar un enlace del menú
+  list.addEventListener('click', function (e) {
+    var t = e.target;
+    while (t && t !== list) {
+      if (t.tagName === 'A') { setOpen(false); break; }
+      t = t.parentNode;
+    }
+  });
+
+  // Cerrar al hacer click fuera del nav
+  document.addEventListener('click', function (e) {
+    if (!nav.classList.contains('is-open')) return;
+    if (nav.contains(e.target)) return;
+    setOpen(false);
+  });
+
+  // Cerrar con Escape
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && nav.classList.contains('is-open')) setOpen(false);
+  });
+
+  // Si se redimensiona a desktop, cerrar (por si quedó abierto)
+  var mq = window.matchMedia('(min-width:881px)');
+  function onChange(ev) { if (ev.matches) setOpen(false); }
+  if (mq.addEventListener) mq.addEventListener('change', onChange);
+  else if (mq.addListener) mq.addListener(onChange);
+})();
+
+setInterval(renderBoldSchedule, 60000);
+
+
+/* ─── TAVOLA-WARM: Override hero/about photo handling ─── */
+(function() {
+  function setPhotoImg(el, src) {
+    if (!el) return;
+    if (src) {
+      el.src = src;
+      el.hidden = false;
+      el.style.display = 'block';
+    } else {
+      el.removeAttribute('src');
+      el.hidden = true;
+      el.style.display = 'none';
+    }
+  }
+
+  updateBoldHeroPhoto = function(raw) {
+    var hasPortada = raw && Object.prototype.hasOwnProperty.call(raw, 'portada');
+    if (!hasPortada) return;
+    var src = (raw && raw.portada ? String(raw.portada).trim() : '');
+    setPhotoImg(document.querySelector('.photo.p1 img'), src);
+    var src2 = (raw && raw.portada_2 ? String(raw.portada_2).trim() : '');
+    setPhotoImg(document.getElementById('heroPhotoImg2'), src2);
+    var src3 = (raw && raw.portada_3 ? String(raw.portada_3).trim() : '');
+    setPhotoImg(document.getElementById('heroPhotoImg3'), src3);
+  };
+
+  var origAbout = updateBoldAboutPhoto;
+  updateBoldAboutPhoto = function(raw) {
+    var hasFoto = raw && Object.prototype.hasOwnProperty.call(raw, 'foto_equipo');
+    if (!hasFoto) return;
+    var src = (raw && raw.foto_equipo ? String(raw.foto_equipo).trim() : '');
+    var storyImg = document.getElementById('storyImgDiv');
+    if (storyImg) {
+      if (src) {
+        storyImg.style.backgroundImage = 'url(' + src + ')';
+      } else {
+        storyImg.style.backgroundImage = '';
+      }
+    }
+  };
 })();
 </script>
 <div id="lw-gallery-lightbox" class="lw-gallery-lightbox" hidden aria-modal="true" role="dialog" aria-label="Imagen a tamaño completo">
@@ -687,16 +1388,12 @@
   var prevOverflow='';
   function openLb(src,alt){
     if(!src)return;
-    imgEl.src=src;
-    imgEl.alt=alt||'';
-    lb.hidden=false;
+    imgEl.src=src;imgEl.alt=alt||'';lb.hidden=false;
     prevOverflow=document.body.style.overflow;
     document.body.style.overflow='hidden';
   }
   function closeLb(){
-    lb.hidden=true;
-    imgEl.removeAttribute('src');
-    imgEl.alt='';
+    lb.hidden=true;imgEl.removeAttribute('src');imgEl.alt='';
     document.body.style.overflow=prevOverflow||'';
   }
   document.addEventListener('click',function(e){
@@ -705,23 +1402,21 @@
     if(e.target.closest('#lw-gallery-lightbox'))return;
     var im=e.target.closest('img');
     if(im&&sec.contains(im)){
-      e.preventDefault();
-      e.stopPropagation();
+      e.preventDefault();e.stopPropagation();
       openLb(im.currentSrc||im.src,im.alt||'');
       return;
     }
     var tile=e.target.closest('[data-lightbox-src]');
     if(tile&&sec.contains(tile)){
       var u=tile.getAttribute('data-lightbox-src');
-      if(u){ e.preventDefault(); openLb(u,''); }
+      if(u){e.preventDefault();openLb(u,'');}
     }
   });
   document.addEventListener('keydown',function(e){
     if(e.key==='Escape'&&!lb.hidden)closeLb();
     if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.closest){
       var t=e.target.closest('#galeria [data-lightbox-src]');
-      var g=document.getElementById('galeria');
-      if(t&&g&&g.contains(t)){
+      if(t&&document.getElementById('galeria')&&document.getElementById('galeria').contains(t)){
         e.preventDefault();
         var u=t.getAttribute('data-lightbox-src');
         if(u)openLb(u,'');

@@ -3,10 +3,15 @@
 namespace App\Http\Controllers\Api\Public;
 
 use App\Models\Business;
+use App\Services\PublicPageUrlService;
 use Symfony\Component\HttpFoundation\Response;
 
 class VCardController
 {
+    public function __construct(
+        private readonly PublicPageUrlService $urls,
+    ) {}
+
     public function download(string $subdomain): Response
     {
         $business = Business::query()
@@ -23,7 +28,7 @@ class VCardController
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        $publicUrl = $this->publicPageUrl($business->subdomain);
+        $publicUrl = $this->urls->forBusiness($business);
         $body = $this->buildVcard($business, $publicUrl);
 
         $filename = preg_replace('/[^a-z0-9_-]+/i', '-', $business->subdomain).'.vcf';
@@ -32,17 +37,6 @@ class VCardController
             'Content-Type' => 'text/vcard; charset=utf-8',
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
-    }
-
-    private function publicPageUrl(string $subdomain): string
-    {
-        $base = rtrim((string) config('app.url'), '/');
-        $parts = parse_url($base) ?: [];
-        $scheme = $parts['scheme'] ?? 'http';
-        $host = $parts['host'] ?? 'localhost';
-        $port = isset($parts['port']) ? ':'.$parts['port'] : '';
-
-        return "{$scheme}://{$subdomain}.{$host}{$port}";
     }
 
     private function buildVcard(Business $business, string $publicUrl): string

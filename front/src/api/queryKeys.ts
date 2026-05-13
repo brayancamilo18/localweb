@@ -20,4 +20,14 @@ export const keys = {
     templates: ['dashboard', 'templates'] as const,
   },
   public: (subdomain: string) => ['public', subdomain] as const,
+  account: {
+    profile: ['account', 'profile'] as const,
+    invoices: ['account', 'invoices'] as const,
+    paymentMethod: ['account', 'payment-method'] as const,
+    upcoming: ['account', 'upcoming'] as const,
+    billingStatus: ['account', 'billing-status'] as const,
+  },
+  qr: {
+    info: ['qr', 'info'] as const,
+  },
 }

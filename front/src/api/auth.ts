@@ -37,3 +37,23 @@ export async function resendEmailVerification(): Promise<{ message: string; alre
     alreadyVerified: response.status === 200,
   }
 }
+
+export async function forgotPassword(email: string): Promise<{ message: string }> {
+  const response = await apiClient.post<{ message: string }>('/auth/forgot-password', { email })
+  return { message: response.data?.message ?? '' }
+}
+
+export async function resetPassword(
+  token: string,
+  email: string,
+  password: string,
+  password_confirmation: string,
+): Promise<{ message: string }> {
+  const response = await apiClient.post<{ message: string }>('/auth/reset-password', {
+    token,
+    email,
+    password,
+    password_confirmation,
+  })
+  return { message: response.data?.message ?? '' }
+}

@@ -23,26 +23,25 @@ html, body, #root {
   box-sizing: border-box;
 }
 
-/* LocalWeb — Design Tokens */
+/* ONEZ — Design Tokens */
 :root {
-  /* Color · neutrals (cool slate) */
-  --lw-bg:        #F8FAFC;
+  /* Color · neutrals (warm naturals) */
+  --lw-bg:        #FAFAF7;
   --lw-bg-elev:   #FFFFFF;
-  --lw-surface:   #F1F5F9;
-  --lw-text:      #0F172A;
-  --lw-text-2:    #334155;
-  /* Tonos secundarios más oscuros para legibilidad sobre fondos claros (evitar “gris claro sobre gris claro”) */
-  --lw-text-3:    #475569;
-  --lw-text-4:    #64748B;
-  --lw-border:    #E2E8F0;
-  --lw-border-2:  #CBD5E1;
-  --lw-overlay:   rgba(15, 23, 42, .55);
+  --lw-surface:   #F3F2EF;
+  --lw-text:      #0B1F1A;
+  --lw-text-2:    #2C2C2A;
+  --lw-text-3:    #888780;
+  --lw-text-4:    #A8A7A0;
+  --lw-border:    #E8E6E1;
+  --lw-border-2:  #D4D2CC;
+  --lw-overlay:   rgba(11, 31, 26, .55);
 
-  /* Color · accent (default indigo) */
-  --lw-accent:        #2563EB;
-  --lw-accent-hover:  #1D4ED8;
-  --lw-accent-soft:   #EFF4FF;
-  --lw-accent-ring:   rgba(37, 99, 235, .14);
+  /* Color · accent (Verde Savia) */
+  --lw-accent:        #0F6E56;
+  --lw-accent-hover:  #0A5A45;
+  --lw-accent-soft:   #E1F5EE;
+  --lw-accent-ring:   rgba(15, 110, 86, .14);
 
   /* Color · semantic */
   --lw-success:       #16A34A;
@@ -51,12 +50,13 @@ html, body, #root {
   --lw-warning-soft:  #FEF3C7;
   --lw-danger:        #DC2626;
   --lw-danger-soft:   #FEF2F2;
-  --lw-pro:           #B45309;     /* ámbar oscuro para PRO */
-  --lw-pro-soft:      #FEF3C7;
+  --lw-pro:           #0F6E56;
+  --lw-pro-soft:      #E1F5EE;
 
   /* Type */
   --lw-font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --lw-font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --lw-font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   /* Radius */
   --lw-r-sm: 6px;
@@ -64,10 +64,10 @@ html, body, #root {
   --lw-r-lg: 14px;
   --lw-r-xl: 20px;
 
-  /* Shadows · solo funcionales */
-  --lw-shadow-1: 0 1px 2px rgba(15,23,42,.04);
-  --lw-shadow-2: 0 1px 3px rgba(15,23,42,.06), 0 4px 12px rgba(15,23,42,.04);
-  --lw-shadow-pop: 0 8px 24px rgba(15,23,42,.10), 0 1px 2px rgba(15,23,42,.06);
+  /* Shadows */
+  --lw-shadow-1: 0 1px 2px rgba(11,31,26,.04);
+  --lw-shadow-2: 0 1px 3px rgba(11,31,26,.06), 0 4px 12px rgba(11,31,26,.04);
+  --lw-shadow-pop: 0 8px 24px rgba(11,31,26,.10), 0 1px 2px rgba(11,31,26,.06);
 
   /* Spacing scale (4-based) */
   --lw-s1: 4px;  --lw-s2: 8px;  --lw-s3: 12px; --lw-s4: 16px;
@@ -75,7 +75,7 @@ html, body, #root {
 }
 
 /*
- * Color de documento LocalWeb: evita que reglas globales (p. ej. index.css + prefers-color-scheme: dark)
+ * Color de documento ONEZ: evita que reglas globales (p. ej. index.css + prefers-color-scheme: dark)
  * dejen el texto heredado en gris claro sobre --lw-bg / --lw-surface claros.
  */
 html {
@@ -110,10 +110,10 @@ textarea::placeholder {
 
 /* Striped placeholder fill (imágenes) */
 .lw-stripes {
-  background-color: #F1F5F9;
+  background-color: #F3F2EF;
   background-image: repeating-linear-gradient(
     135deg,
-    rgba(15,23,42,.045) 0 1px,
+    rgba(11,31,26,.045) 0 1px,
     transparent 1px 9px
   );
   color: var(--lw-text-3);
@@ -124,7 +124,7 @@ textarea::placeholder {
   letter-spacing: .02em;
 }
 .lw-stripes-dark {
-  background-color: #0F172A;
+  background-color: #0B1F1A;
   background-image: repeating-linear-gradient(
     135deg,
     rgba(255,255,255,.06) 0 1px,
@@ -141,7 +141,7 @@ textarea::placeholder {
 
 /* Scrollbar inside artboards */
 .lw-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-.lw-scroll::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+.lw-scroll::-webkit-scrollbar-thumb { background: #D4D2CC; border-radius: 3px; }
 .lw-scroll::-webkit-scrollbar-track { background: transparent; }
 
 /* Animations */
@@ -158,22 +158,23 @@ textarea::placeholder {
 .lw-shimmer {
   background: linear-gradient(
     90deg,
-    #F1F5F9 0%,
-    #E2E8F0 50%,
-    #F1F5F9 100%
+    #F3F2EF 0%,
+    #E8E6E1 50%,
+    #F3F2EF 100%
   );
   background-size: 200% 100%;
   animation: lw-shimmer 1.6s ease-in-out infinite;
 }
 
 /* Tipografía utility */
-.lw-h1 { font-size: 36px; font-weight: 600; line-height: 1.1;  letter-spacing: -0.025em; color: var(--lw-text); }
-.lw-h2 { font-size: 28px; font-weight: 600; line-height: 1.15; letter-spacing: -0.02em; color: var(--lw-text); }
-.lw-h3 { font-size: 20px; font-weight: 600; line-height: 1.2;  letter-spacing: -0.01em; color: var(--lw-text); }
+.lw-h1 { font-size: 42px; font-weight: 600; line-height: 1.1;  letter-spacing: -1.5px; color: var(--lw-text); }
+.lw-h2 { font-size: 28px; font-weight: 600; line-height: 1.15; letter-spacing: -0.8px; color: var(--lw-text); }
+.lw-h3 { font-size: 20px; font-weight: 500; line-height: 1.2;  letter-spacing: 0; color: var(--lw-text); }
 .lw-h4 { font-size: 16px; font-weight: 600; line-height: 1.3; color: var(--lw-text); }
-.lw-body  { font-size: 14px; font-weight: 400; line-height: 1.5; color: var(--lw-text-2); }
-.lw-small { font-size: 12px; font-weight: 500; line-height: 1.4; color: var(--lw-text-3); }
-.lw-mono  { font: 500 11px ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: .02em; color: var(--lw-text-2); }
+.lw-body  { font-size: 16px; font-weight: 400; line-height: 1.6; color: var(--lw-text-2); }
+.lw-small { font-size: 14px; font-weight: 400; line-height: 1.4; color: var(--lw-text-3); }
+.lw-caption { font-size: 12px; font-weight: 500; line-height: 1.4; letter-spacing: 0.5px; text-transform: uppercase; color: var(--lw-text-3); }
+.lw-mono  { font: 500 11px var(--lw-font-mono, "JetBrains Mono"), ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: .02em; color: var(--lw-text-2); }
 
 /*
  * Enlace: línea animada con ::after + scaleX.
@@ -275,7 +276,7 @@ textarea::placeholder {
   max-width: 100%;
   padding: 14px 14px 20px;
   border-radius: 44px;
-  background: linear-gradient(165deg, #3d3d42 0%, #1c1c1f 42%, #121214 100%);
+  background: linear-gradient(165deg, #2C2C2A 0%, #1a1a18 42%, #0B1F1A 100%);
   box-sizing: border-box;
   height: fit-content;
   max-height: 100%;
@@ -294,13 +295,13 @@ textarea::placeholder {
   width: 118px;
   height: 28px;
   border-radius: 20px;
-  background: #0a0a0c;
+  background: #0B1F1A;
 }
 
 .lw-preview-phone-screen {
   border-radius: 32px;
   overflow: hidden;
-  background: #0f0f10;
+  background: #0B1F1A;
   width: 100%;
   /* Bisel interior blanco uniforme (todos los lados igual; evita que el borde inferior se vea más fino/apagado). */
   border: 1px solid rgba(255, 255, 255, 0.72);
@@ -566,7 +567,7 @@ textarea::placeholder {
     padding: 12px 16px max(12px, env(safe-area-inset-bottom));
     padding-left: max(16px, env(safe-area-inset-left));
     padding-right: max(16px, env(safe-area-inset-right));
-    box-shadow: 0 -8px 28px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 -8px 28px rgba(11, 31, 26, 0.08);
     gap: 10px;
   }
 

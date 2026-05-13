@@ -29,6 +29,22 @@ final class OnboardingMediaFinalizeService
                 0
             );
         }
+        if (! empty($draft['cover_path_2'])) {
+            $this->imageService->uploadImage(
+                Storage::disk('local')->path($draft['cover_path_2']),
+                $business,
+                ImageSection::Cover,
+                1
+            );
+        }
+        if (! empty($draft['cover_path_3'])) {
+            $this->imageService->uploadImage(
+                Storage::disk('local')->path($draft['cover_path_3']),
+                $business,
+                ImageSection::Cover,
+                2
+            );
+        }
         if (! empty($draft['about_photo_path'])) {
             $this->imageService->uploadImage(
                 Storage::disk('local')->path($draft['about_photo_path']),

@@ -83,14 +83,26 @@ function ProFeatureRow({ children }: { children: ReactNode }) {
   )
 }
 
-export default function Step7Plan({ errors, isLoading: busy }: WizardStepProps) {
+export default function Step7Plan({
+  errors,
+  isLoading: busy,
+  templateRequiresPro = false,
+  onChangeTemplate,
+}: WizardStepProps & {
+  templateRequiresPro?: boolean
+  onChangeTemplate?: () => void
+}) {
   const nav = useContext(WizardNavContext)
   const [plan, setPlan] = useState<'free' | 'pro' | null>(null)
   const [subdomain, setSubdomain] = useState('')
 
   useLayoutEffect(() => {
-    nav?.registerContinueEnabled?.(plan !== null)
-  }, [nav, plan])
+    if (templateRequiresPro && plan === 'free') {
+      nav?.registerContinueEnabled?.(false)
+    } else {
+      nav?.registerContinueEnabled?.(plan !== null)
+    }
+  }, [nav, plan, templateRequiresPro])
 
   useLayoutEffect(() => {
     nav?.registerContinueHandler?.(() => ({
@@ -107,9 +119,51 @@ export default function Step7Plan({ errors, isLoading: busy }: WizardStepProps) 
           Elige tu plan
         </h1>
         <p className="lw-body" style={{ margin: '10px 0 0', fontSize: 15, color: 'var(--lw-text-2)', maxWidth: 520 }}>
-          Empieza gratis o desbloquea todo el potencial de tu página
+          {templateRequiresPro
+            ? 'Has elegido una plantilla PRO. Necesitas el plan Pro para usarla.'
+            : 'Empieza gratis o desbloquea todo el potencial de tu página'}
         </p>
       </header>
+
+      {templateRequiresPro && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            padding: '14px 18px',
+            background: 'var(--lw-pro-soft, #FFF7ED)',
+            border: '1px solid var(--lw-warning, #F59E0B)',
+            borderRadius: 'var(--lw-r, 8px)',
+            fontSize: 13,
+            lineHeight: 1.45,
+            color: 'var(--lw-text-1)',
+          }}
+        >
+          <Icon name="sparkle" size={18} color="var(--lw-warning, #F59E0B)" style={{ flexShrink: 0 }} />
+          <div>
+            <strong>Plantilla PRO seleccionada.</strong>{' '}
+            Contrata el plan Pro para continuar o{' '}
+            <button
+              type="button"
+              onClick={onChangeTemplate}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                color: ACCENT,
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                font: 'inherit',
+                fontWeight: 600,
+              }}
+            >
+              cambia a una plantilla gratuita
+            </button>
+            .
+          </div>
+        </div>
+      )}
 
       <div
         style={{
@@ -159,10 +213,11 @@ export default function Step7Plan({ errors, isLoading: busy }: WizardStepProps) 
             size="lg"
             fullWidth
             type="button"
-            disabled={busy}
+            disabled={busy || templateRequiresPro}
             onClick={() => setPlan('free')}
+            style={templateRequiresPro ? { opacity: 0.45, cursor: 'not-allowed' } : undefined}
           >
-            Continuar gratis
+            {templateRequiresPro ? 'No disponible con esta plantilla' : 'Continuar gratis'}
           </Btn>
         </Card>
 

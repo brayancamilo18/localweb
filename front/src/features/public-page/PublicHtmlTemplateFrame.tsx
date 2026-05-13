@@ -6,6 +6,11 @@ const TEMPLATE_SRC: Record<string, string> = {
   'noir-elite': '/templates/noir-elite.html',
   'bloom-studio': '/templates/bloom-studio.html',
   'urban-bold': '/templates/urban-bold.html',
+  'coastal-calm': '/templates/coastal-calm.html',
+  'craft-pro': '/templates/craft-pro.html',
+  'tavola-warm': '/templates/tavola-warm.html',
+  'tech-sleek': '/templates/tech-sleek.html',
+  'trust-clinic': '/templates/trust-clinic.html',
 }
 
 type Props = {

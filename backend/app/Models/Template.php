@@ -14,6 +14,7 @@ class Template extends Model
         'primary_color',
         'is_active',
         'requires_pro',
+        'hero_photo_slots',
     ];
 
     protected function casts(): array
@@ -21,6 +22,7 @@ class Template extends Model
         return [
             'is_active' => 'boolean',
             'requires_pro' => 'boolean',
+            'hero_photo_slots' => 'integer',
         ];
     }
 

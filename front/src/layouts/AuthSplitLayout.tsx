@@ -18,7 +18,7 @@ function LoginHero() {
         }}
       >
         <Icon name="sparkle" size={14} color="rgba(255,255,255,0.96)" />
-        +12.000 negocios confían en LocalWeb
+        +12.000 negocios confían en ONEZ
       </div>
       <div style={{ position: 'relative' }}>
         <h2
@@ -35,7 +35,7 @@ function LoginHero() {
           Tu web profesional en menos de 10 minutos.
         </h2>
         <p style={{ fontSize: 15, lineHeight: 1.6, maxWidth: 380, color: 'rgba(255,255,255,0.94)' }}>
-          Sin saber programar. Sin diseñador. Solo responde unas preguntas y LocalWeb hace el resto.
+          Sin saber programar. Sin diseñador. Solo responde unas preguntas y ONEZ hace el resto.
         </p>
       </div>
       <div
@@ -135,7 +135,7 @@ function SignupHero() {
         style={{
           position: 'relative',
           padding: '16px 18px',
-          background: 'rgba(15,23,42,0.28)',
+          background: 'rgba(11,31,26,0.35)',
           borderRadius: 'var(--lw-r)',
           border: '1px solid rgba(255,255,255,0.2)',
           backdropFilter: 'blur(8px)',
@@ -176,28 +176,25 @@ export function AuthSplitLayout({ hero, headerExtra, children }: AuthSplitLayout
           color: 'var(--lw-text)',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: headerExtra ? 'space-between' : 'flex-start',
-            alignItems: 'center',
-            gap: 16,
-            marginBottom: 24,
-            flexWrap: 'wrap',
-          }}
-        >
-          <Logo size={26} />
-          {headerExtra}
+        <div style={{ maxWidth: 400, width: '100%' }}>
+          <Logo size={220} />
+          {headerExtra && (
+            <div style={{ marginTop: 12 }}>{headerExtra}</div>
+          )}
         </div>
-        {children}
-        <span className="lw-small" style={{ marginTop: 'auto', paddingTop: 24 }}>
-          © {new Date().getFullYear()} LocalWeb · Hecho en Madrid
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingTop: 24, paddingBottom: 24 }}>
+          <div style={{ maxWidth: 400, width: '100%' }}>
+            {children}
+          </div>
+        </div>
+        <span className="lw-small" style={{ paddingTop: 24 }}>
+          © {new Date().getFullYear()} ONEZ · Hecho en Madrid
         </span>
       </div>
       <div
         className="lw-auth-split-hero"
         style={{
-          background: 'linear-gradient(135deg, var(--lw-accent), #7C3AED)',
+          background: 'linear-gradient(135deg, #0F6E56, #0B1F1A)',
           padding: 'clamp(24px, 5vw, 64px)',
           display: 'flex',
           flexDirection: 'column',
@@ -212,7 +209,7 @@ export function AuthSplitLayout({ hero, headerExtra, children }: AuthSplitLayout
           style={{
             position: 'absolute',
             inset: 0,
-            background: 'radial-gradient(circle at 80% 20%, rgba(255,255,255,.15), transparent 50%)',
+            background: 'radial-gradient(circle at 80% 20%, rgba(93,202,165,.2), transparent 50%)',
           }}
         />
         {hero === 'login' ? <LoginHero /> : <SignupHero />}

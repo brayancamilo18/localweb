@@ -36,6 +36,8 @@ export async function step1(data: {
 export async function step2(
   data: {
     cover: File
+    cover2?: File
+    cover3?: File
     logo?: File | null
     removeLogo?: boolean
   },
@@ -44,6 +46,12 @@ export async function step2(
   const readyCover = await compressImageForUpload(data.cover, { maxSide: 2560, quality: 0.88 })
   const formData = new FormData()
   formData.append('cover', readyCover)
+  if (data.cover2) {
+    formData.append('cover2', await compressImageForUpload(data.cover2, { maxSide: 2560, quality: 0.88 }))
+  }
+  if (data.cover3) {
+    formData.append('cover3', await compressImageForUpload(data.cover3, { maxSide: 2560, quality: 0.88 }))
+  }
   if (data.removeLogo) {
     formData.append('remove_logo', '1')
   }

@@ -2,8 +2,8 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import Step1Plantilla from '../steps/Step1Plantilla'
 
 const templates = [
-  { id: 1, name: 'Clásica', slug: 'classic', primary_color: '#111111', requires_pro: false },
-  { id: 2, name: 'Premium', slug: 'premium', primary_color: '#ff00aa', requires_pro: true },
+  { id: 1, name: 'Clásica', slug: 'classic', primary_color: '#111111', requires_pro: false, hero_photo_slots: 1 },
+  { id: 2, name: 'Premium', slug: 'premium', primary_color: '#ff00aa', requires_pro: true, hero_photo_slots: 1 },
 ]
 
 describe('Step1Plantilla', () => {

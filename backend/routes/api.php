@@ -1,14 +1,18 @@
 <?php
 
+use App\Http\Controllers\Api\Account\ProfileController;
 use App\Http\Controllers\Api\Admin\BusinessesController as AdminBusinessesController;
 use App\Http\Controllers\Api\Admin\TemplatesController as AdminTemplatesController;
 use App\Http\Controllers\Api\Admin\UsersController as AdminUsersController;
 use App\Http\Controllers\Api\Admin\PingController;
 use App\Http\Controllers\Api\Admin\StatsController as AdminStatsController;
+use App\Http\Controllers\Api\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\LoginController;
+use App\Http\Controllers\Api\QrController;
 use App\Http\Controllers\Api\Auth\LogoutController;
 use App\Http\Controllers\Api\Auth\MeController;
 use App\Http\Controllers\Api\Auth\RegisterController;
+use App\Http\Controllers\Api\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\BillingController;
 use App\Http\Controllers\Api\Dashboard\BusinessController as DashboardBusinessController;
 use App\Http\Controllers\Api\Dashboard\ImagesController;
@@ -30,10 +34,12 @@ Route::prefix('v1')->group(function (): void {
         // Registro: 3/min/IP. AuthService añade rate limiting por email+IP solo a login.
         Route::post('/register', RegisterController::class)->middleware('throttle:3,1');
         Route::post('/login', LoginController::class)->middleware('throttle:10,1');
+        Route::post('/forgot-password', ForgotPasswordController::class)->middleware('throttle:5,1');
+        Route::post('/reset-password', ResetPasswordController::class)->middleware('throttle:10,1');
     });
 
     Route::middleware('auth:sanctum')->group(function (): void {
-        Route::post('/auth/logout', LogoutController::class)->middleware('throttle:10,1');
+        Route::post('/auth/logout', LogoutController::class)->middleware('throttle:60,1');
         Route::get('/auth/me', MeController::class)->middleware('throttle:120,1');
 
         // Reenvío del email de verificación. Limitado a 6 intentos/hora.
@@ -49,6 +55,30 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/billing/checkout', [BillingController::class, 'checkout'])->middleware('throttle:60,1');
         Route::post('/billing/portal', [BillingController::class, 'portal'])->middleware('throttle:60,1');
         Route::get('/billing/status', [BillingController::class, 'status'])->middleware('throttle:60,1');
+        Route::get('/billing/invoices', [BillingController::class, 'invoices'])->middleware('throttle:60,1');
+        Route::get('/billing/invoices/{invoiceId}/download', [BillingController::class, 'downloadInvoice'])
+            ->where('invoiceId', '[A-Za-z0-9_]+')
+            ->middleware('throttle:30,1');
+        Route::get('/billing/payment-method', [BillingController::class, 'paymentMethod'])->middleware('throttle:60,1');
+        Route::get('/billing/upcoming', [BillingController::class, 'upcoming'])->middleware('throttle:60,1');
+        Route::post('/billing/cancel', [BillingController::class, 'cancel'])->middleware('throttle:10,1');
+        Route::post('/billing/resume', [BillingController::class, 'resume'])->middleware('throttle:10,1');
+
+        // Cuenta del usuario: datos personales y contraseña.
+        // No usa `verified.api` a propósito porque el cambio de email es
+        // precisamente la vía que tiene el usuario cuando ha perdido acceso
+        // al correo anterior.
+        Route::prefix('account')->group(function (): void {
+            Route::get('/profile', [ProfileController::class, 'show'])->middleware('throttle:60,1');
+            Route::patch('/profile', [ProfileController::class, 'update'])->middleware('throttle:30,1');
+            Route::post('/password', [ProfileController::class, 'password'])->middleware('throttle:6,1');
+        });
+
+        Route::prefix('qr')->group(function (): void {
+            Route::get('/info', [QrController::class, 'info'])->middleware('throttle:60,1');
+            Route::get('/png', [QrController::class, 'png'])->middleware('throttle:30,1');
+            Route::post('/poster', [QrController::class, 'poster'])->middleware('throttle:15,1');
+        });
 
         Route::prefix('onboarding')->middleware('verified.api')->group(function (): void {
             Route::get('/status', StatusController::class)->middleware('throttle:60,1');

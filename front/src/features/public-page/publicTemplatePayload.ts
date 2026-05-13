@@ -18,6 +18,8 @@ export type HtmlTemplatePreviewPayload = {
   tagline: string
   telefono: string
   portada: string
+  portada_2: string
+  portada_3: string
   descripcion: string
   foto_equipo: string
   direccion: string
@@ -138,6 +140,8 @@ export function publicBusinessToTemplatePayload(business: PublicBusiness): HtmlT
     tagline: business.tagline ?? '',
     telefono: phoneForTemplate(business),
     portada: cover[0]?.url ?? '',
+    portada_2: cover[1]?.url ?? '',
+    portada_3: cover[2]?.url ?? '',
     descripcion: business.description ?? '',
     foto_equipo: about[0]?.url ?? '',
     direccion: business.address ?? '',

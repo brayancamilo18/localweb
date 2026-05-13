@@ -6,6 +6,17 @@ import type { PublicBusiness } from '../../types/api'
 import PublicHtmlTemplateFrame from './PublicHtmlTemplateFrame'
 import { PubAurora, PubNegocio, PubSoft, type PublicSiteBusiness } from './public-pages'
 
+const HTML_TEMPLATE_SLUGS: Record<string, true> = {
+  'noir-elite': true,
+  'bloom-studio': true,
+  'urban-bold': true,
+  'coastal-calm': true,
+  'craft-pro': true,
+  'tavola-warm': true,
+  'tech-sleek': true,
+  'trust-clinic': true,
+}
+
 // keep in sync with backend config/subdomains.php (GET /api/v1/public/subdomain-rules)
 const RESERVED_SUBDOMAINS = new Set([
   'admin', 'api', 'www', 'mail', 'cdn', 'support', 'help',
@@ -60,7 +71,7 @@ export default function PublicPage() {
 
   const slug = (business.template?.slug ?? 'soft').toLowerCase()
 
-  if (slug === 'noir-elite' || slug === 'bloom-studio' || slug === 'urban-bold') {
+  if (slug in HTML_TEMPLATE_SLUGS) {
     return <PublicHtmlTemplateFrame templateSlug={slug} business={business} />
   }
   if (slug === 'aurora') {

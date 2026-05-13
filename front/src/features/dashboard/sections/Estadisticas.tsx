@@ -167,7 +167,7 @@ function StatsProUpsell() {
           Mira cuántas personas visitan tu web, de dónde llegan y qué les interesa más.
         </p>
       </div>
-      <Btn kind="primary" iconRight="sparkle" type="button" onClick={() => (window.location.href = '/dashboard/billing')}>
+      <Btn kind="primary" iconRight="sparkle" type="button" onClick={() => (window.location.href = '/dashboard/account?tab=plan')}>
         Mejorar a Pro
       </Btn>
     </Card>

@@ -4,6 +4,18 @@ namespace Tests;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
+/**
+ * Anotaciones para que intelephense / PHPStan reconozcan los helpers que
+ * Illuminate inyecta vía traits en `BaseTestCase` (peticiones JSON, auth de
+ * tests, etc.). Sin estos `@mixin` los IDE marcan como «undefined method»
+ * cosas como `$this->getJson(...)` o `$this->actingAs(...)` dentro de los
+ * closures de Pest, aunque a runtime funcionan perfectamente.
+ *
+ * @mixin \Illuminate\Foundation\Testing\Concerns\MakesHttpRequests
+ * @mixin \Illuminate\Foundation\Testing\Concerns\InteractsWithAuthentication
+ * @mixin \Illuminate\Foundation\Testing\Concerns\InteractsWithDatabase
+ * @mixin \Illuminate\Foundation\Testing\Concerns\InteractsWithSession
+ */
 abstract class TestCase extends BaseTestCase
 {
     protected function setUp(): void

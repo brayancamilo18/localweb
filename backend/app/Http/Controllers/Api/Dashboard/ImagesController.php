@@ -33,6 +33,16 @@ class ImagesController extends BaseApiController
             }
         }
 
+        if ($data['section'] === 'cover') {
+            $maxCovers = $business->template?->hero_photo_slots ?? 1;
+            $coverCount = $business->images()->where('section', ImageSection::Cover->value)->count();
+            if ($coverCount >= $maxCovers) {
+                return response()->json([
+                    'message' => "Límite de fotos de portada alcanzado ($maxCovers máximo)",
+                ], 422);
+            }
+        }
+
         $order = (int) $business->images()->where('section', $data['section'])->max('display_order') + 1;
         // BusinessImageObserver invalida public_page:{subdomain} al guardar.
         $image = $images->uploadImage($request->file('file'), $business, ImageSection::from($data['section']), $order);

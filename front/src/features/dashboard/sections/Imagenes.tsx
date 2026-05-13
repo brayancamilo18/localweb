@@ -58,7 +58,7 @@ function DropZone({
         e.preventDefault()
         setDrag(false)
         if (busy) return
-        if (atLimit && section === 'gallery') return
+        if (atLimit) return
         const dropped = e.dataTransfer.files
         const list = dropped ? Array.from(dropped) : []
         onPick(section, list)
@@ -68,7 +68,9 @@ function DropZone({
       <p className="lw-small" style={{ marginBottom: 12 }}>
         {section === 'gallery'
           ? 'Arrastra imágenes aquí o elige archivos. Se añadirán a la galería.'
-          : 'Arrastra una imagen aquí o elige archivo. Reemplaza la actual.'}
+          : section === 'cover' && !atLimit && images.length > 0
+            ? 'Arrastra una imagen aquí o elige archivo. Se añadirá al collage.'
+            : 'Arrastra una imagen aquí o elige archivo. Reemplaza la actual.'}
       </p>
       <input
         ref={inputRef}
@@ -79,11 +81,11 @@ function DropZone({
         onChange={(e) => {
           const list = e.target.files ? Array.from(e.target.files) : []
           e.target.value = ''
-          if (atLimit && section === 'gallery') return
+          if (atLimit) return
           onPick(section, list)
         }}
       />
-      {!(atLimit && section === 'gallery') ? (
+      {!atLimit ? (
         <Btn kind="primary" type="button" size="sm" disabled={busy} loading={busy} onClick={() => inputRef.current?.click()}>
           {section === 'gallery' ? 'Añadir fotos' : images.length > 0 ? 'Cambiar foto' : 'Seleccionar foto'}
         </Btn>
@@ -197,6 +199,7 @@ export default function Imagenes() {
   const isPro = business?.is_pro === true || business?.plan === 'pro'
   const galleryLimit = isPro ? 20 : 3
   const galleryFull = gallery.length >= galleryLimit
+  const heroPhotoSlots = (business as { template?: { hero_photo_slots?: number } })?.template?.hero_photo_slots ?? 1
 
   const invalidate = useCallback(async () => {
     await qc.invalidateQueries({ queryKey: keys.dashboard.business })
@@ -240,9 +243,12 @@ export default function Imagenes() {
       try {
         const toUpload = section === 'gallery' ? files : [files[0]]
 
-        if (section !== 'gallery') {
-          const current = section === 'cover' ? cover : about
-          for (const img of current) {
+        if (section === 'about') {
+          for (const img of about) {
+            await safeDelete(img.id)
+          }
+        } else if (section === 'cover' && heroPhotoSlots <= 1) {
+          for (const img of cover) {
             await safeDelete(img.id)
           }
         }
@@ -431,7 +437,7 @@ export default function Imagenes() {
             <div style={{ fontWeight: 600, marginBottom: 4 }}>Has alcanzado el límite de fotos</div>
             <p className="lw-small">Pasa a Pro para subir más imágenes y desbloquear todo el potencial.</p>
           </div>
-          <Btn kind="primary" iconRight="arrowRight" type="button" onClick={() => (window.location.href = '/dashboard/billing')}>
+          <Btn kind="primary" iconRight="arrowRight" type="button" onClick={() => (window.location.href = '/dashboard/account?tab=plan')}>
             Mejorar plan
           </Btn>
         </Card>
@@ -453,7 +459,7 @@ export default function Imagenes() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <DropZone
-          title="Portada"
+          title={heroPhotoSlots > 1 ? `Portada (${cover.length}/${heroPhotoSlots} fotos)` : 'Portada'}
           section="cover"
           busy={busySection === 'cover'}
           progress={busySection === 'cover' ? progress : null}
@@ -461,6 +467,7 @@ export default function Imagenes() {
           onPick={(s, f) => void handleFiles(s, f)}
           onDeleteImage={handleDeleteImage}
           deletingImageId={deletingImageId}
+          atLimit={heroPhotoSlots > 1 && cover.length >= heroPhotoSlots}
         />
         <DropZone
           title="Sobre nosotros"

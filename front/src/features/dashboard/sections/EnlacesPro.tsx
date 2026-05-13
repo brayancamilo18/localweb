@@ -54,7 +54,7 @@ export default function EnlacesPro() {
           <div style={{ flex: 1, minWidth: 200, fontSize: 13, fontWeight: 600, color: '#78350F' }}>
             Estas funciones están disponibles en el plan Pro
           </div>
-          <Link to="/dashboard/billing" style={{ textDecoration: 'none' }}>
+          <Link to="/dashboard/account?tab=plan" style={{ textDecoration: 'none' }}>
             <Btn type="button" kind="primary" size="sm">
               Ver planes
             </Btn>

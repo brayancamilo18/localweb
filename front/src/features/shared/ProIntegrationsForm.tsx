@@ -100,7 +100,7 @@ export default function ProIntegrationsForm({
       </Field>
 
       <p className="lw-small" style={{ margin: 0, fontSize: 13, color: 'var(--lw-text-2)', lineHeight: 1.5 }}>
-        Redes del pie de página: en el plan gratuito se muestran los enlaces de LocalWeb; con Pro puedes poner los tuyos.
+        Redes del pie de página: en el plan gratuito se muestran los enlaces de ONEZ; con Pro puedes poner los tuyos.
       </p>
 
       <Field label="Instagram" hint="Perfil o publicación">

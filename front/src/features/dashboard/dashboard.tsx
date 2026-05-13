@@ -21,7 +21,7 @@ function formatRenewalShortEs(unixSeconds: number | null | undefined): string | 
   }
 }
 
-// LocalWeb — Dashboard (Free vs Pro)
+// ONEZ — Dashboard (Free vs Pro)
 
 export interface DashboardProps {
   pro: boolean
@@ -47,7 +47,7 @@ function DashSidebar({
       window.location.href = url
     },
     onError: () => {
-      navigate('/dashboard/billing')
+      navigate('/dashboard/account?tab=plan')
     },
   })
   /** Fecha real de próxima renovación. Solo se pide cuando el usuario es Pro;
@@ -70,6 +70,7 @@ function DashSidebar({
    * cancelamos peticiones en vuelo, removemos el cache y limpiamos auth antes
    * de navegar a `/login`. */
   const logoutM = useMutation({
+    retry: false,
     mutationFn: async () => {
       try {
         await logoutApi()
@@ -98,7 +99,7 @@ function DashSidebar({
     { icon: 'list', t: 'Servicios', to: '/dashboard/services' },
     { icon: 'arrowUpRight', t: 'Enlaces Pro', to: '/dashboard/enlaces' },
     { icon: 'barChart', t: 'Estadísticas', to: '/dashboard/stats', locked: !pro },
-    { icon: 'creditCard', t: 'Suscripción', to: '/dashboard/billing' },
+    { icon: 'user', t: 'Cuenta', to: '/dashboard/account' },
     { icon: 'shield', t: 'Seguridad', to: '/dashboard/security' },
   ] as const
   return (
@@ -117,7 +118,7 @@ function DashSidebar({
       }}
     >
       <div style={{ padding: "0 8px 18px", fontSize: 13, fontWeight: 600, color: 'var(--lw-text)' }}>
-        {businessName ?? 'LocalWeb'}
+        {businessName ?? 'ONEZ'}
       </div>
       <nav style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
         {items.map((it) => (

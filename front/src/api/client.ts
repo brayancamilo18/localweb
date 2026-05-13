@@ -96,17 +96,35 @@ apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) =>
   return config
 })
 
+/**
+ * Pantallas públicas (no requieren sesión). Si el interceptor de 401 viese al
+ * usuario en una de estas rutas y le forzase un redirect a `/login`, rompería
+ * el flujo: el enlace de reset por email aterriza en `/reset-password`, no hay
+ * cookie aún → /auth/me da 401 → el interceptor saltaría a /login antes de que
+ * la página llegue a pintar el formulario.
+ */
+const PUBLIC_AUTH_PATHS = new Set([
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/verify-email',
+])
+
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error?.response?.status
     /** Solo 401 = sesión inválida. 403 suele ser “no permitido” con sesión válida (no purgar). */
     if (status === 401) {
-      const skipRedirectToLogin =
-        isOnboardingPreviewWithoutAuth() && window.location.pathname.startsWith('/onboarding')
+      const path = window.location.pathname
 
-      if (!skipRedirectToLogin && window.location.pathname !== '/login') {
-        const next = encodeURIComponent(window.location.pathname + window.location.search)
+      const skipRedirectToLogin =
+        PUBLIC_AUTH_PATHS.has(path) ||
+        (isOnboardingPreviewWithoutAuth() && path.startsWith('/onboarding'))
+
+      if (!skipRedirectToLogin) {
+        const next = encodeURIComponent(path + window.location.search)
         window.location.href = `/login?next=${next}`
       }
     }

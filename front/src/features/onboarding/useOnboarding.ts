@@ -204,13 +204,17 @@ export function useOnboarding(): UseOnboardingResult {
           case 2: {
             const raw = data
             let cover: File | undefined
+            let cover2: File | undefined
+            let cover3: File | undefined
             let logo: File | undefined
             let removeLogo = false
             if (raw instanceof File) {
               cover = raw
             } else if (raw && typeof raw === 'object' && raw !== null && 'cover' in raw) {
-              const d = raw as { cover?: File; logo?: File; removeLogo?: boolean }
+              const d = raw as { cover?: File; cover2?: File; cover3?: File; logo?: File; removeLogo?: boolean }
               cover = d.cover
+              cover2 = d.cover2
+              cover3 = d.cover3
               logo = d.logo
               removeLogo = Boolean(d.removeLogo)
             }
@@ -218,7 +222,7 @@ export function useOnboarding(): UseOnboardingResult {
               setErrors({ cover: 'Selecciona una foto de portada' })
               return
             }
-            await step2({ cover, logo, removeLogo })
+            await step2({ cover, cover2, cover3, logo, removeLogo })
             break
           }
           case 3: {

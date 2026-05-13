@@ -50,6 +50,7 @@ export interface AdminStatsTemplateItem {
   slug: string
   is_active: boolean
   requires_pro: boolean
+  hero_photo_slots: number
   total_usage: number
 }
 
@@ -150,6 +151,7 @@ export interface AdminTemplateRow {
   primary_color: string
   is_active: boolean
   requires_pro: boolean
+  hero_photo_slots: number
   total_usage: number
 }
 
@@ -181,6 +183,7 @@ export interface Template {
   slug: string
   primary_color: string
   requires_pro: boolean
+  hero_photo_slots: number
 }
 
 export interface BusinessImage {

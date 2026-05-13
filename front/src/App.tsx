@@ -7,9 +7,11 @@ import AdminRoute from './components/guards/AdminRoute'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 import { ToastProvider } from './components/ui/Toast'
 import { useAuth } from './hooks/useAuth'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import LoginPage from './pages/LoginPage'
 import OnboardingPage from './pages/OnboardingPage'
 import RegisterPage from './pages/RegisterPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 import VerifyEmailPage from './pages/VerifyEmailPage'
 import DashboardPage from './features/dashboard/DashboardPage'
 import MiPagina from './features/dashboard/sections/MiPagina'
@@ -17,10 +19,11 @@ import Editor from './features/dashboard/sections/Editor'
 import Imagenes from './features/dashboard/sections/Imagenes'
 import Horarios from './features/dashboard/sections/Horarios'
 import Estadisticas from './features/dashboard/sections/Estadisticas'
-import Suscripcion from './features/dashboard/sections/Suscripcion'
+import BillingRedirect from './features/dashboard/sections/BillingRedirect'
 import Seguridad from './features/dashboard/sections/Seguridad'
 import Servicios from './features/dashboard/sections/Servicios'
 import EnlacesPro from './features/dashboard/sections/EnlacesPro'
+import AccountPage from './features/dashboard/sections/account/AccountPage'
 import PublicPage from './features/public-page/PublicPage'
 import AdminLayout from './layouts/AdminLayout'
 import AdminDashboardPage from './features/admin/AdminDashboardPage'
@@ -65,6 +68,8 @@ function AppRoutes() {
       <Route element={<GuestRoute />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Route>
 
       <Route path="/verify-email" element={<VerifyEmailPage />} />
@@ -93,8 +98,9 @@ function AppRoutes() {
           <Route path="services" element={<Servicios />} />
           <Route path="enlaces" element={<EnlacesPro />} />
           <Route path="stats" element={<Estadisticas />} />
-          <Route path="billing" element={<Suscripcion />} />
+          <Route path="billing" element={<BillingRedirect />} />
           <Route path="security" element={<Seguridad />} />
+          <Route path="account" element={<AccountPage />} />
         </Route>
       </Route>
 

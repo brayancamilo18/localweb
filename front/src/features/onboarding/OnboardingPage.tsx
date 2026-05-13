@@ -93,6 +93,12 @@ export default function OnboardingPage() {
   const [step1LogoFile, setStep1LogoFile] = useState<File | null>(null)
   const [step1PendingRemoveLogo, setStep1PendingRemoveLogo] = useState(false)
   const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [coverFile2, setCoverFile2] = useState<File | null>(null)
+  const [coverFile3, setCoverFile3] = useState<File | null>(null)
+  const coverFile2Ref = useRef<File | null>(null)
+  const coverFile3Ref = useRef<File | null>(null)
+  coverFile2Ref.current = coverFile2
+  coverFile3Ref.current = coverFile3
   const [previewName, setPreviewName] = useState('')
   const [previewTagline, setPreviewTagline] = useState('')
   const [previewPhone, setPreviewPhone] = useState('')
@@ -100,6 +106,8 @@ export default function OnboardingPage() {
   const [coverPersistDataUrl, setCoverPersistDataUrl] = useState<string | undefined>(undefined)
   /** URL efímera para vista previa en vivo (misma pestaña que el iframe → mismo origen). */
   const [coverLiveObjectUrl, setCoverLiveObjectUrl] = useState<string | undefined>(undefined)
+  const [coverLiveObjectUrl2, setCoverLiveObjectUrl2] = useState<string | undefined>(undefined)
+  const [coverLiveObjectUrl3, setCoverLiveObjectUrl3] = useState<string | undefined>(undefined)
   const [previewDescription, setPreviewDescription] = useState('')
   const [aboutTeamFile, setAboutTeamFile] = useState<File | null>(null)
   const [aboutPersistDataUrl, setAboutPersistDataUrl] = useState<string | undefined>(undefined)
@@ -134,10 +142,11 @@ export default function OnboardingPage() {
   }, [currentStep, postCheckoutProGallery, serverDraft])
 
   const step9Active = currentStep === 9
+  const step8OrLater = currentStep >= 8
   const businessSnapQuery = useQuery({
     queryKey: keys.dashboard.business,
     queryFn: getBusiness,
-    enabled: step9Active,
+    enabled: step8OrLater,
   })
   const servicesSnapQuery = useQuery({
     queryKey: keys.dashboard.services,
@@ -226,6 +235,20 @@ export default function OnboardingPage() {
       URL.revokeObjectURL(url)
     }
   }, [coverFile])
+
+  useEffect(() => {
+    if (!coverFile2) { setCoverLiveObjectUrl2(undefined); return }
+    const url = URL.createObjectURL(coverFile2)
+    setCoverLiveObjectUrl2(url)
+    return () => { URL.revokeObjectURL(url) }
+  }, [coverFile2])
+
+  useEffect(() => {
+    if (!coverFile3) { setCoverLiveObjectUrl3(undefined); return }
+    const url = URL.createObjectURL(coverFile3)
+    setCoverLiveObjectUrl3(url)
+    return () => { URL.revokeObjectURL(url) }
+  }, [coverFile3])
 
   useEffect(() => {
     if (!coverFile) {
@@ -532,21 +555,26 @@ export default function OnboardingPage() {
 
   const templatePreviewData = useMemo<TemplatePreviewData>(() => {
     const b = businessSnapQuery.data
+    const useServer = step8OrLater
     const serverCover =
-      step9Active && b?.images?.cover?.[0]?.url ? String(b.images.cover[0].url).trim() : ''
+      useServer && b?.images?.cover?.[0]?.url ? String(b.images.cover[0].url).trim() : ''
+    const serverCover2 =
+      useServer && b?.images?.cover?.[1]?.url ? String(b.images.cover[1].url).trim() : ''
+    const serverCover3 =
+      useServer && b?.images?.cover?.[2]?.url ? String(b.images.cover[2].url).trim() : ''
     const serverAbout =
-      step9Active && b?.images?.about?.[0]?.url ? String(b.images.about[0].url).trim() : ''
+      useServer && b?.images?.about?.[0]?.url ? String(b.images.about[0].url).trim() : ''
     const galleryUrls =
       galleryLiveObjectUrls.length > 0
         ? galleryLiveObjectUrls
-        : step9Active && b?.images?.gallery?.length
+        : useServer && b?.images?.gallery?.length
           ? b.images.gallery.map((g) => g.url).filter(Boolean)
           : []
-    const schedule = step9Active && b?.schedule ? b.schedule : schedulePreview
+    const schedule = useServer && b?.schedule ? b.schedule : schedulePreview
     const mapLat =
-      step9Active && b?.lat != null && Number.isFinite(Number(b.lat)) ? Number(b.lat) : previewMapLat
+      useServer && b?.lat != null && Number.isFinite(Number(b.lat)) ? Number(b.lat) : previewMapLat
     const mapLng =
-      step9Active && b?.lng != null && Number.isFinite(Number(b.lng)) ? Number(b.lng) : previewMapLng
+      useServer && b?.lng != null && Number.isFinite(Number(b.lng)) ? Number(b.lng) : previewMapLng
     const name = (previewName.trim() || b?.name || '').trim() || undefined
     let templateServices: TemplatePreviewData['templateServices'] = undefined
     if (step9Active) {
@@ -562,12 +590,14 @@ export default function OnboardingPage() {
     }
 
     return {
-      logoUrl: step1LogoPreviewUrl ?? (step9Active ? b?.logo_url ?? undefined : undefined),
+      logoUrl: step1LogoPreviewUrl ?? (useServer ? b?.logo_url ?? undefined : undefined),
       logoScale: step1LogoScale,
       businessName: name,
       tagline: previewTagline || undefined,
       phone: (previewPhone.trim() || b?.phone || '').trim() || undefined,
       coverUrl: coverLiveObjectUrl || serverCover || undefined,
+      coverUrl2: coverLiveObjectUrl2 || serverCover2 || undefined,
+      coverUrl3: coverLiveObjectUrl3 || serverCover3 || undefined,
       description: previewDescription || undefined,
       aboutPhotoUrl: aboutLiveObjectUrl || serverAbout || undefined,
       address: (previewAddress.trim() || b?.address || '').trim() || undefined,
@@ -580,7 +610,7 @@ export default function OnboardingPage() {
       googleBusinessUrl: step9Active ? (b?.google_business_url ?? '') : undefined,
       vcardEnabled: step9Active ? Boolean(b?.vcard_enabled) : undefined,
       isProCustomer: step9Active ? Boolean(b?.is_pro || b?.plan === 'pending') : undefined,
-      customerSubdomain: step9Active ? (b?.subdomain ?? '') : undefined,
+      customerSubdomain: useServer ? (b?.subdomain ?? '') : undefined,
       instagramUrl: step9Active ? (b?.instagram_url ?? '') : undefined,
       tiktokUrl: step9Active ? (b?.tiktok_url ?? '') : undefined,
       facebookUrl: step9Active ? (b?.facebook_url ?? '') : undefined,
@@ -590,6 +620,8 @@ export default function OnboardingPage() {
     step1LogoScale,
     businessSnapQuery.data,
     coverLiveObjectUrl,
+    coverLiveObjectUrl2,
+    coverLiveObjectUrl3,
     galleryLiveObjectUrls,
     aboutLiveObjectUrl,
     previewDescription,
@@ -603,6 +635,7 @@ export default function OnboardingPage() {
     proOffersServices,
     schedulePreview,
     servicesSnapQuery.data,
+    step8OrLater,
     step9Active,
   ])
 
@@ -630,8 +663,9 @@ export default function OnboardingPage() {
               icon="chevronLeft"
               size="md"
               type="button"
-              disabled={currentStep === 1 || isLoading}
+              disabled={currentStep === 1 || currentStep === 8 || isLoading}
               onClick={goPrev}
+              style={currentStep === 8 ? { visibility: 'hidden' } : undefined}
             >
               Atrás
             </Btn>
@@ -644,10 +678,15 @@ export default function OnboardingPage() {
               disabled={isLoading || (currentStep === 7 && !planContinueOk)}
               onClick={() => {
                 const payload = continueHandlerRef.current?.()
+                if (currentStep === 2 && payload && typeof payload === 'object') {
+                  const p = payload as Record<string, unknown>
+                  if (coverFile2Ref.current) p.cover2 = coverFile2Ref.current
+                  if (coverFile3Ref.current) p.cover3 = coverFile3Ref.current
+                }
                 void goNext(payload)
               }}
             >
-              {currentStep === 8 ? 'Publicar' : 'Continuar'}
+              {currentStep === 8 ? 'Ir a mi dashboard' : 'Continuar'}
             </Btn>
           </>
         ),
@@ -664,15 +703,22 @@ export default function OnboardingPage() {
     ],
   )
 
+  const selectedTemplate = useMemo(
+    () => templates.find((t) => resolveStep1PreviewVariant(t) === step1PreviewVariant),
+    [templates, step1PreviewVariant],
+  )
+  const heroPhotoSlots = selectedTemplate?.hero_photo_slots ?? 1
+  const selectedTemplateRequiresPro = selectedTemplate?.requires_pro ?? false
+
   const previewTitle = useMemo(() => {
-    const match = templates.find((t) => resolveStep1PreviewVariant(t) === step1PreviewVariant)
+    const match = selectedTemplate
     const name = match?.name?.trim()
     if (name) return name
     return step1PreviewVariant
       .split('-')
       .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
       .join(' ')
-  }, [templates, step1PreviewVariant])
+  }, [selectedTemplate, step1PreviewVariant])
 
   const previewFocusDescription = useMemo(() => {
     switch (currentStep) {
@@ -721,7 +767,7 @@ export default function OnboardingPage() {
       case 7:
         return <PlanPreview variant={step1PreviewVariant} previewData={templatePreviewData} />
       case 8:
-        return <PublicarPreview />
+        return <PlanPreview variant={step1PreviewVariant} previewData={templatePreviewData} />
       case 9:
         return proSetupPhase === 'services' ? (
           <ServiciosPreview variant={step1PreviewVariant} previewData={templatePreviewData} />
@@ -751,9 +797,14 @@ export default function OnboardingPage() {
           <Step2Portada
             {...common}
             currentCoverFile={coverFile}
+            onCoverChange={setCoverFile}
+            currentCoverFile2={coverFile2}
+            onCoverChange2={setCoverFile2}
+            currentCoverFile3={coverFile3}
+            onCoverChange3={setCoverFile3}
+            heroPhotoSlots={heroPhotoSlots}
             initialBusinessName={previewName}
             initialTagline={previewTagline}
-            onCoverChange={setCoverFile}
             onBusinessMetaChange={handleBusinessMetaChange}
             logoPreviewUrl={step1LogoPreviewUrl}
             onLogoPreviewUrlChange={setStep1LogoPreviewUrl}
@@ -814,7 +865,13 @@ export default function OnboardingPage() {
           />
         )
       case 7:
-        return <Step7Plan {...common} />
+        return (
+          <Step7Plan
+            {...common}
+            templateRequiresPro={selectedTemplateRequiresPro}
+            onChangeTemplate={() => jumpToStep(1)}
+          />
+        )
       case 8:
         return <Step8Publicar {...common} reservedSubdomain={reservedSubdomain} />
       case 9:

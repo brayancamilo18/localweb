@@ -1,7 +1,7 @@
-/** LocalWeb demo · theme maps + CSS variable application */
+/** ONEZ · theme maps + CSS variable application */
 
 export interface TweakValues {
-  accent: 'indigo' | 'blue' | 'green' | 'amber'
+  accent: 'onez' | 'indigo' | 'blue' | 'green' | 'amber'
   font: 'inter' | 'geist' | 'sohne'
   radius: 'sm' | 'md' | 'lg'
   plan: 'free' | 'pro'
@@ -9,11 +9,11 @@ export interface TweakValues {
 }
 
 export const TWEAKS_DEFAULT: TweakValues = {
-  accent: 'indigo',
-  font: 'sohne',
+  accent: 'onez',
+  font: 'inter',
   radius: 'md',
   plan: 'free',
-  tone: 'cool',
+  tone: 'warm',
 }
 
 export type AccentKey = TweakValues['accent']
@@ -22,6 +22,7 @@ export const ACCENTS: Record<
   AccentKey,
   { c: string; h: string; s: string; r: string }
 > = {
+  onez: { c: '#0F6E56', h: '#0A5A45', s: '#E1F5EE', r: 'rgba(15, 110, 86, .14)' },
   indigo: { c: '#2563EB', h: '#1D4ED8', s: '#EFF4FF', r: 'rgba(37, 99, 235, .14)' },
   blue: { c: '#0EA5E9', h: '#0284C7', s: '#E0F2FE', r: 'rgba(14, 165, 233, .14)' },
   green: { c: '#059669', h: '#047857', s: '#ECFDF5', r: 'rgba(5, 150, 105, .14)' },
@@ -71,22 +72,22 @@ export const TONES: Record<
     border2: '#CBD5E1',
   },
   warm: {
-    bg: '#FAF8F5',
-    surface: '#F1ECE3',
-    text: '#1A1814',
-    text2: '#403B33',
-    text3: '#7A7268',
-    text4: '#A89F92',
-    border: '#E8E2D5',
-    border2: '#D6CCB8',
+    bg: '#FAFAF7',
+    surface: '#F3F2EF',
+    text: '#0B1F1A',
+    text2: '#2C2C2A',
+    text3: '#888780',
+    text4: '#A8A7A0',
+    border: '#E8E6E1',
+    border2: '#D4D2CC',
   },
 }
 
 export function applyTokens(t: TweakValues): void {
   if (typeof document === 'undefined') return
-  const a = ACCENTS[t.accent] ?? ACCENTS.indigo
+  const a = ACCENTS[t.accent] ?? ACCENTS.onez
   const r = RADII[t.radius] ?? RADII.md
-  const tone = TONES[t.tone] ?? TONES.cool
+  const tone = TONES[t.tone] ?? TONES.warm
   const root = document.documentElement.style
 
   root.setProperty('--lw-accent', a.c)

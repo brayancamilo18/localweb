@@ -7,8 +7,9 @@ import {
   type ReactNode,
   type TextareaHTMLAttributes,
 } from 'react'
+import onezLogoSrc from '/assets/logo/onez_transparente_OSCURO_ultra_hd_5120x2880.png'
 
-// LocalWeb — Primitives & shared components
+// ONEZ — Primitives & shared components
 // Small, composable building blocks used across all artboards.
 
 // ─────────────────────────────────────────────────────────────
@@ -436,21 +437,24 @@ export function Badge({ children, tone = 'neutral', dot, icon, size = 'md', styl
 // ─────────────────────────────────────────────────────────────
 // Logo
 // ─────────────────────────────────────────────────────────────
-export function Logo({ size = 22, mono = false, style }: { size?: number; mono?: boolean; style?: CSSProperties }) {
-  const c = mono ? "currentColor" : "var(--lw-accent)";
+export function Logo({ size = 220, style }: { size?: number; mono?: boolean; style?: CSSProperties }) {
+  const PNG_PAD_LEFT = 0.08;
+  const PNG_PAD_TOP = 0.28;
+  const heightRatio = 2880 / 5120;
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "var(--lw-text)", ...style }}>
-      <span style={{
-        width: size, height: size, borderRadius: 6,
-        background: c, color: "#fff",
-        display: "inline-flex", alignItems: "center", justifyContent: "center",
-        fontWeight: 700, fontSize: size * 0.55, fontFamily: "var(--lw-font)",
-        letterSpacing: "-0.04em",
-      }}>L</span>
-      <span style={{ fontWeight: 600, fontSize: size * 0.72, letterSpacing: "-0.015em" }}>
-        LocalWeb
-      </span>
-    </span>
+    <img
+      src={onezLogoSrc}
+      alt="ONEZ"
+      style={{
+        width: size,
+        height: "auto",
+        display: "block",
+        marginLeft: -(size * PNG_PAD_LEFT),
+        marginTop: -(size * heightRatio * PNG_PAD_TOP),
+        marginBottom: -(size * heightRatio * PNG_PAD_TOP),
+        ...style,
+      }}
+    />
   );
 }
 

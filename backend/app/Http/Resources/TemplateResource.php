@@ -15,6 +15,7 @@ class TemplateResource extends JsonResource
             'slug' => $this->slug,
             'primary_color' => $this->primary_color,
             'requires_pro' => (bool) $this->requires_pro,
+            'hero_photo_slots' => (int) ($this->hero_photo_slots ?? 1),
         ];
     }
 }

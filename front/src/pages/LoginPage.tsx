@@ -62,11 +62,8 @@ export default function LoginPage() {
     <AuthSplitLayout hero="login">
       <div
         style={{
-          flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'center',
-          maxWidth: 400,
           width: '100%',
         }}
       >
@@ -128,13 +125,9 @@ export default function LoginPage() {
             {mutation.isPending ? 'Entrando…' : 'Iniciar sesión'}
           </Btn>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, flexWrap: 'wrap', gap: 8 }}>
-            <a
-              href="#"
-              className="lw-link-underline-hover"
-              onClick={(e) => e.preventDefault()}
-            >
+            <Link to="/forgot-password" className="lw-link-underline-hover" style={{ color: 'var(--lw-accent)' }}>
               ¿Olvidaste tu contraseña?
-            </a>
+            </Link>
           </div>
         </form>
       </div>
