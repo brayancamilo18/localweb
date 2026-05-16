@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\Onboarding\StatusController;
 use App\Http\Controllers\Api\Onboarding\StepController;
 use App\Http\Controllers\Api\Public\BusinessController as PublicBusinessController;
 use App\Http\Controllers\Api\Public\SubdomainRulesController;
+use App\Http\Controllers\Api\Public\TenantExistsController;
 use App\Http\Controllers\Api\Public\VCardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -142,6 +143,8 @@ Route::prefix('v1')->group(function (): void {
 
     Route::prefix('public')->middleware('throttle:120,1')->group(function (): void {
         Route::get('/subdomain-rules', SubdomainRulesController::class);
+        Route::get('/tenants/{subdomain}/exists', [TenantExistsController::class, 'show'])
+            ->middleware('throttle:60,1');
         Route::get('/{subdomain}/vcard', [VCardController::class, 'download']);
         Route::get('/{subdomain}', [PublicBusinessController::class, 'show']);
         Route::post('/{subdomain}/track', [PublicBusinessController::class, 'track']);

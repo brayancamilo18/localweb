@@ -5,6 +5,7 @@ import './tokens.css'
 import { TweaksProvider } from './context/TweaksContext'
 import { applyTokens, TWEAKS_DEFAULT } from './theme/tweaksConfig'
 import App from './App.tsx'
+import { TenantGate } from './components/TenantGate'
 
 applyTokens(TWEAKS_DEFAULT)
 
@@ -22,7 +23,9 @@ try {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <TweaksProvider>
-      <App />
+      <TenantGate>
+        <App />
+      </TenantGate>
     </TweaksProvider>
   </StrictMode>,
 )
