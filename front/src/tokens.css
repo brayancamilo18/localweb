@@ -679,7 +679,6 @@ textarea::placeholder {
   }
 
   .lw-auth-split-hero {
-    order: -1;
     min-height: min(42vh, 320px);
   }
 }
