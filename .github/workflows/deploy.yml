@@ -1,0 +1,27 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main, pre, des]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determinar entorno
+        id: env
+        run: |
+          case "${GITHUB_REF_NAME}" in
+            main) echo "name=prod" >> "$GITHUB_OUTPUT" ;;
+            pre)  echo "name=pre"  >> "$GITHUB_OUTPUT" ;;
+            des)  echo "name=des"  >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: SSH y deploy
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host:     ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key:      ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          script: |
+            sudo /var/www/onez/deploy.sh ${{ steps.env.outputs.name }}
