@@ -29,6 +29,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // cookies de sesión (HttpOnly) y validen CSRF en mutaciones, en vez de bearer.
         $middleware->statefulApi();
 
+        $middleware->appendToGroup('api', [
+            \App\Http\Middleware\ResolveTenantSubdomain::class,
+        ]);
+
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureIsAdmin::class,
             'business.complete' => \App\Http\Middleware\EnsureBusinessComplete::class,
