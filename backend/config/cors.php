@@ -7,15 +7,14 @@ if (! is_string($rawOrigins) || trim($rawOrigins) === '') {
     $rawOrigins = $defaultOrigins;
 }
 
+$rawPatterns = env('CORS_ALLOWED_ORIGINS_PATTERNS', '');
+$patterns = array_values(array_filter(array_map(trim(...), explode(',', $rawPatterns))));
+
 return [
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
-
     'allowed_methods' => ['*'],
-
     'allowed_origins' => array_values(array_filter(array_map(trim(...), explode(',', $rawOrigins)))),
-
-    'allowed_origins_patterns' => [],
-
+    'allowed_origins_patterns' => $patterns,
     'allowed_headers' => [
         'Accept',
         'Authorization',
@@ -23,10 +22,7 @@ return [
         'X-Requested-With',
         'X-XSRF-TOKEN',
     ],
-
     'exposed_headers' => ['Authorization'],
-
     'max_age' => 0,
-
     'supports_credentials' => true,
 ];
