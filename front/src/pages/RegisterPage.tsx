@@ -6,7 +6,6 @@ import { keys } from '../api/queryKeys'
 import { LocationPicker } from '../components/location/LocationPicker'
 import { Btn, Field, Icon, Input } from '../components/primitives/primitives'
 import { emptyLocation, isValidLocation } from '../lib/location/locationData'
-import type { LocationValue } from '../lib/location/locationTypes'
 import { AuthSplitLayout } from '../layouts/AuthSplitLayout'
 import { useApiError } from '../hooks/useApiError'
 import { clearAllOnboardingPersist } from '../features/onboarding/onboardingPersist'
@@ -116,7 +115,11 @@ export default function RegisterPage() {
   const [sectorPage, setSectorPage] = useState(0)
   const [animDir, setAnimDir] = useState<1 | -1>(1)
   const [animKey, setAnimKey] = useState(0)
-  const [location, setLocation] = useState<LocationValue>(() => emptyLocation())
+  const [location, setLocation] = useState<{
+    countryCode: string
+    city: string
+    country: string
+  }>(() => emptyLocation())
 
   useEffect(() => {
     if (step !== 2) return
@@ -182,14 +185,12 @@ export default function RegisterPage() {
   const validateStep2 = () => {
     const e: Record<string, string> = {}
     if (!bizName.trim()) e.bizName = 'Pon el nombre de tu negocio'
-    if (!isValidLocation(location)) {
-      if (!location.countryCode.trim()) {
-        e.country = '¿En qué país estáis?'
-      } else if (!location.city.trim()) {
-        e.city = '¿En qué ciudad estáis?'
-      } else {
-        e.city = 'Elige una ciudad de la lista'
-      }
+    if (!location.countryCode.trim()) {
+      e.country = '¿En qué país estáis?'
+    } else if (!location.city.trim()) {
+      e.city = '¿En qué ciudad estáis?'
+    } else if (!isValidLocation(location)) {
+      e.city = 'Elige una ciudad de la lista'
     }
     setClientErrors(e)
     return Object.keys(e).length === 0

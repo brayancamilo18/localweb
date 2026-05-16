@@ -312,7 +312,7 @@ function StatChart({
                   textTransform: 'capitalize',
                 }}
                 itemStyle={{ color, padding: 0, fontWeight: 500 }}
-                formatter={(value: number) => [value, title]}
+                formatter={(value) => [Number(value ?? 0), title]}
                 labelFormatter={(_label, payload) => {
                   const p = payload?.[0]?.payload as { tooltipLabel?: string } | undefined
                   return p?.tooltipLabel ?? ''

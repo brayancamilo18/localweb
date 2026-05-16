@@ -1688,7 +1688,7 @@ function Step2Portada({
       <Field label={heroPhotoSlots > 1 ? 'Foto principal' : 'Foto de portada'} error={errors?.cover}>
         <CoverDropzone
           file={file}
-          busy={busy}
+          busy={busy ?? false}
           onFileChange={(f) => onCoverChange?.(f)}
           placeholder="Pulsa para elegir foto de portada"
         />
@@ -1697,7 +1697,7 @@ function Step2Portada({
         <Field label="Foto 2" error={errors?.cover2}>
           <CoverDropzone
             file={file2}
-            busy={busy}
+            busy={busy ?? false}
             onFileChange={(f) => onCoverChange2?.(f)}
             placeholder="Pulsa para elegir la segunda foto"
           />
@@ -1707,7 +1707,7 @@ function Step2Portada({
         <Field label="Foto 3" error={errors?.cover3}>
           <CoverDropzone
             file={file3}
-            busy={busy}
+            busy={busy ?? false}
             onFileChange={(f) => onCoverChange3?.(f)}
             placeholder="Pulsa para elegir la tercera foto"
           />

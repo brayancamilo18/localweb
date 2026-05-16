@@ -252,7 +252,7 @@ export default function AdminDashboardPage() {
                       borderRadius: 8,
                       fontSize: 12,
                     }}
-                    formatter={(v: number | undefined) => [v ?? 0, 'Negocios']}
+                    formatter={(v) => [Number(v ?? 0), 'Negocios']}
                   />
                   <Bar dataKey="total" fill="var(--lw-accent)" radius={[0, 4, 4, 0]} maxBarSize={22} />
                 </BarChart>
@@ -383,7 +383,7 @@ function SeriesPanel({
                 fontSize: 12,
               }}
               labelFormatter={(label) => String(label)}
-              formatter={(v: number | undefined) => [v ?? 0, title]}
+              formatter={(v) => [Number(v ?? 0), title]}
             />
             <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
           </LineChart>

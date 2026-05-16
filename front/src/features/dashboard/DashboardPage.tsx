@@ -64,7 +64,7 @@ export default function DashboardPage() {
 
   const statsQuery = useQuery({
     queryKey: keys.dashboard.stats,
-    queryFn: getStats,
+    queryFn: () => getStats(),
     enabled: !!business?.is_pro,
     retry: false,
   })

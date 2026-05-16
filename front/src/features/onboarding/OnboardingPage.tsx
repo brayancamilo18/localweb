@@ -28,7 +28,6 @@ import {
   HorariosPreview,
   PlanPreview,
   PortadaPreview,
-  PublicarPreview,
   ServiciosPreview,
   SobrePreview,
   Step1Plantilla,
