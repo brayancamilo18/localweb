@@ -14,6 +14,10 @@ class ResolveTenantSubdomain
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if ($request->isMethod('OPTIONS')) {
+            return $next($request);
+        }
+
         $subdomain = trim((string) $request->header('X-Tenant-Subdomain', ''));
 
         if ($subdomain === '') {
