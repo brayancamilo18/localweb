@@ -7,6 +7,11 @@ import * as authApi from '../../api/auth'
 
 const navigateMock = vi.fn()
 
+vi.mock('../../components/location/LocationPicker', async () => {
+  const { RegisterLocationPickerMock } = await import('./registerLocationMock')
+  return { LocationPicker: RegisterLocationPickerMock }
+})
+
 vi.mock('react-router-dom', () => ({
   MemoryRouter: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useNavigate: () => navigateMock,

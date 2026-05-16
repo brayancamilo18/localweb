@@ -26,6 +26,9 @@ class PublicBusinessResource extends JsonResource
              * `businesses`). Independiente del email de login del owner. */
             'email' => $this->email,
             'address' => $this->address,
+            'city' => $this->city,
+            'country' => $this->country,
+            'country_code' => $this->country_code,
             'lat' => $this->lat,
             'lng' => $this->lng,
             'google_maps_url' => $this->google_maps_url,
@@ -44,6 +47,7 @@ class PublicBusinessResource extends JsonResource
                 'services',
                 fn () => BusinessServiceResource::collection($this->services)->resolve(),
             ),
+            'created_at' => $this->created_at?->toIso8601String(),
         ];
     }
 }

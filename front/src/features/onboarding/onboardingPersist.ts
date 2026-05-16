@@ -14,6 +14,9 @@ export type OnboardingStep1VariantPersist =
   | 'tavola-warm'
   | 'tech-sleek'
   | 'trust-clinic'
+  | 'versa-studio'
+  | 'mono-edito'
+  | 'luxe-atelier'
 
 export type OnboardingStep1SubStepPersist = 'logo' | 'template'
 
@@ -28,6 +31,9 @@ export type OnboardingPersistedV1 = {
   previewPhone: string
   previewDescription: string
   previewAddress: string
+  previewCity: string
+  previewCountry: string
+  previewCountryCode: string
   previewEmail: string
   schedule: Schedule
   step1PreviewVariant?: OnboardingStep1VariantPersist
@@ -105,6 +111,9 @@ export function scheduleSaveOnboardingPersist(
         previewPhone: data.previewPhone ?? prev?.previewPhone ?? '',
         previewDescription: data.previewDescription ?? prev?.previewDescription ?? '',
         previewAddress: data.previewAddress ?? prev?.previewAddress ?? '',
+        previewCity: data.previewCity ?? prev?.previewCity ?? '',
+        previewCountry: data.previewCountry ?? prev?.previewCountry ?? '',
+        previewCountryCode: data.previewCountryCode ?? prev?.previewCountryCode ?? '',
         previewEmail: data.previewEmail ?? prev?.previewEmail ?? '',
         schedule: data.schedule ?? prev?.schedule ?? DEFAULT_SCHEDULE,
         step1PreviewVariant: data.step1PreviewVariant ?? prev?.step1PreviewVariant,

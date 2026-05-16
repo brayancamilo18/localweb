@@ -129,6 +129,9 @@ export async function step5(schedule: Schedule): Promise<StepResponse> {
 
 export async function step6(data: {
   address: string
+  city: string
+  country: string
+  country_code: string
   phone: string
   email: string
 }): Promise<StepResponse & { geocoded: boolean }> {

@@ -6,6 +6,7 @@ import type { PublicBusiness } from '../../types/api'
 import PublicHtmlTemplateFrame from './PublicHtmlTemplateFrame'
 import { PubAurora, PubNegocio, PubSoft, type PublicSiteBusiness } from './public-pages'
 
+/** Slugs con plantilla en `front/public/templates/*.html` — mantener alineado con `PublicHtmlTemplateFrame`. */
 const HTML_TEMPLATE_SLUGS: Record<string, true> = {
   'noir-elite': true,
   'bloom-studio': true,
@@ -15,6 +16,9 @@ const HTML_TEMPLATE_SLUGS: Record<string, true> = {
   'tavola-warm': true,
   'tech-sleek': true,
   'trust-clinic': true,
+  'versa-studio': true,
+  'mono-edito': true,
+  'luxe-atelier': true,
 }
 
 // keep in sync with backend config/subdomains.php (GET /api/v1/public/subdomain-rules)

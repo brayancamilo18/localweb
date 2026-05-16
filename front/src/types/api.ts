@@ -238,6 +238,9 @@ export interface Business {
   /** Email público de contacto (independiente del email de login del owner). */
   email: string | null
   address: string | null
+  city: string | null
+  country: string | null
+  country_code: string | null
   lat: number | null
   lng: number | null
   google_maps_url: string | null
@@ -261,6 +264,7 @@ export interface Business {
   }
   services: BusinessService[]
   stats?: DashboardBusinessStats | null
+  created_at?: string | null
 }
 
 export type PublicBusiness = Business

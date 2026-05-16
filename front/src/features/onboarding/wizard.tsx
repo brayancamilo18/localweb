@@ -34,6 +34,8 @@ import {
   defaultSocialUrls,
   resolvePublicApiBaseUrl,
 } from '../public-page/publicTemplatePayload'
+import { LocationPicker } from '../../components/location/LocationPicker'
+import type { LocationValue } from '../../lib/location/locationTypes'
 import { WizardNavContext, type WizardStepProps } from './wizardNavContext'
 
 // ONEZ — Onboarding wizard (8 pasos)
@@ -56,6 +58,9 @@ export type Step1PreviewVariant =
   | 'tavola-warm'
   | 'tech-sleek'
   | 'trust-clinic'
+  | 'versa-studio'
+  | 'mono-edito'
+  | 'luxe-atelier'
 
 export const STEP1_PREVIEW_VARIANTS: Step1PreviewVariant[] = [
   'noir-elite',
@@ -66,6 +71,9 @@ export const STEP1_PREVIEW_VARIANTS: Step1PreviewVariant[] = [
   'tavola-warm',
   'tech-sleek',
   'trust-clinic',
+  'versa-studio',
+  'mono-edito',
+  'luxe-atelier',
 ]
 
 function isStep1PreviewVariant(value: unknown): value is Step1PreviewVariant {
@@ -88,6 +96,9 @@ type TemplatePreviewData = {
   aboutPhotoUrl?: string
   /** Dirección (paso ubicación) para pie de página en preview */
   address?: string
+  city?: string
+  country?: string
+  foundedYear?: string
   /** Email de contacto (paso ubicación), enviado a la plantilla como `correo` */
   email?: string
   /** Fotos de galería (data URLs) para vista previa en plantilla */
@@ -176,6 +187,9 @@ const TEMPLATE_URL_BY_VARIANT: Record<Step1PreviewVariant, string> = {
   'tavola-warm': '/templates/tavola-warm.html',
   'tech-sleek': '/templates/tech-sleek.html',
   'trust-clinic': '/templates/trust-clinic.html',
+  'versa-studio': '/templates/versa-studio.html',
+  'mono-edito': '/templates/mono-edito.html',
+  'luxe-atelier': '/templates/luxe-atelier.html',
 }
 
 /** Texto de ejemplo para miniaturas y vista previa del paso 1 (sin portada, galería ni foto «Sobre nosotros»). */
@@ -236,6 +250,27 @@ const STEP1_TEMPLATE_PREVIEW_DEMO_BY_VARIANT: Record<Step1PreviewVariant, Templa
       'Profesionales colegiados, sesiones personalizadas y seguimiento continuo para volver a moverte sin dolor.',
     phone: '+34 912 99 88 77',
   },
+  'versa-studio': {
+    businessName: 'Estudio Versa',
+    tagline: 'un espacio de trabajo compartido y creativo en el corazón del barrio',
+    description:
+      'Abrimos sin grandes planes, sin diseñador, sin marketing. Hoy seguimos siendo nosotros: si pides algo que no sabemos, te lo decimos.',
+    phone: '+34 911 23 45 67',
+  },
+  'mono-edito': {
+    businessName: 'Taller Línea',
+    tagline: 'editorial · oficio y detalle en cada encargo',
+    description:
+      'Un estudio donde el trabajo manual y el criterio editorial marcan cada proyecto. Sin atajos: conversamos, proponemos y entregamos con nombre propio.',
+    phone: '+34 915 12 34 56',
+  },
+  'luxe-atelier': {
+    businessName: 'Maison Éclat',
+    tagline: 'atelier de lujo · piezas únicas y atención personal',
+    description:
+      'Una maison donde cada visita es una experiencia. Materiales escogidos, oficio impecable y el tiempo necesario para que cada pieza pueda firmarse.',
+    phone: '+34 914 88 77 66',
+  },
 }
 
 /** URL ficticia en la barra del navegador simulado del preview (solo cosmética). */
@@ -257,6 +292,12 @@ function previewDemoHostForVariant(variant: Step1PreviewVariant): string {
       return 'atlas-studio.localweb.es'
     case 'trust-clinic':
       return 'clinica-vega.localweb.es'
+    case 'versa-studio':
+      return 'estudio-versa.localweb.es'
+    case 'mono-edito':
+      return 'taller-linea.localweb.es'
+    case 'luxe-atelier':
+      return 'maison-eclat.localweb.es'
     default:
       return 'studio-barber.localweb.es'
   }
@@ -278,6 +319,9 @@ function resolveStep1PreviewVariant(template: Pick<Template, 'slug' | 'name'>): 
   if (slug.includes('urban') || slug.includes('bold') || name.includes('urban')) return 'urban-bold'
   if (slug.includes('noir') || name.includes('noir') || slug.includes('soft')) return 'noir-elite'
   if (slug.includes('bloom') || name.includes('bloom') || slug.includes('aurora')) return 'bloom-studio'
+  if (slug.includes('versa') || name.includes('versa')) return 'versa-studio'
+  if (slug.includes('mono') || slug.includes('edito') || name.includes('edito') || name.includes('editorial')) return 'mono-edito'
+  if (slug.includes('luxe') || slug.includes('atelier') || name.includes('luxe') || name.includes('atelier') || name.includes('maison')) return 'luxe-atelier'
   return 'urban-bold'
 }
 
@@ -366,6 +410,9 @@ function TemplateIframe({
             descripcion: previewData.description ?? '',
             foto_equipo: previewData.aboutPhotoUrl ?? '',
             direccion: previewData.address ?? '',
+            ciudad: previewData.city ?? '',
+            pais: previewData.country ?? '',
+            anio_fundacion: previewData.foundedYear ?? '',
             correo: previewData.email ?? '',
             galeria: previewData.galleryUrls ?? [],
             horario: previewData.schedule ?? null,
@@ -2501,21 +2548,25 @@ function Step6Ubicacion({
   isLoading: busy,
   onPhoneChange,
   onAddressChange,
+  onLocationChange,
   onEmailChange,
   onMapCoordsChange,
   initialPhone = '',
   initialAddress = '',
+  initialLocation,
   initialEmail = '',
   mapLat,
   mapLng,
 }: WizardStepProps & {
   onPhoneChange?: (phone?: string) => void
   onAddressChange?: (address?: string) => void
+  onLocationChange?: (location: LocationValue) => void
   onEmailChange?: (email?: string) => void
   /** null borra coordenadas en la vista previa del mapa */
   onMapCoordsChange?: (lat: number | null, lng: number | null) => void
   initialPhone?: string
   initialAddress?: string
+  initialLocation?: LocationValue
   initialEmail?: string
   mapLat?: number
   mapLng?: number
@@ -2524,6 +2575,7 @@ function Step6Ubicacion({
   // El nombre `initialAddress`/`initialPhone`/`initialEmail` se mantiene por compatibilidad,
   // pero aquí los tratamos como las props controladas (`address`, `phone`, `email`).
   const address = initialAddress
+  const location = initialLocation ?? { countryCode: 'ES', country: 'España', city: '' }
   const phone = initialPhone
   const email = initialEmail
   const [geocodedLabel, setGeocodedLabel] = useState('')
@@ -2533,11 +2585,15 @@ function Step6Ubicacion({
   // Mantenemos refs siempre con el último valor para que el handler de "Continuar"
   // (que se registra una sola vez con [nav]) lea siempre los valores frescos.
   const addressRef = useRef(address)
+  const locationRef = useRef(location)
   const phoneRef = useRef(phone)
   const emailRef = useRef(email)
   useEffect(() => {
     addressRef.current = address
   }, [address])
+  useEffect(() => {
+    locationRef.current = location
+  }, [location])
   useEffect(() => {
     phoneRef.current = phone
   }, [phone])
@@ -2548,6 +2604,9 @@ function Step6Ubicacion({
   useLayoutEffect(() => {
     nav?.registerContinueHandler?.(() => ({
       address: addressRef.current.trim(),
+      city: locationRef.current.city.trim(),
+      country: locationRef.current.country.trim(),
+      country_code: locationRef.current.countryCode.trim().toUpperCase(),
       phone: phoneRef.current.trim(),
       email: emailRef.current.trim(),
     }))
@@ -2666,6 +2725,13 @@ function Step6Ubicacion({
           {geoMessage}
         </div>
       ) : null}
+      <LocationPicker
+        value={location}
+        onChange={(next) => onLocationChange?.(next)}
+        disabled={busy}
+        cityError={errors?.city}
+        countryError={errors?.country}
+      />
       <Card padding={14} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div
           style={{

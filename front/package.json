@@ -16,6 +16,8 @@
     "@tanstack/react-query": "^5.100.6",
     "@types/qrcode": "^1.5.6",
     "axios": "^1.15.2",
+    "country-state-city": "^3.2.1",
+    "i18n-iso-countries": "^7.14.0",
     "qrcode": "^1.5.4",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.5",

@@ -264,7 +264,16 @@ export function useOnboarding(): UseOnboardingResult {
             await step5(data as Schedule)
             break
           case 6:
-            await step6(data as { address: string; phone: string; email: string })
+            await step6(
+              data as {
+                address: string
+                city: string
+                country: string
+                country_code: string
+                phone: string
+                email: string
+              },
+            )
             break
           case 7: {
             const payload = data as { plan?: 'free' | 'pro' | null; subdomain?: string } | undefined

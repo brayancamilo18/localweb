@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>{{nombre}} — Bienvenido</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=DM+Sans:wght@400;500;600&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<style>
+  :root{
+    --cream:#FBF4E8; --cream-2:#F2E8D4; --paper:#FFFCF5;
+    --terra:#C97557; --terra-2:#A85A3C; --terra-soft:#F4D6C5;
+    --sage:#9BAA8A; --sage-2:#7A8A6A; --sage-soft:#DDE3D2;
+    --rose:#E5BCAE; --rose-soft:#F5DDD3;
+    --olive:#867A4D;
+    --ink:#3A2E22; --ink-2:#5C4E3F; --ink-3:#8C7D6B; --ink-4:#B5A893;
+    --line:#E5D9C2; --line-2:#C9B89D;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--cream);color:var(--ink);font-family:"DM Sans",system-ui,sans-serif;font-weight:400;font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden;font-feature-settings:"kern","ss01"}
+  ::selection{background:var(--terra);color:var(--paper)}
+  a{color:inherit;text-decoration:none}
+  img{display:block;max-width:100%}
+  .serif{font-family:"Fraunces",Georgia,serif;font-weight:500;letter-spacing:-.015em;line-height:1.04;font-variation-settings:"opsz" 144,"SOFT" 100}
+  .script{font-family:"Caveat",cursive;font-weight:500;letter-spacing:0}
+  .container{max-width:1320px;margin:0 auto;padding:0 32px}
+  .eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:"DM Sans";font-size:12.5px;font-weight:500;color:var(--terra-2);letter-spacing:.02em}
+  .eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--terra)}
+
+  /* ── soft blobs background ── */
+  .blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.4;pointer-events:none;z-index:-1;will-change:transform}
+  .blob.b1{width:480px;height:480px;background:var(--rose);top:80px;left:-120px;animation:floatY 14s ease-in-out infinite}
+  .blob.b2{width:380px;height:380px;background:var(--sage-soft);top:380px;right:-80px;animation:floatY 18s ease-in-out infinite -3s}
+  .blob.b3{width:520px;height:520px;background:var(--terra-soft);top:1200px;left:30%;animation:floatY 22s ease-in-out infinite -7s}
+  @keyframes floatY{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-30px) scale(1.05)}66%{transform:translate(-30px,40px) scale(.95)}}
+
+  /* ─── NAV ─── */
+  .nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:60;background:rgba(255,252,245,.78);backdrop-filter:saturate(170%) blur(20px);-webkit-backdrop-filter:saturate(170%) blur(20px);border:1px solid rgba(229,217,194,.6);border-radius:32px;transition:padding .3s,box-shadow .3s;width:calc(100% - 32px);max-width:1280px}
+  .nav.scrolled{box-shadow:0 16px 48px -20px rgba(58,46,34,.18)}
+  .nav-inner{padding:10px 14px 10px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand-mark{width:38px;height:38px;background:var(--terra);color:var(--paper);border-radius:14px;display:grid;place-items:center;font-family:"Fraunces",serif;font-size:18px;font-weight:600;flex-shrink:0;letter-spacing:-.02em;font-variation-settings:"opsz" 144;transition:border-radius .5s cubic-bezier(.65,0,.35,1),transform .5s,background .3s}
+  .brand:hover .brand-mark{border-radius:50%;background:var(--sage-2);transform:rotate(-12deg)}
+  .brand-name strong{font-family:"Fraunces",serif;font-size:19px;font-weight:600;color:var(--ink);letter-spacing:-.015em;font-variation-settings:"opsz" 144;display:block;line-height:1.05}
+  .brand-name small{font-family:"Caveat",cursive;font-size:13px;color:var(--terra);letter-spacing:.005em;line-height:1}
+  .nav ul{list-style:none;display:flex;gap:6px;align-items:center}
+  .nav ul a{font-size:14px;color:var(--ink-2);font-weight:500;padding:9px 14px;border-radius:999px;transition:background .25s,color .25s}
+  .nav ul a:hover{background:var(--terra-soft);color:var(--terra-2)}
+  .nav-cta{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;background:var(--ink);color:var(--paper);font-size:13.5px;font-weight:600;border-radius:999px;transition:background .3s,transform .15s}
+  .nav-cta:hover{background:var(--terra);transform:scale(1.03)}
+  .nav-cta::before{content:"";width:14px;height:14px;background:currentColor;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M17.5 14.4c-.3-.1-1.6-.8-1.9-.9-.3-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.2-.3.2-.5.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.5-1.7-1.6-2-.2-.3 0-.4.1-.6l.3-.4c.1-.2.2-.3.3-.5.1-.2 0-.3 0-.5-.1-.1-.6-1.5-.9-2-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.3-.8.8-.8 2 0 1.2.8 2.4 1 2.5.1.2 1.6 2.5 4 3.4.6.2 1 .4 1.4.5.6.2 1.1.2 1.5.1.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.2.2-1.3-.1-.1-.3-.2-.5-.2z'/></svg>") center/contain no-repeat;-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M17.5 14.4c-.3-.1-1.6-.8-1.9-.9-.3-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.2-.3.2-.5.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.5-1.7-1.6-2-.2-.3 0-.4.1-.6l.3-.4c.1-.2.2-.3.3-.5.1-.2 0-.3 0-.5-.1-.1-.6-1.5-.9-2-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.3-.8.8-.8 2 0 1.2.8 2.4 1 2.5.1.2 1.6 2.5 4 3.4.6.2 1 .4 1.4.5.6.2 1.1.2 1.5.1.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.2.2-1.3-.1-.1-.3-.2-.5-.2z'/></svg>") center/contain no-repeat}
+  .burger{display:none;width:42px;height:42px;background:var(--cream);border:1px solid var(--line);border-radius:50%;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0}
+  .burger span{display:block;width:16px;height:1.5px;background:var(--ink);transition:.25s}
+  .burger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+  .burger.open span:nth-child(2){opacity:0}
+  .burger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+
+  .mobile-menu{display:flex;flex-direction:column;position:fixed;top:0;right:0;bottom:0;left:0;background:var(--cream);z-index:200;padding:100px 32px 32px;opacity:0;pointer-events:none;transition:opacity .35s;overflow-y:auto}
+  .mobile-menu.open{opacity:1;pointer-events:auto}
+  .mobile-menu ul{list-style:none}
+  .mobile-menu ul li{border-bottom:1px solid var(--line)}
+  .mobile-menu ul a{display:block;padding:22px 0;font-family:"Fraunces",serif;font-size:32px;font-weight:600;letter-spacing:-.02em;color:var(--ink);transform:translateY(30px);opacity:0;transition:transform .5s cubic-bezier(.65,0,.35,1),opacity .4s}
+  .mobile-menu.open ul a{transform:translateY(0);opacity:1}
+  .mobile-menu ul li:nth-child(2) a{transition-delay:.05s}
+  .mobile-menu ul li:nth-child(3) a{transition-delay:.1s}
+  .mobile-menu ul li:nth-child(4) a{transition-delay:.15s}
+  .mobile-menu ul li:nth-child(5) a{transition-delay:.2s}
+  .mobile-menu ul li:nth-child(6) a{transition-delay:.25s}
+  .mobile-menu ul a em{font-style:italic;color:var(--terra)}
+  .mobile-cta{display:block;margin-top:32px;padding:18px;text-align:center;background:var(--ink);color:var(--paper);border-radius:999px;font-size:14.5px;font-weight:600}
+
+  /* ─── HERO · bento orgánico con 3 fotos en blobs ─── */
+  .hero{padding:140px 0 80px;position:relative;overflow:hidden}
+  .hero-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:64px;align-items:center}
+  .hero-meta{display:flex;align-items:center;gap:14px;margin-bottom:32px;flex-wrap:wrap}
+  .pill-status{display:inline-flex;align-items:center;gap:10px;padding:8px 16px;background:var(--paper);border:1px solid var(--line);border-radius:999px;font-size:13px;font-weight:500;color:var(--ink-2)}
+  .pill-status .dot{width:8px;height:8px;border-radius:50%;background:var(--sage-2);box-shadow:0 0 0 3px var(--sage-soft);animation:pulse 2.4s infinite}
+  .pill-status.closed{color:var(--ink-3)}
+  .pill-status.closed .dot{background:var(--ink-4);box-shadow:0 0 0 3px var(--line);animation:none}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 3px var(--sage-soft)}50%{box-shadow:0 0 0 8px rgba(155,170,138,0)}}
+  .meta-script{font-family:"Caveat",cursive;font-size:18px;color:var(--terra);font-weight:500;display:inline-flex;align-items:center;gap:8px}
+  .meta-script::before{content:"~";font-size:22px}
+
+  .hero h1{font-family:"Fraunces",serif;font-size:clamp(56px,8.5vw,124px);font-weight:600;line-height:.95;letter-spacing:-.03em;color:var(--ink);margin-bottom:28px;font-variation-settings:"opsz" 144,"SOFT" 100}
+  .hero h1 em{font-style:italic;color:var(--terra)}
+  .hero h1 .word{display:inline-block;overflow:hidden;vertical-align:top}
+  .hero h1 .word > span{display:inline-block;transform:translateY(105%);transition:transform 1s cubic-bezier(.65,0,.35,1)}
+  .hero.in h1 .word > span{transform:translateY(0)}
+  .hero h1 .word:nth-child(2) > span{transition-delay:.1s}
+  .hero h1 .word:nth-child(3) > span{transition-delay:.2s}
+  .hero h1 .word:nth-child(4) > span{transition-delay:.3s}
+
+  .hero-lede{font-size:18px;line-height:1.7;color:var(--ink-2);max-width:520px;margin-bottom:36px;font-weight:400}
+  .hero-lede strong{color:var(--ink);font-weight:600}
+  .hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:48px}
+  .btn-p{display:inline-flex;align-items:center;gap:10px;padding:16px 28px;background:var(--ink);color:var(--paper);font-size:14.5px;font-weight:600;border-radius:999px;transition:background .3s,transform .15s,box-shadow .35s,padding .4s}
+  .btn-p:hover{background:var(--terra);transform:translateY(-2px);box-shadow:0 16px 32px -12px rgba(201,117,87,.5);padding-left:36px;padding-right:36px}
+  .btn-p::after{content:"→";transition:transform .25s}
+  .btn-p:hover::after{transform:translateX(4px)}
+  .btn-g{display:inline-flex;align-items:center;gap:10px;padding:16px 26px;color:var(--ink);font-size:14.5px;font-weight:600;background:var(--paper);border:1px solid var(--line);border-radius:999px;transition:background .3s,color .3s,border-color .3s}
+  .btn-g:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+  .hero-stats{display:flex;gap:32px;padding-top:32px;border-top:1px dashed var(--line-2);max-width:520px}
+  .hstat strong{font-family:"Fraunces",serif;font-size:36px;font-weight:600;color:var(--ink);letter-spacing:-.02em;display:block;line-height:1;font-variation-settings:"opsz" 144}
+  .hstat strong em{font-style:italic;color:var(--terra)}
+  .hstat small{font-size:12px;color:var(--ink-3);letter-spacing:.02em;margin-top:6px;display:block;font-weight:500}
+
+  /* hero bento orgánico: 3 fotos en formas blob diferentes */
+  .hero-bento{position:relative;height:620px}
+  .bphoto{position:absolute;overflow:hidden;background:var(--cream-2);background-size:cover;background-position:center;will-change:transform;transition:transform .6s cubic-bezier(.65,0,.35,1)}
+  .bphoto.b-1{top:0;right:0;width:65%;height:52%;border-radius:200px 200px 200px 32px;background-image:var(--img-1,url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=700&q=70'))}
+  .bphoto.b-2{top:32%;left:0;width:48%;height:46%;border-radius:32px 200px 32px 200px;background-image:var(--img-2,url('https://images.unsplash.com/photo-1485925600647-9b7d10b51fad?auto=format&fit=crop&w=600&q=70'));z-index:3}
+  .bphoto.b-3{bottom:0;right:8%;width:56%;height:36%;border-radius:32px 32px 200px 200px;background-image:var(--img-3,url('https://images.unsplash.com/photo-1559925393-8be0ec4767c8?auto=format&fit=crop&w=700&q=70'));z-index:2}
+  .bphoto.fallback{background:linear-gradient(135deg,var(--terra),var(--terra-soft));position:relative}
+  .bphoto.fallback::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.4),transparent 60%)}
+  .bphoto.fallback.b-2{background:linear-gradient(135deg,var(--sage),var(--sage-soft))}
+  .bphoto.fallback.b-3{background:linear-gradient(135deg,var(--rose),var(--rose-soft))}
+  .bphoto:hover{transform:scale(1.03)}
+  .hero-badge-float{position:absolute;top:46%;left:38%;background:var(--paper);padding:14px 20px;border-radius:999px;border:1px solid var(--line);font-family:"Caveat",cursive;font-size:20px;color:var(--terra);font-weight:600;z-index:10;box-shadow:0 12px 32px -10px rgba(58,46,34,.18);transform:rotate(-4deg);transition:transform .4s}
+  .hero-badge-float:hover{transform:rotate(0deg) scale(1.05)}
+  .hero-badge-float::before{content:"♡ ";color:var(--terra)}
+
+  /* sticker de "abierto hoy" */
+  .hero-sticker{position:absolute;bottom:8%;left:6%;width:120px;height:120px;background:var(--sage-2);color:var(--paper);border-radius:50%;display:grid;place-items:center;font-family:"Fraunces",serif;text-align:center;line-height:1.1;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;z-index:10;transform:rotate(-8deg);animation:slowRot 28s linear infinite;box-shadow:0 16px 32px -12px rgba(122,138,106,.5)}
+  .hero-sticker em{font-style:italic;font-size:24px;display:block;font-weight:600;letter-spacing:0;margin-bottom:2px;font-family:"Fraunces",serif;font-variation-settings:"opsz" 144}
+  @keyframes slowRot{0%{transform:rotate(-8deg)}100%{transform:rotate(352deg)}}
+
+  /* ─── TICKER ─── */
+  .ticker{padding:28px 0;background:var(--ink);color:var(--cream);overflow:hidden;margin-top:24px;border-top-left-radius:48px;border-top-right-radius:48px}
+  .ticker-track{display:flex;gap:48px;font-family:"Fraunces",serif;font-size:28px;font-weight:500;font-style:italic;letter-spacing:-.005em;white-space:nowrap;animation:scroll-s 45s linear infinite;will-change:transform;font-variation-settings:"opsz" 144}
+  .ticker:hover .ticker-track{animation-duration:90s}
+  .ticker-track span{display:inline-flex;align-items:center;gap:48px;flex-shrink:0}
+  .ticker-track span::before{content:"❀";color:var(--terra-soft);font-size:18px;font-style:normal}
+  @keyframes scroll-s{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  /* ─── SECTIONS ─── */
+  section{padding:120px 0;position:relative}
+  .section-head{display:grid;grid-template-columns:1fr 1.2fr;gap:64px;align-items:end;margin-bottom:80px}
+  .section-head h2{font-family:"Fraunces",serif;font-size:clamp(44px,6vw,80px);font-weight:600;line-height:.98;letter-spacing:-.025em;margin-top:14px;font-variation-settings:"opsz" 144,"SOFT" 100}
+  .section-head h2 em{font-style:italic;color:var(--terra)}
+  .section-head .desc{font-size:16.5px;color:var(--ink-2);line-height:1.7;max-width:520px;padding-bottom:8px}
+  .section-head .desc em{font-family:"Caveat",cursive;font-size:1.3em;font-style:normal;color:var(--terra)}
+
+  /* ─── SERVICES · bento cards de tamaños y colores variados ─── */
+  .svc-bento{display:grid;grid-template-columns:repeat(6,1fr);grid-auto-rows:minmax(220px,auto);gap:18px}
+  .svc-card{padding:32px;border-radius:32px;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:14px;transition:transform .35s cubic-bezier(.65,0,.35,1),box-shadow .35s;cursor:pointer}
+  .svc-card:hover{transform:translateY(-6px);box-shadow:0 32px 56px -24px rgba(58,46,34,.22)}
+  .svc-card::before{content:"";position:absolute;top:-50%;right:-50%;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.18);opacity:0;transition:opacity .5s;pointer-events:none}
+  .svc-card:hover::before{opacity:1}
+  .svc-card > *{position:relative}
+  .svc-card.c1{grid-column:span 3;grid-row:span 2;background:var(--terra);color:var(--paper)}
+  .svc-card.c2{grid-column:span 3;background:var(--sage-soft);color:var(--ink)}
+  .svc-card.c3{grid-column:span 3;background:var(--rose-soft);color:var(--ink)}
+  .svc-card.c4{grid-column:span 2;background:var(--cream-2);color:var(--ink)}
+  .svc-card.c5{grid-column:span 2;background:var(--olive);color:var(--paper)}
+  .svc-card.c6{grid-column:span 2;background:var(--ink);color:var(--paper)}
+  .svc-num{font-family:"Caveat",cursive;font-size:24px;font-weight:600;opacity:.7}
+  .svc-card h3{font-family:"Fraunces",serif;font-size:30px;font-weight:600;letter-spacing:-.02em;line-height:1.05;font-variation-settings:"opsz" 144,"SOFT" 100}
+  .svc-card.c1 h3{font-size:42px}
+  .svc-card p{font-size:14.5px;line-height:1.65;opacity:.85;flex:1;max-width:36ch}
+  .svc-foot{display:flex;justify-content:space-between;align-items:center;padding-top:18px;border-top:1px dashed currentColor;border-top-color:rgba(255,255,255,.3);margin-top:auto;opacity:.95}
+  .svc-card.c2 .svc-foot,.svc-card.c3 .svc-foot,.svc-card.c4 .svc-foot{border-top-color:rgba(58,46,34,.2)}
+  .svc-price{font-family:"Fraunces",serif;font-size:24px;font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums;font-variation-settings:"opsz" 144}
+  .svc-arrow{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:14px;transition:background .25s,transform .25s}
+  .svc-card.c2 .svc-arrow,.svc-card.c3 .svc-arrow,.svc-card.c4 .svc-arrow{background:rgba(58,46,34,.08)}
+  .svc-card:hover .svc-arrow{background:rgba(255,255,255,.3);transform:rotate(-45deg) scale(1.1)}
+  .svc-card.c2:hover .svc-arrow,.svc-card.c3:hover .svc-arrow,.svc-card.c4:hover .svc-arrow{background:rgba(58,46,34,.15)}
+
+  /* ─── ABOUT · foto a la derecha, blob shape ─── */
+  .about{padding:120px 0;position:relative}
+  .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:96px;align-items:center}
+  .about-text h2{font-family:"Fraunces",serif;font-size:clamp(40px,5.5vw,72px);font-weight:600;line-height:1.0;letter-spacing:-.03em;margin:18px 0 28px;font-variation-settings:"opsz" 144,"SOFT" 100}
+  .about-text h2 em{font-style:italic;color:var(--terra)}
+  .about-text p{font-size:16.5px;line-height:1.75;color:var(--ink-2);margin-bottom:20px;max-width:520px}
+  .about-text p strong{color:var(--ink);font-weight:600}
+  .about-text .script-note{font-family:"Caveat",cursive;font-size:28px;color:var(--terra);font-weight:500;display:inline-block;margin:8px 0;line-height:1.2;transform:rotate(-2deg)}
+  .about-sig{margin-top:36px;padding-top:28px;border-top:1px dashed var(--line-2);display:flex;align-items:center;gap:18px}
+  .about-sig-img{width:56px;height:56px;border-radius:50%;background:var(--cream-2) center/cover;background-image:var(--sig-img,url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=200&q=70'));flex-shrink:0;border:2px solid var(--terra)}
+  .about-sig-text strong{display:block;font-family:"Fraunces",serif;font-size:20px;font-weight:600;color:var(--ink);letter-spacing:-.015em;font-variation-settings:"opsz" 144}
+  .about-sig-text small{font-family:"Caveat",cursive;font-size:18px;color:var(--terra);font-weight:500;margin-top:0;display:block}
+
+  .about-img-wrap{aspect-ratio:4/5;border-radius:200px 32px 200px 32px;overflow:hidden;background:var(--cream-2);position:relative}
+  .about-img{position:absolute;inset:0;background:var(--cream-2) center/cover;background-image:var(--about-img,url('https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=700&q=70'));transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}
+  .about-img-wrap:hover .about-img{transform:scale(1.06)}
+  .about-img-badge{position:absolute;top:24px;left:24px;background:var(--paper);padding:8px 16px;border-radius:999px;font-family:"Caveat",cursive;font-size:18px;color:var(--terra);font-weight:600;z-index:2;box-shadow:0 8px 20px -8px rgba(58,46,34,.18)}
+  .about-img-badge::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--sage-2);margin-right:8px;vertical-align:2px}
+
+  /* ─── GALLERY · bento orgánico ─── */
+  .gallery{display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:160px;gap:16px}
+  .gimg{position:relative;overflow:hidden;background:var(--cream-2);cursor:pointer;transition:transform .35s}
+  .gimg:hover{transform:translateY(-4px)}
+  .gimg-bg{position:absolute;inset:0;background-size:cover;background-position:center;transition:transform 1s cubic-bezier(.2,.7,.2,1)}
+  .gimg:hover .gimg-bg{transform:scale(1.06)}
+  .gimg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(58,46,34,.65));opacity:0;transition:opacity .4s}
+  .gimg:hover::after{opacity:1}
+  .gimg-overlay{position:absolute;left:20px;right:20px;bottom:20px;color:var(--paper);z-index:2;transform:translateY(16px);opacity:0;transition:transform .5s cubic-bezier(.65,0,.35,1),opacity .4s}
+  .gimg-overlay small{font-family:"Caveat",cursive;font-size:18px;color:var(--terra-soft);display:block;font-weight:500}
+  .gimg-overlay strong{font-family:"Fraunces",serif;font-size:22px;font-weight:600;letter-spacing:-.015em;font-variation-settings:"opsz" 144,"SOFT" 100}
+  .gimg:hover .gimg-overlay{transform:translateY(0);opacity:1}
+  /* organic shapes via different border-radius per item */
+  .gimg:nth-child(1){grid-column:span 5;grid-row:span 3;border-radius:200px 32px 200px 32px}
+  .gimg:nth-child(2){grid-column:span 4;grid-row:span 2;border-radius:32px 200px 32px 32px}
+  .gimg:nth-child(3){grid-column:span 3;grid-row:span 2;border-radius:32px}
+  .gimg:nth-child(4){grid-column:span 3;grid-row:span 2;border-radius:32px 32px 32px 200px}
+  .gimg:nth-child(5){grid-column:span 4;grid-row:span 2;border-radius:200px 200px 32px 32px}
+  .gimg:nth-child(6){grid-column:span 5;grid-row:span 2;border-radius:32px 200px 200px 32px}
+  .gimg:nth-child(7){grid-column:span 7;grid-row:span 2;border-radius:32px 32px 200px 200px}
+
+  /* ─── HOURS + CONTACT · apilados card grande ─── */
+  .hours-section{padding:120px 0;background:var(--cream)}
+  .hours-card-big{background:var(--paper);border-radius:48px;padding:64px 56px;position:relative;overflow:hidden;border:1px solid var(--line)}
+  .hours-card-big::before{content:"";position:absolute;top:-150px;right:-150px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,var(--rose-soft),transparent 70%);opacity:.6;pointer-events:none}
+  .hours-card-big::after{content:"";position:absolute;bottom:-100px;left:-100px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,var(--sage-soft),transparent 70%);opacity:.5;pointer-events:none}
+  .hours-card-big > *{position:relative}
+  .hours-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:72px;margin-top:48px}
+  .hours-card h3{font-family:"Fraunces",serif;font-size:28px;font-weight:600;letter-spacing:-.02em;margin:14px 0 28px;font-variation-settings:"opsz" 144,"SOFT" 100}
+  .hours-card h3 em{font-style:italic;color:var(--terra)}
+  .schedule-row{display:grid;grid-template-columns:130px 1fr auto;align-items:center;gap:18px;padding:14px 0;border-bottom:1px dashed var(--line-2);font-size:14.5px}
+  .schedule-row:last-child{border-bottom:none}
+  .schedule-row .day{font-weight:500;color:var(--ink-2)}
+  .schedule-row .dots{border-bottom:2px dotted var(--line-2);transform:translateY(-3px);height:1px}
+  .schedule-row .time{font-family:"Fraunces",serif;font-size:18px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.005em;font-variation-settings:"opsz" 144}
+  .schedule-row .closed{color:var(--ink-3);font-style:italic;font-family:"DM Sans";font-weight:400;font-size:13.5px}
+  .schedule-row.today{background:var(--terra-soft);margin:0 -18px;padding:16px 18px;border-radius:18px;border-bottom:1px dashed transparent}
+  .schedule-row.today .day{color:var(--terra-2);font-weight:600}
+  .schedule-row.today .day::after{content:" · hoy";font-family:"Caveat",cursive;font-size:16px;color:var(--terra)}
+  .schedule-row.today .time{color:var(--terra-2)}
+  .schedule-row.today .dots{border-color:rgba(201,117,87,.3)}
+
+  .contact-list{display:flex;flex-direction:column;gap:10px}
+  .contact-link{display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--cream);border-radius:22px;transition:background .25s,transform .15s}
+  .contact-link:hover{background:var(--ink);color:var(--paper);transform:translateX(6px)}
+  .contact-link .ico{width:42px;height:42px;border-radius:50%;background:var(--paper);color:var(--ink);display:grid;place-items:center;font-size:17px;flex-shrink:0;transition:background .25s,color .25s}
+  .contact-link:hover .ico{background:var(--terra);color:var(--paper)}
+  .contact-link strong{display:block;font-family:"Fraunces",serif;font-size:17px;font-weight:600;letter-spacing:-.01em;line-height:1.15;font-variation-settings:"opsz" 144}
+  .contact-link small{font-size:12px;color:var(--ink-3);margin-top:2px;display:block;transition:color .25s}
+  .contact-link:hover small{color:var(--cream-2)}
+
+  /* ─── MAP ─── */
+  #map{height:440px;border-radius:32px;overflow:hidden;margin-top:32px;border:1px solid var(--line)}
+
+  /* ─── REVIEWS ─── */
+  .reviews-cta{padding:120px 0;text-align:center;background:var(--cream)}
+  .reviews-card{max-width:760px;margin:0 auto;background:linear-gradient(135deg,var(--terra),var(--terra-2));color:var(--paper);border-radius:48px;padding:72px 48px;position:relative;overflow:hidden;box-shadow:0 32px 80px -32px rgba(201,117,87,.4)}
+  .reviews-card::before{content:"";position:absolute;top:-100px;right:-100px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(255,252,245,.2),transparent 70%);pointer-events:none}
+  .reviews-card::after{content:"";position:absolute;bottom:-100px;left:-100px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(255,252,245,.15),transparent 70%);pointer-events:none}
+  .reviews-card > *{position:relative}
+  .reviews-card .eyebrow{color:var(--terra-soft);justify-content:center}
+  .reviews-card .eyebrow::before{background:var(--terra-soft)}
+  .gstars{font-size:28px;color:#FFD79A;letter-spacing:8px;margin:14px 0 8px}
+  .gscore{font-family:"Fraunces",serif;font-size:96px;font-weight:600;line-height:.95;letter-spacing:-.03em;color:var(--paper);font-variation-settings:"opsz" 144}
+  .gscore em{font-style:italic;color:var(--terra-soft);font-weight:500}
+  .gscore small{font-size:22px;color:rgba(255,252,245,.6);font-weight:500;margin-left:4px;letter-spacing:0;font-variation-settings:"opsz" 144}
+  .greviews{font-size:12px;color:rgba(255,252,245,.7);letter-spacing:.04em;margin-bottom:18px}
+  .gquote{font-family:"Fraunces",serif;font-size:24px;font-style:italic;color:rgba(255,252,245,.95);line-height:1.45;max-width:520px;margin:18px auto 28px;font-weight:500;letter-spacing:-.005em;font-variation-settings:"opsz" 144}
+  .gbtn{display:inline-flex;align-items:center;gap:12px;padding:16px 30px;background:var(--paper);color:var(--terra-2);font-size:14px;font-weight:600;border-radius:999px;transition:background .3s,transform .15s,padding .35s}
+  .gbtn:hover{background:var(--ink);color:var(--paper);transform:translateY(-2px);padding-left:40px;padding-right:40px}
+
+  /* ─── VCARD ─── */
+  .vcard{padding:80px 0;background:var(--cream)}
+  .vcard-inner{max-width:1320px;margin:0 auto;padding:0 32px;background:var(--sage-soft);border-radius:40px;padding:48px 48px;display:flex;justify-content:space-between;align-items:center;gap:40px;flex-wrap:wrap;position:relative;overflow:hidden}
+  .vcard-inner::before{content:"❀";position:absolute;right:-40px;top:-40px;font-size:200px;color:rgba(155,170,138,.3);font-family:"DM Sans";line-height:1;pointer-events:none}
+  .vcard h3{font-family:"Fraunces",serif;font-size:clamp(28px,3.5vw,40px);font-weight:600;line-height:1.1;letter-spacing:-.025em;max-width:520px;color:var(--ink);font-variation-settings:"opsz" 144,"SOFT" 100;position:relative}
+  .vcard h3 em{font-style:italic;color:var(--terra)}
+  .vcard h3 small{display:block;font-family:"Caveat",cursive;font-size:22px;font-weight:500;color:var(--sage-2);margin-top:6px;font-style:normal;letter-spacing:0}
+  .vcard-btn{display:inline-flex;align-items:center;gap:10px;padding:18px 32px;background:var(--ink);color:var(--paper);font-size:14.5px;font-weight:600;border-radius:999px;transition:background .3s,transform .15s,box-shadow .35s;position:relative}
+  .vcard-btn:hover{background:var(--terra);transform:translateY(-2px);box-shadow:0 16px 32px -12px rgba(201,117,87,.5)}
+
+  /* ─── CTA FINAL · full-bleed con foto + curva ─── */
+  .cta-final{padding:0;position:relative;overflow:hidden;min-height:560px;display:grid;place-items:center}
+  .cta-bg{position:absolute;inset:0;background:var(--ink) url(var(--cta-img,'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1400&q=70')) center/cover;z-index:0}
+  .cta-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(58,46,34,.7) 0%,rgba(201,117,87,.65) 100%)}
+  .cta-curve-top{position:absolute;top:-1px;left:0;right:0;height:80px;background:var(--cream);clip-path:ellipse(70% 100% at 50% 0%);z-index:1}
+  .cta-curve-bot{position:absolute;bottom:-1px;left:0;right:0;height:80px;background:var(--cream);clip-path:ellipse(70% 100% at 50% 100%);z-index:1}
+  .cta-inner{position:relative;text-align:center;padding:120px 32px;max-width:780px;z-index:2}
+  .cta-inner .eyebrow{color:var(--terra-soft);justify-content:center}
+  .cta-inner .eyebrow::before{background:var(--terra-soft)}
+  .cta-inner h2{font-family:"Fraunces",serif;font-size:clamp(48px,7vw,108px);font-weight:600;line-height:.96;letter-spacing:-.03em;color:var(--paper);margin:18px 0 24px;font-variation-settings:"opsz" 144,"SOFT" 100}
+  .cta-inner h2 em{font-style:italic;color:var(--terra-soft)}
+  .cta-inner .script-line{font-family:"Caveat",cursive;font-size:32px;color:var(--terra-soft);font-weight:500;display:block;margin-bottom:8px;transform:rotate(-2deg)}
+  .cta-inner p{font-size:18px;color:rgba(255,252,245,.9);line-height:1.6;max-width:480px;margin:0 auto 36px}
+  .cta-inner .actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+  .cta-inner .btn-p{background:var(--paper);color:var(--ink)}
+  .cta-inner .btn-p:hover{background:var(--terra-soft);color:var(--ink)}
+  .cta-inner .btn-g{background:transparent;color:var(--paper);border-color:rgba(255,252,245,.4)}
+  .cta-inner .btn-g:hover{background:var(--paper);color:var(--ink);border-color:var(--paper)}
+
+  /* ─── FOOTER ─── */
+  footer{padding:100px 0 32px;background:var(--cream)}
+  .foot{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:48px;padding-bottom:48px;border-bottom:1px dashed var(--line-2)}
+  .foot-brand-block{display:flex;flex-direction:column;gap:18px}
+  .foot p{font-size:14px;line-height:1.7;color:var(--ink-2);max-width:340px}
+  .foot p .script-bit{font-family:"Caveat",cursive;font-size:18px;color:var(--terra)}
+  .foot h4{font-family:"Fraunces",serif;font-size:16px;color:var(--ink);margin-bottom:20px;font-weight:600;font-variation-settings:"opsz" 144;letter-spacing:-.005em}
+  .foot ul{list-style:none;display:flex;flex-direction:column;gap:12px}
+  .foot ul a{font-size:14px;color:var(--ink-2);transition:color .25s}
+  .foot ul a:hover{color:var(--terra)}
+  .foot-bot{padding-top:24px;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--ink-3);flex-wrap:wrap;gap:10px}
+  .foot-bot a{color:var(--terra)}
+
+  /* reveal */
+  .slide-up{opacity:0;transform:translateY(40px);transition:opacity 1s cubic-bezier(.65,0,.35,1),transform 1s cubic-bezier(.65,0,.35,1)}
+  .slide-up.in{opacity:1;transform:none}
+  .slide-up[data-d="1"]{transition-delay:.1s}
+  .slide-up[data-d="2"]{transition-delay:.2s}
+  .slide-up[data-d="3"]{transition-delay:.3s}
+
+  /* responsive */
+  @media (max-width:1080px){
+    .hero-grid{grid-template-columns:1fr;gap:64px}
+    .hero-bento{max-width:560px;margin:0 auto;width:100%}
+    .section-head{grid-template-columns:1fr;gap:18px}
+    .svc-bento{grid-template-columns:repeat(2,1fr);grid-auto-rows:auto}
+    .svc-card.c1{grid-column:span 2;grid-row:auto}
+    .svc-card{grid-column:span 1!important}
+    .svc-card.c1{grid-column:span 2!important}
+    .about-grid{grid-template-columns:1fr;gap:48px}
+    .about-img-wrap{max-width:480px;margin:0 auto;width:100%}
+    .hours-grid{grid-template-columns:1fr;gap:48px}
+    .gallery{grid-template-columns:repeat(6,1fr);grid-auto-rows:140px}
+    .gimg:nth-child(1){grid-column:span 6;grid-row:span 2}
+    .gimg:nth-child(2){grid-column:span 3;grid-row:span 2}
+    .gimg:nth-child(3){grid-column:span 3;grid-row:span 2}
+    .gimg:nth-child(4){grid-column:span 3;grid-row:span 2}
+    .gimg:nth-child(5){grid-column:span 3;grid-row:span 2}
+    .gimg:nth-child(6){grid-column:span 3;grid-row:span 2}
+    .gimg:nth-child(7){grid-column:span 3;grid-row:span 2}
+    .foot{grid-template-columns:1fr 1fr;gap:40px}
+  }
+  @media (max-width:680px){
+    .container{padding:0 20px}
+    .nav{top:10px;width:calc(100% - 20px);border-radius:24px}
+    .nav-inner{padding:8px 8px 8px 16px}
+    .nav ul,.nav-cta{display:none}
+    .burger{display:flex}
+    .brand-name strong{font-size:17px}
+    .brand-name small{font-size:12px}
+    .hero{padding:120px 0 40px}
+    .hero-bento{height:480px}
+    .hero h1{font-size:60px}
+    .hero-stats{gap:20px}
+    .hstat strong{font-size:28px}
+    .hero-sticker{width:90px;height:90px;font-size:11px;left:auto;right:4%}
+    .hero-sticker em{font-size:18px}
+    .hero-badge-float{font-size:16px;padding:10px 16px}
+    section,.about,.hours-section,.reviews-cta{padding:72px 0}
+    .section-head{margin-bottom:48px}
+    .svc-bento{grid-template-columns:1fr;gap:14px}
+    .svc-card{grid-column:span 1!important;padding:28px 24px}
+    .svc-card.c1 h3{font-size:32px}
+    .gallery{grid-template-columns:repeat(2,1fr);gap:12px;grid-auto-rows:160px}
+    .gimg:nth-child(n){grid-column:span 1;grid-row:span 1}
+    .gimg:nth-child(1){grid-column:span 2;grid-row:span 2;border-radius:32px}
+    .gimg:nth-child(2),.gimg:nth-child(4){border-radius:32px}
+    .gimg:nth-child(3),.gimg:nth-child(5),.gimg:nth-child(6),.gimg:nth-child(7){border-radius:32px}
+    .hours-card-big{padding:36px 24px;border-radius:32px}
+    .schedule-row{grid-template-columns:1fr auto;gap:12px}
+    .schedule-row .dots{display:none}
+    .schedule-row.today{margin:0 -12px;padding:14px 12px}
+    .reviews-card{padding:48px 28px;border-radius:32px}
+    .gscore{font-size:64px}
+    .cta-inner{padding:96px 24px}
+    .vcard-inner{flex-direction:column;text-align:center;align-items:center;padding:36px 28px;border-radius:32px}
+    .foot{grid-template-columns:1fr;gap:36px}
+    .foot-bot{flex-direction:column;text-align:center}
+    .blob{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+    .slide-up{opacity:1;transform:none}
+    .hero h1 .word > span{transform:none}
+    .blob,.hero-sticker{animation:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="blob b1"></div>
+<div class="blob b2"></div>
+<div class="blob b3"></div>
+
+<!-- 1. NAV -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="#" class="brand">
+      <span class="brand-mark">{{inicial}}</span>
+      <span class="brand-name">
+        <strong>{{nombre}}</strong>
+        <small>{{categoria}}</small>
+      </span>
+    </a>
+    <ul>
+      <li><a href="#servicios">Servicios</a></li>
+      <li><a href="#nosotros">Nosotros</a></li>
+      <li><a href="#galeria">Galería</a></li>
+      <li><a href="#horario">Horario</a></li>
+      <li><a href="#opiniones">Opiniones</a></li>
+    </ul>
+    <a href="https://wa.me/{{whatsapp}}" target="_blank" class="nav-cta">WhatsApp</a>
+    <button class="burger" id="burger" aria-label="Menú"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<aside class="mobile-menu" id="mobile-menu">
+  <ul>
+    <li><a href="#servicios">Servicios</a></li>
+    <li><a href="#nosotros">Sobre <em>nosotros</em></a></li>
+    <li><a href="#galeria">Galería</a></li>
+    <li><a href="#horario">Horario</a></li>
+    <li><a href="#opiniones">Opiniones</a></li>
+    <li><a href="#contacto"><em>Contacto</em></a></li>
+  </ul>
+  <a href="https://wa.me/{{whatsapp}}" target="_blank" class="mobile-cta">WhatsApp →</a>
+</aside>
+
+<!-- 2. HERO -->
+<header class="hero" id="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-meta">
+          <span class="pill-status" id="pill-status"><span class="dot"></span><span id="pill-text">Abierto ahora</span></span>
+          <span class="meta-script">desde {{año}}, en {{ciudad}}</span>
+        </div>
+        <h1 class="serif">
+          <span class="word"><span>Pasa,</span></span>
+          <span class="word"><span>está</span></span>
+          <span class="word"><span><em>tu casa</em></span></span>
+          <span class="word"><span>también.</span></span>
+        </h1>
+        <p class="hero-lede"><strong>{{nombre}}</strong> es {{tagline}}. {{descripcion_corta}} Sin prisa, sin compromiso — solo el gusto de hacer las cosas bien.</p>
+        <div class="hero-cta">
+          <a href="https://wa.me/{{whatsapp}}" target="_blank" class="btn-p">Reservar</a>
+          <a href="tel:{{telefono}}" class="btn-g">{{telefono}}</a>
+        </div>
+        <div class="hero-stats">
+          <div class="hstat"><strong>{{años}}<em>+</em></strong><small>Años con cariño</small></div>
+          <div class="hstat"><strong>{{nota_google}}<em>/5</em></strong><small>En Google</small></div>
+          <div class="hstat"><strong>{{n_clientes}}<em>+</em></strong><small>Personas atendidas</small></div>
+        </div>
+      </div>
+      <div class="hero-bento">
+        <div class="bphoto b-1"></div>
+        <div class="bphoto b-2"></div>
+        <div class="bphoto b-3"></div>
+        <span class="hero-badge-float">recomendado</span>
+        <span class="hero-sticker"><em>abierto</em>hoy</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- 3. TICKER -->
+<div class="ticker">
+  <div class="ticker-track">
+    <span>Atención cercana</span>
+    <span>Producto cuidado</span>
+    <span>Reserva fácil</span>
+    <span>Recomendado por vecinos</span>
+    <span>Hecho con cariño</span>
+    <span>Atención cercana</span>
+    <span>Producto cuidado</span>
+    <span>Reserva fácil</span>
+    <span>Recomendado por vecinos</span>
+    <span>Hecho con cariño</span>
+  </div>
+</div>
+
+<!-- 4. SERVICIOS -->
+<section id="servicios" style="display:none;" data-section="servicios">
+  <div class="container">
+    <div class="section-head slide-up">
+      <div>
+        <span class="eyebrow">Lo que ofrecemos</span>
+        <h2 class="serif">Cosas <em>buenas</em><br/>que hacemos.</h2>
+      </div>
+      <p class="desc">Una selección curada, sin lista interminable. Si lo que buscas no aparece, <em>pregúntanos</em> — casi siempre podemos.</p>
+    </div>
+    <div class="svc-bento" data-services-list>
+      <article class="svc-card c1" data-svc>
+        <span class="svc-num">↓ Lo más pedido</span>
+        <h3 class="serif">{{servicio_1}}</h3>
+        <p>{{desc_servicio_1}} Hecho como tiene que estar, sin atajos ni medias tintas.</p>
+        <div class="svc-foot">
+          <span class="svc-price">desde {{precio_1}} €</span>
+          <span class="svc-arrow">→</span>
+        </div>
+      </article>
+      <article class="svc-card c2" data-svc>
+        <span class="svc-num">— 02</span>
+        <h3 class="serif">{{servicio_2}}</h3>
+        <p>{{desc_servicio_2}}</p>
+        <div class="svc-foot">
+          <span class="svc-price">{{precio_2}} €</span>
+          <span class="svc-arrow">→</span>
+        </div>
+      </article>
+      <article class="svc-card c3" data-svc>
+        <span class="svc-num">— 03</span>
+        <h3 class="serif">{{servicio_3}}</h3>
+        <p>{{desc_servicio_3}}</p>
+        <div class="svc-foot">
+          <span class="svc-price">a consultar</span>
+          <span class="svc-arrow">→</span>
+        </div>
+      </article>
+      <article class="svc-card c4" data-svc>
+        <span class="svc-num">— 04</span>
+        <h3 class="serif">{{servicio_4}}</h3>
+        <p>{{desc_servicio_4}}</p>
+        <div class="svc-foot">
+          <span class="svc-price">{{precio_4}} €</span>
+          <span class="svc-arrow">→</span>
+        </div>
+      </article>
+      <article class="svc-card c5" data-svc>
+        <span class="svc-num">— 05</span>
+        <h3 class="serif">{{servicio_5}}</h3>
+        <p>{{desc_servicio_5}}</p>
+        <div class="svc-foot">
+          <span class="svc-price">{{precio_5}} €</span>
+          <span class="svc-arrow">→</span>
+        </div>
+      </article>
+      <article class="svc-card c6" data-svc>
+        <span class="svc-num">— 06</span>
+        <h3 class="serif">{{servicio_6}}</h3>
+        <p>{{desc_servicio_6}}</p>
+        <div class="svc-foot">
+          <span class="svc-price">según caso</span>
+          <span class="svc-arrow">→</span>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 5. ABOUT -->
+<section id="nosotros" class="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-text slide-up">
+        <span class="eyebrow">Sobre nosotros</span>
+        <h2 class="serif">Un sitio <em>nuestro</em>,<br/>cuidado a mano.</h2>
+        <p>{{descripcion_larga}} Lo que empezó como un proyecto pequeño se convirtió, día a día, en lo que hoy <strong>{{nombre}}</strong> representa.</p>
+        <span class="script-note">— hecho con cariño desde {{año}}</span>
+        <p>No tenemos manual ni protocolo de atención. Tenemos a personas con ganas de hacer las cosas bien y un sitio que se nos parece. Esa es la idea.</p>
+        <div class="about-sig">
+          <div class="about-sig-img"></div>
+          <div class="about-sig-text">
+            <strong>{{nombre_responsable}}</strong>
+            <small>{{cargo}}</small>
+          </div>
+        </div>
+      </div>
+      <div class="about-img-wrap slide-up" data-d="1">
+        <div class="about-img"></div>
+        <span class="about-img-badge">Aquí mismo</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. GALERÍA -->
+<section id="galeria">
+  <div class="container">
+    <div class="section-head slide-up">
+      <div>
+        <span class="eyebrow">El sitio en imágenes</span>
+        <h2 class="serif">Pequeños <em>momentos</em><br/>de la casa.</h2>
+      </div>
+      <p class="desc">Una muestra de lo que somos. Si quieres ver más, <em>pásate</em> por aquí o búscanos en Instagram.</p>
+    </div>
+    <div class="gallery">
+      <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1559925393-8be0ec4767c8?auto=format&fit=crop&w=900&q=70')"></div><div class="gimg-overlay"><small>el espacio</small><strong>Interior</strong></div></div>
+      <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1485925600647-9b7d10b51fad?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>el día a día</small><strong>Detalle</strong></div></div>
+      <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>en el sitio</small><strong>Ambiente</strong></div></div>
+      <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>el equipo</small><strong>Equipo</strong></div></div>
+      <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1521295121783-8a321d551ad2?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>el detalle</small><strong>Cuidado</strong></div></div>
+      <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>un rincón</small><strong>Rincón</strong></div></div>
+      <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=900&q=70')"></div><div class="gimg-overlay"><small>encuentros</small><strong>Conversación</strong></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. HORARIO + 8. CONTACTO -->
+<section id="horario" class="hours-section">
+  <div class="container">
+    <div class="section-head slide-up">
+      <div>
+        <span class="eyebrow">Visítanos</span>
+        <h2 class="serif">Cuándo<br/>y <em>cómo</em>.</h2>
+      </div>
+      <p class="desc">Si necesitas algo fuera del horario, escríbenos por WhatsApp y vemos. Casi <em>siempre</em> hay manera de cuadrar.</p>
+    </div>
+    <div class="hours-card-big slide-up">
+      <span class="eyebrow">Estamos aquí</span>
+      <div class="hours-grid">
+        <div class="hours-card">
+          <h3 class="serif">Horario <em>semanal</em></h3>
+          <div id="schedule">
+            <div class="schedule-row" data-day="1"><span class="day">Lunes</span><span class="dots"></span><span class="time">{{lunes}}</span></div>
+            <div class="schedule-row" data-day="2"><span class="day">Martes</span><span class="dots"></span><span class="time">{{martes}}</span></div>
+            <div class="schedule-row" data-day="3"><span class="day">Miércoles</span><span class="dots"></span><span class="time">{{miercoles}}</span></div>
+            <div class="schedule-row" data-day="4"><span class="day">Jueves</span><span class="dots"></span><span class="time">{{jueves}}</span></div>
+            <div class="schedule-row" data-day="5"><span class="day">Viernes</span><span class="dots"></span><span class="time">{{viernes}}</span></div>
+            <div class="schedule-row" data-day="6"><span class="day">Sábado</span><span class="dots"></span><span class="time">{{sabado}}</span></div>
+            <div class="schedule-row" data-day="0"><span class="day">Domingo</span><span class="dots"></span><span class="time closed">Cerrado</span></div>
+          </div>
+        </div>
+        <aside id="contacto" class="hours-card">
+          <h3 class="serif">Cómo <em>contactar</em></h3>
+          <div class="contact-list">
+            <a href="tel:{{telefono}}" class="contact-link"><span class="ico">☏</span><div><strong>{{telefono}}</strong><small>Llamada directa</small></div></a>
+            <a href="/cdn-cgi/l/email-protection#6f14140a020e06031212" class="contact-link"><span class="ico">@</span><div><strong>{{email}}</strong><small>Email</small></div></a>
+            <a href="https://wa.me/{{whatsapp}}" target="_blank" class="contact-link"><span class="ico">✆</span><div><strong>WhatsApp</strong><small>Respuesta rápida</small></div></a>
+            <a href="https://maps.google.com/?q={{lat}},{{lng}}" target="_blank" class="contact-link"><span class="ico">◉</span><div><strong>{{direccion_corta}}</strong><small>{{ciudad}}</small></div></a>
+          </div>
+        </aside>
+      </div>
+      <div id="map" data-lat="{{lat}}" data-lng="{{lng}}" data-name="{{nombre}}" data-addr="{{direccion}}"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 10. OPINIONES -->
+<section id="opiniones" class="reviews-cta" style="display:none;" data-section="opiniones">
+  <div class="container">
+    <div class="reviews-card">
+      <span class="eyebrow">Opiniones</span>
+      <div class="gstars">★★★★★</div>
+      <div class="gscore serif">{{nota_google}}<em>/5</em></div>
+      <div class="greviews">{{n_reseñas}} reseñas en Google</div>
+      <p class="gquote">"Un sitio al que <em>siempre</em> apetece volver".</p>
+      <a href="{{url_google}}" target="_blank" class="gbtn">Leer todas las opiniones</a>
+    </div>
+  </div>
+</section>
+
+<!-- 11. VCARD -->
+<section class="vcard" style="display:none;" data-section="vcard">
+  <div class="container">
+    <div class="vcard-inner">
+      <h3 class="serif">Guarda nuestro <em>contacto</em>.<small>Para no buscarnos cada vez ♡</small></h3>
+      <a href="{{vcard_url}}" class="vcard-btn" download="{{nombre}}.vcf">↓ Guardar tarjeta</a>
+    </div>
+  </div>
+</section>
+
+<!-- 12. CTA FINAL -->
+<section class="cta-final">
+  <div class="cta-bg"></div>
+  <div class="cta-curve-top"></div>
+  <div class="cta-curve-bot"></div>
+  <div class="cta-inner">
+    <span class="script-line slide-up">¿te vienes?</span>
+    <h2 class="serif slide-up" data-d="1">Te esperamos<br/><em>cuando quieras.</em></h2>
+    <p class="slide-up" data-d="2">Escríbenos, llámanos o asómate. <strong>Aquí</strong> nadie tiene prisa por ti.</p>
+    <div class="actions slide-up" data-d="3">
+      <a href="https://wa.me/{{whatsapp}}" target="_blank" class="btn-p">WhatsApp</a>
+      <a href="tel:{{telefono}}" class="btn-g">Llamar</a>
+    </div>
+  </div>
+</section>
+
+<!-- 13. FOOTER -->
+<footer>
+  <div class="container">
+    <div class="foot">
+      <div class="foot-brand-block">
+        <a href="#" class="brand">
+          <span class="brand-mark">{{inicial}}</span>
+          <span class="brand-name">
+            <strong>{{nombre}}</strong>
+            <small>{{categoria}}</small>
+          </span>
+        </a>
+        <p>{{descripcion_corta}} <span class="script-bit">— en {{ciudad}} desde {{año}}.</span></p>
+      </div>
+      <div>
+        <h4>El sitio</h4>
+        <ul>
+          <li><a href="#servicios">Servicios</a></li>
+          <li><a href="#nosotros">Nosotros</a></li>
+          <li><a href="#galeria">Galería</a></li>
+          <li><a href="#opiniones">Opiniones</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contacto</h4>
+        <ul>
+          <li><a href="tel:{{telefono}}">{{telefono}}</a></li>
+          <li><a href="https://wa.me/{{whatsapp}}">WhatsApp</a></li>
+          <li><a href="/cdn-cgi/l/email-protection#265d5d434b474f4a5b5b">{{email}}</a></li>
+          <li><a href="#contacto">{{direccion_corta}}</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Síguenos</h4>
+        <ul>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">TikTok</a></li>
+          <li><a href="#">Google reseñas</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bot">
+      <span>© {{año_actual}} {{nombre}} · CIF {{cif}}</span>
+      <span>Hecho con <a href="#">WebsApp</a></span>
+    </div>
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+(function(){
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const burger = document.getElementById('burger');
+  const menu = document.getElementById('mobile-menu');
+  function toggleMenu(open){
+    burger.classList.toggle('open',open);
+    menu.classList.toggle('open',open);
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+  burger.addEventListener('click',()=>toggleMenu(!menu.classList.contains('open')));
+  menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>toggleMenu(false)));
+
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll',()=>nav.classList.toggle('scrolled', window.scrollY > 30),{passive:true});
+
+  requestAnimationFrame(()=>document.getElementById('hero').classList.add('in'));
+
+  const io = new IntersectionObserver(es=>{
+    es.forEach(e=>{
+      if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  },{threshold:0.15});
+  document.querySelectorAll('.slide-up').forEach(el=>io.observe(el));
+
+  const today = new Date().getDay();
+  const row = document.querySelector(`.schedule-row[data-day="${today}"]`);
+  if(row) row.classList.add('today');
+
+  function updateStatus(){
+    const d = new Date();
+    const open = d.getDay() !== 0 && d.getHours() >= 10 && d.getHours() < 21;
+    const pill = document.getElementById('pill-status');
+    const txt = document.getElementById('pill-text');
+    if(!pill) return;
+    pill.classList.toggle('closed', !open);
+    txt.textContent = open ? 'Abierto ahora' : 'Cerrado · abre mañana';
+  }
+  updateStatus();
+  setInterval(updateStatus, 60000);
+
+  // FIRMAS:
+  // 1. Morphing blobs SVG en background (CSS keyframes)
+  // 2. Brand mark logo morph rounded→circle al hover + rotate (CSS)
+  // 3. Photo bento con border-radius asimétricos diferentes por foto (CSS)
+  // 4. Sticker rotativo "abierto hoy" en hero con animación slowRot (CSS)
+
+  if(window.L){
+    const el = document.getElementById('map');
+    const lat = parseFloat(el.dataset.lat) || 40.4168;
+    const lng = parseFloat(el.dataset.lng) || -3.7038;
+    const map = L.map(el,{zoomControl:true,attributionControl:false,scrollWheelZoom:false}).setView([lat,lng],15);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap, &copy; CARTO',maxZoom:19}).addTo(map);
+    const icon = L.divIcon({html:`<div style="width:38px;height:38px;background:#C97557;border:3px solid #FBF4E8;border-radius:50%;box-shadow:0 8px 24px -8px rgba(201,117,87,.5);display:grid;place-items:center;color:#FBF4E8;font-family:'Fraunces',serif;font-weight:600;font-size:18px">♡</div>`,className:'',iconSize:[38,38],iconAnchor:[19,19]});
+    L.marker([lat,lng],{icon}).addTo(map).bindPopup(`<strong>${el.dataset.name||''}</strong><br>${el.dataset.addr||''}`);
+  }
+})();
+</script>
+</body>
+</html>

@@ -23,6 +23,9 @@ export type HtmlTemplatePreviewPayload = {
   descripcion: string
   foto_equipo: string
   direccion: string
+  ciudad: string
+  pais: string
+  anio_fundacion: string
   correo: string
   galeria: string[]
   horario: Schedule | null
@@ -145,6 +148,11 @@ export function publicBusinessToTemplatePayload(business: PublicBusiness): HtmlT
     descripcion: business.description ?? '',
     foto_equipo: about[0]?.url ?? '',
     direccion: business.address ?? '',
+    ciudad: (business.city ?? '').trim(),
+    pais: (business.country ?? '').trim(),
+    anio_fundacion: business.created_at
+      ? String(new Date(business.created_at).getFullYear())
+      : '',
     correo: (business.email ?? '').trim(),
     galeria: gallery.map((g) => g.url).filter((u): u is string => Boolean(u)),
     horario: business.schedule ?? null,

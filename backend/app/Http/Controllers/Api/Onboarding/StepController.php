@@ -270,6 +270,9 @@ class StepController extends BaseApiController
     {
         $data = $request->validate([
             'address' => ['required', 'string'],
+            'city' => ['required', 'string', 'max:120'],
+            'country' => ['required', 'string', 'max:120'],
+            'country_code' => ['required', 'string', 'size:2', 'regex:/^[A-Z]{2}$/'],
             'phone' => ['required', 'string'],
             'email' => ['required', 'email'],
         ]);
@@ -315,6 +318,11 @@ class StepController extends BaseApiController
              * correo personal. Se recoge en step 6 y se persiste aquí. */
             'email' => isset($draft['email']) ? trim((string) $draft['email']) : null,
             'address' => $draft['address'] ?? null,
+            'city' => $draft['city'] ?? null,
+            'country' => $draft['country'] ?? null,
+            'country_code' => isset($draft['country_code'])
+                ? strtoupper((string) $draft['country_code'])
+                : null,
             'lat' => $draft['lat'] ?? null,
             'lng' => $draft['lng'] ?? null,
             'schedule' => $draft['schedule'] ?? null,

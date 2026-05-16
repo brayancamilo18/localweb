@@ -30,6 +30,9 @@ class BusinessResource extends JsonResource
              * mostrar en la web pública un correo distinto al de su login. */
             'email' => $this->email,
             'address' => $this->address,
+            'city' => $this->city,
+            'country' => $this->country,
+            'country_code' => $this->country_code,
             'lat' => $this->lat,
             'lng' => $this->lng,
             'google_maps_url' => $this->google_maps_url,

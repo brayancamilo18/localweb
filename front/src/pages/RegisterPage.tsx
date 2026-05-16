@@ -3,7 +3,10 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register } from '../api/auth'
 import { keys } from '../api/queryKeys'
+import { LocationPicker } from '../components/location/LocationPicker'
 import { Btn, Field, Icon, Input } from '../components/primitives/primitives'
+import { emptyLocation, isValidLocation } from '../lib/location/locationData'
+import type { LocationValue } from '../lib/location/locationTypes'
 import { AuthSplitLayout } from '../layouts/AuthSplitLayout'
 import { useApiError } from '../hooks/useApiError'
 import { clearAllOnboardingPersist } from '../features/onboarding/onboardingPersist'
@@ -113,7 +116,7 @@ export default function RegisterPage() {
   const [sectorPage, setSectorPage] = useState(0)
   const [animDir, setAnimDir] = useState<1 | -1>(1)
   const [animKey, setAnimKey] = useState(0)
-  const [city, setCity] = useState('')
+  const [location, setLocation] = useState<LocationValue>(() => emptyLocation())
 
   useEffect(() => {
     if (step !== 2) return
@@ -143,7 +146,9 @@ export default function RegisterPage() {
           JSON.stringify({
             business_name: bizName.trim(),
             sector,
-            address: city.trim(),
+            city: location.city.trim(),
+            country: location.country.trim(),
+            country_code: location.countryCode.trim().toUpperCase(),
           }),
         )
       } catch {
@@ -177,7 +182,15 @@ export default function RegisterPage() {
   const validateStep2 = () => {
     const e: Record<string, string> = {}
     if (!bizName.trim()) e.bizName = 'Pon el nombre de tu negocio'
-    if (!city.trim()) e.city = '¿En qué ciudad estáis?'
+    if (!isValidLocation(location)) {
+      if (!location.countryCode.trim()) {
+        e.country = '¿En qué país estáis?'
+      } else if (!location.city.trim()) {
+        e.city = '¿En qué ciudad estáis?'
+      } else {
+        e.city = 'Elige una ciudad de la lista'
+      }
+    }
     setClientErrors(e)
     return Object.keys(e).length === 0
   }
@@ -565,15 +578,11 @@ export default function RegisterPage() {
                 </div>
               </Field>
 
-              <Input
-                label="Ciudad"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder="Madrid"
-                error={clientErrors.city}
-                prefix={<Icon name="pin" size={15} color="var(--lw-text-2)" />}
-                style={{ height: 44 }}
-                autoComplete="address-level2"
+              <LocationPicker
+                value={location}
+                onChange={setLocation}
+                cityError={clientErrors.city}
+                countryError={clientErrors.country}
               />
 
               <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>

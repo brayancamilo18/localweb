@@ -25,6 +25,9 @@ class TemplateSeeder extends Seeder
             ['name' => 'Tavola Warm', 'slug' => 'tavola-warm', 'primary_color' => '#C8553D', 'requires_pro' => true, 'hero_photo_slots' => 3],
             ['name' => 'Tech Sleek', 'slug' => 'tech-sleek', 'primary_color' => '#00E5FF', 'requires_pro' => false],
             ['name' => 'Trust Clinic', 'slug' => 'trust-clinic', 'primary_color' => '#2E86AB', 'requires_pro' => false],
+            ['name' => 'Versa Studio', 'slug' => 'versa-studio', 'primary_color' => '#C7634D', 'requires_pro' => true, 'hero_photo_slots' => 3],
+            ['name' => 'Mono Edito', 'slug' => 'mono-edito', 'primary_color' => '#E04E2C', 'requires_pro' => true, 'hero_photo_slots' => 3],
+            ['name' => 'Luxe Atelier', 'slug' => 'luxe-atelier', 'primary_color' => '#B68A50', 'requires_pro' => true, 'hero_photo_slots' => 3],
         ];
 
         $keepSlugs = array_column($templates, 'slug');

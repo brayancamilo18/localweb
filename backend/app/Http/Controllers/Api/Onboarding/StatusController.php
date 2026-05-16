@@ -113,6 +113,9 @@ class StatusController extends BaseApiController
             'gallery_preview_urls' => $galleryImages->map(fn (BusinessImage $img) => $img->url)->all(),
             'schedule' => $business->schedule,
             'address' => $business->address,
+            'city' => $business->city,
+            'country' => $business->country,
+            'country_code' => $business->country_code,
             'phone' => $business->phone,
             'email' => $business->email,
         ];

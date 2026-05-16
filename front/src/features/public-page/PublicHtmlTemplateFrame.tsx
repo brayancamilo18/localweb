@@ -11,6 +11,9 @@ const TEMPLATE_SRC: Record<string, string> = {
   'tavola-warm': '/templates/tavola-warm.html',
   'tech-sleek': '/templates/tech-sleek.html',
   'trust-clinic': '/templates/trust-clinic.html',
+  'versa-studio': '/templates/versa-studio.html',
+  'mono-edito': '/templates/mono-edito.html',
+  'luxe-atelier': '/templates/luxe-atelier.html',
 }
 
 type Props = {

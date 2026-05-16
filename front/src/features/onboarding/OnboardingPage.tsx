@@ -19,6 +19,9 @@ import {
   scheduleSaveOnboardingPersist,
 } from './onboardingPersist'
 import { useAuthStore } from '../../store/authStore'
+import { coerceLocation } from '../../lib/location/coerceLocation'
+import { emptyLocation } from '../../lib/location/locationData'
+import type { LocationValue } from '../../lib/location/locationTypes'
 import {
   DEFAULT_SCHEDULE,
   GaleriaPreview,
@@ -115,6 +118,7 @@ export default function OnboardingPage() {
   /** Objetos blob por archivo de galería; evita enviar base64 enorme al iframe. */
   const [galleryLiveObjectUrls, setGalleryLiveObjectUrls] = useState<string[]>([])
   const [previewAddress, setPreviewAddress] = useState('')
+  const [previewLocation, setPreviewLocation] = useState<LocationValue>(() => emptyLocation())
   const [previewEmail, setPreviewEmail] = useState('')
   const [previewMapLat, setPreviewMapLat] = useState<number | undefined>(undefined)
   const [previewMapLng, setPreviewMapLng] = useState<number | undefined>(undefined)
@@ -387,13 +391,32 @@ export default function OnboardingPage() {
     // Si el wizard arranca limpio (sin borrador local ni del backend) propagamos esos valores
     // para que el paso 3 no falle silenciosamente por business_name vacío al saltar el paso 2.
     let signupBusinessName = ''
-    let signupAddress = ''
+    let signupLocation = emptyLocation()
     try {
       const raw = sessionStorage.getItem('lw_signup_prefill')
       if (raw?.trim()) {
-        const parsed = JSON.parse(raw) as { business_name?: unknown; address?: unknown }
+        const parsed = JSON.parse(raw) as {
+          business_name?: unknown
+          city?: unknown
+          country?: unknown
+          country_code?: unknown
+          address?: unknown
+        }
         if (typeof parsed.business_name === 'string') signupBusinessName = parsed.business_name.trim()
-        if (typeof parsed.address === 'string') signupAddress = parsed.address.trim()
+        const signupCity =
+          typeof parsed.city === 'string'
+            ? parsed.city.trim()
+            : typeof parsed.address === 'string'
+              ? parsed.address.trim()
+              : ''
+        const signupCountry = typeof parsed.country === 'string' ? parsed.country.trim() : ''
+        const signupCountryCode =
+          typeof parsed.country_code === 'string' ? parsed.country_code.trim().toUpperCase() : ''
+        signupLocation = coerceLocation({
+          countryCode: signupCountryCode || undefined,
+          country: signupCountry,
+          city: signupCity,
+        })
       }
     } catch {
       /* sandbox / privacy mode: ignorar */
@@ -403,7 +426,26 @@ export default function OnboardingPage() {
     setPreviewTagline(String(p?.previewTagline ?? d.tagline ?? ''))
     setPreviewPhone(String(p?.previewPhone ?? d.phone ?? ''))
     setPreviewDescription(String(p?.previewDescription ?? d.description ?? ''))
-    setPreviewAddress(String(p?.previewAddress ?? d.address ?? signupAddress ?? ''))
+    setPreviewAddress(String(p?.previewAddress ?? d.address ?? ''))
+    setPreviewLocation(
+      coerceLocation({
+        countryCode:
+          (typeof p?.previewCountryCode === 'string' && p.previewCountryCode) ||
+          (typeof d.country_code === 'string' && d.country_code) ||
+          signupLocation.countryCode ||
+          undefined,
+        country:
+          (typeof p?.previewCountry === 'string' && p.previewCountry) ||
+          (typeof d.country === 'string' && d.country) ||
+          signupLocation.country ||
+          undefined,
+        city:
+          (typeof p?.previewCity === 'string' && p.previewCity) ||
+          (typeof d.city === 'string' && d.city) ||
+          signupLocation.city ||
+          undefined,
+      }),
+    )
     setPreviewEmail(String(p?.previewEmail ?? d.email ?? ''))
 
     if (
@@ -518,6 +560,9 @@ export default function OnboardingPage() {
       previewPhone,
       previewDescription,
       previewAddress,
+      previewCity: previewLocation.city,
+      previewCountry: previewLocation.country,
+      previewCountryCode: previewLocation.countryCode,
       previewEmail,
       schedule: schedulePreview,
       step1PreviewVariant,
@@ -541,6 +586,7 @@ export default function OnboardingPage() {
     previewPhone,
     previewDescription,
     previewAddress,
+    previewLocation,
     previewEmail,
     schedulePreview,
     step1PreviewVariant,
@@ -601,7 +647,10 @@ export default function OnboardingPage() {
       description: previewDescription || undefined,
       aboutPhotoUrl: aboutLiveObjectUrl || serverAbout || undefined,
       address: (previewAddress.trim() || b?.address || '').trim() || undefined,
-      email: previewEmail.trim() || undefined,
+      city: (previewLocation.city.trim() || b?.city || '').trim() || undefined,
+      country: (previewLocation.country.trim() || b?.country || '').trim() || undefined,
+      foundedYear: b?.created_at ? String(new Date(b.created_at).getFullYear()) : undefined,
+      email: (previewEmail.trim() || b?.email || '').trim() || undefined,
       galleryUrls,
       schedule,
       mapLat,
@@ -629,6 +678,7 @@ export default function OnboardingPage() {
     previewPhone,
     previewTagline,
     previewAddress,
+    previewLocation,
     previewEmail,
     previewMapLat,
     previewMapLng,
@@ -855,11 +905,13 @@ export default function OnboardingPage() {
             {...common}
             initialPhone={previewPhone}
             initialAddress={previewAddress}
+            initialLocation={previewLocation}
             initialEmail={previewEmail}
             mapLat={previewMapLat}
             mapLng={previewMapLng}
             onPhoneChange={handlePhoneChange}
             onAddressChange={handleAddressChange}
+            onLocationChange={setPreviewLocation}
             onEmailChange={handleEmailChange}
             onMapCoordsChange={onPreviewMapCoordsChange}
           />
