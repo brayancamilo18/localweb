@@ -279,19 +279,16 @@ export default function CookieBanner() {
     return () => window.removeEventListener('onez:cookie-consent', onReset as EventListener)
   }, [showBannerAgain])
 
-  // Si borran la preferencia en DevTools (localStorage) sin recargar, o en otra pestaña.
+  // Si otra pestaña borra el consentimiento en localStorage.
   useEffect(() => {
-    const syncIfConsentRemoved = () => {
-      if (!getConsent()) showBannerAgain()
-    }
     const onStorage = (e: StorageEvent) => {
-      if (e.key === CONSENT_KEY && e.newValue === null) syncIfConsentRemoved()
+      if (e.key === CONSENT_KEY && e.newValue === null) {
+        if (!getConsent()) showBannerAgain()
+      }
     }
     window.addEventListener('storage', onStorage)
-    window.addEventListener('focus', syncIfConsentRemoved)
     return () => {
       window.removeEventListener('storage', onStorage)
-      window.removeEventListener('focus', syncIfConsentRemoved)
     }
   }, [showBannerAgain])
 
