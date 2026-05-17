@@ -103,26 +103,24 @@ export function SearchableCombobox({
     }
   }
 
+  const controlClass = [
+    'lw-searchable-combobox__control',
+    error && 'lw-searchable-combobox__control--error',
+    open && 'lw-searchable-combobox__control--open',
+    disabled && 'lw-searchable-combobox__control--disabled',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <div ref={rootRef} style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <label htmlFor={inputId} style={{ fontSize: 13, fontWeight: 500, color: 'var(--lw-text)' }}>
+    <div ref={rootRef} className="lw-searchable-combobox">
+      <label htmlFor={inputId} className="lw-searchable-combobox__label">
         {label}
       </label>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          height: 44,
-          padding: '0 12px',
-          background: disabled ? 'var(--lw-surface)' : 'var(--lw-bg-elev)',
-          border: `1px solid ${error ? 'var(--lw-danger)' : open ? 'var(--lw-accent)' : 'var(--lw-border)'}`,
-          borderRadius: 'var(--lw-r-sm)',
-          boxShadow: error ? '0 0 0 3px rgba(220,38,38,.12)' : open ? '0 0 0 3px rgba(45,90,67,.15)' : 'none',
-          opacity: disabled ? 0.6 : 1,
-        }}
-      >
-        <Icon name={prefixIcon} size={15} color="var(--lw-text-2)" />
+      <div className={controlClass}>
+        <span className="lw-searchable-combobox__prefix" aria-hidden>
+          <Icon name={prefixIcon} size={15} color="var(--lw-text-2)" />
+        </span>
         <input
           id={inputId}
           role="combobox"
@@ -139,81 +137,41 @@ export function SearchableCombobox({
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
-          style={{
-            flex: 1,
-            border: 'none',
-            outline: 'none',
-            background: 'transparent',
-            fontFamily: 'inherit',
-            fontSize: 14,
-            color: 'var(--lw-text)',
-            minWidth: 0,
-          }}
+          className="lw-searchable-combobox__input"
         />
         <button
           type="button"
           tabIndex={-1}
           disabled={disabled}
+          className="lw-searchable-combobox__toggle"
           aria-label={open ? 'Cerrar lista' : 'Abrir lista'}
           onClick={() => setOpen((v) => !v)}
-          style={{
-            border: 'none',
-            background: 'transparent',
-            padding: 0,
-            cursor: disabled ? 'default' : 'pointer',
-            color: 'var(--lw-text-3)',
-            display: 'inline-flex',
-          }}
         >
           <Icon name="chevronDown" size={14} style={{ transform: open ? 'rotate(180deg)' : undefined }} />
         </button>
       </div>
-      {error ? <div style={{ fontSize: 12, color: 'var(--lw-danger)' }}>{error}</div> : null}
+      {error ? <div className="lw-searchable-combobox__error">{error}</div> : null}
       {open && !disabled ? (
-        <ul
-          id={listId}
-          role="listbox"
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 4px)',
-            left: 0,
-            right: 0,
-            zIndex: 50,
-            margin: 0,
-            padding: 6,
-            listStyle: 'none',
-            maxHeight: 240,
-            overflowY: 'auto',
-            background: 'var(--lw-bg-elev)',
-            border: '1px solid var(--lw-border)',
-            borderRadius: 'var(--lw-r-sm)',
-            boxShadow: 'var(--lw-shadow-md, 0 8px 24px rgba(0,0,0,.12))',
-          }}
-        >
+        <ul id={listId} role="listbox" className="lw-searchable-combobox__listbox">
           {filtered.length === 0 ? (
-            <li style={{ padding: '10px 12px', fontSize: 13, color: 'var(--lw-text-3)' }}>{emptyMessage}</li>
+            <li className="lw-searchable-combobox__empty">{emptyMessage}</li>
           ) : (
             filtered.map((opt, i) => {
               const active = i === activeIndex
+              const selected = opt.value === value
               return (
-                <li key={opt.value} role="option" aria-selected={opt.value === value}>
+                <li key={opt.value} role="option" aria-selected={selected}>
                   <button
                     type="button"
+                    className={[
+                      'lw-searchable-combobox__option',
+                      active && 'lw-searchable-combobox__option--active',
+                      selected && 'lw-searchable-combobox__option--selected',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
                     onMouseEnter={() => setActiveIndex(i)}
                     onClick={() => pick(opt.value)}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: '8px 10px',
-                      borderRadius: 6,
-                      fontFamily: 'inherit',
-                      fontSize: 14,
-                      background: active ? 'var(--lw-surface)' : 'transparent',
-                      color: opt.value === value ? 'var(--lw-accent)' : 'var(--lw-text)',
-                      fontWeight: opt.value === value ? 600 : 400,
-                    }}
                   >
                     {opt.label}
                   </button>
@@ -226,4 +184,3 @@ export function SearchableCombobox({
     </div>
   )
 }
-

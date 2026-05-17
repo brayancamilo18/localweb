@@ -191,20 +191,7 @@ export function AuthSplitLayout({ hero, headerExtra, children }: AuthSplitLayout
           © {new Date().getFullYear()} ONEZ · Hecho en Madrid
         </span>
       </div>
-      <div
-        className="lw-auth-split-hero"
-        style={{
-          background: 'linear-gradient(135deg, #0F6E56, #0B1F1A)',
-          padding: 'clamp(24px, 5vw, 64px)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          color: '#fff',
-          position: 'relative',
-          overflow: 'hidden',
-          minHeight: 280,
-        }}
-      >
+      <div className="lw-auth-split-hero">
         <div
           style={{
             position: 'absolute',

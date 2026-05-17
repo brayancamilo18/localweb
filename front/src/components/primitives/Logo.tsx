@@ -1,29 +1,26 @@
 import type { CSSProperties } from 'react'
-import logoSrc from '../../assets/onez_logo_oscuro_transparente_xl_3200x1200.png'
+import { ONEZ_LOGO_ALT, ONEZ_LOGO_SRC } from '../../lib/brand'
 
-type LogoProps = {
+export type LogoProps = {
   size?: number
   style?: CSSProperties
+  className?: string
+  /** Versión clara sobre fondos oscuros (hero login/registro). */
+  onDark?: boolean
 }
 
-// El PNG fuente (3200x1200) tiene ~25.3% de padding transparente a la izquierda
-// y ~29.4% arriba. Compensamos con margins negativos para que el borde visual
-// del logo "ONEZ" quede pegado al borde izquierdo del contenedor.
-const PNG_PAD_LEFT = 0.2531
-const PNG_PAD_TOP = 0.2942
+export default function Logo({ size = 220, style, className, onDark }: LogoProps) {
+  const classes = ['lw-logo', onDark && 'lw-logo--on-dark', className].filter(Boolean).join(' ')
 
-export default function Logo({ size = 280, style }: LogoProps) {
   return (
     <img
-      src={logoSrc}
-      alt="ONEZ"
+      src={ONEZ_LOGO_SRC}
+      alt={ONEZ_LOGO_ALT}
+      className={classes}
       style={{
         width: size,
+        maxWidth: '100%',
         height: 'auto',
-        display: 'block',
-        marginLeft: -(size * PNG_PAD_LEFT),
-        marginTop: -(size * (1200 / 3200) * PNG_PAD_TOP),
-        marginBottom: -(size * (1200 / 3200) * PNG_PAD_TOP),
         ...style,
       }}
     />

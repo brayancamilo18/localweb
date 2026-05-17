@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { forgotPassword } from '../api/auth'
 import { Btn, Icon, Input } from '../components/primitives/primitives'
-import { AuthSplitLayout } from '../layouts/AuthSplitLayout'
+import { ForgotPasswordLayout } from '../layouts/ForgotPasswordLayout'
 import { useApiError } from '../hooks/useApiError'
 
 const RESEND_COOLDOWN_SECONDS = 60
@@ -30,6 +30,17 @@ export default function ForgotPasswordPage() {
   })
 
   useEffect(() => {
+    document.title = 'Recupera tu contraseña · ONEZ'
+    const meta = document.querySelector('meta[name="description"]')
+    if (meta) {
+      meta.setAttribute(
+        'content',
+        '¿Olvidaste tu contraseña? Te enviamos un enlace para restablecerla en segundos.',
+      )
+    }
+  }, [])
+
+  useEffect(() => {
     if (cooldown <= 0) return
     const id = window.setInterval(() => setCooldown((s) => Math.max(0, s - 1)), 1000)
     return () => window.clearInterval(id)
@@ -46,91 +57,84 @@ export default function ForgotPasswordPage() {
   const cooldownLabel = useMemo(() => (cooldown > 0 ? `Disponible en ${cooldown}s` : null), [cooldown])
 
   return (
-    <AuthSplitLayout hero="login">
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          width: '100%',
-        }}
-      >
-        <h1 className="lw-h1" style={{ margin: '0 0 10px' }}>
-          ¿Olvidaste tu contraseña?
-        </h1>
-        <p className="lw-body" style={{ marginBottom: 28 }}>
-          Escribe tu correo y te enviaremos un enlace para restablecerla. ¿Ya la recuerdas?{' '}
-          <Link to="/login" style={{ color: 'var(--lw-accent)', fontWeight: 500 }}>
-            Volver al login
-          </Link>
-          .
+    <ForgotPasswordLayout>
+      <Link to="/login" className="lw-forgot-page__back">
+        <Icon name="chevronLeft" size={14} color="currentColor" />
+        Volver al login
+      </Link>
+
+      <div className="lw-forgot-page__intro">
+        <h2 className="lw-forgot-page__title">¿Olvidaste tu contraseña?</h2>
+        <p className="lw-forgot-page__lead">
+          Escribe tu correo y te enviaremos un enlace para restablecerla.
         </p>
-
-        {okMessage ? (
-          <div
-            role="status"
-            style={{
-              marginBottom: 16,
-              border: '1px solid var(--lw-success, #2f9e62)',
-              background: 'rgba(47,158,98,0.08)',
-              color: 'var(--lw-success, #2f9e62)',
-              padding: '10px 12px',
-              borderRadius: 'var(--lw-r-sm)',
-              fontSize: 13,
-            }}
-          >
-            {okMessage}
-          </div>
-        ) : null}
-
-        {bannerError ? (
-          <div
-            role="alert"
-            style={{
-              marginBottom: 16,
-              border: '1px solid var(--lw-danger)',
-              background: 'var(--lw-danger-soft)',
-              color: 'var(--lw-danger)',
-              padding: '10px 12px',
-              borderRadius: 'var(--lw-r-sm)',
-              fontSize: 13,
-            }}
-          >
-            {bannerError}
-          </div>
-        ) : null}
-
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            if (cooldown > 0 || mutation.isPending) return
-            setOkMessage('')
-            mutation.mutate()
-          }}
-          style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
-        >
-          <Input
-            label="Email"
-            type="email"
-            autoComplete="email"
-            placeholder="tu@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={fieldErrors.email}
-            prefix={<Icon name="mail" size={15} color="var(--lw-text-2)" />}
-            style={{ height: 44 }}
-          />
-          <Btn
-            type="submit"
-            kind="primary"
-            size="lg"
-            fullWidth
-            loading={mutation.isPending}
-            disabled={mutation.isPending || cooldown > 0}
-          >
-            {cooldownLabel ?? (mutation.isPending ? 'Enviando…' : 'Enviar enlace')}
-          </Btn>
-        </form>
       </div>
-    </AuthSplitLayout>
+
+      {okMessage ? (
+        <div className="lw-forgot-page__success" role="status">
+          <div className="lw-forgot-page__success-icon" aria-hidden>
+            <Icon name="check" size={20} color="var(--lw-accent)" />
+          </div>
+          <h3 className="lw-forgot-page__success-title">Revisa tu correo</h3>
+          <p className="lw-forgot-page__success-text">{okMessage}</p>
+          <button
+            type="button"
+            className="lw-forgot-page__success-retry"
+            onClick={() => setOkMessage('')}
+          >
+            Probar con otro correo
+          </button>
+        </div>
+      ) : (
+        <>
+          {bannerError ? (
+            <div className="lw-forgot-page__alert lw-forgot-page__alert--error" role="alert">
+              {bannerError}
+            </div>
+          ) : null}
+
+          <form
+            className="lw-forgot-page__form lw-auth-form"
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (cooldown > 0 || mutation.isPending) return
+              setOkMessage('')
+              mutation.mutate()
+            }}
+          >
+            <Input
+              label="Email"
+              type="email"
+              autoComplete="email"
+              placeholder="tu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              error={fieldErrors.email}
+              prefix={<Icon name="mail" size={16} color="var(--lw-text-3)" />}
+              style={{ height: 48 }}
+            />
+            <Btn
+              type="submit"
+              kind="primary"
+              size="lg"
+              fullWidth
+              iconRight="arrowRight"
+              loading={mutation.isPending}
+              disabled={mutation.isPending || cooldown > 0}
+              style={{ height: 48, marginTop: 4 }}
+            >
+              {cooldownLabel ?? (mutation.isPending ? 'Enviando…' : 'Enviar enlace')}
+            </Btn>
+
+            <p className="lw-forgot-page__footnote">
+              ¿No tienes cuenta?{' '}
+              <Link to="/register" className="lw-forgot-page__inline-link">
+                Crea una gratis
+              </Link>
+            </p>
+          </form>
+        </>
+      )}
+    </ForgotPasswordLayout>
   )
 }

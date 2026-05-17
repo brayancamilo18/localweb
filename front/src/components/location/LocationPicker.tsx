@@ -69,10 +69,7 @@ export function LocationPicker({
   )
 
   return (
-    <div
-      className="lw-location-picker"
-      style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}
-    >
+    <div className="lw-location-picker">
       {cityFirst ? (
         <>
           {cityField}

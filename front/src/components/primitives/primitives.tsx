@@ -7,7 +7,7 @@ import {
   type ReactNode,
   type TextareaHTMLAttributes,
 } from 'react'
-import onezLogoSrc from '/assets/logo/onez_transparente_OSCURO_ultra_hd_5120x2880.png'
+import Logo from './Logo'
 
 // ONEZ — Primitives & shared components
 // Small, composable building blocks used across all artboards.
@@ -218,16 +218,19 @@ export function Field({ label, hint, error, counter, children, optional }: Field
 
 export type DesignInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'prefix'> & {
   label?: string
+  /** Enlace o control a la derecha del label (p. ej. «¿Olvidaste?»). */
+  labelAside?: ReactNode
   error?: string
   helper?: string
   hint?: string
   prefix?: ReactNode
   suffix?: ReactNode
   focus?: boolean
+  inputClassName?: string
 }
 
 export const Input = forwardRef<HTMLInputElement, DesignInputProps>(function Input(
-  { label, error, helper, hint, prefix, suffix, focus, id, style, className, ...props },
+  { label, labelAside, error, helper, hint, prefix, suffix, focus, id, style, className, inputClassName, ...props },
   ref,
 ) {
   const autoId = useId()
@@ -235,62 +238,54 @@ export const Input = forwardRef<HTMLInputElement, DesignInputProps>(function Inp
   const hintText = hint ?? helper
   const disabled = Boolean(props.disabled)
 
+  const shellClass = [
+    'lw-input-shell',
+    error && 'lw-input-shell--error',
+    focus && 'lw-input-shell--focus',
+    disabled && 'lw-input-shell--disabled',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   const inner = (
     <div
-      className={!label && !error && !hintText ? className : undefined}
+      className={shellClass}
       style={{
-        height: 40,
         display: 'flex',
         alignItems: 'center',
         padding: '0 12px',
         gap: 8,
-        background: disabled ? 'var(--lw-surface)' : 'var(--lw-bg-elev)',
-        border: `1px solid ${error ? 'var(--lw-danger)' : focus ? 'var(--lw-accent)' : 'var(--lw-border)'}`,
-        borderRadius: 'var(--lw-r-sm)',
-        boxShadow: focus
-          ? '0 0 0 3px var(--lw-accent-ring)'
-          : error
-            ? '0 0 0 3px rgba(220,38,38,.12)'
-            : 'none',
+        position: 'relative',
+        overflow: 'hidden',
+        height: 40,
         transition: 'box-shadow .12s, border-color .12s',
-        opacity: disabled ? 0.6 : 1,
         ...style,
       }}
     >
-      {prefix ? <span style={{ color: 'var(--lw-text-3)', fontSize: 14 }}>{prefix}</span> : null}
+      {prefix ? <span className="lw-input-shell__affix">{prefix}</span> : null}
       <input
         ref={ref}
         id={inputId}
+        className={['lw-input-shell__control', inputClassName].filter(Boolean).join(' ')}
         {...props}
-        style={{
-          flex: 1,
-          border: 'none',
-          outline: 'none',
-          background: 'transparent',
-          fontFamily: 'inherit',
-          fontSize: 14,
-          color: 'var(--lw-text)',
-          minWidth: 0,
-        }}
       />
-      {suffix ? <span style={{ color: 'var(--lw-text-3)', fontSize: 13 }}>{suffix}</span> : null}
+      {suffix ? <span className="lw-input-suffix">{suffix}</span> : null}
     </div>
   )
 
-  if (!label && !error && !hintText) {
-    return inner
-  }
-
   return (
-    <div className={className} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div className={className} style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
       {label ? (
-        <label htmlFor={inputId} style={{ fontSize: 13, fontWeight: 500, color: 'var(--lw-text)' }}>
-          {label}
-        </label>
+        <div className="lw-input-field__label-row">
+          <label htmlFor={inputId} className="lw-input-field__label">
+            {label}
+          </label>
+          {labelAside ? <span className="lw-input-field__label-aside">{labelAside}</span> : null}
+        </div>
       ) : null}
       {inner}
-      {error ? <div style={{ fontSize: 12, color: 'var(--lw-danger)' }}>{error}</div> : null}
-      {!error && hintText ? <div style={{ fontSize: 12, color: 'var(--lw-text-3)' }}>{hintText}</div> : null}
+      {error ? <div className="lw-input-field__error">{error}</div> : null}
+      {!error && hintText ? <div className="lw-input-field__hint">{hintText}</div> : null}
     </div>
   )
 })
@@ -357,8 +352,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, DesignTextareaProps>(fun
         </label>
       ) : null}
       {control}
-      {error ? <div style={{ fontSize: 12, color: 'var(--lw-danger)' }}>{error}</div> : null}
-      {!error && hintText ? <div style={{ fontSize: 12, color: 'var(--lw-text-3)' }}>{hintText}</div> : null}
+      {error ? <div className="lw-input-field__error">{error}</div> : null}
+      {!error && hintText ? <div className="lw-input-field__hint">{hintText}</div> : null}
     </div>
   )
 })
@@ -434,29 +429,7 @@ export function Badge({ children, tone = 'neutral', dot, icon, size = 'md', styl
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Logo
-// ─────────────────────────────────────────────────────────────
-export function Logo({ size = 220, style }: { size?: number; mono?: boolean; style?: CSSProperties }) {
-  const PNG_PAD_LEFT = 0.08;
-  const PNG_PAD_TOP = 0.28;
-  const heightRatio = 2880 / 5120;
-  return (
-    <img
-      src={onezLogoSrc}
-      alt="ONEZ"
-      style={{
-        width: size,
-        height: "auto",
-        display: "block",
-        marginLeft: -(size * PNG_PAD_LEFT),
-        marginTop: -(size * heightRatio * PNG_PAD_TOP),
-        marginBottom: -(size * heightRatio * PNG_PAD_TOP),
-        ...style,
-      }}
-    />
-  );
-}
+export { Logo }
 
 // ─────────────────────────────────────────────────────────────
 // Placeholder image
