@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getPublicBusiness } from '../api/public'
 import { keys } from '../api/queryKeys'
@@ -10,6 +11,13 @@ type TenantPublicPageProps = {
 }
 
 export default function TenantPublicPage({ subdomain }: TenantPublicPageProps) {
+  useEffect(() => {
+    const { pathname, search, hash } = window.location
+    if (pathname !== '/' || search || hash) {
+      window.history.replaceState(null, '', '/')
+    }
+  }, [])
+
   const { data: business, isLoading, isError } = useQuery({
     queryKey: keys.public(subdomain),
     queryFn: () => getPublicBusiness(subdomain),
