@@ -2,24 +2,8 @@ import { useParams, Navigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getPublicBusiness } from '../../api/public'
 import { keys } from '../../api/queryKeys'
-import type { PublicBusiness } from '../../types/api'
-import PublicHtmlTemplateFrame from './PublicHtmlTemplateFrame'
-import { PubAurora, PubNegocio, PubSoft, type PublicSiteBusiness } from './public-pages'
-
-/** Slugs con plantilla en `front/public/templates/*.html` — mantener alineado con `PublicHtmlTemplateFrame`. */
-const HTML_TEMPLATE_SLUGS: Record<string, true> = {
-  'noir-elite': true,
-  'bloom-studio': true,
-  'urban-bold': true,
-  'coastal-calm': true,
-  'craft-pro': true,
-  'tavola-warm': true,
-  'tech-sleek': true,
-  'trust-clinic': true,
-  'versa-studio': true,
-  'mono-edito': true,
-  'luxe-atelier': true,
-}
+import { PublicBusinessRenderer } from './PublicBusinessRenderer'
+import { PublicPageSkeleton } from './PublicPageSkeleton'
 
 // keep in sync with backend config/subdomains.php (GET /api/v1/public/subdomain-rules)
 const RESERVED_SUBDOMAINS = new Set([
@@ -32,19 +16,6 @@ const RESERVED_SUBDOMAINS = new Set([
   'dev', 'demo',
 ])
 
-function PublicSkeleton() {
-  return (
-    <div style={{ minHeight: '100vh', background: 'var(--lw-bg)' }}>
-      <div className="lw-shimmer" style={{ height: 56, marginBottom: 0 }} />
-      <div style={{ padding: 24 }}>
-        <div className="lw-shimmer" style={{ height: 320, borderRadius: 12, marginBottom: 20 }} />
-        <div className="lw-shimmer" style={{ height: 20, borderRadius: 4, maxWidth: '50%', marginBottom: 12 }} />
-        <div className="lw-shimmer" style={{ height: 14, borderRadius: 4, maxWidth: '80%' }} />
-      </div>
-    </div>
-  )
-}
-
 export default function PublicPage() {
   const { subdomain } = useParams()
 
@@ -52,16 +23,14 @@ export default function PublicPage() {
     return <Navigate to="/" replace />
   }
 
-  const { data, isLoading, isError } = useQuery({
+  const { data: business, isLoading, isError } = useQuery({
     queryKey: keys.public(subdomain),
     queryFn: () => getPublicBusiness(subdomain),
     retry: false,
   })
 
-  const business = data as PublicBusiness | undefined
-
   if (isLoading) {
-    return <PublicSkeleton />
+    return <PublicPageSkeleton />
   }
 
   if (isError || !business) {
@@ -73,16 +42,5 @@ export default function PublicPage() {
     )
   }
 
-  const slug = (business.template?.slug ?? 'soft').toLowerCase()
-
-  if (slug in HTML_TEMPLATE_SLUGS) {
-    return <PublicHtmlTemplateFrame templateSlug={slug} business={business} />
-  }
-  if (slug === 'aurora') {
-    return <PubAurora business={business as PublicSiteBusiness} />
-  }
-  if (slug === 'negocio') {
-    return <PubNegocio business={business as PublicSiteBusiness} />
-  }
-  return <PubSoft business={business as PublicSiteBusiness} pro={business.is_pro} />
+  return <PublicBusinessRenderer business={business} />
 }

@@ -36,7 +36,7 @@ function TenantGateLoading() {
   )
 }
 
-function TenantNotFound() {
+export function TenantNotFound() {
   const homeUrl = getOnezHomeUrl()
 
   return (

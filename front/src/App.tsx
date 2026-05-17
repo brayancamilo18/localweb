@@ -25,6 +25,8 @@ import Servicios from './features/dashboard/sections/Servicios'
 import EnlacesPro from './features/dashboard/sections/EnlacesPro'
 import AccountPage from './features/dashboard/sections/account/AccountPage'
 import PublicPage from './features/public-page/PublicPage'
+import TenantPublicPage from './components/TenantPublicPage'
+import { getTenantFromHostname } from './lib/tenant'
 import AdminLayout from './layouts/AdminLayout'
 import AdminDashboardPage from './features/admin/AdminDashboardPage'
 import AdminBusinessesPage from './features/admin/AdminBusinessesPage'
@@ -110,16 +112,22 @@ function AppRoutes() {
   )
 }
 
+const tenantSubdomain = getTenantFromHostname()
+
 export default function App() {
   return (
     <ErrorBoundary>
       <ToastProvider>
         <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <div className="lw-route-shell">
-              <AppRoutes />
-            </div>
-          </BrowserRouter>
+          {tenantSubdomain ? (
+            <TenantPublicPage subdomain={tenantSubdomain} />
+          ) : (
+            <BrowserRouter>
+              <div className="lw-route-shell">
+                <AppRoutes />
+              </div>
+            </BrowserRouter>
+          )}
         </QueryClientProvider>
       </ToastProvider>
     </ErrorBoundary>
