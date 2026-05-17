@@ -9,6 +9,7 @@ use finfo;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
@@ -66,6 +67,16 @@ class ImageService
     public function replaceBusinessLogo(UploadedFile|string $file, Business $business): void
     {
         $preserveTransparency = $this->sourceMayHaveTransparency($file);
+
+        Log::info('Logo upload debug', [
+            'mime' => $this->resolveSourceMimeType($file),
+            'preserveTransparency' => $preserveTransparency,
+            'file_class' => is_object($file) ? get_class($file) : gettype($file),
+            'client_mime' => $file instanceof UploadedFile ? $file->getClientMimeType() : null,
+            'client_original_name' => $file instanceof UploadedFile ? $file->getClientOriginalName() : null,
+            'driver' => extension_loaded('imagick') ? 'imagick' : 'gd',
+        ]);
+
         $manager = $this->createImageManager();
         $image = $this->decodeSource($manager, $file);
 
@@ -80,6 +91,12 @@ class ImageService
             (string) Str::uuid(),
             $extension
         );
+
+        Log::info('Logo upload debug (output)', [
+            'extension' => $extension,
+            'path' => $path,
+            'business_id' => $business->id,
+        ]);
 
         /** @var FilesystemAdapter $disk */
         $disk = Storage::disk('r2');
