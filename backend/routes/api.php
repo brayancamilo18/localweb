@@ -107,13 +107,13 @@ Route::prefix('v1')->group(function (): void {
             Route::put('/business', [DashboardBusinessController::class, 'update']);
             Route::get('/stats', StatsController::class);
             Route::get('/templates', TemplatesController::class);
-            Route::post('/images', [ImagesController::class, 'store'])->middleware('throttle:30,1');
+            Route::post('/images', [ImagesController::class, 'store']);
             Route::delete('/images/{image}', [ImagesController::class, 'destroy']);
             Route::put('/images/reorder', [ImagesController::class, 'reorder']);
-            Route::post('/logo', [ImagesController::class, 'storeLogo'])->middleware('throttle:10,1');
-            Route::delete('/logo', [ImagesController::class, 'destroyLogo'])->middleware('throttle:10,1');
+            Route::post('/logo', [ImagesController::class, 'storeLogo']);
+            Route::delete('/logo', [ImagesController::class, 'destroyLogo']);
             Route::get('/services', [ServicesController::class, 'index']);
-            Route::post('/services', [ServicesController::class, 'store'])->middleware('throttle:30,1');
+            Route::post('/services', [ServicesController::class, 'store']);
             Route::put('/services/reorder', [ServicesController::class, 'reorder']);
             Route::put('/services/{service}', [ServicesController::class, 'update']);
             Route::delete('/services/{service}', [ServicesController::class, 'destroy']);
