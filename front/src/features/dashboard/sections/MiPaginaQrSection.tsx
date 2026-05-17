@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { QRCodeCanvas } from 'qrcode.react'
+import QrPosterPreview, { QR_POSTER_DIMENSIONS } from './QrPosterPreview'
 import { Badge, Btn, Card, Field, Icon, Input } from '../../../components/primitives/primitives'
 import Select from '../../../components/primitives/Select'
 import { useToast } from '../../../components/ui/Toast'
@@ -43,7 +44,9 @@ export default function MiPaginaQrSection() {
   const [includeLogo, setIncludeLogo] = useState<boolean>(true)
   const [logoDataUri, setLogoDataUri] = useState<string | null>(null)
   const [logoLoading, setLogoLoading] = useState(false)
+  const [posterQrDataUri, setPosterQrDataUri] = useState('')
   const [didInit, setDidInit] = useState(false)
+  const posterQrCanvasRef = useRef<HTMLDivElement>(null)
 
   // Inicializa el estado cuando llega la info del backend
   useEffect(() => {
@@ -69,6 +72,23 @@ export default function MiPaginaQrSection() {
     () => (isValidHex(color) ? color : '#000000'),
     [color],
   )
+
+  const posterDims = QR_POSTER_DIMENSIONS[posterSize]
+  const posterPreviewScale = 268 / posterDims.w
+
+  // Canvas oculto: misma resolución que el PDF para la vista previa del póster.
+  useEffect(() => {
+    const canvas = posterQrCanvasRef.current?.querySelector('canvas')
+    if (!canvas) return
+    const id = requestAnimationFrame(() => {
+      try {
+        setPosterQrDataUri(canvas.toDataURL('image/png'))
+      } catch {
+        setPosterQrDataUri('')
+      }
+    })
+    return () => cancelAnimationFrame(id)
+  }, [infoQ.data?.public_url, effectiveColor, posterSize])
 
   // ── Mutations ────────────────────────────────────────────────────
   const checkoutM = useMutation({
@@ -205,21 +225,57 @@ export default function MiPaginaQrSection() {
       </div>
 
       <div className="lw-mipagina-qr-body">
-        {/* Previsualización del QR */}
+        {/* Previsualización del póster (WYSIWYG con el PDF) */}
         <div className="lw-mipagina-qr-preview-col">
+          <div ref={posterQrCanvasRef} className="lw-mipagina-qr-qr-source" aria-hidden>
+            <QRCodeCanvas
+              value={info.public_url}
+              size={posterSize === 'square' ? 300 : 340}
+              level="H"
+              fgColor={effectiveColor}
+              bgColor="#FFFFFF"
+              marginSize={2}
+            />
+          </div>
+
           <div
-            className={`lw-mipagina-qr-preview ${isPro ? '' : 'lw-mipagina-qr-preview--locked'}`}
-            aria-label="Previsualización del código QR"
+            className={`lw-mipagina-qr-preview lw-mipagina-qr-preview--poster ${isPro ? '' : 'lw-mipagina-qr-preview--locked'}`}
+            aria-label="Previsualización del póster QR"
           >
-            <div className="lw-mipagina-qr-preview-inner">
-              <QRCodeCanvas
-                value={info.public_url}
-                size={220}
-                level="H"
-                fgColor={effectiveColor}
-                bgColor="#FFFFFF"
-                marginSize={2}
-              />
+            <div
+              className="lw-mipagina-qr-poster-scale"
+              style={{
+                width: Math.round(posterDims.w * posterPreviewScale),
+                height: Math.round(posterDims.h * posterPreviewScale),
+              }}
+            >
+              <div
+                className="lw-mipagina-qr-poster-inner"
+                style={{
+                  width: posterDims.w,
+                  height: posterDims.h,
+                  transform: `scale(${posterPreviewScale})`,
+                }}
+              >
+                {posterQrDataUri ? (
+                  <QrPosterPreview
+                    businessName={info.business_name}
+                    tagline={info.tagline ?? undefined}
+                    publicUrl={info.public_url}
+                    qrDataUri={posterQrDataUri}
+                    message={message.trim() || '¡Escanéame!'}
+                    color={effectiveColor}
+                    logoDataUri={
+                      info.has_logo && includeLogo && logoDataUri ? logoDataUri : undefined
+                    }
+                    size={posterSize}
+                  />
+                ) : (
+                  <p className="lw-small" style={{ padding: 24, textAlign: 'center' }}>
+                    Generando vista previa…
+                  </p>
+                )}
+              </div>
             </div>
             {!isPro && (
               <div className="lw-mipagina-qr-lock" role="status">
@@ -231,8 +287,8 @@ export default function MiPaginaQrSection() {
             )}
           </div>
 
-          <p className="lw-small lw-mono" style={{ marginTop: 10, textAlign: 'center' }}>
-            {info.public_url.replace(/^https?:\/\//, '')}
+          <p className="lw-small" style={{ marginTop: 10, textAlign: 'center', color: 'var(--lw-text-3)' }}>
+            Vista previa del póster · el PDF coincide con lo que ves aquí
           </p>
         </div>
 

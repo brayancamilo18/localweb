@@ -127,9 +127,9 @@ export default function App() {
               <div className="lw-route-shell">
                 <AppRoutes />
               </div>
+              <CookieBanner />
             </BrowserRouter>
           )}
-          <CookieBanner />
         </QueryClientProvider>
       </ToastProvider>
     </ErrorBoundary>

@@ -103,15 +103,17 @@ export default function Horarios() {
                     <Input
                       type="time"
                       value={row.open}
+                      fullWidth={false}
                       onChange={(e) => setSchedule((s) => ({ ...s, [key]: { ...s[key], open: e.target.value } }))}
-                      style={{ height: 32, width: 110, fontSize: 13 }}
+                      style={{ height: 32, width: 110, minHeight: 32, fontSize: 13 }}
                     />
                     <span className="lw-small">a</span>
                     <Input
                       type="time"
                       value={row.close}
+                      fullWidth={false}
                       onChange={(e) => setSchedule((s) => ({ ...s, [key]: { ...s[key], close: e.target.value } }))}
-                      style={{ height: 32, width: 110, fontSize: 13 }}
+                      style={{ height: 32, width: 110, minHeight: 32, fontSize: 13 }}
                     />
                   </div>
                 )}

@@ -38,6 +38,8 @@ import {
 import { LocationPicker } from '../../components/location/LocationPicker'
 import type { LocationValue } from '../../lib/location/locationTypes'
 import { WizardNavContext, type WizardStepProps } from './wizardNavContext'
+import { TemplateIframePoolProvider } from './templatePreview/TemplateIframePool'
+import TemplateCardPreview from './templatePreview/TemplateCardPreview'
 
 // ONEZ — Onboarding wizard (8 pasos)
 // Each step is a self-contained component returning a desktop split (form + preview).
@@ -1060,6 +1062,10 @@ function Step1Logo({
   )
 }
 
+/**
+ * Paso 1 · plantillas. Al cambiar de paso del wizard, OnboardingPage desmonta este
+ * componente (switch en stepBody) y se liberan iframes del pool.
+ */
 function Step1Plantilla({
   errors,
   isLoading: busy,
@@ -1174,7 +1180,15 @@ function Step1Plantilla({
   }, [list, selectedId, onTemplatePreviewChange])
 
   return (
-    <>
+    <TemplateIframePoolProvider
+      renderThumb={(variant) => (
+        <TemplateIframe
+          variant={variant as Step1PreviewVariant}
+          mode="thumb"
+          previewData={STEP1_TEMPLATE_PREVIEW_DEMO_BY_VARIANT[variant as Step1PreviewVariant]}
+        />
+      )}
+    >
       <div>
         <h1 className="lw-h2">Elige tu plantilla</h1>
         <p className="lw-body" style={{ marginTop: 6, maxWidth: 540 }}>
@@ -1234,7 +1248,7 @@ function Step1Plantilla({
                 className="lw-template-card-preview"
                 style={{ position: 'relative', width: '100%', borderBottom: `1px solid ${BORDER}` }}
               >
-                <TemplateIframe variant={variant} mode="thumb" previewData={STEP1_TEMPLATE_PREVIEW_DEMO_BY_VARIANT[variant]} />
+                <TemplateCardPreview variant={variant} template={t} />
                 <div style={{ position: 'absolute', top: 8, left: 8 }}>
                   <Badge
                     tone={t.requires_pro ? 'pro' : 'success'}
@@ -1432,7 +1446,7 @@ function Step1Plantilla({
             document.body,
           )
         : null}
-    </>
+    </TemplateIframePoolProvider>
   )
 }
 
@@ -2457,18 +2471,12 @@ function Step5Horarios({
                     Cerrado
                   </div>
                 ) : (
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      flexWrap: 'wrap',
-                      gap: 6,
-                    }}
-                  >
+                  <div className="lw-schedule-times-row">
                     <Input
                       type="time"
                       value={row.open}
                       disabled={busy}
+                      fullWidth={false}
                       prefix={<Icon name="clock" size={14} />}
                       aria-label={`${label}: apertura`}
                       title="Hora de apertura"
@@ -2478,13 +2486,14 @@ function Step5Horarios({
                       className="lw-schedule-time-field"
                       style={timeInputStyle}
                     />
-                    <span style={{ color: 'var(--lw-text-4)', fontSize: 13, userSelect: 'none' }} aria-hidden>
+                    <span className="lw-schedule-times-sep" aria-hidden>
                       –
                     </span>
                     <Input
                       type="time"
                       value={row.close}
                       disabled={busy}
+                      fullWidth={false}
                       prefix={<Icon name="clock" size={14} />}
                       aria-label={`${label}: cierre`}
                       title="Hora de cierre"

@@ -8,7 +8,16 @@
  * Analytics propias (page_visits, IP hasheada en servidor): interés legítimo — ver RegisterPageVisit.
  * Scripts de terceros (GA, etc.): solo tras consentimiento explícito (Art. 6.1.a RGPD).
  */
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react'
+import { useLocation } from 'react-router-dom'
 import {
   CONSENT_KEY,
   CONSENT_VERSION,
@@ -231,16 +240,26 @@ const CATEGORIES: {
   },
 ];
 
+/** Iframe de preview de plantilla dentro del wizard (no la ventana principal). */
+function isOnboardingEmbed(): boolean {
+  if (typeof window === 'undefined') return false
+  if (window.self === window.top) return false
+  return new URLSearchParams(window.location.search).has('parentOrigin')
+}
+
+function isOnboardingRoute(pathname: string): boolean {
+  return pathname === '/onboarding' || pathname.startsWith('/onboarding/')
+}
+
 // ---------- Main component ----------
 export default function CookieBanner() {
-  const isPreview =
-    typeof window !== 'undefined' &&
-    new URLSearchParams(window.location.search).has('parentOrigin')
+  const { pathname } = useLocation()
+  const hideOnOnboarding = isOnboardingRoute(pathname)
+  const isPreview = isOnboardingEmbed()
 
-  const [mounted, setMounted] = useState(false);
-  const [hasConsent, setHasConsent] = useState(() => !!getConsent());
-  const [showModal, setShowModal] = useState(() => !getConsent());
-  const [modalIn, setModalIn] = useState(false);
+  const [hasConsent, setHasConsent] = useState(false)
+  const [showModal, setShowModal] = useState(false)
+  const [modalIn, setModalIn] = useState(false)
   const [prefs, setPrefs] = useState<Prefs>(() => {
     const existing = getConsent();
     return {
@@ -253,17 +272,23 @@ export default function CookieBanner() {
   const lastFocusedRef = useRef<HTMLElement | null>(null);
 
   const openConsentModal = useCallback(() => {
-    setShowModal(true);
-  }, []);
+    setShowModal(true)
+    setModalIn(true)
+  }, [])
 
-  // Mount + initial detection (avoid SSR mismatch)
-  useEffect(() => {
-    setMounted(true);
-    const existing = getConsent();
-    if (!existing) {
-      setShowModal(true);
+  // Sincronizar con localStorage antes del primer pintado (evita modal invisible u oculto).
+  useLayoutEffect(() => {
+    const existing = getConsent()
+    if (existing) {
+      setHasConsent(true)
+      setShowModal(false)
+      setModalIn(false)
+    } else {
+      setHasConsent(false)
+      setShowModal(true)
+      setModalIn(true)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
     const onConsentEvent = (e: Event) => {
@@ -303,9 +328,12 @@ export default function CookieBanner() {
 
   // Modal animation + focus management
   useEffect(() => {
-    if (!showModal) return;
-    lastFocusedRef.current = document.activeElement as HTMLElement | null;
-    requestAnimationFrame(() => setModalIn(true));
+    if (!showModal) {
+      setModalIn(false)
+      return
+    }
+    lastFocusedRef.current = document.activeElement as HTMLElement | null
+    setModalIn(true)
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && hasConsent) {
@@ -386,8 +414,7 @@ export default function CookieBanner() {
     }, 220);
   };
 
-  if (isPreview) return null;
-  if (!mounted) return null;
+  if (isPreview || hideOnOnboarding) return null
 
   return (
     <>

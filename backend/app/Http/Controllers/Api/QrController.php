@@ -127,12 +127,6 @@ class QrController extends BaseApiController
             }
         }
 
-        $includeLogo = $includeLogo && $logoDataUri !== null;
-
-        // Colores derivados del color de acento (mismo algoritmo que el componente frontend).
-        $softTint = $this->tintColor($color, 0.92);
-        $borderTint = $this->tintColor($color, 0.75);
-
         $papers = [
             'a4' => ['paper' => 'a4', 'orientation' => 'portrait'],
             'a5' => ['paper' => 'a5', 'orientation' => 'portrait'],
@@ -147,10 +141,7 @@ class QrController extends BaseApiController
             'qrDataUri' => $qrDataUri,
             'publicUrl' => $url,
             'color' => $color,
-            'softTint' => $softTint,
-            'borderTint' => $borderTint,
-            'includeLogo' => $includeLogo,
-            'logoUrl' => $logoDataUri,
+            'logoDataUri' => ($includeLogo && $logoDataUri) ? $logoDataUri : null,
             'size' => $opts['size'],
         ])->setPaper($paper['paper'], $paper['orientation']);
 
@@ -170,25 +161,5 @@ class QrController extends BaseApiController
         }
 
         return null;
-    }
-
-    /**
-     * Mezcla un color hex con blanco (ratio entre 0 y 1) y devuelve una
-     * cadena rgb(r,g,b) — usada para fondos suaves y bordes en el póster.
-     */
-    private function tintColor(string $hex, float $ratio): string
-    {
-        $hex = ltrim($hex, '#');
-        if (! preg_match('/^[0-9a-fA-F]{6}$/', $hex)) {
-            return 'rgb(255, 255, 255)';
-        }
-        $r = (int) hexdec(substr($hex, 0, 2));
-        $g = (int) hexdec(substr($hex, 2, 2));
-        $b = (int) hexdec(substr($hex, 4, 2));
-        $nr = (int) round($r + (255 - $r) * $ratio);
-        $ng = (int) round($g + (255 - $g) * $ratio);
-        $nb = (int) round($b + (255 - $b) * $ratio);
-
-        return "rgb({$nr}, {$ng}, {$nb})";
     }
 }

@@ -200,7 +200,7 @@ export function Field({ label, hint, error, counter, children, optional }: Field
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       {label && (
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <label style={{ fontSize: 13, fontWeight: 500, color: "var(--lw-text)" }}>
+          <label style={{ fontSize: 'var(--lw-form-label)', fontWeight: 500, color: "var(--lw-text)" }}>
             {label}
             {optional && <span style={{ color: "var(--lw-text-4)", fontWeight: 400, marginLeft: 4 }}>· opcional</span>}
           </label>
@@ -208,10 +208,10 @@ export function Field({ label, hint, error, counter, children, optional }: Field
         </div>
       )}
       {children}
-      {error && <div style={{ fontSize: 12, color: "var(--lw-danger)", display: "flex", alignItems: "center", gap: 4 }}>
+      {error && <div style={{ fontSize: 'var(--lw-form-caption)', color: "var(--lw-danger)", display: "flex", alignItems: "center", gap: 4 }}>
         <Icon name="alert" size={12}/>{error}
       </div>}
-      {!error && hint && <div style={{ fontSize: 12, color: "var(--lw-text-3)" }}>{hint}</div>}
+      {!error && hint && <div style={{ fontSize: 'var(--lw-form-caption)', color: "var(--lw-text-3)" }}>{hint}</div>}
     </div>
   );
 }
@@ -227,10 +227,27 @@ export type DesignInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'size
   suffix?: ReactNode
   focus?: boolean
   inputClassName?: string
+  /** Por defecto el campo ocupa todo el ancho del contenedor. */
+  fullWidth?: boolean
 }
 
 export const Input = forwardRef<HTMLInputElement, DesignInputProps>(function Input(
-  { label, labelAside, error, helper, hint, prefix, suffix, focus, id, style, className, inputClassName, ...props },
+  {
+    label,
+    labelAside,
+    error,
+    helper,
+    hint,
+    prefix,
+    suffix,
+    focus,
+    id,
+    style,
+    className,
+    inputClassName,
+    fullWidth = true,
+    ...props
+  },
   ref,
 ) {
   const autoId = useId()
@@ -257,7 +274,8 @@ export const Input = forwardRef<HTMLInputElement, DesignInputProps>(function Inp
         gap: 8,
         position: 'relative',
         overflow: 'hidden',
-        height: 40,
+        minHeight: 'var(--lw-form-control-height)',
+        height: 'var(--lw-form-control-height)',
         transition: 'box-shadow .12s, border-color .12s',
         ...style,
       }}
@@ -274,7 +292,17 @@ export const Input = forwardRef<HTMLInputElement, DesignInputProps>(function Inp
   )
 
   return (
-    <div className={className} style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
+    <div
+      className={className}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+        width: fullWidth ? '100%' : 'auto',
+        maxWidth: fullWidth ? undefined : '100%',
+        flex: fullWidth ? undefined : '0 0 auto',
+      }}
+    >
       {label ? (
         <div className="lw-input-field__label-row">
           <label htmlFor={inputId} className="lw-input-field__label">
@@ -323,7 +351,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, DesignTextareaProps>(fun
         borderRadius: 'var(--lw-r-sm)',
         boxShadow: focus ? '0 0 0 3px var(--lw-accent-ring)' : 'none',
         fontFamily: 'inherit',
-        fontSize: 14,
+        fontSize: 'var(--lw-form-input)',
         lineHeight: 1.5,
         color: 'var(--lw-text)',
         resize: 'none',
@@ -347,7 +375,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, DesignTextareaProps>(fun
       style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%', minWidth: 0 }}
     >
       {label ? (
-        <label htmlFor={tid} style={{ fontSize: 13, fontWeight: 500, color: 'var(--lw-text)' }}>
+        <label htmlFor={tid} style={{ fontSize: 'var(--lw-form-label)', fontWeight: 500, color: 'var(--lw-text)' }}>
           {label}
         </label>
       ) : null}

@@ -18,30 +18,46 @@
   flex-direction: column;
 }
 
+.lw-mipagina-qr-qr-source {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  left: -9999px;
+}
+
 .lw-mipagina-qr-preview {
   position: relative;
   background: #FFFFFF;
   border: 1px solid var(--lw-border);
   border-radius: var(--lw-r);
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 1 / 1;
   width: 100%;
   max-width: 280px;
   margin: 0 auto;
+  overflow: hidden;
 }
 
-.lw-mipagina-qr-preview-inner {
+.lw-mipagina-qr-preview--poster {
+  padding: 12px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  width: 100%;
-  height: 100%;
+  min-height: 120px;
 }
 
-.lw-mipagina-qr-preview--locked .lw-mipagina-qr-preview-inner {
+.lw-mipagina-qr-poster-scale {
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.lw-mipagina-qr-poster-inner {
+  transform-origin: top left;
+}
+
+.lw-mipagina-qr-preview--locked .lw-mipagina-qr-poster-scale {
   filter: blur(4px) opacity(0.55);
   user-select: none;
   pointer-events: none;

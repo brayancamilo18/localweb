@@ -71,7 +71,13 @@
 .lw-horarios-times {
   display: flex;
   align-items: center;
+  flex-wrap: nowrap;
   gap: 8px;
+  min-width: 0;
+}
+
+.lw-horarios-times > * {
+  flex: 0 0 auto;
 }
 
 @media (max-width: 1080px) {

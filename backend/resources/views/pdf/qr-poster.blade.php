@@ -1,140 +1,275 @@
 @php
-    // ─── Tamaños derivados del tamaño de página ──────────────────
-    $isA5 = $size === 'a5';
-    $isSq = $size === 'square';
+    /**
+     * QR Poster PDF template (dompdf-compatible).
+     *
+     * Expected variables:
+     *   $businessName  string
+     *   $tagline       ?string
+     *   $publicUrl     string
+     *   $qrDataUri     string  (data:image/png;base64,...)
+     *   $message       string
+     *   $color         string  (#RRGGBB)
+     *   $logoDataUri   ?string
+     *   $size          string  'a4' | 'a5' | 'square'
+     */
 
-    $headerPad     = $isA5 ? '20px 28px' : '28px 40px';
-    $logoMaxH      = $isA5 ? '56px' : '80px';
-    $logoMaxW      = $isA5 ? '180px' : '260px';
-    $logoMb        = $isA5 ? '8px' : '12px';
-    $nameSize      = $isA5 ? '26px' : '44px';
-    $nameSizeLogo  = $isA5 ? '22px' : '32px';
-    $taglineSize   = $isA5 ? '13px' : '16px';
-    $taglineMt     = $isA5 ? '6px' : '10px';
-    $decoH         = $isA5 ? '4px' : '6px';
-    $msgMt         = $isA5 ? '24px' : '40px';
-    $msgMb         = $isA5 ? '12px' : '18px';
-    $msgSize       = $isA5 ? '26px' : '34px';
-    $qrBorder      = $isA5 ? '3px' : '4px';
-    $qrPad         = $isA5 ? '20px' : '28px';
-    $qrDim         = $isA5 ? '260px' : ($isSq ? '320px' : '380px');
-    $urlMt         = $isA5 ? '20px' : '28px';
-    $urlSize       = $isA5 ? '14px' : '18px';
-    $urlPad        = $isA5 ? '8px 16px' : '10px 20px';
-    $urlHintSize   = $isA5 ? '11px' : '13px';
-    $urlHintMt     = $isA5 ? '8px' : '10px';
-    $footerMt      = $isA5 ? '20px' : '32px';
-    $footerPb      = $isA5 ? '20px' : '28px';
-    $footerSize    = $isA5 ? '10px' : '11px';
+    // ---------- dimensions ----------
+    $dims = [
+        'a4'     => ['w' => 794,  'h' => 1123, 'scale' => 1.0],
+        'a5'     => ['w' => 559,  'h' => 794,  'scale' => 0.7],
+        'square' => ['w' => 794,  'h' => 794,  'scale' => 1.0],
+    ];
+    $d     = $dims[$size] ?? $dims['a4'];
+    $scale = $d['scale'];
+    $s     = fn($n) => (int) round($n * $scale);
 
-    $sheetWidth = $isA5 ? '559px' : '794px';
+    // ---------- tint helper ----------
+    if (!function_exists('qr_poster_tint')) {
+        function qr_poster_tint(string $hex, float $ratio): string {
+            $h = ltrim($hex, '#');
+            if (strlen($h) === 3) {
+                $h = $h[0].$h[0].$h[1].$h[1].$h[2].$h[2];
+            }
+            if (!preg_match('/^[0-9a-fA-F]{6}$/', $h)) {
+                $h = '0F6E56';
+            }
+            $r = hexdec(substr($h, 0, 2));
+            $g = hexdec(substr($h, 2, 2));
+            $b = hexdec(substr($h, 4, 2));
+            $t = max(0.0, min(1.0, $ratio));
+            $mix = fn($c) => (int) round($c + (255 - $c) * $t);
+            return sprintf('#%02x%02x%02x', $mix($r), $mix($g), $mix($b));
+        }
+    }
 
-    // Pre-build all inline style strings so the HTML below has zero Blade
-    // interpolation inside style="" attributes — keeps IDE CSS linters happy.
-    $headerStyle    = "background:{$color};padding:{$headerPad};";
-    $logoWrapStyle  = "margin-bottom:{$logoMb};";
-    $logoImgStyle   = "max-height:{$logoMaxH};max-width:{$logoMaxW};";
-    $nameStyle      = "font-size:{$nameSize};";
-    $nameLogoStyle  = "font-size:{$nameSizeLogo};";
-    $taglineStyle   = "font-size:{$taglineSize};margin-top:{$taglineMt};";
-    $decoStyle      = "height:{$decoH};background:{$softTint};";
-    $msgBlockStyle  = "margin-top:{$msgMt};margin-bottom:{$msgMb};";
-    $msgTextStyle   = "font-size:{$msgSize};color:{$color};";
-    $qrBoxStyle     = "border:{$qrBorder} solid {$color};padding:{$qrPad};";
-    $qrImgStyle     = "width:{$qrDim};height:{$qrDim};";
-    $urlBlockStyle  = "margin-top:{$urlMt};";
-    $urlPillStyle   = "font-size:{$urlSize};background:{$softTint};padding:{$urlPad};border:1px solid {$borderTint};";
-    $urlHintStyle   = "font-size:{$urlHintSize};margin-top:{$urlHintMt};";
-    $footerStyle    = "margin-top:{$footerMt};padding-bottom:{$footerPb};font-size:{$footerSize};";
+    $accent       = $color;
+    $bgSoft       = qr_poster_tint($color, 0.94);
+    $divider      = qr_poster_tint($color, 0.82);
+    $qrBorder     = qr_poster_tint($color, 0.70);
+    $eyebrow      = qr_poster_tint($color, 0.40);
+    $dotsColor    = qr_poster_tint($color, 0.60);
+    $taglineColor = qr_poster_tint($color, 0.20);
+
+    $nearBlack = '#0B1F1A';
+    $muted     = '#888780';
+    $white     = '#FFFFFF';
+
+    $qrSize    = $size === 'square' ? $s(300) : $s(340);
+    $nameSize  = $logoDataUri ? $s(28) : $s(38);
 @endphp
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    {!! '<style>
+    <meta charset="utf-8">
+    <title>QR Poster — {{ $businessName }}</title>
+    <style>
         @page { margin: 0; }
-        * { box-sizing: border-box; }
-        body {
-            margin: 0; padding: 0;
-            font-family: Helvetica, Arial, sans-serif;
-            color: #111111;
-            background: #ffffff;
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: {{ $white }};
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            color: {{ $nearBlack }};
         }
-        .sheet { position: relative; background: #ffffff; overflow: hidden; }
-        .header { width: 100%; color: #ffffff; text-align: center; }
-        .header-name { font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; }
-        .header-tagline { font-weight: 400; opacity: 0.92; line-height: 1.3; }
-        .deco-bar { width: 100%; }
-        .message-block { text-align: center; padding: 0 40px; }
-        .message-text {
-            display: inline-block; font-weight: 700;
-            letter-spacing: -0.01em; line-height: 1.1;
+        .poster {
+            width: {{ $d['w'] }}px;
+            height: {{ $d['h'] }}px;
+            background: {{ $white }};
+            position: relative;
         }
-        .qr-table { width: 100%; border-collapse: collapse; }
-        .qr-cell { text-align: center; vertical-align: middle; }
-        .qr-box { display: inline-block; background: #ffffff; }
-        .qr-box img { display: block; }
-        .url-block { text-align: center; padding: 0 40px; }
-        .url-pill {
-            display: inline-block; font-weight: 600; color: #222222;
-            letter-spacing: 0.02em;
+        .strip {
+            width: 100%;
+            height: {{ $s(4) }}px;
+            background: {{ $accent }};
+            font-size: 0;
+            line-height: 0;
         }
-        .url-hint { color: #666666; }
-        .footer { text-align: center; color: #999999; letter-spacing: 0.05em; }
-        .footer strong { font-weight: 700; color: #666666; }
-    </style>' !!}
+        .header {
+            text-align: center;
+            padding: {{ $s(40) }}px {{ $s(48) }}px;
+            background: {{ $white }};
+        }
+        .logo {
+            display: block;
+            margin: 0 auto {{ $s(16) }}px auto;
+            max-height: {{ $s(64) }}px;
+            max-width: {{ $s(220) }}px;
+        }
+        .business-name {
+            font-size: {{ $nameSize }}px;
+            font-weight: 800;
+            color: {{ $nearBlack }};
+            letter-spacing: -0.03em;
+            line-height: 1.05;
+        }
+        .tagline {
+            font-size: {{ $s(15) }}px;
+            color: {{ $taglineColor }};
+            font-weight: 500;
+            margin-top: {{ $s(8) }}px;
+            letter-spacing: 0.01em;
+        }
+        .divider {
+            height: 1px;
+            background: {{ $divider }};
+            margin: 0 {{ $s(48) }}px;
+            font-size: 0;
+            line-height: 0;
+        }
+        .message-section {
+            background: {{ $bgSoft }};
+            padding: {{ $s(32) }}px {{ $s(48) }}px;
+            text-align: center;
+        }
+        .eyebrow {
+            font-size: {{ $s(10) }}px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            color: {{ $eyebrow }};
+            text-transform: uppercase;
+            margin-bottom: {{ $s(10) }}px;
+        }
+        .message {
+            font-size: {{ $s(28) }}px;
+            font-weight: 700;
+            color: {{ $accent }};
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+        .qr-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: {{ $white }};
+        }
+        .qr-cell {
+            text-align: center;
+            padding: {{ $s(36) }}px 0;
+        }
+        .qr-frame {
+            display: inline-block;
+            background: {{ $white }};
+            border: {{ $s(2) }}px solid {{ $qrBorder }};
+            padding: {{ $s(20) }}px;
+            text-align: center;
+        }
+        .qr-tab {
+            width: 100%;
+            height: {{ $s(3) }}px;
+            background: {{ $accent }};
+            margin-bottom: {{ $s(12) }}px;
+            font-size: 0;
+            line-height: 0;
+        }
+        .qr-img {
+            display: block;
+            width: {{ $qrSize }}px;
+            height: {{ $qrSize }}px;
+        }
+        .url-section {
+            text-align: center;
+            padding: {{ $s(20) }}px {{ $s(48) }}px 0 {{ $s(48) }}px;
+            background: {{ $white }};
+        }
+        .url {
+            font-size: {{ $s(17) }}px;
+            font-weight: 700;
+            color: {{ $nearBlack }};
+            letter-spacing: 0.01em;
+        }
+        .dots {
+            font-size: {{ $s(8) }}px;
+            color: {{ $dotsColor }};
+            letter-spacing: {{ $s(6) }}px;
+            margin-top: {{ $s(8) }}px;
+            line-height: 1;
+        }
+        .instruction {
+            font-size: {{ $s(12) }}px;
+            color: {{ $muted }};
+            font-weight: 400;
+            margin-top: {{ $s(8) }}px;
+        }
+        .spacer {
+            height: {{ $s(20) }}px;
+            font-size: 0;
+            line-height: 0;
+        }
+        .footer {
+            background: {{ $white }};
+            padding: {{ $s(14) }}px 0;
+            text-align: center;
+        }
+        .footer .brand {
+            font-weight: 900;
+            font-size: {{ $s(11) }}px;
+            color: {{ $nearBlack }};
+            letter-spacing: -0.02em;
+        }
+        .footer .sep,
+        .footer .by {
+            font-size: {{ $s(11) }}px;
+            color: {{ $muted }};
+            font-weight: 400;
+        }
+        .footer .gap {
+            display: inline-block;
+            width: {{ $s(6) }}px;
+        }
+    </style>
 </head>
 <body>
-<div class="sheet" style="width: {{ $sheetWidth }};">
+    <div class="poster">
+        {{-- 1. Top accent strip --}}
+        <div class="strip"></div>
 
-    {{-- HEADER --}}
-    <div class="header" {!! "style=\"{$headerStyle}\"" !!}>
-        @if($includeLogo && $logoUrl)
-            <div {!! "style=\"{$logoWrapStyle}\"" !!}>
-                <img src="{{ $logoUrl }}" alt="{{ $businessName }}" {!! "style=\"{$logoImgStyle}\"" !!}>
-            </div>
-            <div class="header-name" {!! "style=\"{$nameLogoStyle}\"" !!}>{{ $businessName }}</div>
-        @else
-            <div class="header-name" {!! "style=\"{$nameStyle}\"" !!}>{{ $businessName }}</div>
-        @endif
+        {{-- 2. Header --}}
+        <div class="header">
+            @if (!empty($logoDataUri))
+                <img src="{{ $logoDataUri }}" alt="" class="logo">
+            @endif
+            <div class="business-name">{{ $businessName }}</div>
+            @if (!empty($tagline))
+                <div class="tagline">{{ $tagline }}</div>
+            @endif
+        </div>
 
-        @if(!empty($tagline))
-            <div class="header-tagline" {!! "style=\"{$taglineStyle}\"" !!}>{{ $tagline }}</div>
-        @endif
-    </div>
+        {{-- 3. Divider --}}
+        <div class="divider"></div>
 
-    {{-- BARRA DECORATIVA --}}
-    <div class="deco-bar" {!! "style=\"{$decoStyle}\"" !!}></div>
+        {{-- 4. Message section --}}
+        <div class="message-section">
+            <div class="eyebrow">ESCANEA Y VISÍTANOS</div>
+            <div class="message">{{ $message }}</div>
+        </div>
 
-    {{-- MENSAJE --}}
-    <div class="message-block" {!! "style=\"{$msgBlockStyle}\"" !!}>
-        <span class="message-text" {!! "style=\"{$msgTextStyle}\"" !!}>{{ $message }}</span>
-    </div>
-
-    {{-- QR --}}
-    <table class="qr-table" cellpadding="0" cellspacing="0">
-        <tbody>
+        {{-- 5. QR section --}}
+        <table class="qr-table" cellpadding="0" cellspacing="0">
             <tr>
                 <td class="qr-cell">
-                    <div class="qr-box" {!! "style=\"{$qrBoxStyle}\"" !!}>
-                        <img src="{{ $qrDataUri }}" alt="QR {{ $businessName }}" {!! "style=\"{$qrImgStyle}\"" !!}>
+                    <div class="qr-frame">
+                        <div class="qr-tab"></div>
+                        <img src="{{ $qrDataUri }}" alt="QR" class="qr-img">
                     </div>
                 </td>
             </tr>
-        </tbody>
-    </table>
+        </table>
 
-    {{-- URL --}}
-    <div class="url-block" {!! "style=\"{$urlBlockStyle}\"" !!}>
-        <div class="url-pill" {!! "style=\"{$urlPillStyle}\"" !!}>{{ preg_replace('#^https?://#', '', $publicUrl) }}</div>
-        <div class="url-hint" {!! "style=\"{$urlHintStyle}\"" !!}>Apunta la cámara de tu móvil al código</div>
+        {{-- 6. URL section --}}
+        <div class="url-section">
+            <div class="url">{{ $publicUrl }}</div>
+            <div class="dots">●●●</div>
+            <div class="instruction">Apunta la cámara de tu móvil al código QR</div>
+        </div>
+
+        <div class="spacer"></div>
+
+        {{-- 7. Bottom accent strip --}}
+        <div class="strip"></div>
+
+        {{-- 8. Footer --}}
+        <div class="footer">
+            <span class="brand">ONEZ</span><span class="gap"></span><span class="sep">·</span><span class="gap"></span><span class="by">Tu página profesional</span>
+        </div>
     </div>
-
-    {{-- FOOTER --}}
-    <div class="footer" {!! "style=\"{$footerStyle}\"" !!}>
-        Hecho con <strong>LocalWeb</strong>
-    </div>
-
-</div>
 </body>
 </html>
