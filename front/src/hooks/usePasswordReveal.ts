@@ -1,7 +1,15 @@
 import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 
+// Excluir iOS/iPadOS (y Android WebKit): CSS.supports devuelve true pero al quitar
+// -webkit-text-security dinámicamente WebKit solo repinta el último carácter.
+const isWebKitMobile =
+  typeof navigator !== 'undefined' &&
+  /iP(hone|ad|od)|Android.*AppleWebKit/i.test(navigator.userAgent)
+
 const supportsCssMask =
-  typeof CSS !== 'undefined' && CSS.supports('-webkit-text-security', 'disc')
+  !isWebKitMobile &&
+  typeof CSS !== 'undefined' &&
+  CSS.supports('-webkit-text-security', 'disc')
 
 /** Muestra/oculta contraseña sin mover el cursor (CSS mask; fallback type+selection). */
 export function usePasswordReveal(initialVisible = false) {
