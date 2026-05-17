@@ -5,6 +5,7 @@ import { logout as logoutApi } from '../../api/auth'
 import { getBillingStatus, postCheckout } from '../../api/billing'
 import type { Business } from '../../types/api'
 import { Icon, Btn, Card } from '../../components/primitives/primitives'
+import { ManageCookiesLink } from '../../components/cookies/ManageCookiesLink'
 import { useAuthStore } from '../../store/authStore'
 import './dashboard.css'
 
@@ -202,6 +203,9 @@ function DashSidebar({
         >
           Cerrar sesión
         </Btn>
+        <div style={{ marginTop: 10, paddingLeft: 4 }}>
+          <ManageCookiesLink style={{ color: 'var(--lw-text-3)', fontSize: 11 }} />
+        </div>
       </div>
     </aside>
   )

@@ -6,6 +6,7 @@ import { TweaksProvider } from './context/TweaksContext'
 import { applyTokens, TWEAKS_DEFAULT } from './theme/tweaksConfig'
 import App from './App.tsx'
 import { TenantGate } from './components/TenantGate'
+import { initAnalytics } from './lib/thirdPartyScripts'
 
 applyTokens(TWEAKS_DEFAULT)
 
@@ -19,6 +20,8 @@ try {
 } catch {
   /* sandbox / privacy mode: ignorar */
 }
+
+initAnalytics()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

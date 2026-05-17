@@ -1,5 +1,6 @@
 import type { Schedule } from '../../types/api'
 import { Btn, Badge, Icon, MiniMap, Placeholder } from '../../components/primitives/primitives'
+import { ManageCookiesLink } from '../../components/cookies/ManageCookiesLink'
 import { useTrackContactClicks } from './useTrackContactClicks'
 import { isOpenNow } from './utils/isOpenNow'
 
@@ -294,11 +295,14 @@ function PubSoft({ business, pro }: { business: PublicSiteBusiness; pro?: boolea
         }}
       >
         <span>© {new Date().getFullYear()} {business.name}</span>
-        {!pro ? (
-          <span>
-            Creado con <span style={{ fontWeight: 600, color: 'var(--lw-accent)' }}>ONEZ</span>
-          </span>
-        ) : null}
+        <span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {!pro ? (
+            <span>
+              Creado con <span style={{ fontWeight: 600, color: 'var(--lw-accent)' }}>ONEZ</span>
+            </span>
+          ) : null}
+          <ManageCookiesLink />
+        </span>
       </div>
     </div>
   )
@@ -339,8 +343,21 @@ function PubAurora({ business }: { business: PublicSiteBusiness }) {
           </div>
         ))}
       </div>
-      <div style={{ padding: "20px 32px", borderTop: "1px solid rgba(255,255,255,.08)", fontSize: 12, color: "rgba(232,239,241,.5)", textAlign: "center" }}>
-        © {new Date().getFullYear()} {business.name}
+      <div
+        style={{
+          padding: '20px 32px',
+          borderTop: '1px solid rgba(255,255,255,.08)',
+          fontSize: 12,
+          color: 'rgba(232,239,241,.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 12,
+          flexWrap: 'wrap',
+        }}
+      >
+        <span>© {new Date().getFullYear()} {business.name}</span>
+        <ManageCookiesLink style={{ color: 'rgba(232,239,241,.5)' }} />
       </div>
     </div>
   );
@@ -418,7 +435,10 @@ function PubNegocio({ business }: { business: PublicSiteBusiness }) {
       </div>
       <div style={{ padding: "20px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: "var(--lw-text-3)" }}>
         <span>© {new Date().getFullYear()} {business.name}{business.address ? ` · ${business.address}` : ''}</span>
-        <span>Creado con <span style={{ fontWeight: 600, color: "var(--lw-accent)" }}>ONEZ</span></span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span>Creado con <span style={{ fontWeight: 600, color: "var(--lw-accent)" }}>ONEZ</span></span>
+          <ManageCookiesLink />
+        </span>
       </div>
     </div>
   );

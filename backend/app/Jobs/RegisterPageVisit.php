@@ -8,6 +8,13 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Registro de visitas y eventos en page_visits (analytics propias).
+ *
+ * Base legal (RGPD): interés legítimo (Art. 6.1.f) para métricas agregadas sin identificación
+ * directa — IP almacenada solo como hash HMAC; no hay seguimiento cross-site ni perfilado.
+ * Los clicks de contacto en front requieren consentimiento explícito de cookies analytics.
+ */
 class RegisterPageVisit
 {
     use Dispatchable;

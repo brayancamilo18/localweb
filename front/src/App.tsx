@@ -35,6 +35,7 @@ import AdminTemplatesPage from './features/admin/AdminTemplatesPage'
 import AdminUsersPage from './features/admin/AdminUsersPage'
 import AdminTopPagesPage from './features/admin/AdminTopPagesPage'
 import { useAuthStore } from './store/authStore'
+import CookieBanner from './components/cookies/CookieBanner'
 
 const queryClient = new QueryClient()
 
@@ -128,6 +129,7 @@ export default function App() {
               </div>
             </BrowserRouter>
           )}
+          <CookieBanner />
         </QueryClientProvider>
       </ToastProvider>
     </ErrorBoundary>

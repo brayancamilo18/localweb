@@ -6,6 +6,7 @@ import AccountTabPerfil from './AccountTabPerfil'
 import AccountTabPlan from './AccountTabPlan'
 import AccountTabFacturas from './AccountTabFacturas'
 import AccountTabPago from './AccountTabPago'
+import AccountTabPrivacidad from './AccountTabPrivacidad'
 import './account.css'
 
 /**
@@ -19,17 +20,24 @@ import './account.css'
  * prompt posterior para mantener cambios pequeños y revisables.
  */
 
-export type AccountTab = 'perfil' | 'plan' | 'facturas' | 'pago'
+export type AccountTab = 'perfil' | 'plan' | 'facturas' | 'pago' | 'privacidad'
 
 const TABS: Array<{ value: AccountTab; label: string; icon: string }> = [
   { value: 'perfil', label: 'Perfil', icon: 'user' },
   { value: 'plan', label: 'Plan', icon: 'sparkle' },
   { value: 'facturas', label: 'Facturas', icon: 'list' },
   { value: 'pago', label: 'Pago', icon: 'creditCard' },
+  { value: 'privacidad', label: 'Privacidad', icon: 'shield' },
 ]
 
 function isAccountTab(value: string | null): value is AccountTab {
-  return value === 'perfil' || value === 'plan' || value === 'facturas' || value === 'pago'
+  return (
+    value === 'perfil' ||
+    value === 'plan' ||
+    value === 'facturas' ||
+    value === 'pago' ||
+    value === 'privacidad'
+  )
 }
 
 export default function AccountPage() {
@@ -104,6 +112,7 @@ export default function AccountPage() {
         {activeTab === 'plan' && <AccountTabPlan />}
         {activeTab === 'facturas' && <AccountTabFacturas />}
         {activeTab === 'pago' && <AccountTabPago />}
+        {activeTab === 'privacidad' && <AccountTabPrivacidad />}
       </div>
     </>
   )
