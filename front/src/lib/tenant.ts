@@ -32,3 +32,43 @@ export function getOnezHomeUrl(hostname: string = window.location.hostname): str
 
   return 'https://app.onez.es'
 }
+
+/**
+ * Dominio base de la web pública del negocio: {subdominio}.{host}
+ * (p. ej. silgodev.onez.es en prod, silgodev.localweb.es en local).
+ */
+export function getPublicPageHost(hostname: string = window.location.hostname): string {
+  const fromEnv = (import.meta.env.VITE_PUBLIC_PAGE_HOST as string | undefined)?.trim()
+  if (fromEnv) {
+    return fromEnv
+  }
+
+  if (!hostname || hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'localweb.es'
+  }
+
+  if (hostname === 'onez.es' || hostname === 'www.onez.es' || hostname === 'app.onez.es') {
+    return 'onez.es'
+  }
+
+  if (hostname === 'pre.onez.es' || hostname.endsWith('.pre.onez.es')) {
+    return 'pre.onez.es'
+  }
+
+  if (hostname === 'des.onez.es' || hostname.endsWith('.des.onez.es')) {
+    return 'des.onez.es'
+  }
+
+  if (hostname === 'localweb.es' || hostname.endsWith('.localweb.es')) {
+    return 'localweb.es'
+  }
+
+  return 'localweb.es'
+}
+
+/** URL pública canónica del negocio (https). */
+export function buildPublicBusinessUrl(subdomain: string, hostname?: string): string {
+  const sub = subdomain.trim()
+  if (!sub) return ''
+  return `https://${sub}.${getPublicPageHost(hostname)}`
+}

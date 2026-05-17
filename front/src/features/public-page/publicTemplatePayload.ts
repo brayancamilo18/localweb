@@ -17,6 +17,8 @@ export type HtmlTemplatePreviewPayload = {
   nombre: string
   tagline: string
   telefono: string
+  /** Solo dígitos, para plantillas que usan `{{whatsapp}}` en HTML estático */
+  whatsapp: string
   portada: string
   portada_2: string
   portada_3: string
@@ -142,6 +144,7 @@ export function publicBusinessToTemplatePayload(business: PublicBusiness): HtmlT
     nombre: business.name,
     tagline: business.tagline ?? '',
     telefono: phoneForTemplate(business),
+    whatsapp: phoneForTemplate(business),
     portada: cover[0]?.url ?? '',
     portada_2: cover[1]?.url ?? '',
     portada_3: cover[2]?.url ?? '',

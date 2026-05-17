@@ -689,6 +689,7 @@
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="/templates/lw-contact-links.js"></script>
 <script>
 if (new URLSearchParams(window.location.search).get('embed') === '1') {
   document.documentElement.classList.add('embed-preview-root');
@@ -1292,22 +1293,7 @@ function applyLivePreviewData(raw, opts) {
   var gReviews = document.getElementById('gbizReviewsCount');
   if (gReviews && nResenas) gReviews.textContent = nResenas + ' reseñas en Google';
 
-  if (phoneWa) {
-    document.querySelectorAll('[data-wa-link]').forEach(function (el) {
-      if (!(el instanceof HTMLAnchorElement)) return;
-      el.href = 'https://wa.me/' + phoneWa;
-    });
-    var telHref = 'tel:+' + phoneWa;
-    document.querySelectorAll('[data-tel-link]').forEach(function (el) {
-      if (!(el instanceof HTMLAnchorElement)) return;
-      el.href = telHref;
-    });
-  }
-  if (phoneRaw) {
-    document.querySelectorAll('[data-phone-display]').forEach(function (el) {
-      el.textContent = phoneRaw;
-    });
-  }
+  if (typeof lwApplyContactLinks === 'function') lwApplyContactLinks(raw);
   document.querySelectorAll('[data-email-link]').forEach(function (el) {
     if (!(el instanceof HTMLAnchorElement)) return;
     if (correo) {

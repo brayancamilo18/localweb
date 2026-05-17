@@ -583,6 +583,7 @@
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="/templates/lw-contact-links.js"></script>
 <script>
 if (new URLSearchParams(window.location.search).get('embed') === '1') {
   document.documentElement.classList.add('embed-preview-root');
@@ -1122,19 +1123,7 @@ function applyLivePreviewData(raw, opts) {
     ctaTitle.innerHTML = 'Reserva.<br/>Ven.<br/>Sal nuevo.';
   }
 
-  document.querySelectorAll('[data-wa-link]').forEach(function (el) {
-    if (!(el instanceof HTMLAnchorElement)) return;
-    el.href = phoneWa ? 'https://wa.me/' + phoneWa : 'https://wa.me/';
-  });
-  var telHref = phoneWa ? 'tel:+' + phoneWa : 'tel:';
-  document.querySelectorAll('[data-tel-link]').forEach(function (el) {
-    if (!(el instanceof HTMLAnchorElement)) return;
-    el.href = telHref;
-  });
-  document.querySelectorAll('[data-phone-display]').forEach(function (el) {
-    if (phoneRaw) el.textContent = phoneRaw;
-    else el.textContent = 'Tu teléfono';
-  });
+  if (typeof lwApplyContactLinks === 'function') lwApplyContactLinks(raw);
 
   var contactEmailLink = document.getElementById('contactEmailLink');
   var contactEmailDisplay = document.getElementById('contactEmailDisplay');

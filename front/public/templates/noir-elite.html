@@ -813,6 +813,7 @@
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="/templates/lw-contact-links.js"></script>
 <script>
 if (new URLSearchParams(window.location.search).get('embed') === '1') {
   document.documentElement.classList.add('embed-preview-root');
@@ -1371,20 +1372,7 @@ function applyLivePreviewData(raw, opts){
   const aboutDescripcion = document.getElementById('aboutDescripcion');
   if (aboutDescripcion) aboutDescripcion.textContent = descripcion || defaults.aboutText;
 
-  document.querySelectorAll('[data-wa-link]').forEach((el) => {
-    if (!(el instanceof HTMLAnchorElement)) return;
-    el.href = `https://wa.me/${phoneWa}`;
-  });
-
-  const telHref = phoneWa ? `tel:+${phoneWa}` : 'tel:+34911234567';
-  document.querySelectorAll('[data-tel-link]').forEach((el) => {
-    if (!(el instanceof HTMLAnchorElement)) return;
-    el.href = telHref;
-  });
-
-  document.querySelectorAll('[data-phone-display]').forEach((el) => {
-    if (phoneRaw) el.textContent = phoneRaw;
-  });
+  if (typeof lwApplyContactLinks === 'function') lwApplyContactLinks(raw);
 
   updateNoirHeroSlider(raw || {});
 

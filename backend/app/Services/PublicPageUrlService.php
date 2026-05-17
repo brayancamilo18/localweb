@@ -13,6 +13,13 @@ class PublicPageUrlService
 
     public function forSubdomain(string $subdomain): string
     {
+        $domain = config('public_page.domain');
+        if (is_string($domain) && $domain !== '') {
+            $scheme = (string) config('public_page.scheme', 'https');
+
+            return "{$scheme}://{$subdomain}.{$domain}";
+        }
+
         $base = rtrim((string) config('app.url'), '/');
         $parts = parse_url($base) ?: [];
         $scheme = $parts['scheme'] ?? 'http';

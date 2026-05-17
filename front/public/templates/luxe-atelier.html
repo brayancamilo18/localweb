@@ -644,6 +644,7 @@
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="/templates/lw-contact-links.js"></script>
 <script>
 if (new URLSearchParams(window.location.search).get('embed') === '1') {
   document.documentElement.classList.add('embed-preview-root');
@@ -1063,15 +1064,7 @@ function applyLivePreviewData(raw, opts) {
     heroLede.innerHTML = escapeLuxeHtml(tagline) + '. <em>' + escapeLuxeHtml(descripcion ? descripcion.split(/\n\n+/)[0].slice(0, 120) : 'Cada visita, una experiencia.') + '</em>';
   }
 
-  document.querySelectorAll('[data-wa-link]').forEach(function (el) {
-    if (el instanceof HTMLAnchorElement) el.href = phoneWa ? 'https://wa.me/' + phoneWa : 'https://wa.me/';
-  });
-  document.querySelectorAll('[data-tel-link]').forEach(function (el) {
-    if (el instanceof HTMLAnchorElement) el.href = phoneWa ? 'tel:+' + phoneWa : 'tel:';
-  });
-  document.querySelectorAll('[data-phone-display]').forEach(function (el) {
-    el.textContent = phoneRaw || 'Tu teléfono';
-  });
+  if (typeof lwApplyContactLinks === 'function') lwApplyContactLinks(raw);
 
   var aboutTitle = document.getElementById('aboutTitle');
   var aboutYear = document.getElementById('aboutYear');

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Btn, Badge, Card, Placeholder } from '../../../components/primitives/primitives'
 import { StatCard } from '../dashboard'
 import { useDashboard } from '../context/DashboardContext'
+import { buildPublicBusinessUrl } from '../../../lib/tenant'
 import MiPaginaQrSection from './MiPaginaQrSection'
 
 function fmtStat(n: number | undefined): string {
@@ -31,8 +32,7 @@ export default function MiPagina() {
   const wa = pro ? stats.whatsapp_clicks : business.stats?.whatsapp_click
   const ph = pro ? stats.phone_clicks : business.stats?.phone_click
 
-  const publicPageHost = import.meta.env.VITE_PUBLIC_PAGE_HOST ?? 'localweb.es'
-  const canonicalPublicUrl = business.subdomain ? `https://${business.subdomain}.${publicPageHost}` : ''
+  const canonicalPublicUrl = business.subdomain ? buildPublicBusinessUrl(business.subdomain) : ''
   const devReachableUrl =
     typeof window !== 'undefined' && business.subdomain ? `${window.location.origin}/${business.subdomain}` : ''
   const localHost =

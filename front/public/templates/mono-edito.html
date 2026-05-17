@@ -621,7 +621,7 @@
       <h4>Contacto</h4>
       <ul>
         <li><a href="tel:" data-tel-link data-phone-display>{{telefono}}</a></li>
-        <li><a href="https://wa.me/{{whatsapp}}">WhatsApp</a></li>
+        <li><a href="https://wa.me/" data-wa-link target="_blank" rel="noopener noreferrer">WhatsApp</a></li>
         <li id="footEmailRow" hidden><a id="footEmailLink" href="mailto:"><span id="footEmailDisplay">{{email}}</span></a></li>
         <li><a href="#contacto" id="footAddress"></a></li>
       </ul>
@@ -642,6 +642,7 @@
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="/templates/lw-contact-links.js"></script>
 <script>
 if (new URLSearchParams(window.location.search).get('embed') === '1') {
   document.documentElement.classList.add('embed-preview-root');
@@ -1076,15 +1077,7 @@ function applyLivePreviewData(raw, opts) {
   if (heroCreditCity) heroCreditCity.textContent = ciudad || '—';
   if (heroCreditCountry) heroCreditCountry.textContent = pais || '—';
 
-  document.querySelectorAll('[data-wa-link]').forEach(function (el) {
-    if (el instanceof HTMLAnchorElement) el.href = phoneWa ? 'https://wa.me/' + phoneWa : 'https://wa.me/';
-  });
-  document.querySelectorAll('[data-tel-link]').forEach(function (el) {
-    if (el instanceof HTMLAnchorElement) el.href = phoneWa ? 'tel:+' + phoneWa : 'tel:';
-  });
-  document.querySelectorAll('[data-phone-display]').forEach(function (el) {
-    el.textContent = phoneRaw || 'Tu teléfono';
-  });
+  if (typeof lwApplyContactLinks === 'function') lwApplyContactLinks(raw);
 
   var aboutTitle = document.getElementById('aboutTitle');
   var aboutYear = document.getElementById('aboutYear');

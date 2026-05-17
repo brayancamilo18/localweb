@@ -12,6 +12,7 @@ import {
 import { createPortal } from 'react-dom'
 import type { Schedule, Template } from '../../types/api'
 import { geocodeAddress } from '../../lib/geocodeAddress'
+import { getPublicPageHost } from '../../lib/tenant'
 import {
   Icon,
   Btn,
@@ -2815,8 +2816,6 @@ function PlanPreview({
   )
 }
 
-const DEFAULT_PUBLIC_PAGE_HOST = import.meta.env.VITE_PUBLIC_PAGE_HOST ?? 'localweb.es'
-
 // ─── Step 8 · Publicar ───────────────────────────────────────
 function Step8Publicar({ errors, reservedSubdomain }: WizardStepProps & { reservedSubdomain?: string }) {
   const nav = useContext(WizardNavContext)
@@ -2827,7 +2826,7 @@ function Step8Publicar({ errors, reservedSubdomain }: WizardStepProps & { reserv
   }, [nav])
 
   const hostSlug = reservedSubdomain?.trim() || ''
-  const displayUrl = hostSlug ? `${hostSlug}.${DEFAULT_PUBLIC_PAGE_HOST}` : null
+  const displayUrl = hostSlug ? `${hostSlug}.${getPublicPageHost()}` : null
 
   const checklist: { t: string; ok: boolean; hint?: string }[] = [
     { t: 'Plantilla elegida', ok: true },

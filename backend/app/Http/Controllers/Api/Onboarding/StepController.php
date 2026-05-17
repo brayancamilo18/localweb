@@ -12,6 +12,7 @@ use App\Services\BusinessSectorService;
 use App\Services\BusinessService;
 use App\Services\GeocodingService;
 use App\Services\ImageService;
+use App\Services\PublicPageUrlService;
 use App\Services\TemplateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -294,7 +295,7 @@ class StepController extends BaseApiController
         return $this->success(['ok' => true, 'geocoded' => $geocoded, 'next_step' => 7]);
     }
 
-    public function step7(Request $request, BusinessService $businessService, ImageService $imageService)
+    public function step7(Request $request, BusinessService $businessService, ImageService $imageService, PublicPageUrlService $urls)
     {
         $data = $request->validate([
             'plan' => ['required', 'in:free,pro'],
@@ -408,12 +409,12 @@ class StepController extends BaseApiController
         return $this->success([
             'ok' => true,
             'plan' => 'free',
-            'public_url' => "http://{$business->subdomain}.localhost",
+            'public_url' => $urls->forBusiness($business),
             'next_step' => 8,
         ]);
     }
 
-    public function step8(Request $request, BusinessService $service)
+    public function step8(Request $request, BusinessService $service, PublicPageUrlService $urls)
     {
         $business = $request->user()->business;
         if (! $business) {
@@ -433,7 +434,7 @@ class StepController extends BaseApiController
 
         return $this->success([
             'ok' => true,
-            'public_url' => "http://{$business->subdomain}.localhost",
+            'public_url' => $urls->forBusiness($business->refresh()),
         ]);
     }
 
