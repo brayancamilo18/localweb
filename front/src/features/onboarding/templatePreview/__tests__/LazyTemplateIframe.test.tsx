@@ -58,4 +58,28 @@ describe('LazyTemplateIframe', () => {
     observerCallback?.([{ isIntersecting: false } as IntersectionObserverEntry], {} as IntersectionObserver)
     expect(screen.getByText('iframe cargado')).toBeInTheDocument()
   })
+
+  it('monta los hijos tras el fallback de seguridad si el observer no dispara', () => {
+    vi.useFakeTimers()
+    const onFirstVisible = vi.fn()
+
+    render(
+      <LazyTemplateIframe
+        placeholder={<span>placeholder</span>}
+        onFirstVisible={onFirstVisible}
+        visibilityFallbackMs={1500}
+      >
+        <span>iframe cargado</span>
+      </LazyTemplateIframe>,
+    )
+
+    expect(screen.getByText('placeholder')).toBeInTheDocument()
+
+    vi.advanceTimersByTime(1500)
+
+    expect(screen.getByText('iframe cargado')).toBeInTheDocument()
+    expect(onFirstVisible).toHaveBeenCalledTimes(1)
+
+    vi.useRealTimers()
+  })
 })

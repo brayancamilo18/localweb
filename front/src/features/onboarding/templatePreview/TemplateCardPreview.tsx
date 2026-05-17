@@ -1,17 +1,32 @@
-import { useRef, type RefObject } from 'react'
+import { useRef, useState, type RefObject } from 'react'
 import type { Template } from '../../../types/api'
 import type { Step1PreviewVariant } from '../wizard'
 import LazyTemplateIframe from './LazyTemplateIframe'
 import TemplateThumbPlaceholder from './TemplateThumbPlaceholder'
 import { PooledTemplateThumbHost, useTemplateIframePool } from './TemplateIframePool'
 import { TEMPLATE_THUMB_ASPECT_PERCENT } from './constants'
+import { isValidThumbnailUrl } from './thumbnailUrl'
 
 export type TemplateCardPreviewProps = {
   variant: Step1PreviewVariant
   template: Pick<Template, 'name' | 'primary_color' | 'thumbnail_url'>
 }
 
-function StaticTemplateThumbnail({ url, name }: { url: string; name: string }) {
+function StaticTemplateThumbnail({
+  url,
+  name,
+  primaryColor,
+}: {
+  url: string
+  name: string
+  primaryColor?: string
+}) {
+  const [hasErrored, setHasErrored] = useState(false)
+
+  if (hasErrored) {
+    return <TemplateThumbPlaceholder name={name} primaryColor={primaryColor} />
+  }
+
   return (
     <div className="lw-template-thumb-wrap lw-template-thumb-wrap--static">
       <div
@@ -29,6 +44,7 @@ function StaticTemplateThumbnail({ url, name }: { url: string; name: string }) {
           alt=""
           loading="lazy"
           decoding="async"
+          onError={() => setHasErrored(true)}
           style={{
             position: 'absolute',
             inset: 0,
@@ -93,13 +109,21 @@ function PooledTemplateCardPreview({ variant, template }: TemplateCardPreviewPro
 
 /**
  * Vista previa de plantilla en el grid del paso 1:
- * - `thumbnail_url` → imagen estática (sin iframe)
+ * - `thumbnail_url` válida → imagen estática (con fallback a placeholder si falla)
  * - si no → iframe lazy + pool persistente entre páginas
  */
 export default function TemplateCardPreview({ variant, template }: TemplateCardPreviewProps) {
   const thumbUrl = template.thumbnail_url?.trim()
-  if (thumbUrl) {
-    return <StaticTemplateThumbnail url={thumbUrl} name={template.name} />
+
+  if (thumbUrl && isValidThumbnailUrl(thumbUrl)) {
+    return (
+      <StaticTemplateThumbnail
+        url={thumbUrl}
+        name={template.name}
+        primaryColor={template.primary_color}
+      />
+    )
   }
+
   return <PooledTemplateCardPreview variant={variant} template={template} />
 }
