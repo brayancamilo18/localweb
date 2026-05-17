@@ -5,37 +5,40 @@ namespace App\Services;
 use App\Enums\ImageSection;
 use App\Models\Business;
 use App\Models\BusinessImage;
+use finfo;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Drivers\Gd\Driver as GdDriver;
+use Intervention\Image\Drivers\Imagick\Driver as ImagickDriver;
 use Intervention\Image\ImageManager;
+use Intervention\Image\Interfaces\EncodedImageInterface;
 use Intervention\Image\Interfaces\ImageInterface;
 
 class ImageService
 {
     public function uploadImage(UploadedFile|string $file, Business $business, ImageSection $section, int $order): BusinessImage
     {
-        $manager = new ImageManager(Driver::class);
+        $preserveTransparency = $this->sourceMayHaveTransparency($file);
+        $manager = $this->createImageManager();
         $image = $this->decodeSource($manager, $file);
 
         if ($image->width() > 2000) {
             $image = $image->scale(width: 2000);
         }
 
-        $encoded = $image->encodeUsingFileExtension('webp', 85);
+        $extension = $preserveTransparency ? 'png' : 'webp';
         $path = sprintf(
-            'businesses/%d/%s/%s.webp',
+            'businesses/%d/%s/%s.%s',
             $business->id,
             $section->value,
-            (string) Str::uuid()
+            (string) Str::uuid(),
+            $extension
         );
 
-        /** @var FilesystemAdapter $disk */
-        $disk = Storage::disk('r2');
-        $disk->put($path, $encoded->toString(), ['visibility' => 'public']);
+        $this->persistToR2($image, $preserveTransparency, $path);
 
         return BusinessImage::create([
             'business_id' => $business->id,
@@ -56,24 +59,26 @@ class ImageService
     }
 
     /**
-     * Logo del negocio: WebP en `businesses/{id}/logo/{uuid}.webp`, máx. 400 px en el lado mayor.
+     * Logo del negocio en `businesses/{id}/logo/{uuid}.webp` o `.png`, máx. 400 px en el lado mayor.
      *
      * @param  UploadedFile|string  $file  Multipart o ruta absoluta en disco local (onboarding).
      */
     public function replaceBusinessLogo(UploadedFile|string $file, Business $business): void
     {
-        $manager = new ImageManager(Driver::class);
+        $preserveTransparency = $this->sourceMayHaveTransparency($file);
+        $manager = $this->createImageManager();
         $image = $this->decodeSource($manager, $file);
 
         if ($image->width() > 400 || $image->height() > 400) {
             $image = $image->scaleDown(width: 400, height: 400);
         }
 
-        $encoded = $image->encodeUsingFileExtension('webp', 85);
+        $extension = $preserveTransparency ? 'png' : 'webp';
         $path = sprintf(
-            'businesses/%d/logo/%s.webp',
+            'businesses/%d/logo/%s.%s',
             $business->id,
-            (string) Str::uuid()
+            (string) Str::uuid(),
+            $extension
         );
 
         /** @var FilesystemAdapter $disk */
@@ -82,7 +87,7 @@ class ImageService
             $disk->delete($business->logo_path);
         }
 
-        $disk->put($path, $encoded->toString(), ['visibility' => 'public']);
+        $this->persistToR2($image, $preserveTransparency, $path);
 
         $business->update(['logo_path' => $path]);
     }
@@ -109,6 +114,88 @@ class ImageService
                     ->update(['display_order' => $order]);
             }
         });
+    }
+
+    private function createImageManager(): ImageManager
+    {
+        if (extension_loaded('imagick')) {
+            return new ImageManager(new ImagickDriver);
+        }
+
+        return new ImageManager(new GdDriver);
+    }
+
+    private function persistToR2(ImageInterface $image, bool $preserveTransparency, string $path): void
+    {
+        $encoded = $this->encodeImage($image, $preserveTransparency);
+        $mimeType = $preserveTransparency ? 'image/png' : 'image/webp';
+
+        /** @var FilesystemAdapter $disk */
+        $disk = Storage::disk('r2');
+        $disk->put($path, $encoded->toString(), [
+            'visibility' => 'public',
+            'ContentType' => $mimeType,
+        ]);
+    }
+
+    private function encodeImage(ImageInterface $image, bool $preserveTransparency): EncodedImageInterface
+    {
+        if ($preserveTransparency) {
+            return $image->encodeUsingFileExtension('png');
+        }
+
+        return $image->encodeUsingFileExtension('webp', 85);
+    }
+
+    /**
+     * PNG y GIF pueden llevar canal alpha; JPEG/WebP sin alpha se convierten a WebP.
+     */
+    private function sourceMayHaveTransparency(UploadedFile|string $file): bool
+    {
+        $mime = $this->resolveSourceMimeType($file);
+
+        return in_array($mime, ['image/png', 'image/gif'], true);
+    }
+
+    private function resolveSourceMimeType(UploadedFile|string $file): string
+    {
+        if ($file instanceof UploadedFile) {
+            return strtolower((string) $file->getMimeType());
+        }
+
+        if (is_string($file) && $file !== '' && is_file($file)) {
+            $mime = mime_content_type($file);
+
+            return is_string($mime) ? strtolower($mime) : '';
+        }
+
+        $binary = $this->resolveStringImagePayload(is_string($file) ? $file : '');
+
+        return $this->mimeFromBinary($binary);
+    }
+
+    private function mimeFromBinary(string $binary): string
+    {
+        if ($binary === '') {
+            return '';
+        }
+
+        if (str_starts_with($binary, "\x89PNG\r\n\x1a\n")) {
+            return 'image/png';
+        }
+
+        if (str_starts_with($binary, 'GIF87a') || str_starts_with($binary, 'GIF89a')) {
+            return 'image/gif';
+        }
+
+        if (str_starts_with($binary, "\xff\xd8\xff")) {
+            return 'image/jpeg';
+        }
+
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $detected = $finfo->buffer($binary);
+
+        return is_string($detected) ? strtolower($detected) : '';
     }
 
     /**
