@@ -169,6 +169,41 @@ class ImageService
      */
     private function sourceMayHaveTransparency(UploadedFile|string $file): bool
     {
+        if ($file instanceof UploadedFile) {
+            // 1. Comprobar extensión original del cliente
+            $ext = strtolower($file->getClientOriginalExtension());
+            if (in_array($ext, ['png', 'gif'], true)) {
+                return true;
+            }
+
+            // 2. Comprobar MIME del cliente
+            $clientMime = strtolower((string) $file->getClientMimeType());
+            if (in_array($clientMime, ['image/png', 'image/gif'], true)) {
+                return true;
+            }
+
+            // 3. Comprobar MIME detectado por el servidor (más fiable)
+            $serverMime = strtolower((string) $file->getMimeType());
+            if (in_array($serverMime, ['image/png', 'image/gif'], true)) {
+                return true;
+            }
+
+            // 4. Leer los primeros bytes del archivo para detectar por magic bytes
+            $handle = fopen($file->getRealPath(), 'rb');
+            if ($handle) {
+                $header = fread($handle, 8);
+                fclose($handle);
+                if (str_starts_with($header, "\x89PNG\r\n\x1a\n") ||
+                    str_starts_with($header, 'GIF87a') ||
+                    str_starts_with($header, 'GIF89a')) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // Para strings (rutas de archivo o base64)
         $mime = $this->resolveSourceMimeType($file);
 
         return in_array($mime, ['image/png', 'image/gif'], true);
