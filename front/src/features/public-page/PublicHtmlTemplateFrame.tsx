@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { trackClick } from '../../api/public'
 import type { PublicBusiness } from '../../types/api'
 import { publicBusinessToTemplatePayload } from './publicTemplatePayload'
 
@@ -51,6 +52,22 @@ export default function PublicHtmlTemplateFrame({ templateSlug, business }: Prop
   useEffect(() => {
     pushData()
   }, [pushData])
+
+  useEffect(() => {
+    const subdomain = business.subdomain?.trim()
+    if (!subdomain) return
+
+    const handler = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return
+      const data = event.data as { type?: string; kind?: string } | null
+      if (!data || data.type !== 'lw:track-click') return
+      if (data.kind !== 'whatsapp_click' && data.kind !== 'phone_click') return
+      void trackClick(subdomain, data.kind).catch(() => {})
+    }
+
+    window.addEventListener('message', handler)
+    return () => window.removeEventListener('message', handler)
+  }, [business.subdomain])
 
   return (
     <div

@@ -1,11 +1,13 @@
 import type { Schedule } from '../../types/api'
 import { Btn, Badge, Icon, MiniMap, Placeholder } from '../../components/primitives/primitives'
+import { useTrackContactClicks } from './useTrackContactClicks'
 import { isOpenNow } from './utils/isOpenNow'
 
 // ONEZ — Public business pages (3 plantillas)
 // Soft (peluquería) · Aurora (bienestar) · Negocio (servicios)
 
 export interface PublicSiteBusiness {
+  subdomain?: string
   name: string
   tagline: string | null
   description: string | null
@@ -82,6 +84,7 @@ function PubNav({ name, dark }: { name: string; dark?: boolean }) {
 
 // ─── Soft · Peluquería ───────────────────────────────────────
 function PubSoft({ business, pro }: { business: PublicSiteBusiness; pro?: boolean }) {
+  const { onWhatsAppClick, onPhoneClick } = useTrackContactClicks(business.subdomain)
   const open = isOpenNow(business.schedule)
   const { cover, gallery, about } = publicImageBuckets(business)
   const coverUrl = cover[0]?.url
@@ -135,7 +138,10 @@ function PubSoft({ business, pro }: { business: PublicSiteBusiness; pro?: boolea
                 size="lg"
                 icon="whatsapp"
                 style={{ background: '#25D366', border: 'none' }}
-                onClick={() => window.open(business.whatsapp_url!, '_blank', 'noopener,noreferrer')}
+                onClick={() => {
+                  onWhatsAppClick()
+                  window.open(business.whatsapp_url!, '_blank', 'noopener,noreferrer')
+                }}
               >
                 WhatsApp
               </Btn>
@@ -259,9 +265,19 @@ function PubSoft({ business, pro }: { business: PublicSiteBusiness; pro?: boolea
           <MiniMap h={170} style={{ borderColor: 'rgba(0,0,0,.08)' }} />
           <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>
             {business.phone ? (
-              <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#1A1814' }}>
+              <a
+                href={`tel:${business.phone}`}
+                onClick={() => onPhoneClick()}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  color: '#1A1814',
+                  textDecoration: 'none',
+                }}
+              >
                 <Icon name="phone" size={14} color="#9C7A4D" /> {business.phone}
-              </span>
+              </a>
             ) : null}
           </div>
         </div>
@@ -332,6 +348,9 @@ function PubAurora({ business }: { business: PublicSiteBusiness }) {
 
 // ─── Negocio · Servicios ─────────────────────────────────────
 function PubNegocio({ business }: { business: PublicSiteBusiness }) {
+  const { onPhoneClick } = useTrackContactClicks(business.subdomain)
+  const phone = business.phone?.trim() ?? ''
+
   return (
     <div style={{ background: "#fff", color: "#0F172A", fontFamily: "var(--lw-font)" }}>
       <PubNav name={business.name}/>
@@ -345,7 +364,19 @@ function PubNegocio({ business }: { business: PublicSiteBusiness }) {
             {business.description ?? business.tagline ?? ''}
           </p>
           <div style={{ display: "flex", gap: 8, marginTop: 22 }}>
-            <Btn kind="primary" size="lg" icon="phone">{business.phone ?? 'Contacto'}</Btn>
+            <Btn
+              kind="primary"
+              size="lg"
+              icon="phone"
+              disabled={!phone}
+              onClick={() => {
+                if (!phone) return
+                onPhoneClick()
+                window.location.href = `tel:${phone}`
+              }}
+            >
+              {phone || 'Contacto'}
+            </Btn>
             <Btn kind="outline" size="lg">Pedir presupuesto</Btn>
           </div>
           <div style={{ display: "flex", gap: 18, marginTop: 26, fontSize: 13, color: "var(--lw-text-3)" }}>
