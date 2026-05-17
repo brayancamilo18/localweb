@@ -92,6 +92,9 @@ it('completes free onboarding over HTTP and exposes data on the public page', fu
     test()->actingAs($user)
         ->postJson('/api/v1/onboarding/step/6', [
             'address' => 'Calle Mayor 1, Madrid',
+            'city' => 'Madrid',
+            'country' => 'España',
+            'country_code' => 'ES',
             'phone' => '+34900111222',
             'email' => 'salon@example.com',
         ])

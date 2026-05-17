@@ -90,6 +90,9 @@ it('stores 3 cover photos during onboarding for a multi-hero template', function
     test()->actingAs($user)
         ->postJson('/api/v1/onboarding/step/6', [
             'address' => 'Via Roma 10',
+            'city' => 'Roma',
+            'country' => 'Italia',
+            'country_code' => 'IT',
             'phone' => '+34600111222',
             'email' => 'trattoria@test.com',
         ])
@@ -172,6 +175,9 @@ it('stores only 1 cover photo for a standard template', function () {
     test()->actingAs($user)
         ->postJson('/api/v1/onboarding/step/6', [
             'address' => 'Calle Mayor 1',
+            'city' => 'Madrid',
+            'country' => 'España',
+            'country_code' => 'ES',
             'phone' => '+34600000000',
             'email' => 'salon@test.com',
         ])
@@ -243,6 +249,9 @@ it('step2 accepts cover2 and cover3 as optional files', function () {
     test()->actingAs($user)
         ->postJson('/api/v1/onboarding/step/6', [
             'address' => 'Test St',
+            'city' => 'Madrid',
+            'country' => 'España',
+            'country_code' => 'ES',
             'phone' => '+34111222333',
             'email' => 'partial@test.com',
         ])

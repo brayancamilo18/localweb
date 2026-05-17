@@ -4,15 +4,13 @@ namespace App\Jobs;
 
 use App\Enums\EventType;
 use App\Models\PageVisit;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Spatie\Multitenancy\Jobs\NotTenantAware;
 
-class RegisterPageVisit implements NotTenantAware, ShouldQueue
+class RegisterPageVisit
 {
-    use Queueable;
+    use Dispatchable;
 
     private static bool $ipSaltMissingLogged = false;
 

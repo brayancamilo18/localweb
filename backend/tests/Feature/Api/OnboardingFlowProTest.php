@@ -80,6 +80,9 @@ it('pro onboarding returns checkout_url then activates via Stripe webhook and se
     test()->actingAs($user)
         ->postJson('/api/v1/onboarding/step/6', [
             'address' => 'Gran Vía 10',
+            'city' => 'Madrid',
+            'country' => 'España',
+            'country_code' => 'ES',
             'phone' => '+34987654321',
             'email' => 'proflow@test.example',
         ])

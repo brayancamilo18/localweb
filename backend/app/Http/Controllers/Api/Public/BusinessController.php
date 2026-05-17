@@ -10,6 +10,8 @@ use App\Models\Business;
 use App\Support\PublicPageCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class BusinessController extends BaseApiController
 {
@@ -18,7 +20,7 @@ class BusinessController extends BaseApiController
         $cacheKey = PublicPageCache::KEY_PREFIX.$subdomain;
         $cached = Cache::get($cacheKey);
         if ($cached) {
-            RegisterPageVisit::dispatch($cached['id'], EventType::Visit, $request->ip(), $request->userAgent());
+            $this->registerPageVisitSafely($cached['id'], EventType::Visit, $request);
 
             return $this->success($cached);
         }
@@ -33,7 +35,7 @@ class BusinessController extends BaseApiController
             return $this->error('Not found', [], 404);
         }
 
-        RegisterPageVisit::dispatch($business->id, EventType::Visit, $request->ip(), $request->userAgent());
+        $this->registerPageVisitSafely($business->id, EventType::Visit, $request);
         $data = (new PublicBusinessResource($business))->resolve();
         // TTL 300s: con observers de invalidación, podemos cachear más tiempo y reducir la carga
         // a la BD en páginas con tráfico sin perder coherencia.
@@ -50,13 +52,25 @@ class BusinessController extends BaseApiController
 
         $business = Business::query()->where('subdomain', $subdomain)->firstOrFail();
 
-        RegisterPageVisit::dispatch(
+        $this->registerPageVisitSafely(
             $business->id,
             EventType::from($data['type']),
-            $request->ip(),
-            $request->userAgent()
+            $request
         );
 
         return $this->success(['ok' => true]);
+    }
+
+    private function registerPageVisitSafely(int $businessId, EventType $eventType, Request $request): void
+    {
+        try {
+            RegisterPageVisit::dispatch($businessId, $eventType, $request->ip(), $request->userAgent());
+        } catch (Throwable $e) {
+            Log::warning('Failed to register page visit', [
+                'business_id' => $businessId,
+                'event_type' => $eventType->value,
+                'exception' => $e->getMessage(),
+            ]);
+        }
     }
 }
