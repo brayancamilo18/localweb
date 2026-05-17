@@ -182,8 +182,6 @@ export interface Template {
   name: string
   slug: string
   primary_color: string
-  /** Miniatura estática para el grid del paso 1; si falta, el front usa iframe lazy. */
-  thumbnail_url?: string | null
   requires_pro: boolean
   hero_photo_slots: number
 }

@@ -38,8 +38,6 @@ import {
 import { LocationPicker } from '../../components/location/LocationPicker'
 import type { LocationValue } from '../../lib/location/locationTypes'
 import { WizardNavContext, type WizardStepProps } from './wizardNavContext'
-import { TemplateIframePoolProvider } from './templatePreview/TemplateIframePool'
-import TemplateCardPreview from './templatePreview/TemplateCardPreview'
 
 // ONEZ — Onboarding wizard (8 pasos)
 // Each step is a self-contained component returning a desktop split (form + preview).
@@ -1062,10 +1060,6 @@ function Step1Logo({
   )
 }
 
-/**
- * Paso 1 · plantillas. Al cambiar de paso del wizard, OnboardingPage desmonta este
- * componente (switch en stepBody) y se liberan iframes del pool.
- */
 function Step1Plantilla({
   errors,
   isLoading: busy,
@@ -1180,15 +1174,7 @@ function Step1Plantilla({
   }, [list, selectedId, onTemplatePreviewChange])
 
   return (
-    <TemplateIframePoolProvider
-      renderThumb={(variant) => (
-        <TemplateIframe
-          variant={variant as Step1PreviewVariant}
-          mode="thumb"
-          previewData={STEP1_TEMPLATE_PREVIEW_DEMO_BY_VARIANT[variant as Step1PreviewVariant]}
-        />
-      )}
-    >
+    <>
       <div>
         <h1 className="lw-h2">Elige tu plantilla</h1>
         <p className="lw-body" style={{ marginTop: 6, maxWidth: 540 }}>
@@ -1248,7 +1234,7 @@ function Step1Plantilla({
                 className="lw-template-card-preview"
                 style={{ position: 'relative', width: '100%', borderBottom: `1px solid ${BORDER}` }}
               >
-                <TemplateCardPreview variant={variant} template={t} />
+                <TemplateIframe variant={variant} mode="thumb" previewData={STEP1_TEMPLATE_PREVIEW_DEMO_BY_VARIANT[variant]} />
                 <div style={{ position: 'absolute', top: 8, left: 8 }}>
                   <Badge
                     tone={t.requires_pro ? 'pro' : 'success'}
@@ -1446,7 +1432,7 @@ function Step1Plantilla({
             document.body,
           )
         : null}
-    </TemplateIframePoolProvider>
+    </>
   )
 }
 

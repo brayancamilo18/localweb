@@ -832,7 +832,6 @@ export default function OnboardingPage() {
     const common = { errors, isLoading }
     switch (currentStep) {
       case 1:
-        // Step1Plantilla se desmonta al salir del paso 1 → libera iframes del pool.
         return (
           <Step1Plantilla
             {...common}

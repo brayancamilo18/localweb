@@ -391,39 +391,6 @@ textarea::placeholder {
   min-width: 0;
 }
 
-.lw-lazy-template-iframe,
-.lw-template-thumb-host {
-  min-width: 0;
-}
-
-.lw-template-thumb-host > .lw-template-iframe-park-slot {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.lw-template-thumb-host > .lw-template-iframe-park-slot .lw-template-thumb-wrap {
-  width: 100%;
-  height: 100%;
-}
-
-.lw-template-thumb-placeholder {
-  min-width: 0;
-}
-
-.lw-sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
 /*
  * Paso 1 (biblioteca de plantillas): no se monta el rail de preview, así que el
  * formulario ocupa toda la franja del split. Capamos el ancho para que el grid
