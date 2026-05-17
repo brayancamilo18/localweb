@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { trackClick } from '../../api/public'
 import { hasConsent } from '../../lib/cookieConsent'
-import { ManageCookiesLink } from '../../components/cookies/ManageCookiesLink'
 import type { PublicBusiness } from '../../types/api'
 import { publicBusinessToTemplatePayload } from './publicTemplatePayload'
 
@@ -98,9 +97,6 @@ export default function PublicHtmlTemplateFrame({ templateSlug, business }: Prop
           height: '100%',
         }}
       />
-      <div style={{ position: 'fixed', bottom: 8, right: 12, zIndex: 10 }}>
-        <ManageCookiesLink style={{ color: '#fff' }} />
-      </div>
     </div>
   )
 }

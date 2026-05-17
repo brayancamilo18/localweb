@@ -16,6 +16,7 @@ import {
   writeConsent,
   type CookieConsentData,
 } from '../../lib/cookieConsent'
+import CookiePreferencesButton from './CookiePreferencesButton'
 
 // ---------- Tokens ----------
 const C = {
@@ -237,60 +238,68 @@ export default function CookieBanner() {
     new URLSearchParams(window.location.search).has('parentOrigin')
 
   const [mounted, setMounted] = useState(false);
-  const [visible, setVisible] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [animateIn, setAnimateIn] = useState(false);
+  const [hasConsent, setHasConsent] = useState(() => !!getConsent());
+  const [showModal, setShowModal] = useState(() => !getConsent());
   const [modalIn, setModalIn] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [prefs, setPrefs] = useState<Prefs>({
-    analytics: false,
-    marketing: false,
-    preferences: false,
+  const [prefs, setPrefs] = useState<Prefs>(() => {
+    const existing = getConsent();
+    return {
+      analytics: existing?.analytics ?? false,
+      marketing: existing?.marketing ?? false,
+      preferences: existing?.preferences ?? false,
+    };
   });
   const modalRef = useRef<HTMLDivElement>(null);
   const lastFocusedRef = useRef<HTMLElement | null>(null);
 
-  const showBannerAgain = useCallback(() => {
-    setShowModal(false)
-    setModalIn(false)
-    setVisible(true)
-    requestAnimationFrame(() => setAnimateIn(true))
-  }, [])
+  const openConsentModal = useCallback(() => {
+    setShowModal(true);
+  }, []);
 
   // Mount + initial detection (avoid SSR mismatch)
   useEffect(() => {
     setMounted(true);
     const existing = getConsent();
     if (!existing) {
-      showBannerAgain();
+      setShowModal(true);
     }
-    const onResize = () => setIsMobile(window.innerWidth < 768);
-    onResize();
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, [showBannerAgain]);
+  }, []);
 
   useEffect(() => {
-    const onReset = (e: Event) => {
-      const detail = (e as CustomEvent<CookieConsentData | null>).detail
-      if (detail === null) showBannerAgain()
-    }
-    window.addEventListener('onez:cookie-consent', onReset as EventListener)
-    return () => window.removeEventListener('onez:cookie-consent', onReset as EventListener)
-  }, [showBannerAgain])
+    const onConsentEvent = (e: Event) => {
+      const detail = (e as CustomEvent<CookieConsentData | null>).detail;
+      if (detail === null) {
+        setHasConsent(false);
+        setPrefs({ analytics: false, marketing: false, preferences: false });
+        openConsentModal();
+        return;
+      }
+      if (detail) {
+        setHasConsent(true);
+        setPrefs({
+          analytics: detail.analytics,
+          marketing: detail.marketing,
+          preferences: detail.preferences,
+        });
+      }
+    };
+    window.addEventListener('onez:cookie-consent', onConsentEvent as EventListener);
+    return () => window.removeEventListener('onez:cookie-consent', onConsentEvent as EventListener);
+  }, [openConsentModal]);
 
   // Si otra pestaña borra el consentimiento en localStorage.
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
-      if (e.key === CONSENT_KEY && e.newValue === null) {
-        if (!getConsent()) showBannerAgain()
+      if (e.key === CONSENT_KEY && e.newValue === null && !getConsent()) {
+        setHasConsent(false);
+        openConsentModal();
       }
-    }
-    window.addEventListener('storage', onStorage)
+    };
+    window.addEventListener('storage', onStorage);
     return () => {
-      window.removeEventListener('storage', onStorage)
-    }
-  }, [showBannerAgain])
+      window.removeEventListener('storage', onStorage);
+    };
+  }, [openConsentModal]);
 
   // Modal animation + focus management
   useEffect(() => {
@@ -299,7 +308,7 @@ export default function CookieBanner() {
     requestAnimationFrame(() => setModalIn(true));
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      if (e.key === "Escape" && hasConsent) {
         closeModal();
       } else if (e.key === "Tab" && modalRef.current) {
         const focusables = modalRef.current.querySelectorAll<HTMLElement>(
@@ -335,7 +344,7 @@ export default function CookieBanner() {
       lastFocusedRef.current?.focus?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showModal]);
+  }, [showModal, hasConsent]);
 
   const persist = (p: Prefs) => {
     writeConsent({
@@ -364,111 +373,41 @@ export default function CookieBanner() {
   };
 
   const closeModal = () => {
+    if (!hasConsent) return;
     setModalIn(false);
     setTimeout(() => setShowModal(false), 180);
   };
 
   const closeAll = () => {
     setModalIn(false);
-    setAnimateIn(false);
     setTimeout(() => {
       setShowModal(false);
-      setVisible(false);
+      setHasConsent(true);
     }, 220);
   };
 
-  if (isPreview) return null
-  if (!mounted || !visible) return null;
-
-  // ---------- VIEW 1: compact bar ----------
-  const barWrap: CSSProperties = {
-    position: "fixed",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1000,
-    background: C.surface,
-    borderTop: `1px solid ${C.border}`,
-    boxShadow: "0 -4px 16px rgba(11,31,26,0.08)",
-    padding: isMobile ? "14px 16px" : "16px 24px",
-    fontFamily: fontStack,
-    transform: animateIn ? "translateY(0)" : "translateY(100%)",
-    transition: "transform 0.25s cubic-bezier(0.22, 1, 0.36, 1)",
-  };
-
-  const barInner: CSSProperties = {
-    display: "flex",
-    flexDirection: isMobile ? "column" : "row",
-    alignItems: isMobile ? "stretch" : "center",
-    gap: isMobile ? 12 : 16,
-    maxWidth: 1280,
-    margin: "0 auto",
-  };
-
-  const textBlock: CSSProperties = {
-    display: "flex",
-    alignItems: isMobile ? "flex-start" : "center",
-    gap: 10,
-    flex: 1,
-    minWidth: 0,
-  };
-
-  const btnRow: CSSProperties = {
-    display: "flex",
-    gap: 8,
-    flexWrap: "wrap",
-    justifyContent: isMobile ? "stretch" : "flex-end",
-  };
+  if (isPreview) return null;
+  if (!mounted) return null;
 
   return (
     <>
-      <div
-        role="region"
-        aria-label="Aviso de cookies"
-        style={barWrap}
-      >
-        <div style={barInner}>
-          <div style={textBlock}>
-            <span
-              aria-hidden="true"
-              style={{
-                fontSize: 20,
-                lineHeight: 1,
-                flexShrink: 0,
-                marginTop: isMobile ? 2 : 0,
-              }}
-            >
-              🍪
-            </span>
-            <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: isMobile ? 2 : 8, alignItems: isMobile ? "flex-start" : "baseline", flexWrap: "wrap" }}>
-              <span style={{ fontSize: 14, fontWeight: 600, color: C.text }}>
-                Usamos cookies
-              </span>
-              <span style={{ fontSize: 13, color: C.muted, lineHeight: 1.4 }}>
-                Utilizamos cookies propias y de terceros para mejorar tu experiencia y analizar el uso de la web.
-              </span>
-            </div>
-          </div>
-          <div style={btnRow}>
-            <GhostBtn onClick={acceptNecessary}>Solo necesarias</GhostBtn>
-            <OutlineBtn onClick={() => setShowModal(true)}>Personalizar</OutlineBtn>
-            <PrimaryBtn onClick={acceptAll}>Aceptar todo</PrimaryBtn>
-          </div>
-        </div>
-      </div>
+      <CookiePreferencesButton
+        visible={hasConsent && !showModal}
+        onClick={openConsentModal}
+      />
 
       {/* VIEW 2: Modal */}
       {showModal && (
         <div
           aria-hidden={false}
           onClick={(e) => {
-            if (e.target === e.currentTarget) closeModal();
+            if (e.target === e.currentTarget && hasConsent) closeModal();
           }}
           style={{
             position: "fixed",
             inset: 0,
             background: C.backdrop,
-            zIndex: 1001,
+            zIndex: 10001,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -519,28 +458,32 @@ export default function CookieBanner() {
               >
                 Preferencias de cookies
               </h2>
-              <button
-                type="button"
-                aria-label="Cerrar"
-                onClick={closeModal}
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 6,
-                  background: C.subtle,
-                  border: "none",
-                  color: C.muted,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 16,
-                  lineHeight: 1,
-                  flexShrink: 0,
-                }}
-              >
-                ×
-              </button>
+              {hasConsent ? (
+                <button
+                  type="button"
+                  aria-label="Cerrar"
+                  onClick={closeModal}
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 6,
+                    background: C.subtle,
+                    border: 'none',
+                    color: C.muted,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 16,
+                    lineHeight: 1,
+                    flexShrink: 0,
+                  }}
+                >
+                  ×
+                </button>
+              ) : (
+                <span style={{ width: 28, flexShrink: 0 }} aria-hidden="true" />
+              )}
             </div>
             <p
               style={{
@@ -618,6 +561,9 @@ export default function CookieBanner() {
               <OutlineBtn full onClick={acceptAll}>
                 Aceptar todo
               </OutlineBtn>
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
+                <GhostBtn onClick={acceptNecessary}>Solo necesarias</GhostBtn>
+              </div>
             </div>
           </div>
         </div>
