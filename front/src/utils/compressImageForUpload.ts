@@ -1,6 +1,6 @@
 /**
  * Reduce tamaño de imagen antes de subirla (multipart), manteniendo buena calidad para web.
- * Convierte a JPEG cuando aplica para limitar peso.
+ * PNG conserva transparencia; el resto se convierte a JPEG para limitar peso.
  */
 export async function compressImageForUpload(
   file: File,
@@ -8,12 +8,19 @@ export async function compressImageForUpload(
 ): Promise<File> {
   const maxSide = options?.maxSide ?? 2200
   const quality = options?.quality ?? 0.86
-  const skipBelowBytes = options?.skipBelowBytes ?? 600_000
+  const isPng = file.type === 'image/png'
 
   if (!file.type.startsWith('image/') || file.type === 'image/svg+xml') {
     return file
   }
-  if (file.size <= skipBelowBytes && file.type !== 'image/png') {
+
+  // Logos y PNG pequeños: sin recompresión para no perder alpha ni calidad
+  if (isPng && file.size < 500_000) {
+    return file
+  }
+
+  const skipBelowBytes = options?.skipBelowBytes ?? (isPng ? 1_000_000 : 600_000)
+  if (file.size <= skipBelowBytes) {
     return file
   }
 
@@ -34,16 +41,24 @@ export async function compressImageForUpload(
       bitmap.close?.()
       return file
     }
+    // PNG: no rellenar fondo; el canvas queda transparente por defecto
     ctx.drawImage(bitmap, 0, 0, w, h)
     bitmap.close?.()
 
+    const outputMime = isPng ? 'image/png' : 'image/jpeg'
+    const outputExt = isPng ? 'png' : 'jpg'
+    const outputQuality = isPng ? undefined : quality
+
     const blob: Blob | null = await new Promise((resolve) => {
-      canvas.toBlob((b) => resolve(b), 'image/jpeg', quality)
+      canvas.toBlob((b) => resolve(b), outputMime, outputQuality)
     })
     if (!blob || blob.size === 0) return file
 
     const base = file.name.replace(/\.[^.]+$/, '') || 'foto'
-    const out = new File([blob], `${base}.jpg`, { type: 'image/jpeg', lastModified: Date.now() })
+    const out = new File([blob], `${base}.${outputExt}`, {
+      type: outputMime,
+      lastModified: Date.now(),
+    })
     return out.size < file.size ? out : file
   } catch {
     return file
