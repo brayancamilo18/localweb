@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use App\Support\R2PublicUrl;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Storage;
 
 class BusinessImage extends Model
 {
@@ -25,14 +25,7 @@ class BusinessImage extends Model
 
     public function getUrlAttribute(): string
     {
-        try {
-            /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-            $disk = Storage::disk('r2');
-
-            return $disk->url($this->path);
-        } catch (\Throwable) {
-            return '';
-        }
+        return R2PublicUrl::forPath($this->path) ?? '';
     }
 
     public function scopeOrdered(Builder $query): Builder

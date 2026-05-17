@@ -5,11 +5,11 @@ namespace App\Models;
 use App\Enums\Plan;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Support\R2PublicUrl;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
 use Spatie\Multitenancy\Models\Tenant;
 
 class Business extends Tenant
@@ -104,14 +104,7 @@ class Business extends Tenant
             return null;
         }
 
-        try {
-            /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-            $disk = Storage::disk('r2');
-
-            return $disk->url($this->logo_path);
-        } catch (\Throwable) {
-            return null;
-        }
+        return R2PublicUrl::forPath($this->logo_path);
     }
 
     public function getIsFreeAttribute(): bool

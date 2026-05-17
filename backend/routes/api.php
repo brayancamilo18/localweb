@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\Onboarding\DraftLogoController;
 use App\Http\Controllers\Api\Onboarding\StatusController;
 use App\Http\Controllers\Api\Onboarding\StepController;
 use App\Http\Controllers\Api\Public\BusinessController as PublicBusinessController;
+use App\Http\Controllers\Api\Public\StorageMediaController;
 use App\Http\Controllers\Api\Public\SubdomainRulesController;
 use App\Http\Controllers\Api\Public\TenantExistsController;
 use App\Http\Controllers\Api\Public\VCardController;
@@ -140,6 +141,11 @@ Route::prefix('v1')->group(function (): void {
         Route::patch('/businesses/{business}', [AdminBusinessesController::class, 'update']);
         Route::delete('/businesses/{business}', [AdminBusinessesController::class, 'destroy']);
     });
+
+    Route::get('/media/{path}', [StorageMediaController::class, 'show'])
+        ->where('path', '.*')
+        ->middleware('throttle:300,1')
+        ->name('media.show');
 
     Route::prefix('public')->middleware('throttle:120,1')->group(function (): void {
         Route::get('/subdomain-rules', SubdomainRulesController::class);

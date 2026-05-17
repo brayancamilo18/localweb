@@ -9,9 +9,7 @@ class BusinessResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $groupedImages = $this->images
-            ? $this->images->groupBy('section')->map(fn ($items) => BusinessImageResource::collection($items)->resolve())
-            : [];
+        $groupedImages = $this->normalizeGroupedImages();
 
         return [
             'id' => $this->id,
@@ -59,5 +57,25 @@ class BusinessResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
+    }
+
+    /**
+     * @return array{cover: array, gallery: array, about: array}
+     */
+    private function normalizeGroupedImages(): array
+    {
+        $sections = ['cover', 'gallery', 'about'];
+        $grouped = $this->images
+            ? $this->images->groupBy('section')->map(
+                fn ($items) => BusinessImageResource::collection($items)->resolve(),
+            )->all()
+            : [];
+
+        $out = [];
+        foreach ($sections as $section) {
+            $out[$section] = $grouped[$section] ?? [];
+        }
+
+        return $out;
     }
 }

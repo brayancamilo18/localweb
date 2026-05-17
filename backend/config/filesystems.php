@@ -51,18 +51,21 @@ return [
         | Imágenes de negocio (ImageService, URLs públicas). Con credenciales S3/R2 usa el
         | bucket; en local sin AWS_* cae a disco public/storage/r2-local (tras storage:link).
         */
-        'r2' => filled(env('AWS_ACCESS_KEY_ID')) ? [
+        'r2' => filled(env('AWS_ACCESS_KEY_ID', env('CLOUDFLARE_R2_KEY'))) ? [
             'driver' => 's3',
-            'key' => env('AWS_ACCESS_KEY_ID'),
-            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'key' => env('AWS_ACCESS_KEY_ID', env('CLOUDFLARE_R2_KEY')),
+            'secret' => env('AWS_SECRET_ACCESS_KEY', env('CLOUDFLARE_R2_SECRET')),
             'region' => env('AWS_DEFAULT_REGION', 'auto'),
-            'bucket' => env('AWS_BUCKET'),
-            'url' => env('AWS_URL'),
-            'endpoint' => env('AWS_ENDPOINT'),
+            'bucket' => env('AWS_BUCKET', env('CLOUDFLARE_R2_BUCKET')),
+            // URL pública para el navegador (CDN R2). CLOUDFLARE_R2_URL es alias en .env raíz.
+            'url' => env('AWS_URL', env('CLOUDFLARE_R2_URL')),
+            'endpoint' => env('AWS_ENDPOINT', env('CLOUDFLARE_R2_ENDPOINT')),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', true),
             'visibility' => 'public',
             'throw' => true,
             'report' => true,
+            // Forzar proxy API si AWS_URL apunta a host interno (ver R2PublicUrl).
+            'force_proxy' => (bool) env('R2_FORCE_PROXY', false),
         ] : [
             'driver' => 'local',
             'root' => storage_path('app/public/r2-local'),
