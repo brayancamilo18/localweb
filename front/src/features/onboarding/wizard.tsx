@@ -362,6 +362,7 @@ function TemplateIframe({
 
   const src = useMemo(() => {
     const params = new URLSearchParams()
+    params.set('v', '2')
     if (embed) params.set('embed', '1')
     if (previewData) params.set('preview', '1')
     // El template usa parentOrigin para validar event.origin en su listener `message`.

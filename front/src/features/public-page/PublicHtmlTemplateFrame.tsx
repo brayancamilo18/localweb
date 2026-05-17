@@ -30,8 +30,11 @@ export default function PublicHtmlTemplateFrame({ templateSlug, business }: Prop
    */
   const src = useMemo(() => {
     const base = TEMPLATE_SRC[templateSlug] ?? TEMPLATE_SRC['urban-bold']
-    const sep = base.includes('?') ? '&' : '?'
-    return `${base}${sep}parentOrigin=${encodeURIComponent(window.location.origin)}`
+    const params = new URLSearchParams({
+      v: '2',
+      parentOrigin: window.location.origin,
+    })
+    return `${base}?${params.toString()}`
   }, [templateSlug])
 
   const pushData = useCallback(() => {
