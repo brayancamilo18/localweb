@@ -31,8 +31,14 @@ export type LoginLayoutProps = {
   heroTitleNowrap?: boolean
   features?: AuthFeature[]
   /** Tipografía del panel izquierdo más grande (registro). */
-  variant?: 'login' | 'register'
+  variant?: 'login' | 'register' | 'verify-email'
 }
+
+const VERIFY_EMAIL_STATS = [
+  { value: '10 min', label: 'tiempo medio' },
+  { value: '4.9★', label: 'en App Store' },
+  { value: '0€', label: 'para empezar' },
+] as const
 
 export function LoginLayout({
   children,
@@ -47,6 +53,7 @@ export function LoginLayout({
 }: LoginLayoutProps) {
   const year = new Date().getFullYear()
   const isRegister = variant === 'register'
+  const isVerifyEmail = variant === 'verify-email'
   const titleClass =
     heroTitleNowrap && variant === 'login'
       ? 'lw-login-page__hero-title lw-login-page__hero-title--nowrap'
@@ -56,7 +63,9 @@ export function LoginLayout({
   const logoSize = isRegister ? 156 : 140
 
   return (
-    <main className={`lw-login-page${isRegister ? ' lw-login-page--register' : ''}`}>
+    <main
+      className={`lw-login-page${isRegister ? ' lw-login-page--register' : ''}${isVerifyEmail ? ' lw-login-page--verify-email' : ''}`}
+    >
       <header className="lw-login-page__hero">
         <div className="lw-login-page__hero-glow lw-login-page__hero-glow--tr" aria-hidden />
         <div className="lw-login-page__hero-glow lw-login-page__hero-glow--bl" aria-hidden />
@@ -75,17 +84,28 @@ export function LoginLayout({
           <h1 className={titleClass}>{heroTitle}</h1>
           <p className="lw-login-page__hero-sub">{heroSub}</p>
 
-          <ul className="lw-login-page__features">
-            {features.map((f) => (
-              <li key={f.label} className="lw-login-page__feature">
-                <Icon name={f.icon} size={featureIconSize} color="var(--lw-login-mint)" />
-                <span className="lw-login-page__feature-label lw-login-page__feature-label--full">{f.label}</span>
-                <span className="lw-login-page__feature-label lw-login-page__feature-label--short">
-                  {f.shortLabel ?? f.label}
-                </span>
-              </li>
-            ))}
-          </ul>
+          {isVerifyEmail ? (
+            <dl className="lw-login-page__hero-stats">
+              {VERIFY_EMAIL_STATS.map((s) => (
+                <div key={s.label} className="lw-login-page__hero-stat">
+                  <dt className="lw-login-page__hero-stat-value">{s.value}</dt>
+                  <dd className="lw-login-page__hero-stat-label">{s.label}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <ul className="lw-login-page__features">
+              {features.map((f) => (
+                <li key={f.label} className="lw-login-page__feature">
+                  <Icon name={f.icon} size={featureIconSize} color="var(--lw-login-mint)" />
+                  <span className="lw-login-page__feature-label lw-login-page__feature-label--full">{f.label}</span>
+                  <span className="lw-login-page__feature-label lw-login-page__feature-label--short">
+                    {f.shortLabel ?? f.label}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <p className="lw-login-page__hero-footer lw-login-page__hero-footer--desktop">

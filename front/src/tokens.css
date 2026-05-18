@@ -1722,6 +1722,145 @@ textarea::placeholder {
   }
 }
 
+/* Verificación de email */
+.lw-login-page--verify-email .lw-login-page__card-intro {
+  display: none;
+}
+
+.lw-login-page__hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 32px 0 0;
+  padding: 0;
+}
+
+.lw-login-page__hero-stat {
+  margin: 0;
+}
+
+.lw-login-page__hero-stat-value {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.lw-login-page__hero-stat-label {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.lw-verify-email__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 16px;
+  border-radius: 999px;
+  background: var(--lw-accent-soft);
+}
+
+.lw-verify-email__title {
+  margin: 0 0 8px;
+  font-size: 1.625rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.lw-verify-email__intro {
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--lw-text-2);
+}
+
+.lw-verify-email__intro strong {
+  font-weight: 600;
+  color: var(--lw-text);
+}
+
+.lw-verify-email__business {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--lw-text-2);
+}
+
+.lw-verify-email__notice {
+  margin: 0 0 20px;
+  padding: 12px;
+  border-radius: var(--lw-r-sm);
+  background: var(--lw-surface-1);
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--lw-text-2);
+}
+
+.lw-verify-email__checking {
+  display: block;
+  margin-top: 8px;
+}
+
+.lw-verify-email__feedback {
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  border-radius: var(--lw-r-sm);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.lw-verify-email__feedback--ok {
+  border: 1px solid var(--lw-success, #2f9e62);
+  background: rgba(47, 158, 98, 0.08);
+  color: var(--lw-success, #2f9e62);
+}
+
+.lw-verify-email__feedback--err {
+  border: 1px solid var(--lw-danger);
+  background: var(--lw-danger-soft);
+  color: var(--lw-danger);
+}
+
+.lw-verify-email__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lw-verify-email__footnote {
+  margin: 16px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--lw-text-3, var(--lw-text-2));
+}
+
+@media (min-width: 901px) {
+  .lw-login-page--verify-email .lw-login-page__hero-stats {
+    margin-top: 0;
+    gap: 24px;
+  }
+
+  .lw-login-page__hero-stat-value {
+    font-size: 1.875rem;
+  }
+
+  .lw-login-page__hero-stat-label {
+    font-size: 14px;
+  }
+
+  .lw-verify-email__title {
+    font-size: 1.75rem;
+  }
+
+  .lw-verify-email__intro {
+    font-size: 15px;
+  }
+}
+
 /* Olvidar contraseña — mockup forgot-password (1) */
 .lw-forgot-page {
   --lw-forgot-shadow: 0 18px 48px rgba(11, 31, 26, 0.08);

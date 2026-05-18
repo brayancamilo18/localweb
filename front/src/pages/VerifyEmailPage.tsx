@@ -3,8 +3,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { logout, me, resendEmailVerification } from '../api/auth'
 import { keys } from '../api/queryKeys'
-import { Btn } from '../components/primitives/primitives'
-import { AuthSplitLayout } from '../layouts/AuthSplitLayout'
+import { Btn, Icon } from '../components/primitives/primitives'
+import { LoginLayout } from '../layouts/LoginLayout'
 import { useAuthStore } from '../store/authStore'
 
 const RESEND_COOLDOWN_SECONDS = 60
@@ -31,6 +31,17 @@ export default function VerifyEmailPage() {
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
   })
+
+  useEffect(() => {
+    document.title = 'Verifica tu correo · ONEZ'
+    const meta = document.querySelector('meta[name="description"]')
+    if (meta) {
+      meta.setAttribute(
+        'content',
+        'Confirma tu dirección de email para empezar a configurar tu página profesional con ONEZ.',
+      )
+    }
+  }, [])
 
   useEffect(() => {
     if (data) {
@@ -93,102 +104,91 @@ export default function VerifyEmailPage() {
     return `Disponible en ${cooldown}s`
   }, [cooldown])
 
-  // Si /auth/me devuelve 401 directamente, no hay sesión y mandamos al login.
+  const resendJustSent = feedback?.kind === 'ok' && !resendMutation.isPending
+
   const status401 = isError && (error as { response?: { status?: number } })?.response?.status === 401
   if (status401) {
     return <Navigate to="/login" replace />
   }
 
-  return (
-    <AuthSplitLayout hero="login">
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          maxWidth: 460,
-          width: '100%',
-        }}
-      >
-        <h1 className="lw-h1" style={{ margin: '0 0 10px' }}>
-          Verifica tu correo
-        </h1>
-        <p className="lw-body" style={{ marginBottom: 20 }}>
-          {email
-            ? <>Te hemos enviado un correo a <strong>{email}</strong>. Haz clic en el enlace del correo para empezar a configurar tu página.</>
-            : <>Te hemos enviado un correo de verificación. Haz clic en el enlace para continuar.</>}
-        </p>
-        {businessName ? (
-          <p className="lw-body-sm" style={{ marginBottom: 16, color: 'var(--lw-text-2)' }}>
-            Negocio: <strong>{businessName}</strong>
-          </p>
-        ) : null}
+  const emailIntro = email ? (
+    <>
+      Te hemos enviado un correo a <strong>{email}</strong>. Haz clic en el enlace del correo para empezar a
+      configurar tu página.
+    </>
+  ) : (
+    <>Te hemos enviado un correo de verificación. Haz clic en el enlace para continuar.</>
+  )
 
+  return (
+    <LoginLayout
+      variant="verify-email"
+      cardTitle=""
+      cardSubtitle=""
+      heroBadge="+12.000 negocios confían en ONEZ"
+      heroTitle="Tu web profesional en menos de 10 minutos."
+      heroSub="Sin saber programar. Sin diseñador. Solo responde unas preguntas y ONEZ hace el resto."
+      heroTitleNowrap={false}
+      features={[]}
+    >
+      <div className="lw-verify-email__icon" aria-hidden>
+        <Icon name="mail" size={20} color="var(--lw-accent)" />
+      </div>
+
+      <h1 className="lw-verify-email__title">Verifica tu correo</h1>
+      <p className="lw-verify-email__intro">{emailIntro}</p>
+
+      {businessName ? (
+        <p className="lw-verify-email__business">
+          Negocio: <strong>{businessName}</strong>
+        </p>
+      ) : null}
+
+      <p className="lw-verify-email__notice">
+        El enlace caduca en 60 minutos. Si no lo encuentras, revisa la carpeta de <em>spam</em> o pídenos otro desde
+        aquí. La página detectará la verificación automáticamente.
+        {isLoading ? <span className="lw-verify-email__checking"> Comprobando estado…</span> : null}
+      </p>
+
+      {feedback ? (
         <div
-          style={{
-            border: '1px solid var(--lw-line)',
-            borderRadius: 'var(--lw-r-md)',
-            padding: 14,
-            background: 'var(--lw-surface-1)',
-            marginBottom: 18,
-            fontSize: 13,
-            color: 'var(--lw-text-2)',
-            lineHeight: 1.5,
+          role={feedback.kind === 'err' ? 'alert' : 'status'}
+          className={`lw-verify-email__feedback lw-verify-email__feedback--${feedback.kind}`}
+        >
+          {feedback.text}
+        </div>
+      ) : null}
+
+      <div className="lw-verify-email__actions">
+        <Btn
+          kind="primary"
+          size="lg"
+          fullWidth
+          loading={resendMutation.isPending}
+          disabled={resendMutation.isPending || cooldown > 0}
+          iconRight={resendJustSent ? 'check' : undefined}
+          onClick={() => {
+            setFeedback(null)
+            resendMutation.mutate()
           }}
         >
-          El enlace caduca en 60 minutos. Si no lo encuentras, revisa la carpeta de <em>spam</em> o pídenos otro
-          desde aquí. La página detectará la verificación automáticamente.
-          {isLoading ? <div style={{ marginTop: 8 }}>Comprobando estado…</div> : null}
-        </div>
-
-        {feedback ? (
-          <div
-            role={feedback.kind === 'err' ? 'alert' : 'status'}
-            style={{
-              marginBottom: 16,
-              border: `1px solid ${feedback.kind === 'err' ? 'var(--lw-danger)' : 'var(--lw-success, #2f9e62)'}`,
-              background: feedback.kind === 'err' ? 'var(--lw-danger-soft)' : 'rgba(47,158,98,0.08)',
-              color: feedback.kind === 'err' ? 'var(--lw-danger)' : 'var(--lw-success, #2f9e62)',
-              padding: '10px 12px',
-              borderRadius: 'var(--lw-r-sm)',
-              fontSize: 13,
-            }}
-          >
-            {feedback.text}
-          </div>
-        ) : null}
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <Btn
-            kind="primary"
-            size="lg"
-            fullWidth
-            loading={resendMutation.isPending}
-            disabled={resendMutation.isPending || cooldown > 0}
-            onClick={() => {
-              setFeedback(null)
-              resendMutation.mutate()
-            }}
-          >
-            {cooldownLabel ?? 'Reenviar correo de verificación'}
-          </Btn>
-          <Btn
-            kind="ghost"
-            size="md"
-            fullWidth
-            loading={logoutMutation.isPending}
-            disabled={logoutMutation.isPending}
-            onClick={() => logoutMutation.mutate()}
-          >
-            Cerrar sesión
-          </Btn>
-        </div>
-
-        <p className="lw-body-sm" style={{ marginTop: 18, color: 'var(--lw-text-3, var(--lw-text-2))', fontSize: 12 }}>
-          ¿Cambiaste de email? Cierra sesión y vuelve a registrarte con el correo correcto.
-        </p>
+          {resendJustSent ? 'Correo reenviado' : cooldownLabel ?? 'Reenviar correo de verificación'}
+        </Btn>
+        <Btn
+          kind="ghost"
+          size="lg"
+          fullWidth
+          loading={logoutMutation.isPending}
+          disabled={logoutMutation.isPending}
+          onClick={() => logoutMutation.mutate()}
+        >
+          Cerrar sesión
+        </Btn>
       </div>
-    </AuthSplitLayout>
+
+      <p className="lw-verify-email__footnote">
+        ¿Cambiaste de email? Cierra sesión y vuelve a registrarte con el correo correcto.
+      </p>
+    </LoginLayout>
   )
 }
