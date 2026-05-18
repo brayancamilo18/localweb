@@ -4,8 +4,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { useOnboarding } from '../useOnboarding'
 import * as onboardingApi from '../../../api/onboarding'
+import { clearSignupPrefill } from '../../../lib/signupPrefill'
 
 const navigateMock = vi.fn()
+
+vi.mock('../../../lib/signupPrefill', () => ({
+  clearSignupPrefill: vi.fn(),
+}))
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
@@ -99,6 +104,7 @@ describe('useOnboarding', () => {
     expect(onboardingApi.step1).toHaveBeenCalledWith(
       expect.objectContaining({ template_id: 1, sector: 'peluqueria' }),
     )
+    expect(clearSignupPrefill).toHaveBeenCalled()
     expect(result.current.currentStep).toBe(2)
   })
 

@@ -8,6 +8,7 @@ import { keys } from '../../api/queryKeys'
 import { useAuthStore } from '../../store/authStore'
 import type { Schedule } from '../../types/api'
 import { clearOnboardingPersistForUser, loadOnboardingPersist } from './onboardingPersist'
+import { clearSignupPrefill } from '../../lib/signupPrefill'
 
 /** Paso visible en el wizard (1–8) a partir del borrador guardado en servidor. */
 function resolveOnboardingUiStep(draft: Record<string, unknown> | undefined): number {
@@ -199,6 +200,7 @@ export function useOnboarding(): UseOnboardingResult {
               logo: d.logo ?? undefined,
               removeLogo: Boolean(d.removeLogo),
             })
+            clearSignupPrefill()
             break
           }
           case 2: {

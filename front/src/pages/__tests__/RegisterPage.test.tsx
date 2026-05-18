@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import RegisterPage from '../RegisterPage'
 import { useAuthStore } from '../../store/authStore'
 import * as authApi from '../../api/auth'
+import * as signupPrefill from '../../lib/signupPrefill'
 
 const navigateMock = vi.fn()
 
@@ -84,6 +85,27 @@ describe('RegisterPage', () => {
     fireEvent.change(screen.getByLabelText('Ciudad'), { target: { value: 'Madrid' } })
     fireEvent.click(screen.getByRole('button', { name: 'Crear mi cuenta' }))
     await waitFor(() => expect(registerSpy).toHaveBeenCalledWith('Brayan', 'b@b.com', '12345678', '12345678'))
+  })
+
+  it('guarda prefill del negocio en localStorage tras registro exitoso', async () => {
+    const storeSpy = vi.spyOn(signupPrefill, 'storeSignupPrefill')
+    vi.spyOn(authApi, 'register').mockResolvedValue({
+      user: { id: 1, name: 'Brayan', email: 'b@b.com', email_verified_at: null },
+      business: null,
+    })
+    renderPage()
+    await fillStep1AndContinue()
+    fireEvent.change(screen.getByLabelText('Nombre del negocio'), { target: { value: 'Estudio Marta' } })
+    fireEvent.change(screen.getByLabelText('Ciudad'), { target: { value: 'Madrid' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Crear mi cuenta' }))
+    await waitFor(() =>
+      expect(storeSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          business_name: 'Estudio Marta',
+          city: 'Madrid',
+        }),
+      ),
+    )
   })
 
   it('navega a /verify-email tras registro exitoso (correo aún sin verificar)', async () => {

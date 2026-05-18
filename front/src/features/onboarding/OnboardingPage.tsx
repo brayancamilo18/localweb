@@ -21,6 +21,7 @@ import {
 import { useAuthStore } from '../../store/authStore'
 import { coerceLocation } from '../../lib/location/coerceLocation'
 import { emptyLocation } from '../../lib/location/locationData'
+import { readSignupPrefill } from '../../lib/signupPrefill'
 import type { LocationValue } from '../../lib/location/locationTypes'
 import {
   DEFAULT_SCHEDULE,
@@ -386,39 +387,27 @@ export default function OnboardingPage() {
     const d = serverDraft
     const maxGallerySlots = galleryProExperience ? 20 : 3
 
-    // RegisterPage guarda lo del onboarding rápido (nombre/sector/ciudad) en sessionStorage.
-    // Si el wizard arranca limpio (sin borrador local ni del backend) propagamos esos valores
-    // para que el paso 3 no falle silenciosamente por business_name vacío al saltar el paso 2.
+    // RegisterPage guarda nombre/sector/ciudad en localStorage (persiste entre pestañas).
+    // Si el wizard arranca limpio propagamos esos valores para que el paso 3 no falle
+    // silenciosamente por business_name vacío al saltar el paso 2.
     let signupBusinessName = ''
     let signupLocation = emptyLocation()
-    try {
-      const raw = sessionStorage.getItem('lw_signup_prefill')
-      if (raw?.trim()) {
-        const parsed = JSON.parse(raw) as {
-          business_name?: unknown
-          city?: unknown
-          country?: unknown
-          country_code?: unknown
-          address?: unknown
-        }
-        if (typeof parsed.business_name === 'string') signupBusinessName = parsed.business_name.trim()
-        const signupCity =
-          typeof parsed.city === 'string'
-            ? parsed.city.trim()
-            : typeof parsed.address === 'string'
-              ? parsed.address.trim()
-              : ''
-        const signupCountry = typeof parsed.country === 'string' ? parsed.country.trim() : ''
-        const signupCountryCode =
-          typeof parsed.country_code === 'string' ? parsed.country_code.trim().toUpperCase() : ''
-        signupLocation = coerceLocation({
-          countryCode: signupCountryCode || undefined,
-          country: signupCountry,
-          city: signupCity,
-        })
+    const parsed = readSignupPrefill()
+    if (parsed) {
+      if (typeof parsed.business_name === 'string') {
+        signupBusinessName = parsed.business_name.trim()
       }
-    } catch {
-      /* sandbox / privacy mode: ignorar */
+      const signupCity = typeof parsed.city === 'string' ? parsed.city.trim() : ''
+      const signupCountry = typeof parsed.country === 'string' ? parsed.country.trim() : ''
+      const signupCountryCode =
+        typeof parsed.country_code === 'string'
+          ? parsed.country_code.trim().toUpperCase()
+          : ''
+      signupLocation = coerceLocation({
+        countryCode: signupCountryCode || undefined,
+        country: signupCountry,
+        city: signupCity,
+      })
     }
 
     setPreviewName(String(p?.previewName ?? d.business_name ?? signupBusinessName ?? ''))

@@ -37,6 +37,7 @@ import {
 } from '../public-page/publicTemplatePayload'
 import { LocationPicker } from '../../components/location/LocationPicker'
 import type { LocationValue } from '../../lib/location/locationTypes'
+import { readSignupPrefill } from '../../lib/signupPrefill'
 import { WizardNavContext, type WizardStepProps } from './wizardNavContext'
 
 // ONEZ — Onboarding wizard (8 pasos)
@@ -1099,16 +1100,11 @@ function Step1Plantilla({
     [list, templatePage],
   )
   const signupSector = useMemo(() => {
-    try {
-      const raw = sessionStorage.getItem('lw_signup_prefill')
-      if (!raw?.trim()) return 'otros'
-      const parsed = JSON.parse(raw) as { sector?: unknown }
-      const s = parsed?.sector
-      if (typeof s === 'string' && s.trim()) return s.trim()
-      return 'otros'
-    } catch {
-      return 'otros'
+    const parsed = readSignupPrefill()
+    if (parsed && typeof parsed.sector === 'string' && parsed.sector.trim()) {
+      return parsed.sector.trim()
     }
+    return 'otros'
   }, [])
   const [fullscreen, setFullscreen] = useState<{ variant: Step1PreviewVariant; label: string } | null>(null)
 
