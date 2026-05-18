@@ -1,5 +1,6 @@
 import { useContext, useLayoutEffect, useState, type ReactNode } from 'react'
 import { Badge, Btn, Card, Field, Icon, Input } from '../../../components/primitives/primitives'
+import ReferralInviteBanner from '../../../components/referrals/ReferralInviteBanner'
 import { WizardNavContext, type WizardStepProps } from '../wizardNavContext'
 
 const ACCENT = 'var(--lw-accent)'
@@ -275,6 +276,7 @@ export default function Step7Plan({
           </ul>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 'auto' }}>
+            <ReferralInviteBanner />
             <Btn kind="primary" size="lg" fullWidth type="button" disabled={busy} onClick={() => setPlan('pro')}>
               Empezar con Pro
             </Btn>

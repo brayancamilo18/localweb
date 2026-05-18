@@ -2,9 +2,11 @@
 
 namespace App\Listeners;
 
+use App\Mail\ReferrerReachedTemplateGift;
 use App\Mail\WelcomeProOnez;
 use App\Models\Business;
 use App\Models\ProcessedStripeEvent;
+use App\Models\Referral;
 use App\Models\User;
 use App\Services\OnboardingMediaFinalizeService;
 use Illuminate\Support\Facades\Log;
@@ -47,7 +49,7 @@ class StripeEventListener
                 'invoice.payment_failed' => $this->handleInvoicePaymentFailed($payload),
                 'payment_intent.succeeded' => $this->handlePaymentIntentSucceeded($payload),
                 'invoice.paid' => $this->handleInvoicePaid($payload),
-                'invoice.payment_succeeded' => $this->handleInvoicePaymentSucceeded($payload),
+                'invoice.payment_succeeded' => $this->handleInvoicePaymentSucceededWithReferral($payload),
                 default => null,
             };
         } catch (Throwable $e) {
@@ -317,6 +319,142 @@ class StripeEventListener
             'invoice' => $object['id'] ?? null,
             'customer' => $object['customer'] ?? null,
         ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    protected function handleInvoicePaymentSucceededWithReferral(array $payload): void
+    {
+        try {
+            $this->processReferralOnPayment($payload);
+        } catch (Throwable $e) {
+            Log::error('Referral processing on invoice.payment_succeeded failed', [
+                'event_id' => $payload['id'] ?? null,
+                'invoice_id' => $payload['data']['object']['id'] ?? null,
+                'exception' => $e->getMessage(),
+            ]);
+        }
+
+        $this->handleInvoicePaymentSucceeded($payload);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    protected function processReferralOnPayment(array $payload): void
+    {
+        $invoice = $payload['data']['object'] ?? [];
+        $invoiceId = $invoice['id'] ?? null;
+        $amountPaid = (int) ($invoice['amount_paid'] ?? 0);
+        $customerId = $invoice['customer'] ?? null;
+
+        if (! $invoiceId || ! $customerId) {
+            return;
+        }
+
+        if ($amountPaid <= 0) {
+            return;
+        }
+
+        if (Referral::query()->where('stripe_invoice_id', $invoiceId)->exists()) {
+            return;
+        }
+
+        $user = User::query()->where('stripe_id', $customerId)->first();
+        if (! $user) {
+            return;
+        }
+
+        $referral = $user->referralAsReferred()
+            ->where('status', Referral::STATUS_REGISTERED)
+            ->first();
+
+        if (! $referral) {
+            return;
+        }
+
+        $referral->update([
+            'status' => Referral::STATUS_PAID,
+            'first_payment_at' => now(),
+            'stripe_invoice_id' => $invoiceId,
+        ]);
+
+        $referral->refresh();
+        $referral->load('referrer');
+
+        if ($referral->referrer) {
+            $this->maybeRewardReferrer($referral->referrer, $referral);
+        }
+    }
+
+    protected function maybeRewardReferrer(User $referrer, Referral $referral): void
+    {
+        if (! $referrer->subscribed('default')) {
+            Log::warning('Referrer has no active subscription, cannot apply reward', [
+                'referrer_id' => $referrer->id,
+            ]);
+
+            return;
+        }
+
+        $couponId = config('referrals.reward_coupon_id');
+        if (! is_string($couponId) || $couponId === '') {
+            Log::error('STRIPE_COUPON_REFERRER_REWARD not configured');
+
+            return;
+        }
+
+        try {
+            $subscription = $referrer->subscription('default');
+            $subscription->updateStripeSubscription([
+                'discounts' => [['coupon' => $couponId]],
+            ]);
+
+            Log::info('Referral reward coupon applied', [
+                'referrer_id' => $referrer->id,
+                'coupon_id' => $couponId,
+            ]);
+        } catch (Throwable $e) {
+            Log::error('Failed to apply referral reward coupon', [
+                'referrer_id' => $referrer->id,
+                'exception' => $e->getMessage(),
+            ]);
+
+            return;
+        }
+
+        $referral->update([
+            'status' => Referral::STATUS_REWARDED,
+            'rewarded_at' => now(),
+        ]);
+
+        $paidOrRewarded = $referrer->referralsAsReferrer()
+            ->whereIn('status', [Referral::STATUS_PAID, Referral::STATUS_REWARDED])
+            ->count();
+
+        if ($paidOrRewarded !== (int) config('referrals.template_gift_at')) {
+            return;
+        }
+
+        $adminEmail = config('referrals.admin_notify_email');
+        if (! is_string($adminEmail) || $adminEmail === '') {
+            return;
+        }
+
+        try {
+            Mail::to($adminEmail)->sendNow(new ReferrerReachedTemplateGift(
+                referrerName: $referrer->name,
+                referrerEmail: $referrer->email,
+                referrerBusinessId: $referrer->business_id,
+                count: $paidOrRewarded,
+            ));
+        } catch (Throwable $e) {
+            Log::error('Referrer template gift admin notification failed', [
+                'referrer_id' => $referrer->id,
+                'exception' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

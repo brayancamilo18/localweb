@@ -11,6 +11,7 @@ import {
   postResumeSubscription,
 } from '../../../../api/billing'
 import { keys } from '../../../../api/queryKeys'
+import ReferralInviteBanner from '../../../../components/referrals/ReferralInviteBanner'
 import { navigateExternal } from '../../../../utils/navigate'
 
 /**
@@ -278,6 +279,7 @@ export default function AccountTabPlan() {
                 </li>
               ))}
             </ul>
+            <ReferralInviteBanner />
             <Btn
               kind="primary"
               fullWidth

@@ -11,6 +11,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import LoginPage from './pages/LoginPage'
 import OnboardingPage from './pages/OnboardingPage'
 import RegisterPage from './pages/RegisterPage'
+import ReferralLanding from './pages/ReferralLanding'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import VerifyEmailPage from './pages/VerifyEmailPage'
 import DashboardPage from './features/dashboard/DashboardPage'
@@ -67,6 +68,8 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<RootRedirect />} />
+
+      <Route path="/r/:code" element={<ReferralLanding />} />
 
       <Route element={<GuestRoute />}>
         <Route path="/login" element={<LoginPage />} />

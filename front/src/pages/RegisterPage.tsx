@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register } from '../api/auth'
+import { clearReferralStorage, getValidReferralCodeFromStorage } from '../lib/referralStorage'
 import { keys } from '../api/queryKeys'
 import { LocationPicker } from '../components/location/LocationPicker'
 import { PasswordVisibilityToggle } from '../components/auth/PasswordVisibilityToggle'
@@ -108,8 +109,12 @@ export default function RegisterPage() {
   const pwdColors = ['#94A3B8', 'var(--lw-danger)', '#D97706', '#16A34A', 'var(--lw-success)']
 
   const mutation = useMutation({
-    mutationFn: () => register(name, email, password, passwordConfirmation),
+    mutationFn: () => {
+      const referralCode = getValidReferralCodeFromStorage()
+      return register(name, email, password, passwordConfirmation, referralCode)
+    },
     onSuccess(data) {
+      clearReferralStorage()
       try {
         sessionStorage.setItem(
           'lw_signup_prefill',

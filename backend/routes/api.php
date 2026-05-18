@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Account\ProfileController;
+use App\Http\Controllers\Api\Account\ReferralsController;
 use App\Http\Controllers\Api\Admin\BusinessesController as AdminBusinessesController;
 use App\Http\Controllers\Api\Admin\TemplatesController as AdminTemplatesController;
 use App\Http\Controllers\Api\Admin\UsersController as AdminUsersController;
@@ -74,6 +75,7 @@ Route::prefix('v1')->group(function (): void {
             Route::get('/profile', [ProfileController::class, 'show'])->middleware('throttle:60,1');
             Route::patch('/profile', [ProfileController::class, 'update'])->middleware('throttle:30,1');
             Route::post('/password', [ProfileController::class, 'password'])->middleware('throttle:6,1');
+            Route::get('/referrals', [ReferralsController::class, 'index'])->middleware('throttle:60,1');
         });
 
         Route::prefix('qr')->group(function (): void {

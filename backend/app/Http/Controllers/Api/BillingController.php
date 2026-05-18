@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Services\ReferralCheckoutService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Laravel\Cashier\Exceptions\InvalidInvoice;
@@ -9,7 +10,14 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class BillingController extends BaseApiController
 {
-    public function checkout(Request $request): JsonResponse
+    /**
+     * @internal Solo para aserciones en tests (evita llamar a Stripe API).
+     *
+     * @var object{couponId: ?string, allowPromotionCodes: bool, metadata: array<string, mixed>}|null
+     */
+    public static ?object $checkoutConfigForTests = null;
+
+    public function checkout(Request $request, ReferralCheckoutService $referralCheckout): JsonResponse
     {
         $user = $request->user()->load('business');
         $business = $user->business;
@@ -22,23 +30,46 @@ class BillingController extends BaseApiController
             return $this->error('Ya tienes el plan Pro activo', [], 422);
         }
 
+        $subscription = $user->newSubscription('default', (string) config('cashier.pro_price_id'));
+        ['subscription' => $subscription, 'referral' => $referral] = $referralCheckout->applyToSubscription($user, $subscription);
+
+        $checkoutOptions = [
+            'success_url' => config('app.frontend_url').'/onboarding?billing=success&session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => config('app.frontend_url').'/onboarding?billing=cancelled',
+            'metadata' => array_merge([
+                'user_id' => $user->id,
+                'business_id' => $business->id,
+            ], $referralCheckout->referralMetadata($referral)),
+            'locale' => 'es',
+        ];
+
+        $this->recordCheckoutConfigForTests($checkoutOptions);
+
         if (app()->environment('testing')) {
             return $this->success(['checkout_url' => 'https://checkout.stripe.test/session_123']);
         }
 
-        $session = $user->newSubscription('default', (string) config('cashier.pro_price_id'))
-            ->allowPromotionCodes()
-            ->checkout([
-                'success_url' => config('app.frontend_url').'/onboarding?billing=success&session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url' => config('app.frontend_url').'/onboarding?billing=cancelled',
-                'metadata' => [
-                    'user_id' => $user->id,
-                    'business_id' => $business->id,
-                ],
-                'locale' => 'es',
-            ]);
+        $session = $subscription->checkout($checkoutOptions);
 
         return $this->success(['checkout_url' => $session->url]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $checkoutOptions
+     */
+    private function recordCheckoutConfigForTests(array $checkoutOptions): void
+    {
+        if (! app()->runningUnitTests()) {
+            return;
+        }
+
+        $subscriptionConfig = ReferralCheckoutService::$subscriptionConfigForTests;
+
+        self::$checkoutConfigForTests = (object) [
+            'couponId' => $subscriptionConfig->couponId ?? null,
+            'allowPromotionCodes' => $subscriptionConfig->allowPromotionCodes ?? false,
+            'metadata' => $checkoutOptions['metadata'] ?? [],
+        ];
     }
 
     public function portal(Request $request): JsonResponse

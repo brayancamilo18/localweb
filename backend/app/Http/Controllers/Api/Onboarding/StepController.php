@@ -13,6 +13,7 @@ use App\Services\BusinessService;
 use App\Services\GeocodingService;
 use App\Services\ImageService;
 use App\Services\PublicPageUrlService;
+use App\Services\ReferralCheckoutService;
 use App\Services\TemplateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -295,7 +296,7 @@ class StepController extends BaseApiController
         return $this->success(['ok' => true, 'geocoded' => $geocoded, 'next_step' => 7]);
     }
 
-    public function step7(Request $request, BusinessService $businessService, ImageService $imageService, PublicPageUrlService $urls)
+    public function step7(Request $request, BusinessService $businessService, ImageService $imageService, PublicPageUrlService $urls, ReferralCheckoutService $referralCheckout)
     {
         $data = $request->validate([
             'plan' => ['required', 'in:free,pro'],
@@ -355,14 +356,6 @@ class StepController extends BaseApiController
 
             $this->finalizeOnboardingDraftMedia($user, $business, $draft, $imageService);
 
-            if (app()->environment('testing')) {
-                return $this->success([
-                    'ok' => true,
-                    'plan' => 'pro',
-                    'checkout_url' => 'https://checkout.stripe.test/session_onboarding_pro',
-                ]);
-            }
-
             $priceId = (string) config('cashier.pro_price_id', '');
             if ($priceId === '') {
                 return $this->error(
@@ -372,19 +365,28 @@ class StepController extends BaseApiController
                 );
             }
 
+            $subscription = $user->newSubscription('default', $priceId);
+            ['subscription' => $subscription, 'referral' => $referral] = $referralCheckout->applyToSubscription($user, $subscription);
+
+            if (app()->environment('testing')) {
+                return $this->success([
+                    'ok' => true,
+                    'plan' => 'pro',
+                    'checkout_url' => 'https://checkout.stripe.test/session_onboarding_pro',
+                ]);
+            }
+
             try {
-                $session = $user->newSubscription('default', $priceId)
-                    ->allowPromotionCodes()
-                    ->checkout([
-                        'success_url' => config('app.frontend_url').'/onboarding?billing=success&session_id={CHECKOUT_SESSION_ID}',
-                        'cancel_url' => config('app.frontend_url').'/onboarding?billing=cancelled',
-                        'metadata' => [
-                            'user_id' => (string) $user->id,
-                            'business_id' => (string) $business->id,
-                            'subdomain' => $business->subdomain,
-                        ],
-                        'locale' => 'es',
-                    ]);
+                $session = $subscription->checkout([
+                    'success_url' => config('app.frontend_url').'/onboarding?billing=success&session_id={CHECKOUT_SESSION_ID}',
+                    'cancel_url' => config('app.frontend_url').'/onboarding?billing=cancelled',
+                    'metadata' => array_merge([
+                        'user_id' => (string) $user->id,
+                        'business_id' => (string) $business->id,
+                        'subdomain' => $business->subdomain,
+                    ], array_map('strval', $referralCheckout->referralMetadata($referral))),
+                    'locale' => 'es',
+                ]);
             } catch (\Throwable $e) {
                 report($e);
 

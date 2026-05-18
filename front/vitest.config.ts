@@ -10,5 +10,10 @@ export default defineConfig({
     pool: 'vmThreads',
     isolate: false,
     fileParallelism: false,
+    server: {
+      deps: {
+        inline: ['react-router', 'react-router-dom'],
+      },
+    },
   },
 })
