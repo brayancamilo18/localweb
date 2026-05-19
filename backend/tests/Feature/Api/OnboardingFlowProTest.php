@@ -123,8 +123,15 @@ it('pro onboarding returns checkout_url then activates via Stripe webhook and se
     $business->refresh();
 
     expect($business->plan)->toBe(Plan::Pro)
-        ->and($business->is_published)->toBeTrue()
+        ->and($business->is_published)->toBeFalse()
         ->and($business->subdomain)->toBe(strtolower($subdomain));
+
+    test()->actingAs($user)
+        ->postJson('/api/v1/onboarding/step/8')
+        ->assertStatus(200);
+
+    $business->refresh();
+    expect($business->is_published)->toBeTrue();
 
     test()->getJson("/api/v1/public/{$business->subdomain}")
         ->assertStatus(200)

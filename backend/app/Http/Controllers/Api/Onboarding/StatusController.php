@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Onboarding;
 
 use App\Enums\ImageSection;
+use App\Enums\Plan;
 use App\Http\Controllers\Api\BaseApiController;
 use App\Models\Business;
 use App\Models\BusinessImage;
@@ -23,10 +24,25 @@ class StatusController extends BaseApiController
         }
 
         if ($user->business) {
+            $cacheDraft = Cache::get("onboarding:{$user->id}", []);
+            $cacheDraft = $this->withGalleryPreviewUrlsForCacheDraft($user->id, $cacheDraft);
+            $cacheDraft = $this->withLogoPreviewUrlForCacheDraft($cacheDraft);
+            $draft = $this->mergeDraftFromBusinessAndCache($user->business, $cacheDraft);
+
+            $step = $this->resolveStepFromDraft($draft);
+            // Tras pagar Pro el usuario debe publicar (paso 8); el plan ya es Pro pero aún no está publicado.
+            if (
+                $user->business->onboarding_completed_at === null
+                && ! $user->business->is_published
+                && $user->business->plan === Plan::Pro
+            ) {
+                $step = max($step, 8);
+            }
+
             return $this->success([
                 'is_complete' => false,
-                'step' => 8,
-                'draft' => $this->draftFromBusiness($user->business),
+                'step' => $step,
+                'draft' => $draft,
             ]);
         }
 
@@ -102,6 +118,7 @@ class StatusController extends BaseApiController
 
         return [
             'template_id' => $business->template_id,
+            'sector' => $business->sector,
             'subdomain' => $business->subdomain,
             'cover_path' => $hasCover ? '__synced__' : null,
             'business_name' => $business->name,
@@ -119,5 +136,54 @@ class StatusController extends BaseApiController
             'phone' => $business->phone,
             'email' => $business->email,
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $cacheDraft
+     * @return array<string, mixed>
+     */
+    private function mergeDraftFromBusinessAndCache(Business $business, array $cacheDraft): array
+    {
+        return array_merge($this->draftFromBusiness($business), $cacheDraft);
+    }
+
+    /**
+     * Misma lógica que el front (`resolveOnboardingUiStep`): primer paso incompleto.
+     *
+     * @param  array<string, mixed>  $draft
+     */
+    private function resolveStepFromDraft(array $draft): int
+    {
+        $templateId = $draft['template_id'] ?? null;
+        if ($templateId === null || (int) $templateId <= 0) {
+            return 1;
+        }
+
+        $coverPath = $draft['cover_path'] ?? null;
+        if ($coverPath === null || $coverPath === '') {
+            return 2;
+        }
+
+        $businessName = $draft['business_name'] ?? null;
+        if (! is_string($businessName) || trim($businessName) === '') {
+            return 3;
+        }
+
+        $galleryPaths = $draft['gallery_paths'] ?? null;
+        if (! is_array($galleryPaths) || $galleryPaths === []) {
+            return 4;
+        }
+
+        if (! isset($draft['schedule']) || ! is_array($draft['schedule'])) {
+            return 5;
+        }
+
+        $address = $draft['address'] ?? null;
+        $phone = $draft['phone'] ?? null;
+        if ($address === null || $address === '' || $phone === null || $phone === '') {
+            return 6;
+        }
+
+        return 7;
     }
 }

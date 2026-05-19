@@ -12,12 +12,10 @@ uses(RefreshDatabase::class);
 it('register dispatches the spanish verify email notification', function () {
     Notification::fake();
 
-    $response = test()->postJson('/api/v1/auth/register', [
+    $response = test()->postJson('/api/v1/auth/register', validRegisterPayload([
         'name' => 'Need Verify',
         'email' => 'verify-me@test.example',
-        'password' => 'password123',
-        'password_confirmation' => 'password123',
-    ])->assertStatus(201);
+    ]))->assertStatus(201);
 
     $userId = (int) $response->json('data.user.id');
     $user = User::query()->findOrFail($userId);

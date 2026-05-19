@@ -38,6 +38,7 @@ import {
 import { LocationPicker } from '../../components/location/LocationPicker'
 import type { LocationValue } from '../../lib/location/locationTypes'
 import { readSignupPrefill } from '../../lib/signupPrefill'
+import { useAuthStore } from '../../store/authStore'
 import { WizardNavContext, type WizardStepProps } from './wizardNavContext'
 
 // ONEZ — Onboarding wizard (8 pasos)
@@ -1099,13 +1100,17 @@ function Step1Plantilla({
       ),
     [list, templatePage],
   )
+  const businessSector = useAuthStore((s) => s.business?.sector)
   const signupSector = useMemo(() => {
+    if (typeof businessSector === 'string' && businessSector.trim()) {
+      return businessSector.trim()
+    }
     const parsed = readSignupPrefill()
     if (parsed && typeof parsed.sector === 'string' && parsed.sector.trim()) {
       return parsed.sector.trim()
     }
     return 'otros'
-  }, [])
+  }, [businessSector])
   const [fullscreen, setFullscreen] = useState<{ variant: Step1PreviewVariant; label: string } | null>(null)
 
   // Keep selection in sync when API data replaces cache/fallback (IDs in DB may not match stale template_id).

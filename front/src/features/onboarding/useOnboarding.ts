@@ -134,7 +134,7 @@ export function useOnboarding(): UseOnboardingResult {
     }
   }, [navigate, persistUserId])
 
-  /** Tras checkout Stripe: refrescar sesión, borrador del servidor (galería incluida), galería Pro y paso 4. */
+  /** Tras checkout Stripe: refrescar sesión y llevar al paso 8 (publicar). */
   useEffect(() => {
     if (isPendingStatus) return
     if (billingSuccessHandled.current) return
@@ -146,8 +146,6 @@ export function useOnboarding(): UseOnboardingResult {
         const fresh = await me()
         useAuthStore.getState().setAuth(fresh.user, fresh.business)
         await queryClient.invalidateQueries({ queryKey: keys.auth.me })
-        /** Sin esto `serverDraft` en memoria sigue siendo el de antes de Stripe y `gallery_preview_urls`
-         * no refleja las fotos ya guardadas — el paso 4 no puede rehidratar ni fusionar bien. */
         const status = await getStatus()
         if (status.is_complete) {
           navigate('/dashboard', { replace: true })
@@ -156,13 +154,11 @@ export function useOnboarding(): UseOnboardingResult {
         const draft = (status.draft as Record<string, unknown> | undefined) ?? {}
         setServerDraft(draft)
       } catch {
-        /* continuar igual: banner Pro y paso 4 */
+        /* continuar al paso 8 aunque falle el refresh */
       }
       setSearchParams({}, { replace: true })
-      setPostCheckoutProGallery(true)
-      setProExtrasSource('gallery')
       setErrors({})
-      setCurrentStep(4)
+      setCurrentStep(8)
     })()
   }, [isPendingStatus, queryClient, searchParams, setSearchParams, navigate])
 

@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register } from '../api/auth'
 import { clearReferralStorage, getValidReferralCodeFromStorage } from '../lib/referralStorage'
-import { storeSignupPrefill } from '../lib/signupPrefill'
 import { keys } from '../api/queryKeys'
 import { LocationPicker } from '../components/location/LocationPicker'
 import { PasswordVisibilityToggle } from '../components/auth/PasswordVisibilityToggle'
@@ -112,17 +111,16 @@ export default function RegisterPage() {
   const mutation = useMutation({
     mutationFn: () => {
       const referralCode = getValidReferralCodeFromStorage()
-      return register(name, email, password, passwordConfirmation, referralCode)
-    },
-    onSuccess(data) {
-      clearReferralStorage()
-      storeSignupPrefill({
+      return register(name, email, password, passwordConfirmation, {
         business_name: bizName.trim(),
         sector,
         city: location.city.trim(),
         country: location.country.trim(),
         country_code: location.countryCode.trim().toUpperCase(),
-      })
+      }, referralCode)
+    },
+    onSuccess(data) {
+      clearReferralStorage()
       clearAllOnboardingPersist()
       setAuth(data.user, data.business)
       queryClient.setQueryData(keys.auth.me, { user: data.user, business: data.business })

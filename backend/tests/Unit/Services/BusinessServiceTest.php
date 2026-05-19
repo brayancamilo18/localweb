@@ -20,7 +20,7 @@ it('createFromOnboarding with free plan generates random subdomain', function ()
     expect($business->subdomain)->toMatch('/^[bcdfghjkmnpqrstvwxyz23456789]{3}-[bcdfghjkmnpqrstvwxyz23456789]{4}-[bcdfghjkmnpqrstvwxyz23456789]{4}$/');
 });
 
-it('createFromOnboarding with free plan sets is_published true', function () {
+it('createFromOnboarding with free plan leaves is_published false until step 8', function () {
     $owner = User::factory()->create();
     $service = new BusinessService();
 
@@ -30,7 +30,7 @@ it('createFromOnboarding with free plan sets is_published true', function () {
         'sector' => 'otros',
     ], 'free');
 
-    expect($business->is_published)->toBeTrue();
+    expect($business->is_published)->toBeFalse();
 });
 
 it('generateRandomSubdomain returns valid 3-4-4 format', function () {

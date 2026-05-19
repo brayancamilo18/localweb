@@ -22,6 +22,13 @@ export async function register(
   email: string,
   password: string,
   password_confirmation: string,
+  business: {
+    business_name: string
+    sector: string
+    city: string
+    country: string
+    country_code: string
+  },
   referral_code?: string,
 ): Promise<AuthResponse> {
   const payload: Record<string, string> = {
@@ -29,6 +36,11 @@ export async function register(
     email,
     password,
     password_confirmation,
+    business_name: business.business_name,
+    sector: business.sector,
+    city: business.city,
+    country: business.country,
+    country_code: business.country_code,
   }
   if (referral_code) {
     payload.referral_code = referral_code

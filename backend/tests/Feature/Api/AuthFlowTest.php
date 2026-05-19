@@ -12,12 +12,10 @@ uses(RefreshDatabase::class);
 it('full auth flow: register verification email, onboarding blocked until verified, resend, then onboarding allowed', function () {
     Notification::fake();
 
-    test()->postJson('/api/v1/auth/register', [
+    test()->postJson('/api/v1/auth/register', validRegisterPayload([
         'name' => 'Flow User',
         'email' => 'auth-flow@test.example',
-        'password' => 'password123',
-        'password_confirmation' => 'password123',
-    ])
+    ]))
         ->assertStatus(201)
         ->assertJsonMissingPath('data.token')
         ->assertJsonPath('data.user.email', 'auth-flow@test.example');

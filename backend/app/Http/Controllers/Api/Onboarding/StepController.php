@@ -28,6 +28,43 @@ class StepController extends BaseApiController
     }
 
     /**
+     * @param  array<string, mixed>  $fields
+     */
+    private function syncBusinessFromStep(User $user, BusinessService $businessService, array $fields): void
+    {
+        $business = $user->business;
+        if ($business === null) {
+            return;
+        }
+
+        $businessService->syncOnboardingFields($business, $fields);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function draftFieldsFromBusiness(Business $business): array
+    {
+        return [
+            'template_id' => $business->template_id,
+            'sector' => $business->sector,
+            'business_name' => $business->name,
+            'tagline' => $business->tagline,
+            'description' => $business->description,
+            'address' => $business->address,
+            'city' => $business->city,
+            'country' => $business->country,
+            'country_code' => $business->country_code,
+            'lat' => $business->lat,
+            'lng' => $business->lng,
+            'phone' => $business->phone,
+            'email' => $business->email,
+            'schedule' => $business->schedule,
+            'subdomain' => $business->subdomain,
+        ];
+    }
+
+    /**
      * Pasa portada, sobre y galería del borrador (disco local onboarding/*) a business_images
      * y limpia caché + carpetas temporales. Debe ejecutarse también en plan Pro: antes solo
      * ocurría tras el webhook de Stripe (en local suele no dispararse).
@@ -64,7 +101,7 @@ class StepController extends BaseApiController
         Cache::forget($this->cacheKey($user->id));
     }
 
-    public function step1(Request $request, TemplateService $templates, BusinessSectorService $sectors)
+    public function step1(Request $request, TemplateService $templates, BusinessSectorService $sectors, BusinessService $businessService)
     {
         $data = $request->validate([
             'template_id' => ['required', 'integer'],
@@ -100,6 +137,11 @@ class StepController extends BaseApiController
             'step' => 1,
         ]);
         Cache::put($this->cacheKey($userId), $draft, now()->addHours(4));
+
+        $this->syncBusinessFromStep($request->user(), $businessService, [
+            'template_id' => $data['template_id'],
+            'sector' => $data['sector'],
+        ]);
 
         return $this->success(['ok' => true, 'next_step' => 2]);
     }
@@ -151,7 +193,7 @@ class StepController extends BaseApiController
         return $this->success(['ok' => true, 'preview_url' => $draft['cover_path'], 'next_step' => 3]);
     }
 
-    public function step3(Request $request)
+    public function step3(Request $request, BusinessService $businessService)
     {
         $data = $request->validate([
             'business_name' => ['required', 'string', 'max:80'],
@@ -174,6 +216,12 @@ class StepController extends BaseApiController
         }
 
         Cache::put($this->cacheKey($userId), $draft, now()->addHours(4));
+
+        $this->syncBusinessFromStep($request->user(), $businessService, [
+            'name' => trim($data['business_name']),
+            'tagline' => $data['tagline'] ?? null,
+            'description' => $data['description'] ?? null,
+        ]);
 
         return $this->success(['ok' => true, 'next_step' => 4]);
     }
@@ -249,7 +297,7 @@ class StepController extends BaseApiController
         ]);
     }
 
-    public function step5(Request $request)
+    public function step5(Request $request, BusinessService $businessService)
     {
         $days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
         $rules = ['schedule' => ['required', 'array']];
@@ -265,10 +313,14 @@ class StepController extends BaseApiController
         $draft['step'] = 5;
         Cache::put($this->cacheKey($request->user()->id), $draft, now()->addHours(4));
 
+        $this->syncBusinessFromStep($request->user(), $businessService, [
+            'schedule' => $data['schedule'],
+        ]);
+
         return $this->success(['ok' => true, 'next_step' => 6]);
     }
 
-    public function step6(Request $request, GeocodingService $geo)
+    public function step6(Request $request, GeocodingService $geo, BusinessService $businessService)
     {
         $data = $request->validate([
             'address' => ['required', 'string'],
@@ -293,6 +345,17 @@ class StepController extends BaseApiController
         $draft = array_merge($draft, $data, ['step' => 6]);
         Cache::put($this->cacheKey($request->user()->id), $draft, now()->addHours(4));
 
+        $this->syncBusinessFromStep($request->user(), $businessService, [
+            'address' => $data['address'],
+            'city' => $data['city'],
+            'country' => $data['country'],
+            'country_code' => strtoupper($data['country_code']),
+            'lat' => $data['lat'] ?? null,
+            'lng' => $data['lng'] ?? null,
+            'phone' => $data['phone'],
+            'email' => trim($data['email']),
+        ]);
+
         return $this->success(['ok' => true, 'geocoded' => $geocoded, 'next_step' => 7]);
     }
 
@@ -303,8 +366,11 @@ class StepController extends BaseApiController
             'subdomain' => ['nullable', 'string'],
         ]);
 
-        $user = $request->user();
+        $user = $request->user()->loadMissing('business');
         $draft = Cache::get($this->cacheKey($user->id), []);
+        if ($user->business) {
+            $draft = array_merge($this->draftFieldsFromBusiness($user->business), $draft);
+        }
         $payload = [
             'name' => $draft['business_name'] ?? 'Mi negocio',
             'subdomain_type' => $data['plan'] === 'pro' ? 'custom' : 'random',
@@ -331,12 +397,15 @@ class StepController extends BaseApiController
             'subdomain' => $data['subdomain'] ?? null,
         ];
 
+        $existingBusiness = $user->business;
+
         if ($data['plan'] === 'pro') {
             $rawSubdomain = (string) ($data['subdomain'] ?? '');
             if ($rawSubdomain === '') {
                 return $this->error('Falta el subdominio', ['subdomain' => 'too_short']);
             }
-            $reason = $businessService->getSubdomainRejectionReason($rawSubdomain);
+            $excludeId = $existingBusiness?->id;
+            $reason = $businessService->getSubdomainRejectionReason($rawSubdomain, $excludeId);
             if ($reason !== null) {
                 $messages = [
                     'reserved' => 'Ese subdominio está reservado.',
@@ -351,7 +420,10 @@ class StepController extends BaseApiController
                     ['subdomain' => $reason],
                 );
             }
-            $business = $businessService->createFromOnboarding($user, $payload, 'pending');
+            $payload['subdomain'] = $rawSubdomain;
+            $business = $existingBusiness
+                ? $businessService->applyOnboardingPlan($existingBusiness, $payload, 'pending')
+                : $businessService->createFromOnboarding($user, $payload, 'pending');
             $user->refresh();
 
             $this->finalizeOnboardingDraftMedia($user, $business, $draft, $imageService);
@@ -404,7 +476,9 @@ class StepController extends BaseApiController
             ]);
         }
 
-        $business = $businessService->createFromOnboarding($user, $payload, 'free');
+        $business = $existingBusiness
+            ? $businessService->applyOnboardingPlan($existingBusiness, $payload, 'free')
+            : $businessService->createFromOnboarding($user, $payload, 'free');
 
         $this->finalizeOnboardingDraftMedia($user, $business, $draft, $imageService);
 

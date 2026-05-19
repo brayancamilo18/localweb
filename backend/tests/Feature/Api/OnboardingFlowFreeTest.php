@@ -115,8 +115,15 @@ it('completes free onboarding over HTTP and exposes data on the public page', fu
     $business = Business::findOrFail($user->business_id);
     expect($business->plan->value)->toBe('free')
         ->and($business->subdomain_type)->toBe('random')
-        ->and($business->is_published)->toBeTrue()
+        ->and($business->is_published)->toBeFalse()
         ->and(strlen($business->subdomain))->toBeGreaterThanOrEqual(3);
+
+    test()->actingAs($user)
+        ->postJson('/api/v1/onboarding/step/8')
+        ->assertStatus(200);
+
+    $business->refresh();
+    expect($business->is_published)->toBeTrue();
 
     $subdomain = $business->subdomain;
 

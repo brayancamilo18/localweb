@@ -8,29 +8,79 @@ use Illuminate\Support\Facades\Hash;
 uses(RefreshDatabase::class);
 
 it('register with valid data authenticates the user via session', function () {
-    $response = test()->postJson('/api/v1/auth/register', [
+    $response = test()->postJson('/api/v1/auth/register', validRegisterPayload([
         'name' => 'Test',
         'email' => 'api-register@localweb.com',
-        'password' => 'password123',
-        'password_confirmation' => 'password123',
-    ]);
+    ]));
 
     $response->assertStatus(201)
         ->assertJsonMissingPath('data.token')
-        ->assertJsonPath('data.user.email', 'api-register@localweb.com');
+        ->assertJsonPath('data.user.email', 'api-register@localweb.com')
+        ->assertJsonPath('data.business.name', 'Mi Salón')
+        ->assertJsonPath('data.business.is_published', false);
 
     expect(auth('web')->check())->toBeTrue();
+    expect(\App\Models\Business::count())->toBe(1);
+});
+
+it('step3 updates business name when business exists from register', function () {
+    $register = test()->postJson('/api/v1/auth/register', validRegisterPayload([
+        'business_name' => 'Nombre Original',
+    ]))->assertStatus(201);
+
+    $userId = (int) $register->json('data.user.id');
+    $user = \App\Models\User::query()->findOrFail($userId);
+    $user->forceFill(['email_verified_at' => now()])->save();
+
+    $template = \App\Models\Template::create([
+        'name' => 'Test',
+        'slug' => 'test-tpl',
+        'primary_color' => '#000',
+        'is_active' => true,
+        'requires_pro' => false,
+    ]);
+
+    test()->actingAs($user)
+        ->postJson('/api/v1/onboarding/step/1', ['template_id' => $template->id, 'sector' => 'peluqueria'])
+        ->assertStatus(200);
+
+    test()->actingAs($user)
+        ->postJson('/api/v1/onboarding/step/3', ['business_name' => 'Nombre Corregido'])
+        ->assertStatus(200);
+
+    $user->business?->refresh();
+    expect($user->business?->name)->toBe('Nombre Corregido');
+});
+
+it('onboarding status hydrates draft from business created at register', function () {
+    $register = test()->postJson('/api/v1/auth/register', validRegisterPayload([
+        'business_name' => 'Salón Persistente',
+        'city' => 'Barcelona',
+        'country' => 'España',
+        'country_code' => 'ES',
+    ]))->assertStatus(201);
+
+    $userId = (int) $register->json('data.user.id');
+    $user = \App\Models\User::query()->findOrFail($userId);
+    $user->forceFill(['email_verified_at' => now()])->save();
+
+    test()->actingAs($user)
+        ->getJson('/api/v1/onboarding/status')
+        ->assertStatus(200)
+        ->assertJsonPath('data.is_complete', false)
+        ->assertJsonPath('data.step', 1)
+        ->assertJsonPath('data.draft.business_name', 'Salón Persistente')
+        ->assertJsonPath('data.draft.city', 'Barcelona')
+        ->assertJsonPath('data.draft.country', 'España')
+        ->assertJsonPath('data.draft.country_code', 'ES');
 });
 
 it('register with duplicate email returns 422', function () {
     User::factory()->create(['email' => 'duplicate@localweb.com']);
 
-    test()->postJson('/api/v1/auth/register', [
-        'name' => 'Test',
+    test()->postJson('/api/v1/auth/register', validRegisterPayload([
         'email' => 'duplicate@localweb.com',
-        'password' => 'password123',
-        'password_confirmation' => 'password123',
-    ])->assertStatus(422);
+    ]))->assertStatus(422);
 });
 
 it('login success authenticates via session and does not return a token', function () {

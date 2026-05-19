@@ -283,7 +283,7 @@ it('status with business but onboarding not completed returns step 8 draft', fun
         'subdomain_type' => 'custom',
         'sector' => 'otros',
         'template_id' => null,
-        'plan' => 'pending',
+        'plan' => Plan::Pro,
         'is_published' => false,
         'onboarding_completed_at' => null,
     ]);

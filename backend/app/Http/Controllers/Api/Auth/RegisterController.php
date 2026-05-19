@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Api\BaseApiController;
+use App\Http\Resources\BusinessResource;
 use App\Http\Resources\UserResource;
 use App\Models\Referral;
 use App\Models\User;
+use App\Services\BusinessSectorService;
+use App\Services\BusinessService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,14 +16,26 @@ use Illuminate\Support\Facades\Log;
 
 class RegisterController extends BaseApiController
 {
-    public function __invoke(Request $request)
-    {
+    public function __invoke(
+        Request $request,
+        BusinessService $businessService,
+        BusinessSectorService $sectors,
+    ) {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'referral_code' => ['nullable', 'string', 'max:16'],
+            'business_name' => ['required', 'string', 'max:80'],
+            'sector' => ['required', 'string'],
+            'city' => ['required', 'string', 'max:120'],
+            'country' => ['required', 'string', 'max:120'],
+            'country_code' => ['required', 'string', 'size:2', 'regex:/^[A-Za-z]{2}$/'],
         ]);
+
+        if (! $sectors->exists($data['sector'])) {
+            return $this->error('Datos inválidos', ['sector' => 'invalid'], 422);
+        }
 
         // El modelo aplica el cast 'hashed' a password: no usar Hash::make aquí (evita doble hash).
         $user = User::create([
@@ -28,6 +43,16 @@ class RegisterController extends BaseApiController
             'email' => $data['email'],
             'password' => $data['password'],
         ]);
+
+        $business = $businessService->createAtRegistration($user, [
+            'business_name' => trim($data['business_name']),
+            'sector' => $data['sector'],
+            'city' => trim($data['city']),
+            'country' => trim($data['country']),
+            'country_code' => strtoupper($data['country_code']),
+        ]);
+
+        $user->refresh()->load('business');
 
         $this->linkReferral($user, $data['referral_code'] ?? null);
 
@@ -40,7 +65,7 @@ class RegisterController extends BaseApiController
 
         return $this->success([
             'user' => new UserResource($user),
-            'business' => null,
+            'business' => new BusinessResource($business),
         ], 'Usuario registrado', 201);
     }
 

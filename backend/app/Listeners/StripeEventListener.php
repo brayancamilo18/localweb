@@ -74,7 +74,8 @@ class StripeEventListener
         $updates = [
             'plan' => 'pro',
             'plan_activated_at' => now(),
-            'is_published' => true,
+            // La publicación visible ocurre en onboarding step 8, no aquí.
+            'is_published' => false,
         ];
 
         if (($business->subdomain_type === 'random') && ! empty($metadata['subdomain'])) {

@@ -122,10 +122,7 @@ describe('useOnboarding', () => {
     expect(result.current.errors.message).toBe('Template inválido')
   })
 
-  it('billing=success en URL → aterriza en step 4 (galería) aunque getStatus devuelva step 8', async () => {
-    /** Reproduce el bug post-Stripe: el backend reporta step=8 (negocio Pro creado pero
-     * onboarding sin finalizar) y el primer useEffect resolvía 8 sobrescribiendo el
-     * setCurrentStep(4) del efecto de billing=success. El usuario aterrizaba en Publicar. */
+  it('billing=success en URL → aterriza en step 8 (publicar)', async () => {
     vi.mocked(onboardingApi.getStatus).mockResolvedValue({
       is_complete: false,
       step: 8,
@@ -145,9 +142,8 @@ describe('useOnboarding', () => {
     })
 
     await waitFor(() => expect(result.current.isPendingStatus).toBe(false))
-    await waitFor(() => expect(result.current.currentStep).toBe(4))
-    expect(result.current.postCheckoutProGallery).toBe(true)
-    expect(result.current.proExtrasSource).toBe('gallery')
+    await waitFor(() => expect(result.current.currentStep).toBe(8))
+    expect(result.current.postCheckoutProGallery).toBe(false)
   })
 
   it('goPrev desde step 3 → currentStep es 2, no llama ningún endpoint', async () => {

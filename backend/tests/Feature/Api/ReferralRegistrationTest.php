@@ -17,12 +17,10 @@ beforeEach(function () {
 
 function registerPayload(array $overrides = []): array
 {
-    return array_merge([
+    return validRegisterPayload(array_merge([
         'name' => 'Referred User',
         'email' => 'referred-'.uniqid('', true).'@example.com',
-        'password' => 'password123',
-        'password_confirmation' => 'password123',
-    ], $overrides);
+    ], $overrides));
 }
 
 function createReferrerWithCode(string $code = 'refcode1', array $attributes = []): User

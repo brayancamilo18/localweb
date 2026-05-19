@@ -42,11 +42,17 @@ export function SearchableCombobox({
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [activeIndex, setActiveIndex] = useState(0)
+  /** Etiqueta mostrada al cerrar tras elegir una opción (antes de que el padre re-renderice `value`). */
+  const [pickedLabel, setPickedLabel] = useState<string | null>(null)
 
   const selectedLabel = useMemo(
     () => options.find((o) => o.value === value)?.label ?? '',
     [options, value],
   )
+
+  useEffect(() => {
+    setPickedLabel(null)
+  }, [value])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -72,9 +78,12 @@ export function SearchableCombobox({
     return () => document.removeEventListener('mousedown', onDoc)
   }, [open])
 
-  const displayValue = open ? query : selectedLabel
+  const closedLabel = pickedLabel ?? selectedLabel
+  const displayValue = open ? query : closedLabel
 
   const pick = (next: string) => {
+    const label = options.find((o) => o.value === next)?.label ?? next
+    setPickedLabel(label)
     onChange(next)
     setOpen(false)
     setQuery('')

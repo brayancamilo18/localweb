@@ -72,12 +72,10 @@ it('login returns user without token and emits a session cookie', function () {
 });
 
 it('register returns user without token and emits a session cookie', function () {
-    $response = test()->postJson('/api/v1/auth/register', [
+    $response = test()->postJson('/api/v1/auth/register', validRegisterPayload([
         'name' => 'Cookie Reg',
         'email' => 'cookie-register@test.example',
-        'password' => 'password123',
-        'password_confirmation' => 'password123',
-    ]);
+    ]));
 
     $response->assertStatus(201)
         ->assertJsonMissingPath('data.token')

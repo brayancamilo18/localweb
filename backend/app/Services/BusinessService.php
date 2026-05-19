@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\Plan;
 use App\Models\Business;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -9,6 +10,33 @@ use Illuminate\Support\Str;
 
 class BusinessService
 {
+    /**
+     * Crea el negocio en el registro con los datos básicos del formulario (sin publicar).
+     * El onboarding posterior hidrata desde la BD en lugar de depender de localStorage.
+     *
+     * @param  array{business_name: string, sector: string, city: string, country: string, country_code: string}  $data
+     */
+    public function createAtRegistration(User $owner, array $data): Business
+    {
+        return DB::transaction(function () use ($owner, $data): Business {
+            $business = Business::create([
+                'name' => $data['business_name'],
+                'sector' => $data['sector'],
+                'city' => $data['city'],
+                'country' => $data['country'],
+                'country_code' => strtoupper($data['country_code']),
+                'subdomain' => $this->generateRandomSubdomain(),
+                'subdomain_type' => 'random',
+                'is_published' => false,
+                'plan' => Plan::Free,
+            ]);
+
+            $owner->forceFill(['business_id' => $business->id])->save();
+
+            return $business;
+        });
+    }
+
     public function createFromOnboarding(User $owner, array $data, string $plan): Business
     {
         return DB::transaction(function () use ($owner, $data, $plan): Business {
@@ -17,7 +45,7 @@ class BusinessService
 
             if ($plan === 'free') {
                 $businessData['subdomain'] = $this->generateRandomSubdomain();
-                $businessData['is_published'] = true;
+                $businessData['is_published'] = false;
             } elseif ($plan === 'pro' || $plan === 'pending') {
                 // pending = Pro en checkout; mismo subdominio reservado que el elegido en onboarding
                 $businessData['subdomain'] = strtolower((string) ($data['subdomain'] ?? ''));
@@ -35,12 +63,73 @@ class BusinessService
         });
     }
 
+    /**
+     * Paso 7 cuando el negocio ya existe (creado en el registro): actualiza datos y plan.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function applyOnboardingPlan(Business $business, array $data, string $plan): Business
+    {
+        $business->fill([
+            'name' => $data['name'] ?? $business->name,
+            'sector' => $data['sector'] ?? $business->sector,
+            'template_id' => $data['template_id'] ?? $business->template_id,
+            'tagline' => $data['tagline'] ?? null,
+            'description' => $data['description'] ?? null,
+            'phone' => $data['phone'] ?? null,
+            'email' => $data['email'] ?? null,
+            'address' => $data['address'] ?? null,
+            'city' => $data['city'] ?? $business->city,
+            'country' => $data['country'] ?? $business->country,
+            'country_code' => $data['country_code'] ?? $business->country_code,
+            'lat' => $data['lat'] ?? null,
+            'lng' => $data['lng'] ?? null,
+            'schedule' => $data['schedule'] ?? null,
+        ]);
+
+        if ($plan === 'free') {
+            $business->plan = Plan::Free;
+            $business->subdomain_type = 'random';
+            $business->is_published = false;
+        } elseif ($plan === 'pro' || $plan === 'pending') {
+            $business->subdomain = strtolower((string) ($data['subdomain'] ?? $business->subdomain));
+            $business->subdomain_type = 'custom';
+            $business->plan = Plan::Pending;
+            $business->is_published = false;
+        }
+
+        $business->save();
+
+        return $business->refresh();
+    }
+
     public function update(Business $business, array $data): Business
     {
         $business->fill($data);
         $business->save();
 
         return $business->refresh();
+    }
+
+    /**
+     * Persiste en el negocio (creado en registro) los campos que el usuario edita en el onboarding.
+     *
+     * @param  array<string, mixed>  $fields
+     */
+    public function syncOnboardingFields(Business $business, array $fields): Business
+    {
+        $allowed = [
+            'name', 'sector', 'template_id', 'tagline', 'description',
+            'address', 'city', 'country', 'country_code', 'lat', 'lng',
+            'phone', 'email', 'schedule',
+        ];
+        $payload = array_intersect_key($fields, array_flip($allowed));
+
+        if ($payload === []) {
+            return $business;
+        }
+
+        return $this->update($business, $payload);
     }
 
     /**

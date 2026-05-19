@@ -11,7 +11,7 @@ use Laravel\Cashier\Events\WebhookReceived;
 
 uses(RefreshDatabase::class);
 
-it('sets business plan to pro and publishes on checkout.session.completed', function () {
+it('sets business plan to pro on checkout.session.completed without publishing', function () {
     Mail::fake();
 
     $business = Business::create([
@@ -42,7 +42,7 @@ it('sets business plan to pro and publishes on checkout.session.completed', func
     $business->refresh();
 
     expect($business->plan->value)->toBe('pro')
-        ->and($business->is_published)->toBeTrue();
+        ->and($business->is_published)->toBeFalse();
 });
 
 it('sends WelcomeProOnez email after a successful checkout', function () {
@@ -182,7 +182,7 @@ it('skips duplicate Stripe events with the same event_id', function () {
     $business->refresh();
     $firstUpdatedAt = (string) $business->updated_at;
     expect($business->plan->value)->toBe('pro')
-        ->and($business->is_published)->toBeTrue()
+        ->and($business->is_published)->toBeFalse()
         ->and($business->subdomain)->toBe('changed-subdomain');
 
     // Avanzamos el reloj para detectar cualquier UPDATE silencioso al reprocesar.
