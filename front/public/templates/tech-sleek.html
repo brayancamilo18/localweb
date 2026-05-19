@@ -17,7 +17,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<script>
+(function () {
+  var p = new URLSearchParams(location.search);
+  if (p.get('thumb') === '1') return;
+  var l = document.createElement('link');
+  l.rel = 'stylesheet';
+  l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  l.crossOrigin = '';
+  document.head.appendChild(l);
+})();
+</script>
 <style>
   :root{
     --bg:#070A14;
@@ -301,6 +311,116 @@ body.embed-preview .info{scroll-margin-top:100px}
   }
   html{scroll-behavior:auto !important}
   }
+
+  /* ═══════════ TECH-SLEEK PRO ANIMATIONS ═══════════ */
+  :root{
+    --tv-ease: cubic-bezier(.22,.61,.36,1);
+    --tv-ease-out-expo: cubic-bezier(.16,1,.3,1);
+    --tv-ease-in-out: cubic-bezier(.65,0,.35,1);
+  }
+  @keyframes tv-fade-in { from{opacity:0} to{opacity:1} }
+  @keyframes tv-fade-up { from{opacity:0;transform:translateY(36px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes tv-fade-down { from{opacity:0;transform:translateY(-28px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes tv-fade-left { from{opacity:0;transform:translateX(-44px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes tv-fade-right { from{opacity:0;transform:translateX(44px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes tv-zoom-in { from{opacity:0;transform:scale(.94)} to{opacity:1;transform:scale(1)} }
+  @keyframes tv-blur-in { from{opacity:0;filter:blur(14px);transform:translateY(16px)} to{opacity:1;filter:blur(0);transform:translateY(0)} }
+  @keyframes tv-glitch {
+    0%,100%{ transform:translate(0); text-shadow:0 0 0 transparent; }
+    20%{ transform:translate(-1px,0); text-shadow:2px 0 var(--cyan),-2px 0 var(--violet); }
+    40%{ transform:translate(1px,-1px); text-shadow:-2px 0 var(--cyan),2px 0 var(--violet); }
+    60%{ transform:translate(0,1px); text-shadow:1px 0 var(--cyan),-1px 0 var(--violet); }
+    80%{ transform:translate(-1px,0); text-shadow:0 0 0 transparent; }
+  }
+  @keyframes tv-scanline { 0%{ transform:translateY(-100%); } 100%{ transform:translateY(100%); } }
+  @keyframes tv-pulse-ring {
+    0%{ box-shadow:0 0 0 0 rgba(94,234,212,.45); }
+    70%{ box-shadow:0 0 0 14px rgba(94,234,212,0); }
+    100%{ box-shadow:0 0 0 0 rgba(94,234,212,0); }
+  }
+  .tv-reveal{ opacity:0; will-change:opacity,transform,filter; }
+  .tv-reveal.tv-in{ animation:tv-fade-up .9s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-anim="fade"].tv-in{ animation:tv-fade-in .9s ease-out both; }
+  .tv-reveal[data-anim="up"].tv-in{ animation:tv-fade-up .9s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-anim="left"].tv-in{ animation:tv-fade-left .9s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-anim="right"].tv-in{ animation:tv-fade-right .9s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-anim="zoom"].tv-in{ animation:tv-zoom-in 1s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-anim="blur"].tv-in{ animation:tv-blur-in 1.1s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-delay="1"].tv-in{animation-delay:.06s}
+  .tv-reveal[data-delay="2"].tv-in{animation-delay:.12s}
+  .tv-reveal[data-delay="3"].tv-in{animation-delay:.18s}
+  .tv-reveal[data-delay="4"].tv-in{animation-delay:.24s}
+  .tv-reveal[data-delay="5"].tv-in{animation-delay:.30s}
+  .tv-reveal[data-delay="6"].tv-in{animation-delay:.36s}
+  .tv-split{ opacity:1; }
+  .tv-split .tv-word{ display:inline-block; overflow:hidden; vertical-align:top; }
+  .tv-split .tv-word > span{
+    display:inline-block; transform:translateY(110%); opacity:0;
+    transition:transform 1s var(--tv-ease-out-expo), opacity .8s ease-out;
+  }
+  .tv-split.tv-in .tv-word > span{ transform:translateY(0); opacity:1; }
+  .tv-split.tv-in .tv-word:nth-child(1) > span{transition-delay:.00s}
+  .tv-split.tv-in .tv-word:nth-child(2) > span{transition-delay:.06s}
+  .tv-split.tv-in .tv-word:nth-child(3) > span{transition-delay:.12s}
+  .tv-split.tv-in .tv-word:nth-child(4) > span{transition-delay:.18s}
+  .tv-split.tv-in .tv-word:nth-child(5) > span{transition-delay:.24s}
+  .tv-split.tv-in .tv-word:nth-child(n+6) > span{transition-delay:.30s}
+  .tv-img-reveal{ position:relative; overflow:hidden; isolation:isolate; }
+  .tv-img-reveal > img{
+    transform:scale(1.08); transition:transform 1.4s var(--tv-ease-out-expo); will-change:transform;
+  }
+  .tv-img-reveal::before, .tv-img-reveal::after{
+    content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
+    transform:translateY(0); transition:transform 1s var(--tv-ease-out-expo);
+  }
+  .tv-img-reveal::before{ background:var(--surface,#131A2E); }
+  .tv-img-reveal::after{ background:linear-gradient(135deg,var(--cyan),var(--violet)); opacity:.65; mix-blend-mode:screen; transition-delay:.06s; }
+  .tv-img-reveal.tv-in::before, .tv-img-reveal.tv-in::after{ transform:translateY(-101%); }
+  .tv-img-reveal.tv-in > img{ transform:scale(1); }
+  .hero-bg.tv-img-reveal::before, .hero-bg.tv-img-reveal::after, #sleekHeroBg.tv-img-reveal::before, #sleekHeroBg.tv-img-reveal::after{ display:none; }
+  .tv-glitch:hover{ animation:tv-glitch .55s steps(2,end) 1; }
+  .tv-scanline{ position:relative; overflow:hidden; }
+  .tv-scanline::after{
+    content:""; position:absolute; inset:-50% 0; z-index:3; pointer-events:none;
+    background:linear-gradient(180deg,transparent 0%,rgba(94,234,212,.08) 50%,transparent 100%);
+    height:30%; animation:tv-scanline 6s linear infinite;
+  }
+  .tv-btn-shine{ position:relative; overflow:hidden; isolation:isolate; }
+  .tv-btn-shine::before{
+    content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
+    background:linear-gradient(110deg,transparent 30%,rgba(94,234,212,.35) 50%,transparent 70%);
+    transform:translateX(-120%); transition:transform .9s var(--tv-ease-out-expo);
+  }
+  .tv-btn-shine:hover::before{ transform:translateX(120%); }
+  .tv-hover-lift{ transition:transform .45s var(--tv-ease-out-expo), box-shadow .45s ease, border-color .45s ease; }
+  .tv-hover-lift:hover{ transform:translateY(-4px); box-shadow:0 14px 32px -18px rgba(139,124,246,.35); }
+  .tv-hover-zoom{ overflow:hidden; }
+  .tv-hover-zoom img{ transition:transform .85s var(--tv-ease-out-expo); }
+  .tv-hover-zoom:hover img{ transform:scale(1.05); }
+  .tv-scroll-progress{
+    position:fixed; top:0; left:0; height:2px; width:0%;
+    background:linear-gradient(90deg,var(--cyan),var(--violet));
+    box-shadow:0 0 12px rgba(94,234,212,.5);
+    z-index:10001; transition:width .12s linear; pointer-events:none;
+  }
+  nav.nav.tv-header-scrolled .nav-inner{
+    backdrop-filter:blur(14px) saturate(1.2);
+    -webkit-backdrop-filter:blur(14px) saturate(1.2);
+    background:rgba(7,10,20,.72) !important;
+    border:1px solid var(--line-2);
+    box-shadow:0 12px 40px -16px rgba(0,0,0,.5);
+  }
+  body.tv-loaded .tv-hero-anim{ animation:tv-fade-up 1s var(--tv-ease-out-expo) both; }
+  body.tv-loaded .tv-hero-anim.d1{ animation-delay:.12s; }
+  body.tv-loaded .tv-hero-anim.d2{ animation-delay:.24s; }
+  body.tv-loaded .tv-hero-anim.d3{ animation-delay:.36s; }
+  @media (prefers-reduced-motion:reduce){
+    .tv-reveal, .tv-reveal.tv-in, .tv-hero-anim, .tv-split .tv-word > span, .tv-img-reveal::before, .tv-img-reveal::after, .tv-scanline::after{
+      animation:none !important; transition:none !important; opacity:1 !important;
+      transform:none !important; filter:none !important;
+    }
+    .tv-img-reveal::before, .tv-img-reveal::after{ display:none; }
+  }
 </style>
 </head>
 <body>
@@ -545,13 +665,118 @@ body.embed-preview .info{scroll-margin-top:100px}
   </div>
 </footer>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(function () {
+  var p = new URLSearchParams(location.search);
+  if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
+  var s = document.createElement('script');
+  s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  s.crossOrigin = '';
+  document.head.appendChild(s);
+})();
+</script>
+<style>
+/* En modo preview, los enlaces externos y botones de acción no parecen clicables. */
+html.lw-preview-inert a[href^="tel:"],
+html.lw-preview-inert a[href^="mailto:"],
+html.lw-preview-inert a[href^="http"],
+html.lw-preview-inert a[target="_blank"],
+html.lw-preview-inert a[download],
+html.lw-preview-inert a[data-wa-link],
+html.lw-preview-inert a[data-tel-link],
+html.lw-preview-inert #tplBookingLink,
+html.lw-preview-inert #tplVcardLink,
+html.lw-preview-inert #tplGbizLink,
+html.lw-preview-inert #tplMapsExternalLink,
+html.lw-preview-inert #tplSocialInstagram,
+html.lw-preview-inert #tplSocialTiktok,
+html.lw-preview-inert #tplSocialFacebook {
+  cursor: default !important;
+}
+/* Navegación interna sigue como puntero. Se aplica por especificidad mayor. */
+html.lw-preview-inert a[href^="#"] {
+  cursor: pointer !important;
+}
+</style>
+<script>
+/* ─────────────────────────────────────────────────────────────────
+ * Modo preview (?preview=1): TODOS los elementos clicables quedan
+ * inertes excepto navegación interna (#anchors), el burger del nav
+ * móvil y los controles de Leaflet. La SPA del onboarding pasa
+ * preview=1 en thumbnails, en el modal "Ver" del paso 1 y en los
+ * previews laterales de los pasos 2+. La web pública del cliente
+ * NO pasa este flag, así que ahí los botones funcionan normal.
+ * ───────────────────────────────────────────────────────────────── */
+(function initPreviewInertMode() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('preview') !== '1') return;
+  document.documentElement.classList.add('lw-preview-inert');
+
+  function isAllowed(target) {
+    if (!target || target.nodeType !== 1) return false;
+    // 1) Anchor a sección interna: <a href="#xxx">
+    if (target.tagName === 'A') {
+      var href = target.getAttribute('href') || '';
+      if (href.charAt(0) === '#' && href.length > 1) return true;
+    }
+    // 2) Burger del menú móvil
+    if (target.id === 'burger') return true;
+    // 3) Controles internos de Leaflet
+    if (target.className && typeof target.className === 'string' &&
+        target.className.indexOf('leaflet-') === 0) return true;
+    return false;
+  }
+
+  function findClickable(node) {
+    var el = node;
+    while (el && el !== document.body) {
+      if (el.nodeType === 1 && (el.tagName === 'A' || el.tagName === 'BUTTON' || isAllowed(el))) {
+        return el;
+      }
+      el = el.parentNode;
+    }
+    return null;
+  }
+
+  function findAncestorWithLeaflet(node) {
+    var el = node;
+    while (el && el !== document.body) {
+      if (el.nodeType === 1 && el.className && typeof el.className === 'string') {
+        if (el.className.indexOf('leaflet-') >= 0) return true;
+      }
+      el = el.parentNode;
+    }
+    return false;
+  }
+
+  document.addEventListener('click', function (e) {
+    var clickable = findClickable(e.target);
+    if (!clickable) return;
+    if (isAllowed(clickable)) return;
+    if (findAncestorWithLeaflet(e.target)) return;
+    e.preventDefault();
+    e.stopPropagation();
+  }, true); // capture: nos ejecutamos antes que cualquier handler de la página
+
+  // También bloqueamos el "submit" por si algún template tuviese un <form>
+  document.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
+})();
+</script>
 <script src="/templates/lw-contact-links.js?v=2"></script>
 <script>
-if (new URLSearchParams(window.location.search).get('embed') === '1') {
-  document.documentElement.classList.add('embed-preview-root');
-  document.body.classList.add('embed-preview');
-}
+(function initSleekPreviewModeClasses() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('embed') === '1') {
+    document.documentElement.classList.add('embed-preview-root');
+    document.body.classList.add('embed-preview');
+  }
+  if (params.get('preview') === '1') {
+    document.body.classList.add('sleek-preview');
+  }
+})();
 
 /* HORARIO POR DEFECTO */
 const SLEEK_SCHEDULE_DEFAULT = [
@@ -616,8 +841,25 @@ function escapeSleekGalleryAttr(s) {
   return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 }
 
+/** Startup / tech — solo en vista previa (?embed=1 o ?preview=1). */
+var SLEEK_PREVIEW_SAMPLE = {
+  portada: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1600&q=80',
+  foto_equipo: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1000&q=80',
+};
+
+function shouldUseSleekSampleMedia() {
+  return document.body.classList.contains('embed-preview') || document.body.classList.contains('sleek-preview');
+}
+
+function sleekResolvePreviewPhotoSrc(userSrc, sampleKey) {
+  var src = userSrc ? String(userSrc).trim() : '';
+  if (src) return src;
+  if (!shouldUseSleekSampleMedia()) return '';
+  return SLEEK_PREVIEW_SAMPLE[sampleKey] || '';
+}
+
 var SLEEK_DEFAULT_GALLERY_INNER =
-  '<div class="gallery-item sleek-gallery-wide"><img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=900&q=70" alt=""/></div>' +
+  '<div class="gallery-item sleek-gallery-wide"><img src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=900&q=70" alt=""/></div>' +
   '<div class="gallery-item"><img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=70" alt=""/></div>' +
   '<div class="gallery-item sleek-gallery-tall"><img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=70" alt=""/></div>' +
   '<div class="gallery-item"><img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=70" alt=""/></div>' +
@@ -628,25 +870,34 @@ function renderSleekGallery(urls) {
   var root = document.getElementById('sleekGalleryList');
   if (!root) return;
   var list = Array.isArray(urls) ? urls.filter(Boolean) : [];
-  if (list.length === 0) { root.innerHTML = SLEEK_DEFAULT_GALLERY_INNER; return; }
-  root.innerHTML = list.map(function (src, i) {
-    var cls = '';
-    if (list.length >= 4 && i === 0) cls = ' sleek-gallery-wide';
-    else if (list.length >= 4 && i === 2) cls = ' sleek-gallery-tall';
-    else if (list.length >= 6 && i === 5) cls = ' sleek-gallery-wide';
-    return '<div class="gallery-item' + cls + '"><img src="' + escapeSleekGalleryAttr(src) + '" alt=""/></div>';
-  }).join('');
+  if (list.length === 0) {
+    root.innerHTML = SLEEK_DEFAULT_GALLERY_INNER;
+  } else {
+    root.innerHTML = list.map(function (src, i) {
+      var cls = '';
+      if (list.length >= 4 && i === 0) cls = ' sleek-gallery-wide';
+      else if (list.length >= 4 && i === 2) cls = ' sleek-gallery-tall';
+      else if (list.length >= 6 && i === 5) cls = ' sleek-gallery-wide';
+      return '<div class="gallery-item' + cls + '"><img src="' + escapeSleekGalleryAttr(src) + '" alt=""/></div>';
+    }).join('');
+  }
+  if (typeof window.tvAnimationsRefresh === 'function') {
+    requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
+  }
 }
 
 
 function updateSleekHeroPhoto(raw) {
   var bg = document.getElementById('sleekHeroBg');
   if (!bg) return;
-  if (!(raw && Object.prototype.hasOwnProperty.call(raw, 'portada'))) return;
-  var src = (raw.portada ? String(raw.portada).trim() : '');
+  var hasPortada = raw && Object.prototype.hasOwnProperty.call(raw, 'portada');
+  if (!hasPortada && !shouldUseSleekSampleMedia()) return;
+  var src = sleekResolvePreviewPhotoSrc(raw && raw.portada, 'portada');
   if (!src) { bg.style.backgroundImage = ''; bg.classList.add('is-empty'); return; }
   var bust = src;
-  if (/^https?:\/\//i.test(src)) bust = src + (src.indexOf('?')>=0?'&':'?') + 'lwts=' + Date.now();
+  if (/^https?:\/\//i.test(src) && src !== SLEEK_PREVIEW_SAMPLE.portada) {
+    bust = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'lwts=' + Date.now();
+  }
   bg.style.backgroundImage = 'url("' + bust.replace(/"/g, '\\"') + '")';
   bg.classList.remove('is-empty');
 }
@@ -654,10 +905,12 @@ function updateSleekAboutPhoto(raw) {
   var wrap = document.getElementById('sleekAboutPhotoWrap');
   var img = document.getElementById('sleekAboutPhotoImg');
   if (!wrap || !img) return;
-  if (!(raw && Object.prototype.hasOwnProperty.call(raw, 'foto_equipo'))) return;
-  var src = (raw.foto_equipo ? String(raw.foto_equipo).trim() : '');
+  var hasFoto = raw && Object.prototype.hasOwnProperty.call(raw, 'foto_equipo');
+  if (!hasFoto && !shouldUseSleekSampleMedia()) return;
+  var src = sleekResolvePreviewPhotoSrc(raw && raw.foto_equipo, 'foto_equipo');
   if (!src) { img.removeAttribute('src'); wrap.classList.add('is-empty'); return; }
-  img.src = src; wrap.classList.remove('is-empty');
+  img.src = src;
+  wrap.classList.remove('is-empty');
 }
 
 function updateSleekTicker(raw) {
@@ -685,7 +938,7 @@ function destroySleekPreviewMap() {
   if (sleekPreviewMap) { try{sleekPreviewMap.remove();}catch(e){} sleekPreviewMap = null; sleekPreviewMarker = null; }
 }
 function sleekHaloIcon() {
-  if (typeof L === 'undefined') return null;
+  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return null;
   var html = '<div class="sleek-pin-wrap"><span class="sleek-pin-halo"></span><span class="sleek-pin-halo d2"></span><span class="sleek-pin-core"></span></div>';
   return L.divIcon({ className:'sleek-leaflet-divicon', html:html, iconSize:[56,56], iconAnchor:[28,28] });
 }
@@ -694,9 +947,10 @@ function updateSleekPreviewMap(lat, lon) {
   if (!block || !container) return;
   var ok = typeof lat === 'number' && typeof lon === 'number' && isFinite(lat) && isFinite(lon);
   if (!ok) { destroySleekPreviewMap(); block.classList.remove('is-visible'); return; }
-  if (typeof L === 'undefined') return;
+  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
   block.classList.add('is-visible');
   function applyMap() {
+    if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
     if (!sleekPreviewMap) {
       sleekPreviewMap = L.map(container, { zoomControl:true, attributionControl:false, scrollWheelZoom:false, doubleClickZoom:false, boxZoom:false }).setView([lat, lon], SLEEK_MAP_ZOOM);
       L.control.attribution({ prefix:false }).addTo(sleekPreviewMap);
@@ -926,7 +1180,28 @@ function applyLivePreviewData(raw, opts) {
   syncSleekTemplateExtensions(raw || {});
 
   if (opts.alignToHash) scrollEmbedPreviewToHashSleek();
+
+  if (typeof window.tvAnimationsRefresh === 'function') {
+    requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
+  }
 }
+
+(function initSleekPreviewSampleMedia() {
+  if (!shouldUseSleekSampleMedia()) return;
+  function boot() {
+    updateSleekHeroPhoto({ portada: '' });
+    updateSleekAboutPhoto({ foto_equipo: '' });
+    renderSleekGallery([]);
+    if (typeof window.tvAnimationsRefresh === 'function') {
+      requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
 
 (function initLivePreviewFromQuery() {
   var params = new URLSearchParams(window.location.search);
@@ -1059,6 +1334,237 @@ setInterval(renderSleekSchedule, 60000);
   });
   if(backdrop)backdrop.addEventListener('click',closeLb);
   if(closeBtn)closeBtn.addEventListener('click',closeLb);
+})();
+</script>
+
+<script>
+/* TECH-SLEEK animations — capa visual; no altera preview ni datos */
+(function () {
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var tvIo = null;
+  var booted = false;
+
+  function isHidden(el) {
+    if (!el) return true;
+    var st = window.getComputedStyle(el);
+    return st.display === 'none' || st.visibility === 'hidden';
+  }
+
+  function isInViewport(el) {
+    var r = el.getBoundingClientRect();
+    return r.top < window.innerHeight * 0.96 && r.bottom > 0;
+  }
+
+  function markReveal(el, anim) {
+    if (!el || el.classList.contains('tv-reveal') || el.closest('.no-anim')) return;
+    if (isHidden(el)) return;
+    el.classList.add('tv-reveal');
+    if (anim) el.setAttribute('data-anim', anim);
+  }
+
+  function splitWords(el) {
+    if (!el || el.dataset.tvSplit === 'done') return;
+    if (el.children.length > 0 && !el.querySelector('.tv-word')) return;
+    var words = el.textContent.split(/(\s+)/);
+    el.textContent = '';
+    words.forEach(function (w) {
+      if (/^\s+$/.test(w)) {
+        el.appendChild(document.createTextNode(w));
+        return;
+      }
+      if (!w) return;
+      var wrap = document.createElement('span');
+      wrap.className = 'tv-word';
+      var inner = document.createElement('span');
+      inner.textContent = w;
+      wrap.appendChild(inner);
+      el.appendChild(wrap);
+    });
+    el.dataset.tvSplit = 'done';
+  }
+
+  function refreshHeroTitleSplit() {
+    var el = document.getElementById('sleekHeroTitle');
+    if (!el) return;
+    var plain = (el.textContent || '').replace(/\s+/g, ' ').trim();
+    if (el.dataset.tvSplit === 'done' && el.dataset.tvSplitText === plain) {
+      el.classList.add('tv-split');
+      if (isInViewport(el)) el.classList.add('tv-in');
+      return;
+    }
+    el.dataset.tvSplitText = plain;
+    el.classList.remove('tv-reveal');
+    el.removeAttribute('data-anim');
+    el.classList.add('tv-split');
+    delete el.dataset.tvSplit;
+    splitWords(el);
+    if (isInViewport(el)) el.classList.add('tv-in');
+  }
+
+  function cleanupLegacyTvTags() {
+    document.querySelectorAll('section.tv-reveal, .tv-magnetic, .hero-bg.tv-img-reveal, #sleekHeroBg.tv-img-reveal').forEach(function (el) {
+      el.classList.remove('tv-reveal', 'tv-in', 'tv-img-reveal', 'tv-magnetic');
+      el.removeAttribute('data-anim');
+      el.removeAttribute('data-delay');
+      if (el.style && el.style.transform) el.style.transform = '';
+    });
+  }
+
+  function autoTag() {
+    cleanupLegacyTvTags();
+
+    var hero = document.getElementById('portada');
+    if (hero && !hero.classList.contains('tv-scanline')) hero.classList.add('tv-scanline');
+
+    document.querySelectorAll('.brand, #sleekNavBrandName').forEach(function (el) {
+      if (!el.classList.contains('tv-glitch')) el.classList.add('tv-glitch');
+    });
+
+    document.querySelectorAll('.hero-status, .hero-sub, .hero-cta a').forEach(function (el, i) {
+      if (!el.classList.contains('tv-hero-anim')) {
+        el.classList.add('tv-hero-anim', 'd' + Math.min(i + 1, 3));
+      }
+    });
+
+    refreshHeroTitleSplit();
+
+    document.querySelectorAll('.section-head').forEach(function (el) {
+      markReveal(el, 'up');
+    });
+    document.querySelectorAll('.section-head h2').forEach(function (el) {
+      markReveal(el, 'blur');
+    });
+
+    document.querySelectorAll('#sleekServicesList .svc').forEach(function (el, i) {
+      markReveal(el, 'up');
+      el.classList.add('tv-hover-lift');
+      el.setAttribute('data-delay', String(Math.min(i + 1, 8)));
+    });
+
+    document.querySelectorAll('#sleekGalleryList .gallery-item').forEach(function (el, i) {
+      markReveal(el, 'zoom');
+      el.classList.add('tv-hover-zoom');
+      el.setAttribute('data-delay', String(Math.min(i + 1, 8)));
+    });
+
+    var aboutWrap = document.querySelector('.about-photo');
+    if (aboutWrap && !isHidden(aboutWrap) && !aboutWrap.classList.contains('is-empty')) {
+      if (!aboutWrap.classList.contains('tv-img-reveal')) {
+        aboutWrap.classList.add('tv-img-reveal', 'tv-reveal');
+      }
+    }
+    document.querySelectorAll('.about-text > .eyebrow, .about-text > p, .about-actions').forEach(function (el) {
+      markReveal(el, 'left');
+    });
+    document.querySelectorAll('.about-text h2').forEach(function (el) {
+      markReveal(el, 'blur');
+    });
+
+    document.querySelectorAll('.info-card').forEach(function (el, i) {
+      markReveal(el, i === 0 ? 'right' : 'left');
+    });
+
+    document.querySelectorAll('.reviews-cta, .vcard-strip, .cta-inner').forEach(function (el) {
+      markReveal(el, 'fade');
+    });
+
+    document.querySelectorAll('.nav-cta, .hero-cta .btn-p, .hero-cta .btn-wa, .about-actions .btn-p').forEach(function (el) {
+      if (!el.classList.contains('tv-btn-shine')) el.classList.add('tv-btn-shine');
+    });
+  }
+
+  function revealInViewport() {
+    document.querySelectorAll('.tv-reveal:not(.tv-in), .tv-split:not(.tv-in)').forEach(function (el) {
+      if (isInViewport(el)) el.classList.add('tv-in');
+    });
+  }
+
+  function observe() {
+    if (!('IntersectionObserver' in window)) {
+      document.querySelectorAll('.tv-reveal, .tv-split').forEach(function (el) {
+        el.classList.add('tv-in');
+      });
+      return;
+    }
+    if (!tvIo) {
+      tvIo = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('tv-in');
+              tvIo.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.08, rootMargin: '0px 0px -32px 0px' },
+      );
+    }
+    document.querySelectorAll('.tv-reveal:not(.tv-in), .tv-split:not(.tv-in)').forEach(function (el) {
+      if (!isHidden(el)) tvIo.observe(el);
+    });
+  }
+
+  function runRevealPass() {
+    revealInViewport();
+    observe();
+  }
+
+  function scrollProgress() {
+    if (document.querySelector('.tv-scroll-progress')) return;
+    var bar = document.createElement('div');
+    bar.className = 'tv-scroll-progress';
+    document.body.appendChild(bar);
+    function update() {
+      var h = document.documentElement;
+      var p = h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight);
+      bar.style.width = (Math.max(0, Math.min(1, p)) * 100).toFixed(2) + '%';
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  }
+
+  function stickyHeader() {
+    var nav = document.querySelector('nav.nav');
+    if (!nav || nav.dataset.tvStickyBound) return;
+    nav.dataset.tvStickyBound = '1';
+    function update() {
+      if (window.scrollY > 20) nav.classList.add('tv-header-scrolled');
+      else nav.classList.remove('tv-header-scrolled');
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  }
+
+  window.tvAnimationsRefresh = function () {
+    if (reduced) return;
+    autoTag();
+    runRevealPass();
+    requestAnimationFrame(runRevealPass);
+  };
+
+  function boot() {
+    if (booted) return;
+    booted = true;
+    document.body.classList.add('tv-loaded');
+    if (reduced) {
+      document.querySelectorAll('.tv-reveal, .tv-split').forEach(function (el) {
+        el.classList.add('tv-in');
+      });
+      return;
+    }
+    autoTag();
+    runRevealPass();
+    scrollProgress();
+    stickyHeader();
+    setTimeout(runRevealPass, 100);
+    setTimeout(runRevealPass, 350);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
 })();
 </script>
 

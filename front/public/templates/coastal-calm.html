@@ -18,7 +18,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<script>
+(function () {
+  var p = new URLSearchParams(location.search);
+  if (p.get('thumb') === '1') return;
+  var l = document.createElement('link');
+  l.rel = 'stylesheet';
+  l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  l.crossOrigin = '';
+  document.head.appendChild(l);
+})();
+</script>
 <style>
   /* ═══════════ COASTAL-CALM — ORIGINAL TOKENS ═══════════ */
   :root{
@@ -94,22 +104,46 @@
   @keyframes breath{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
   .badge-card .lbl{font-size:13px;font-weight:500}
   .badge-card .sub{font-size:11px;color:var(--ink-mute);margin-top:1px}
-  .hero-orb{position:absolute;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle at 30% 30%,var(--terracotta-soft),var(--terracotta) 70%);right:-60px;top:80px;z-index:-1;filter:blur(60px);opacity:.55}
+  .hero-orb{position:absolute;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle at 30% 30%,var(--terracotta-soft),var(--terracotta) 70%);right:-60px;top:80px;z-index:-1;filter:blur(60px);opacity:.55;animation:coastalOrbFloat 14s ease-in-out infinite}
+  @keyframes coastalOrbFloat{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-20px,16px) scale(1.08)}}
+
+  /* ─── REVEAL (como soft-organic / mono-edito) ─── */
+  .nav.scrolled{box-shadow:0 14px 44px -22px rgba(42,42,38,.14)}
+  .hero .hero-copy > *{opacity:0;transform:translateY(28px);transition:opacity .95s cubic-bezier(.65,0,.35,1),transform .95s cubic-bezier(.65,0,.35,1)}
+  .hero .hero-photo{opacity:0;transform:translateY(32px) scale(.98);transition:opacity 1.05s cubic-bezier(.65,0,.35,1),transform 1.05s cubic-bezier(.65,0,.35,1);transition-delay:.12s}
+  .hero.in .hero-copy > *{opacity:1;transform:none}
+  .hero.in .hero-photo{opacity:1;transform:none}
+  .hero.in .hero-meta{transition-delay:0s}
+  .hero.in .hero-copy h1{transition-delay:.08s}
+  .hero.in .hero-copy .hero-tag{transition-delay:.18s}
+  .hero.in .hero-copy .hero-cta{transition-delay:.28s}
+  .slide-up{opacity:0;transform:translateY(36px);transition:opacity 1s cubic-bezier(.65,0,.35,1),transform 1s cubic-bezier(.65,0,.35,1)}
+  .slide-up.in{opacity:1;transform:none}
+  .slide-up[data-d="1"]{transition-delay:.12s}
+  .slide-up[data-d="2"]{transition-delay:.24s}
+  .slide-up[data-d="3"]{transition-delay:.36s}
+  .room-list .room.slide-up:nth-child(2){transition-delay:.1s}
+  .room-list .room.slide-up:nth-child(3){transition-delay:.2s}
+  .gallery-grid > div.slide-up:nth-child(2){transition-delay:.06s}
+  .gallery-grid > div.slide-up:nth-child(3){transition-delay:.12s}
+  .gallery-grid > div.slide-up:nth-child(4){transition-delay:.18s}
+  .gallery-grid > div.slide-up:nth-child(5){transition-delay:.24s}
+  .gallery-grid > div.slide-up:nth-child(6){transition-delay:.3s}
+  .gallery-grid > div.slide-up:nth-child(7){transition-delay:.36s}
 
   /* ─── TICKER ─── */
   .ticker{max-width:1240px;margin:0 auto;padding:0 32px 80px;display:flex;align-items:center;gap:48px;flex-wrap:wrap;color:var(--ink-mute);overflow:hidden}
-  .ticker-track{display:flex;gap:32px;font-size:14px;white-space:nowrap;animation:scroll 40s linear infinite}
+  .ticker-track{display:flex;gap:32px;font-size:14px;white-space:nowrap;animation:scroll 40s linear infinite;will-change:transform}
+  .ticker:hover .ticker-track{animation-duration:80s}
   .ticker .star{color:var(--terracotta);font-size:10px}
   @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
   /* ─── ABOUT ─── */
   section{padding:120px 32px}
   .about-inner{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:96px;align-items:center}
-  .about-photos{display:grid;grid-template-columns:1fr 1fr;gap:18px;position:relative}
-  .about-photos > div{border-radius:24px;overflow:hidden;aspect-ratio:3/4;background:var(--sand);background-size:cover}
-  .about-photo-left{margin-top:48px;background-position:left center}
-  .about-photo-right{margin-top:0;background-position:right center}
-  .about-photos img{display:none!important}
+  .about-photo-wrap{position:relative;width:100%}
+  .about-photo-main{border-radius:24px;overflow:hidden;aspect-ratio:3/4;width:100%;max-height:min(72vh,640px);background:var(--sand) center/cover;background-size:cover}
+  .about-photo-wrap img{display:none!important}
   .about-text h2{font-size:clamp(40px,5.5vw,72px);margin:20px 0 28px}
   .about-text p{color:var(--ink-soft);margin-bottom:18px;font-size:17px;line-height:1.75;max-width:480px}
 
@@ -255,8 +289,10 @@
     .nav.is-open ul a{display:block;padding:14px 4px;font-size:16px;color:var(--ink)}
   }
   @media(prefers-reduced-motion:reduce){
-    *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+    *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
     html{scroll-behavior:auto!important}
+    .slide-up,.hero .hero-copy > *,.hero .hero-photo{opacity:1!important;transform:none!important}
+    .hero-orb{animation:none!important}
   }
 
   /* ─── LIGHTBOX ─── */
@@ -298,10 +334,10 @@
 </nav>
 
 <!-- ═══════════════════ HERO ═══════════════════ -->
-<section class="hero">
-  <div class="hero-orb"></div>
+<section class="hero" id="hero">
+  <div class="hero-orb" aria-hidden="true"></div>
   <div class="hero-inner">
-    <div>
+    <div class="hero-copy">
       <div class="hero-meta">
         <span class="live" id="heroStatusPill"><span class="dot"></span><span id="heroStatusText">Comprobando…</span></span>
       </div>
@@ -326,12 +362,11 @@
 <!-- ═══════════════════ ABOUT ═══════════════════ -->
 <section id="sobre-nosotros">
   <div class="about-inner">
-    <div class="about-photos" id="aboutPhotoWrap">
-      <div class="about-photo-left" id="aboutPhotoLeft"></div>
-      <div class="about-photo-right" id="aboutPhotoRight"></div>
+    <div class="about-photo-wrap slide-up" id="aboutPhotoWrap">
+      <div class="about-photo-main" id="aboutPhotoMain" role="img" aria-label=""></div>
       <img id="aboutPhotoImg" src="" alt="" hidden style="display:none"/>
     </div>
-    <div class="about-text">
+    <div class="about-text slide-up" data-d="1">
       <span class="eyebrow">Sobre nosotros</span>
       <h2 class="serif" id="aboutTitle">Tu negocio.</h2>
       <p id="aboutDescripcion">Descripción del negocio: quiénes sois, qué hacéis y por qué importa.</p>
@@ -342,7 +377,7 @@
 <!-- ═══════════════════ SERVICES ═══════════════════ -->
 <section id="servicios" style="padding:60px 0;display:none;">
   <div class="offerings">
-    <div class="offerings-head">
+    <div class="offerings-head slide-up">
       <span class="eyebrow">Lo que ofrecemos</span>
       <h2 class="serif">Nuestros <span class="italic">servicios.</span></h2>
       <p>Todo lo que podemos hacer por ti.</p>
@@ -353,7 +388,7 @@
 
 <!-- ═══════════════════ GALLERY ═══════════════════ -->
 <section id="galeria" class="gallery-section">
-  <div class="gallery-head">
+  <div class="gallery-head slide-up">
     <div>
       <span class="eyebrow">Galería</span>
       <h2 class="serif">Pequeños momentos<br/><span class="italic">del día a día.</span></h2>
@@ -365,7 +400,7 @@
 <!-- ═══════════════════ HOURS + CONTACT ═══════════════════ -->
 <section id="horario">
   <div class="info">
-    <div class="info-card">
+    <div class="info-card slide-up">
       <span class="schedule-status" id="statusPill">
         <span class="dot"></span>
         <span id="statusText">Comprobando…</span>
@@ -373,7 +408,7 @@
       <h3>Cuándo nos encontráis</h3>
       <div id="schedule"></div>
     </div>
-    <div class="contact-card">
+    <div class="contact-card slide-up" data-d="1">
       <a id="contacto" aria-hidden="true" style="display:block;height:0;overflow:hidden"></a>
       <span class="eyebrow">Contacto</span>
       <h3>Escríbenos directo</h3>
@@ -403,7 +438,7 @@
       <a href="#" id="tplMapsExternalLink" class="btn-primary" target="_blank" rel="noopener noreferrer">Abrir en Google Maps →</a>
     </div>
   </div>
-  <section id="opiniones" class="reviews-cta-section">
+  <section id="opiniones" class="reviews-cta-section slide-up">
     <span class="eyebrow">Lo que dicen los vecinos</span>
     <h3>Lo que dicen<br/>quienes nos eligen.</h3>
     <p>Lee experiencias reales y, si ya nos has visitado, deja tu valoración en Google.</p>
@@ -420,7 +455,7 @@
 
 <!-- ═══════════════════ CTA ═══════════════════ -->
 <section style="padding:0">
-  <div class="cta-calm">
+  <div class="cta-calm slide-up">
     <h2 id="ctaTitle">Reserva.<br/>Ven.<br/><em>Creamos juntos.</em></h2>
     <a href="https://wa.me/" class="btn-primary" data-wa-link>Reservar por WhatsApp →</a>
   </div>
@@ -467,13 +502,118 @@
   </div>
 </footer>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(function () {
+  var p = new URLSearchParams(location.search);
+  if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
+  var s = document.createElement('script');
+  s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  s.crossOrigin = '';
+  document.head.appendChild(s);
+})();
+</script>
+<style>
+/* En modo preview, los enlaces externos y botones de acción no parecen clicables. */
+html.lw-preview-inert a[href^="tel:"],
+html.lw-preview-inert a[href^="mailto:"],
+html.lw-preview-inert a[href^="http"],
+html.lw-preview-inert a[target="_blank"],
+html.lw-preview-inert a[download],
+html.lw-preview-inert a[data-wa-link],
+html.lw-preview-inert a[data-tel-link],
+html.lw-preview-inert #tplBookingLink,
+html.lw-preview-inert #tplVcardLink,
+html.lw-preview-inert #tplGbizLink,
+html.lw-preview-inert #tplMapsExternalLink,
+html.lw-preview-inert #tplSocialInstagram,
+html.lw-preview-inert #tplSocialTiktok,
+html.lw-preview-inert #tplSocialFacebook {
+  cursor: default !important;
+}
+/* Navegación interna sigue como puntero. Se aplica por especificidad mayor. */
+html.lw-preview-inert a[href^="#"] {
+  cursor: pointer !important;
+}
+</style>
+<script>
+/* ─────────────────────────────────────────────────────────────────
+ * Modo preview (?preview=1): TODOS los elementos clicables quedan
+ * inertes excepto navegación interna (#anchors), el burger del nav
+ * móvil y los controles de Leaflet. La SPA del onboarding pasa
+ * preview=1 en thumbnails, en el modal "Ver" del paso 1 y en los
+ * previews laterales de los pasos 2+. La web pública del cliente
+ * NO pasa este flag, así que ahí los botones funcionan normal.
+ * ───────────────────────────────────────────────────────────────── */
+(function initPreviewInertMode() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('preview') !== '1') return;
+  document.documentElement.classList.add('lw-preview-inert');
+
+  function isAllowed(target) {
+    if (!target || target.nodeType !== 1) return false;
+    // 1) Anchor a sección interna: <a href="#xxx">
+    if (target.tagName === 'A') {
+      var href = target.getAttribute('href') || '';
+      if (href.charAt(0) === '#' && href.length > 1) return true;
+    }
+    // 2) Burger del menú móvil
+    if (target.id === 'burger') return true;
+    // 3) Controles internos de Leaflet
+    if (target.className && typeof target.className === 'string' &&
+        target.className.indexOf('leaflet-') === 0) return true;
+    return false;
+  }
+
+  function findClickable(node) {
+    var el = node;
+    while (el && el !== document.body) {
+      if (el.nodeType === 1 && (el.tagName === 'A' || el.tagName === 'BUTTON' || isAllowed(el))) {
+        return el;
+      }
+      el = el.parentNode;
+    }
+    return null;
+  }
+
+  function findAncestorWithLeaflet(node) {
+    var el = node;
+    while (el && el !== document.body) {
+      if (el.nodeType === 1 && el.className && typeof el.className === 'string') {
+        if (el.className.indexOf('leaflet-') >= 0) return true;
+      }
+      el = el.parentNode;
+    }
+    return false;
+  }
+
+  document.addEventListener('click', function (e) {
+    var clickable = findClickable(e.target);
+    if (!clickable) return;
+    if (isAllowed(clickable)) return;
+    if (findAncestorWithLeaflet(e.target)) return;
+    e.preventDefault();
+    e.stopPropagation();
+  }, true); // capture: nos ejecutamos antes que cualquier handler de la página
+
+  // También bloqueamos el "submit" por si algún template tuviese un <form>
+  document.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
+})();
+</script>
 <script src="/templates/lw-contact-links.js?v=2"></script>
 <script>
-if (new URLSearchParams(window.location.search).get('embed') === '1') {
-  document.documentElement.classList.add('embed-preview-root');
-  document.body.classList.add('embed-preview');
-}
+(function initCoastalPreviewModeClasses() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('embed') === '1') {
+    document.documentElement.classList.add('embed-preview-root');
+    document.body.classList.add('embed-preview');
+  }
+  if (params.get('preview') === '1') {
+    document.body.classList.add('coastal-preview');
+  }
+})();
 
 /* ───── DATA: horario por defecto ────────────────────── */
 const BOLD_SCHEDULE_DEFAULT = [
@@ -519,8 +659,25 @@ function escapeBoldGalleryAttr(s) {
   return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 }
 
+/** Hotel boutique / costa — solo en vista previa (?embed=1 o ?preview=1). */
+var COASTAL_PREVIEW_SAMPLE = {
+  portada: 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1400&q=80',
+  foto_equipo: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1000&q=80',
+};
+
+function shouldUseCoastalSampleMedia() {
+  return document.body.classList.contains('embed-preview') || document.body.classList.contains('coastal-preview');
+}
+
+function coastalResolvePreviewPhotoSrc(userSrc, sampleKey) {
+  var src = userSrc ? String(userSrc).trim() : '';
+  if (src) return src;
+  if (!shouldUseCoastalSampleMedia()) return '';
+  return COASTAL_PREVIEW_SAMPLE[sampleKey] || '';
+}
+
 var BOLD_DEFAULT_GALLERY_INNER =
-  '<div><img src="https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=900&q=70" alt=""/></div>' +
+  '<div><img src="https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=900&q=70" alt=""/></div>' +
   '<div><img src="https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=600&q=70" alt=""/></div>' +
   '<div><img src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=600&q=70" alt=""/></div>' +
   '<div><img src="https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=900&q=70" alt=""/></div>' +
@@ -534,16 +691,19 @@ function renderBoldGallery(urls) {
   var list = Array.isArray(urls) ? urls.filter(Boolean) : [];
   if (list.length === 0) {
     root.innerHTML = BOLD_DEFAULT_GALLERY_INNER;
+    Array.prototype.forEach.call(root.children, function (el) { el.classList.add('slide-up'); });
+    coastalObserveReveals(root);
     return;
   }
   root.innerHTML = list
     .map(function (src, i) {
       return (
-        '<div>' +
+        '<div class="slide-up">' +
         '<img src="' + escapeBoldGalleryAttr(src) + '" alt=""/></div>'
       );
     })
     .join('');
+  coastalObserveReveals(root);
 }
 
 function updateBoldGallerySlider(_isPro) {
@@ -559,8 +719,8 @@ function updateBoldHeroPhoto(raw) {
   var img = document.getElementById('heroPhotoImg');
   if (!img) return;
   var hasPortada = raw && Object.prototype.hasOwnProperty.call(raw, 'portada');
-  if (!hasPortada) return;
-  var src = (raw && raw.portada ? String(raw.portada).trim() : '');
+  if (!hasPortada && !shouldUseCoastalSampleMedia()) return;
+  var src = coastalResolvePreviewPhotoSrc(raw && raw.portada, 'portada');
   if (!src) {
     img.removeAttribute('src');
     img.hidden = true;
@@ -568,7 +728,7 @@ function updateBoldHeroPhoto(raw) {
     return;
   }
   var withCacheBust = src;
-  if (/^https?:\/\//i.test(src)) {
+  if (/^https?:\/\//i.test(src) && src !== COASTAL_PREVIEW_SAMPLE.portada) {
     var sep = src.indexOf('?') >= 0 ? '&' : '?';
     withCacheBust = src + sep + 'lwts=' + Date.now();
   }
@@ -578,20 +738,12 @@ function updateBoldHeroPhoto(raw) {
 }
 
 function updateBoldAboutPhoto(raw) {
-  var left = document.getElementById('aboutPhotoLeft');
-  var right = document.getElementById('aboutPhotoRight');
-  if (!left || !right) return;
+  var main = document.getElementById('aboutPhotoMain');
+  if (!main) return;
   var hasFoto = raw && Object.prototype.hasOwnProperty.call(raw, 'foto_equipo');
-  if (!hasFoto) return;
-  var src = (raw && raw.foto_equipo ? String(raw.foto_equipo).trim() : '');
-  if (!src) {
-    left.style.backgroundImage = '';
-    right.style.backgroundImage = '';
-    return;
-  }
-  var bg = 'url(' + src + ')';
-  left.style.backgroundImage = bg;
-  right.style.backgroundImage = bg;
+  if (!hasFoto && !shouldUseCoastalSampleMedia()) return;
+  var src = coastalResolvePreviewPhotoSrc(raw && raw.foto_equipo, 'foto_equipo');
+  main.style.backgroundImage = src ? 'url("' + String(src).replace(/"/g, '\\"') + '")' : '';
 }
 
 /* ───── TICKER (frases derivadas del payload) ────────── */
@@ -635,7 +787,7 @@ function destroyBoldPreviewMap() {
 }
 
 function boldRadarIcon() {
-  if (typeof L === 'undefined') return null;
+  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return null;
   var html =
     '<div class="bold-map-pin-wrap">' +
     '<span class="bold-map-radar-ring"></span>' +
@@ -659,10 +811,11 @@ function updateBoldPreviewMap(lat, lon) {
     sec.classList.add('bold-map-empty');
     return;
   }
-  if (typeof L === 'undefined') return;
+  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
   sec.classList.remove('bold-map-empty');
 
   function applyMap() {
+    if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
     if (!boldPreviewMap) {
       boldPreviewMap = L.map(container, {
         zoomControl: true,
@@ -764,7 +917,7 @@ function syncBoldTemplateExtensions(raw) {
             ? '<p>' + escapeHtmlTextBold(String(s.description)) + '</p>'
             : '<p>&nbsp;</p>';
           return (
-            '<article class="room">' +
+            '<article class="room slide-up">' +
             '<div class="room-body">' +
             '<div class="room-title"><h3>' + nm + '</h3><div class="room-price">' + pr + '</div></div>' +
             (dc ? '<p>' + escapeHtmlTextBold(String(s.description)) + '</p>' : '') +
@@ -773,6 +926,7 @@ function syncBoldTemplateExtensions(raw) {
           );
         })
         .join('');
+      coastalObserveReveals(list);
     }
   }
 
@@ -1093,6 +1247,23 @@ function applyLivePreviewData(raw, opts) {
   if (opts.alignToHash) scrollEmbedPreviewToHash();
 }
 
+(function initCoastalPreviewSampleMedia() {
+  if (!shouldUseCoastalSampleMedia()) return;
+  function boot() {
+    updateBoldHeroPhoto({ portada: '' });
+    updateBoldAboutPhoto({ foto_equipo: '' });
+    renderBoldGallery([]);
+    var hero = document.getElementById('hero');
+    if (hero) hero.classList.add('in');
+    coastalObserveReveals(document);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+
 /* ───── INIT FROM QUERY (fallback dev) ──────────────── */
 (function initLivePreviewFromQuery() {
   var params = new URLSearchParams(window.location.search);
@@ -1100,6 +1271,10 @@ function applyLivePreviewData(raw, opts) {
     syncBoldScheduleFromPreview(null);
     renderBoldSchedule();
     renderBoldGallery([]);
+    if (shouldUseCoastalSampleMedia()) {
+      updateBoldHeroPhoto({ portada: '' });
+      updateBoldAboutPhoto({ foto_equipo: '' });
+    }
     return;
   }
   applyLivePreviewData({
@@ -1253,6 +1428,54 @@ function applyLivePreviewData(raw, opts) {
   function onChange(ev) { if (ev.matches) setOpen(false); }
   if (mq.addEventListener) mq.addEventListener('change', onChange);
   else if (mq.addListener) mq.addListener(onChange);
+})();
+
+/* ───── Animaciones (reveal al scroll + hero) ───────── */
+function coastalObserveReveals(root) {
+  var scope = root && root.querySelectorAll ? root : document;
+  var nodes = scope.querySelectorAll
+    ? scope.querySelectorAll('.slide-up:not(.in)')
+    : document.querySelectorAll('.slide-up:not(.in)');
+  if (!nodes.length) return;
+
+  if (document.body.classList.contains('embed-preview') || document.body.classList.contains('coastal-preview')) {
+    Array.prototype.forEach.call(nodes, function (el, i) {
+      setTimeout(function () { el.classList.add('in'); }, 70 + i * 110);
+    });
+    return;
+  }
+
+  if (!window.__coastalRevealIo) {
+    window.__coastalRevealIo = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          window.__coastalRevealIo.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.14, rootMargin: '0px 0px -5% 0px' });
+  }
+  Array.prototype.forEach.call(nodes, function (el) {
+    window.__coastalRevealIo.observe(el);
+  });
+}
+
+(function initCoastalMotion() {
+  var nav = document.querySelector('nav.nav');
+  if (nav) {
+    window.addEventListener('scroll', function () {
+      nav.classList.toggle('scrolled', window.scrollY > 30);
+    }, { passive: true });
+  }
+
+  var hero = document.getElementById('hero');
+  if (hero) {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { hero.classList.add('in'); });
+    });
+  }
+
+  coastalObserveReveals(document);
 })();
 
 setInterval(renderBoldSchedule, 60000);

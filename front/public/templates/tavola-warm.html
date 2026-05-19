@@ -18,7 +18,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<script>
+(function () {
+  var p = new URLSearchParams(location.search);
+  if (p.get('thumb') === '1') return;
+  var l = document.createElement('link');
+  l.rel = 'stylesheet';
+  l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  l.crossOrigin = '';
+  document.head.appendChild(l);
+})();
+</script>
 <style>
   /* ═══════════ TAVOLA-WARM — ORIGINAL TOKENS ═══════════ */
   :root{
@@ -166,6 +176,7 @@
   .story-content h2{font-family:"DM Serif Display",serif;font-size:clamp(40px,5vw,68px);font-weight:400;line-height:1.05;letter-spacing:-0.02em;color:var(--cream);margin:14px 0 28px}
   .story-content h2 em{font-style:italic;color:var(--terracotta-soft)}
   .story-content p{font-size:17px;line-height:1.75;color:rgba(245,235,218,.82);font-style:italic;margin-bottom:18px;max-width:520px}
+  .story-content img{display:none!important}
 
   /* ─── HOURS / VISIT (tavola-warm original) ─── */
   .visit-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;border-top:1px solid var(--line)}
@@ -304,6 +315,160 @@
   .lw-gallery-lightbox-img{display:block;max-width:min(96vw,1600px);max-height:92vh;width:auto;height:auto;object-fit:contain;box-shadow:0 24px 100px rgba(0,0,0,.75)}
   .lw-gallery-lightbox-close{position:absolute;top:-8px;right:-8px;width:44px;height:44px;border:2px solid #fff;background:#0a0a0a;color:#fff;font-size:24px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0;font-family:system-ui,sans-serif}
   @media (max-width:640px){.lw-gallery-lightbox-close{top:8px;right:8px}}
+
+  /* ═══════════ TAVOLA PRO ANIMATIONS ═══════════ */
+  :root{
+    --tv-ease: cubic-bezier(.22,.61,.36,1);
+    --tv-ease-out-expo: cubic-bezier(.16,1,.3,1);
+    --tv-ease-in-out: cubic-bezier(.65,0,.35,1);
+  }
+
+  @keyframes tv-fade-in { from{opacity:0} to{opacity:1} }
+  @keyframes tv-fade-up { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes tv-fade-down { from{opacity:0;transform:translateY(-32px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes tv-fade-left { from{opacity:0;transform:translateX(-48px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes tv-fade-right { from{opacity:0;transform:translateX(48px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes tv-zoom-in { from{opacity:0;transform:scale(.92)} to{opacity:1;transform:scale(1)} }
+  @keyframes tv-blur-in { from{opacity:0;filter:blur(14px);transform:translateY(20px)} to{opacity:1;filter:blur(0);transform:translateY(0)} }
+  @keyframes tv-clip-up { from{opacity:0;clip-path:inset(100% 0 0 0);transform:translateY(40px)} to{opacity:1;clip-path:inset(0 0 0 0);transform:translateY(0)} }
+  @keyframes tv-kenburns { 0%{transform:scale(1) translate(0,0)} 100%{transform:scale(1.12) translate(-2%,-1.5%)} }
+  @keyframes tv-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  @keyframes tv-pulse-soft { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.04);opacity:.92} }
+  @keyframes tv-shimmer {
+    0%{background-position:-200% 0} 100%{background-position:200% 0}
+  }
+  @keyframes tv-marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  @keyframes tv-spin-slow { to{transform:rotate(360deg)} }
+  @keyframes tv-divider-grow { from{transform:scaleX(0);transform-origin:left} to{transform:scaleX(1);transform-origin:left} }
+  @keyframes tv-underline { from{transform:scaleX(0);transform-origin:left} to{transform:scaleX(1);transform-origin:left} }
+
+  .tv-reveal{ opacity:0; will-change:opacity,transform,filter,clip-path; }
+  .tv-reveal.tv-in{ animation: tv-fade-up 1s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-anim="fade"].tv-in{ animation: tv-fade-in 1s ease-out both; }
+  .tv-reveal[data-anim="up"].tv-in{ animation: tv-fade-up 1s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-anim="down"].tv-in{ animation: tv-fade-down 1s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-anim="left"].tv-in{ animation: tv-fade-left 1s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-anim="right"].tv-in{ animation: tv-fade-right 1s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-anim="zoom"].tv-in{ animation: tv-zoom-in 1.1s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-anim="blur"].tv-in{ animation: tv-blur-in 1.2s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-anim="clip"].tv-in{ animation: tv-clip-up 1.2s var(--tv-ease-out-expo) both; }
+
+  .tv-reveal[data-delay="1"].tv-in{animation-delay:.08s}
+  .tv-reveal[data-delay="2"].tv-in{animation-delay:.16s}
+  .tv-reveal[data-delay="3"].tv-in{animation-delay:.24s}
+  .tv-reveal[data-delay="4"].tv-in{animation-delay:.32s}
+  .tv-reveal[data-delay="5"].tv-in{animation-delay:.40s}
+  .tv-reveal[data-delay="6"].tv-in{animation-delay:.48s}
+  .tv-reveal[data-delay="7"].tv-in{animation-delay:.56s}
+  .tv-reveal[data-delay="8"].tv-in{animation-delay:.64s}
+
+  .tv-split .tv-word{ display:inline-block; overflow:hidden; vertical-align:top; }
+  .tv-split .tv-word > span{
+    display:inline-block; transform:translateY(110%) rotate(4deg);
+    opacity:0; transition:transform 1.1s var(--tv-ease-out-expo), opacity .9s ease-out;
+  }
+  .tv-split.tv-in .tv-word > span{ transform:translateY(0) rotate(0); opacity:1; }
+  .tv-split.tv-in .tv-word:nth-child(1) > span{transition-delay:.00s}
+  .tv-split.tv-in .tv-word:nth-child(2) > span{transition-delay:.06s}
+  .tv-split.tv-in .tv-word:nth-child(3) > span{transition-delay:.12s}
+  .tv-split.tv-in .tv-word:nth-child(4) > span{transition-delay:.18s}
+  .tv-split.tv-in .tv-word:nth-child(5) > span{transition-delay:.24s}
+  .tv-split.tv-in .tv-word:nth-child(6) > span{transition-delay:.30s}
+  .tv-split.tv-in .tv-word:nth-child(7) > span{transition-delay:.36s}
+  .tv-split.tv-in .tv-word:nth-child(8) > span{transition-delay:.42s}
+  .tv-split.tv-in .tv-word:nth-child(9) > span{transition-delay:.48s}
+  .tv-split.tv-in .tv-word:nth-child(n+10) > span{transition-delay:.54s}
+
+  .tv-img-reveal{ position:relative; overflow:hidden; isolation:isolate; }
+  .tv-img-reveal > img, .tv-img-reveal > .tv-bg{
+    transform: scale(1.15); transition: transform 1.6s var(--tv-ease-out-expo);
+    will-change: transform;
+  }
+  .tv-img-reveal::before, .tv-img-reveal::after{
+    content:""; position:absolute; inset:0; background: var(--cream, #F5EBDA); z-index:2;
+    transform: translateY(0); transition: transform 1.2s var(--tv-ease-out-expo);
+    pointer-events:none;
+  }
+  .tv-img-reveal::after{ background: var(--terracotta, #C2643E); transition-delay:.08s; }
+  .tv-img-reveal.tv-in::before{ transform: translateY(-101%); }
+  .tv-img-reveal.tv-in::after{ transform: translateY(-101%); transition-delay: 0s; }
+  .tv-img-reveal.tv-in > img, .tv-img-reveal.tv-in > .tv-bg{ transform: scale(1); }
+
+  .tv-line-grow{ display:inline-block; height:1px; background: currentColor; width:64px; vertical-align:middle;
+    transform:scaleX(0); transform-origin:left; }
+  .tv-reveal.tv-in .tv-line-grow,
+  .tv-line-grow.tv-in{ animation: tv-divider-grow 1s var(--tv-ease-out-expo) both .15s; }
+
+  .tv-underline{ position:relative; display:inline-block; }
+  .tv-underline::after{
+    content:""; position:absolute; left:0; right:0; bottom:-3px; height:1.5px; background: currentColor;
+    transform: scaleX(0); transform-origin: right; transition: transform .55s var(--tv-ease-out-expo);
+  }
+  .tv-underline:hover::after{ transform: scaleX(1); transform-origin: left; }
+
+  .tv-hover-lift{ transition: transform .5s var(--tv-ease-out-expo), box-shadow .5s ease; }
+  .tv-hover-lift:hover{ transform: translateY(-6px); }
+  .tv-hover-zoom{ overflow:hidden; }
+  .tv-hover-zoom img, .tv-hover-zoom .tv-bg{ transition: transform .9s var(--tv-ease-out-expo); will-change: transform; }
+  .tv-hover-zoom:hover img, .tv-hover-zoom:hover .tv-bg{ transform: scale(1.06); }
+  .tv-hover-tilt{ transition: transform .5s var(--tv-ease); transform-style:preserve-3d; }
+  .tv-magnetic{ transition: transform .3s var(--tv-ease); }
+  /* Sin máscara en contenedores del hero (mantienen rotación CSS de .photo) */
+  .photo.tv-img-reveal::before, .photo.tv-img-reveal::after{ display:none; }
+  .photo.tv-img-reveal > img{ transform:none; }
+  .photo.tv-img-reveal.tv-in > img{ transform:none; }
+  /* Split del título: no usar opacity:0 en el h1 entero */
+  .tv-split.tv-reveal{ opacity:1; }
+
+  .tv-btn-shine{ position:relative; overflow:hidden; isolation:isolate; }
+  .tv-btn-shine::before{
+    content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
+    background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.35) 50%, transparent 70%);
+    transform: translateX(-120%); transition: transform .9s var(--tv-ease-out-expo);
+  }
+  .tv-btn-shine:hover::before{ transform: translateX(120%); }
+
+  .tv-kenburns{ animation: tv-kenburns 14s ease-in-out infinite alternate; will-change: transform; }
+  .tv-float{ animation: tv-float 5s ease-in-out infinite; }
+  .tv-pulse-soft{ animation: tv-pulse-soft 3.4s ease-in-out infinite; }
+
+  .tv-marquee{ overflow:hidden; }
+  .tv-marquee-track{ display:inline-flex; gap:3rem; animation: tv-marquee 28s linear infinite; will-change: transform; }
+  .tv-marquee:hover .tv-marquee-track{ animation-play-state: paused; }
+
+  .tv-parallax{ transform: translate3d(0, var(--tv-py, 0px), 0); transition: transform .15s linear; will-change: transform; }
+  .tv-tilt{ transform: perspective(900px) rotateX(var(--tv-rx, 0deg)) rotateY(var(--tv-ry, 0deg)); transition: transform .25s var(--tv-ease); will-change: transform; }
+
+  .tv-cursor-glow{
+    position: fixed; top:0; left:0; width:380px; height:380px; pointer-events:none; z-index:8998;
+    transform: translate3d(var(--tv-cx,-9999px), var(--tv-cy,-9999px), 0) translate(-50%,-50%);
+    background: radial-gradient(circle, rgba(194,100,62,.18), transparent 60%);
+    mix-blend-mode: multiply; opacity:0; transition: opacity .4s ease;
+  }
+  .tv-cursor-glow.tv-on{ opacity:1; }
+
+  body.tv-loaded .tv-hero-anim{ animation: tv-fade-up 1.2s var(--tv-ease-out-expo) both; }
+  body.tv-loaded .tv-hero-anim.d1{ animation-delay:.15s }
+  body.tv-loaded .tv-hero-anim.d2{ animation-delay:.30s }
+  body.tv-loaded .tv-hero-anim.d3{ animation-delay:.45s }
+  body.tv-loaded .tv-hero-anim.d4{ animation-delay:.60s }
+
+  .nav.tv-header-scrolled{ backdrop-filter: blur(12px) saturate(1.1); -webkit-backdrop-filter: blur(12px) saturate(1.1); transition: background-color .4s ease, box-shadow .4s ease; box-shadow:0 8px 32px rgba(42,31,24,.08); }
+
+  .tv-scroll-progress{
+    position: fixed; top:0; left:0; height:2px; width:0%;
+    background: linear-gradient(90deg, var(--terracotta,#C2643E), var(--wine,#5A1F1F));
+    z-index: 10001; transition: width .12s linear;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .tv-reveal, .tv-reveal.tv-in, .tv-hero-anim, .tv-float, .tv-pulse-soft, .tv-kenburns,
+    .tv-marquee-track, .tv-img-reveal::before, .tv-img-reveal::after, .tv-split .tv-word > span{
+      animation: none !important; transition: none !important; opacity:1 !important;
+      transform: none !important; clip-path: none !important; filter: none !important;
+    }
+    .tv-img-reveal::before, .tv-img-reveal::after{ display:none; }
+  }
 </style>
 </head>
 <body>
@@ -392,8 +557,7 @@
   <div class="container">
     <div class="story-grid">
       <div class="story-img" id="storyImgDiv" style="background-image:none"></div>
-      <div class="story-content" id="aboutPhotoWrap">
-        <img id="aboutPhotoImg" src="" alt="" hidden style="display:none"/>
+      <div class="story-content">
         <div class="ornament">nuestra historia</div>
         <h2 class="display" id="aboutTitle">Tu negocio.</h2>
         <p id="aboutDescripcion">Descripción del negocio: quiénes sois, qué hacéis y por qué importa.</p>
@@ -524,13 +688,118 @@
   </div>
 </footer>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(function () {
+  var p = new URLSearchParams(location.search);
+  if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
+  var s = document.createElement('script');
+  s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  s.crossOrigin = '';
+  document.head.appendChild(s);
+})();
+</script>
+<style>
+/* En modo preview, los enlaces externos y botones de acción no parecen clicables. */
+html.lw-preview-inert a[href^="tel:"],
+html.lw-preview-inert a[href^="mailto:"],
+html.lw-preview-inert a[href^="http"],
+html.lw-preview-inert a[target="_blank"],
+html.lw-preview-inert a[download],
+html.lw-preview-inert a[data-wa-link],
+html.lw-preview-inert a[data-tel-link],
+html.lw-preview-inert #tplBookingLink,
+html.lw-preview-inert #tplVcardLink,
+html.lw-preview-inert #tplGbizLink,
+html.lw-preview-inert #tplMapsExternalLink,
+html.lw-preview-inert #tplSocialInstagram,
+html.lw-preview-inert #tplSocialTiktok,
+html.lw-preview-inert #tplSocialFacebook {
+  cursor: default !important;
+}
+/* Navegación interna sigue como puntero. Se aplica por especificidad mayor. */
+html.lw-preview-inert a[href^="#"] {
+  cursor: pointer !important;
+}
+</style>
+<script>
+/* ─────────────────────────────────────────────────────────────────
+ * Modo preview (?preview=1): TODOS los elementos clicables quedan
+ * inertes excepto navegación interna (#anchors), el burger del nav
+ * móvil y los controles de Leaflet. La SPA del onboarding pasa
+ * preview=1 en thumbnails, en el modal "Ver" del paso 1 y en los
+ * previews laterales de los pasos 2+. La web pública del cliente
+ * NO pasa este flag, así que ahí los botones funcionan normal.
+ * ───────────────────────────────────────────────────────────────── */
+(function initPreviewInertMode() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('preview') !== '1') return;
+  document.documentElement.classList.add('lw-preview-inert');
+
+  function isAllowed(target) {
+    if (!target || target.nodeType !== 1) return false;
+    // 1) Anchor a sección interna: <a href="#xxx">
+    if (target.tagName === 'A') {
+      var href = target.getAttribute('href') || '';
+      if (href.charAt(0) === '#' && href.length > 1) return true;
+    }
+    // 2) Burger del menú móvil
+    if (target.id === 'burger') return true;
+    // 3) Controles internos de Leaflet
+    if (target.className && typeof target.className === 'string' &&
+        target.className.indexOf('leaflet-') === 0) return true;
+    return false;
+  }
+
+  function findClickable(node) {
+    var el = node;
+    while (el && el !== document.body) {
+      if (el.nodeType === 1 && (el.tagName === 'A' || el.tagName === 'BUTTON' || isAllowed(el))) {
+        return el;
+      }
+      el = el.parentNode;
+    }
+    return null;
+  }
+
+  function findAncestorWithLeaflet(node) {
+    var el = node;
+    while (el && el !== document.body) {
+      if (el.nodeType === 1 && el.className && typeof el.className === 'string') {
+        if (el.className.indexOf('leaflet-') >= 0) return true;
+      }
+      el = el.parentNode;
+    }
+    return false;
+  }
+
+  document.addEventListener('click', function (e) {
+    var clickable = findClickable(e.target);
+    if (!clickable) return;
+    if (isAllowed(clickable)) return;
+    if (findAncestorWithLeaflet(e.target)) return;
+    e.preventDefault();
+    e.stopPropagation();
+  }, true); // capture: nos ejecutamos antes que cualquier handler de la página
+
+  // También bloqueamos el "submit" por si algún template tuviese un <form>
+  document.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
+})();
+</script>
 <script src="/templates/lw-contact-links.js?v=2"></script>
 <script>
-if (new URLSearchParams(window.location.search).get('embed') === '1') {
-  document.documentElement.classList.add('embed-preview-root');
-  document.body.classList.add('embed-preview');
-}
+(function initTavolaPreviewModeClasses() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('embed') === '1') {
+    document.documentElement.classList.add('embed-preview-root');
+    document.body.classList.add('embed-preview');
+  }
+  if (params.get('preview') === '1') {
+    document.body.classList.add('tavola-preview');
+  }
+})();
 
 /* ───── DATA: horario por defecto ────────────────────── */
 const BOLD_SCHEDULE_DEFAULT = [
@@ -574,6 +843,25 @@ function syncBoldScheduleFromPreview(h) {
 /* ───── GALERÍA ──────────────────────────────────────── */
 function escapeBoldGalleryAttr(s) {
   return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+/** Restaurante / gastronomía — solo en vista previa (?embed=1 o ?preview=1). */
+var TAVOLA_PREVIEW_SAMPLE = {
+  portada: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1200&q=80',
+  portada_2: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1000&q=80',
+  portada_3: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1000&q=80',
+  foto_equipo: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=80',
+};
+
+function shouldUseTavolaSampleMedia() {
+  return document.body.classList.contains('embed-preview') || document.body.classList.contains('tavola-preview');
+}
+
+function tavolaResolvePreviewPhotoSrc(userSrc, sampleKey) {
+  var src = userSrc ? String(userSrc).trim() : '';
+  if (src) return src;
+  if (!shouldUseTavolaSampleMedia()) return '';
+  return TAVOLA_PREVIEW_SAMPLE[sampleKey] || '';
 }
 
 var BOLD_DEFAULT_GALLERY_INNER =
@@ -636,20 +924,12 @@ function updateBoldHeroPhoto(raw) {
 }
 
 function updateBoldAboutPhoto(raw) {
-  var img = document.getElementById('aboutPhotoImg');
-  if (!img) return;
+  var storyImg = document.getElementById('storyImgDiv');
+  if (!storyImg) return;
   var hasFoto = raw && Object.prototype.hasOwnProperty.call(raw, 'foto_equipo');
-  if (!hasFoto) return;
-  var src = (raw && raw.foto_equipo ? String(raw.foto_equipo).trim() : '');
-  if (!src) {
-    img.removeAttribute('src');
-    img.hidden = true;
-    img.style.display = 'none';
-    return;
-  }
-  img.src = src;
-  img.hidden = false;
-  img.style.display = 'block';
+  if (!hasFoto && !shouldUseTavolaSampleMedia()) return;
+  var src = tavolaResolvePreviewPhotoSrc(raw && raw.foto_equipo, 'foto_equipo');
+  storyImg.style.backgroundImage = src ? 'url("' + String(src).replace(/"/g, '\\"') + '")' : 'none';
 }
 
 /* ───── TICKER (frases derivadas del payload) ────────── */
@@ -693,7 +973,7 @@ function destroyBoldPreviewMap() {
 }
 
 function boldRadarIcon() {
-  if (typeof L === 'undefined') return null;
+  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return null;
   var html =
     '<div class="bold-map-pin-wrap">' +
     '<span class="bold-map-radar-ring"></span>' +
@@ -717,10 +997,11 @@ function updateBoldPreviewMap(lat, lon) {
     sec.classList.add('bold-map-empty');
     return;
   }
-  if (typeof L === 'undefined') return;
+  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
   sec.classList.remove('bold-map-empty');
 
   function applyMap() {
+    if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
     if (!boldPreviewMap) {
       boldPreviewMap = L.map(container, {
         zoomControl: true,
@@ -1151,6 +1432,10 @@ function applyLivePreviewData(raw, opts) {
   syncBoldTemplateExtensions(raw || {});
 
   if (opts.alignToHash) scrollEmbedPreviewToHash();
+
+  if (typeof window.tvAnimationsRefresh === 'function') {
+    requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
+  }
 }
 
 /* ───── INIT FROM QUERY (fallback dev) ──────────────── */
@@ -1318,12 +1603,17 @@ function applyLivePreviewData(raw, opts) {
 setInterval(renderBoldSchedule, 60000);
 
 
-/* ─── TAVOLA-WARM: Override hero/about photo handling ─── */
+/* ─── TAVOLA-WARM: Hero collage (3 fotos) + historia con muestras en preview ─── */
 (function() {
-  function setPhotoImg(el, src) {
+  function setPhotoImg(el, src, skipCacheBust) {
     if (!el) return;
     if (src) {
-      el.src = src;
+      var finalSrc = src;
+      if (!skipCacheBust && /^https?:\/\//i.test(src)) {
+        var sep = src.indexOf('?') >= 0 ? '&' : '?';
+        finalSrc = src + sep + 'lwts=' + Date.now();
+      }
+      el.src = finalSrc;
       el.hidden = false;
       el.style.display = 'block';
     } else {
@@ -1333,31 +1623,57 @@ setInterval(renderBoldSchedule, 60000);
     }
   }
 
+  function isTavolaSampleUrl(url) {
+    if (!url) return false;
+    var u = String(url);
+    return (
+      u === TAVOLA_PREVIEW_SAMPLE.portada ||
+      u === TAVOLA_PREVIEW_SAMPLE.portada_2 ||
+      u === TAVOLA_PREVIEW_SAMPLE.portada_3
+    );
+  }
+
   updateBoldHeroPhoto = function(raw) {
     var hasPortada = raw && Object.prototype.hasOwnProperty.call(raw, 'portada');
-    if (!hasPortada) return;
-    var src = (raw && raw.portada ? String(raw.portada).trim() : '');
-    setPhotoImg(document.querySelector('.photo.p1 img'), src);
-    var src2 = (raw && raw.portada_2 ? String(raw.portada_2).trim() : '');
-    setPhotoImg(document.getElementById('heroPhotoImg2'), src2);
-    var src3 = (raw && raw.portada_3 ? String(raw.portada_3).trim() : '');
-    setPhotoImg(document.getElementById('heroPhotoImg3'), src3);
+    var hasP2 = raw && Object.prototype.hasOwnProperty.call(raw, 'portada_2');
+    var hasP3 = raw && Object.prototype.hasOwnProperty.call(raw, 'portada_3');
+    if (!hasPortada && !hasP2 && !hasP3 && !shouldUseTavolaSampleMedia()) return;
+
+    var src = tavolaResolvePreviewPhotoSrc(raw && raw.portada, 'portada');
+    var src2 = tavolaResolvePreviewPhotoSrc(raw && raw.portada_2, 'portada_2');
+    var src3 = tavolaResolvePreviewPhotoSrc(raw && raw.portada_3, 'portada_3');
+
+    var p1 = document.querySelector('.photo.p1 img');
+    setPhotoImg(p1, src, isTavolaSampleUrl(src));
+    setPhotoImg(document.getElementById('heroPhotoImg2'), src2, isTavolaSampleUrl(src2));
+    setPhotoImg(document.getElementById('heroPhotoImg3'), src3, isTavolaSampleUrl(src3));
   };
 
-  var origAbout = updateBoldAboutPhoto;
   updateBoldAboutPhoto = function(raw) {
     var hasFoto = raw && Object.prototype.hasOwnProperty.call(raw, 'foto_equipo');
-    if (!hasFoto) return;
-    var src = (raw && raw.foto_equipo ? String(raw.foto_equipo).trim() : '');
+    if (!hasFoto && !shouldUseTavolaSampleMedia()) return;
+    var src = tavolaResolvePreviewPhotoSrc(raw && raw.foto_equipo, 'foto_equipo');
     var storyImg = document.getElementById('storyImgDiv');
     if (storyImg) {
-      if (src) {
-        storyImg.style.backgroundImage = 'url(' + src + ')';
-      } else {
-        storyImg.style.backgroundImage = '';
-      }
+      storyImg.style.backgroundImage = src ? 'url("' + String(src).replace(/"/g, '\\"') + '")' : 'none';
     }
   };
+
+  function bootTavolaPreviewSamples() {
+    if (!shouldUseTavolaSampleMedia()) return;
+    updateBoldHeroPhoto({ portada: '', portada_2: '', portada_3: '' });
+    updateBoldAboutPhoto({ foto_equipo: '' });
+    renderBoldGallery([]);
+    if (typeof window.tvAnimationsRefresh === 'function') {
+      requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootTavolaPreviewSamples);
+  } else {
+    bootTavolaPreviewSamples();
+  }
 })();
 </script>
 <div id="lw-gallery-lightbox" class="lw-gallery-lightbox" hidden aria-modal="true" role="dialog" aria-label="Imagen a tamaño completo">
@@ -1414,6 +1730,212 @@ setInterval(renderBoldSchedule, 60000);
   });
   if(backdrop)backdrop.addEventListener('click',closeLb);
   if(closeBtn)closeBtn.addEventListener('click',closeLb);
+})();
+</script>
+
+<script>
+/* ═══════════ TAVOLA PRO ANIMATIONS — solo capa visual; no toca preview ni datos ═══════════ */
+(function () {
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var tvIo = null;
+  var booted = false;
+
+  function isHidden(el) {
+    if (!el) return true;
+    var st = window.getComputedStyle(el);
+    return st.display === 'none' || st.visibility === 'hidden';
+  }
+
+  function markReveal(el, anim) {
+    if (!el || el.classList.contains('tv-reveal') || el.closest('.no-anim')) return;
+    if (isHidden(el)) return;
+    el.classList.add('tv-reveal');
+    if (anim) el.setAttribute('data-anim', anim);
+  }
+
+  function splitWords(el) {
+    if (!el || el.dataset.tvSplit === 'done') return;
+    if (el.children.length > 0 && !el.querySelector('.tv-word')) return;
+    var text = el.textContent;
+    var words = text.split(/(\s+)/);
+    el.textContent = '';
+    words.forEach(function (w) {
+      if (/^\s+$/.test(w)) {
+        el.appendChild(document.createTextNode(w));
+        return;
+      }
+      if (!w) return;
+      var wrap = document.createElement('span');
+      wrap.className = 'tv-word';
+      var inner = document.createElement('span');
+      inner.textContent = w;
+      wrap.appendChild(inner);
+      el.appendChild(wrap);
+    });
+    el.dataset.tvSplit = 'done';
+  }
+
+  function refreshHeroTitleSplit() {
+    var el = document.getElementById('heroTitle');
+    if (!el) return;
+    el.classList.remove('tv-reveal');
+    el.removeAttribute('data-anim');
+    el.classList.add('tv-split');
+    delete el.dataset.tvSplit;
+    splitWords(el);
+    if (isInViewport(el)) el.classList.add('tv-in');
+  }
+
+  function isInViewport(el) {
+    var r = el.getBoundingClientRect();
+    return r.top < window.innerHeight * 0.95 && r.bottom > 0;
+  }
+
+  function cleanupLegacyTvTags() {
+    document.querySelectorAll('section.tv-reveal, .photo.tv-img-reveal, .tv-magnetic').forEach(function (el) {
+      el.classList.remove('tv-reveal', 'tv-in', 'tv-img-reveal', 'tv-magnetic');
+      el.removeAttribute('data-anim');
+      el.removeAttribute('data-delay');
+      if (el.style && el.style.transform) el.style.transform = '';
+    });
+  }
+
+  function autoTag() {
+    cleanupLegacyTvTags();
+    document.querySelectorAll('.section-head, .story-content > .ornament, .story-content > p').forEach(function (el) {
+      markReveal(el, 'up');
+    });
+    document.querySelectorAll('.section-head h2, .visit-card h3, .story-content h2').forEach(function (el) {
+      markReveal(el, 'blur');
+    });
+
+    document.querySelectorAll('#tplServicesList .dish').forEach(function (el, i) {
+      markReveal(el, 'up');
+      el.setAttribute('data-delay', String(Math.min(i + 1, 8)));
+    });
+
+    document.querySelectorAll('#galleryLive .gimg').forEach(function (el, i) {
+      markReveal(el, 'zoom');
+      el.classList.add('tv-hover-zoom');
+      el.setAttribute('data-delay', String(Math.min(i + 1, 8)));
+    });
+
+    var storyImg = document.getElementById('storyImgDiv');
+    if (storyImg && !isHidden(storyImg)) markReveal(storyImg, 'left');
+
+    document.querySelectorAll('.visit-card').forEach(function (el, i) {
+      markReveal(el, i === 0 ? 'right' : 'left');
+    });
+
+    document.querySelectorAll('.reviews-cta-section, .vcard-strip, .cta-section .container').forEach(function (el) {
+      markReveal(el, 'fade');
+    });
+
+    document.querySelectorAll('.nav-cta, .hero-cta .btn-p, .hero-cta .btn-wa').forEach(function (el) {
+      if (!el.classList.contains('tv-btn-shine')) el.classList.add('tv-btn-shine');
+    });
+
+    document.querySelectorAll('.hero-meta, .hero-tag, .hero-cta a').forEach(function (el, i) {
+      if (!el.classList.contains('tv-hero-anim')) {
+        el.classList.add('tv-hero-anim', 'd' + Math.min(i + 1, 4));
+      }
+    });
+
+    refreshHeroTitleSplit();
+  }
+
+  function revealInViewport() {
+    document.querySelectorAll('.tv-reveal:not(.tv-in), .tv-split:not(.tv-in)').forEach(function (el) {
+      if (isInViewport(el)) el.classList.add('tv-in');
+    });
+  }
+
+  function observe() {
+    if (!('IntersectionObserver' in window)) {
+      document.querySelectorAll('.tv-reveal, .tv-split').forEach(function (el) {
+        el.classList.add('tv-in');
+      });
+      return;
+    }
+    if (!tvIo) {
+      tvIo = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('tv-in');
+              tvIo.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.08, rootMargin: '0px 0px -40px 0px' },
+      );
+    }
+    document.querySelectorAll('.tv-reveal:not(.tv-in), .tv-split:not(.tv-in)').forEach(function (el) {
+      if (!isHidden(el)) tvIo.observe(el);
+    });
+  }
+
+  function runRevealPass() {
+    revealInViewport();
+    observe();
+  }
+
+  function scrollProgress() {
+    if (document.querySelector('.tv-scroll-progress')) return;
+    var bar = document.createElement('div');
+    bar.className = 'tv-scroll-progress';
+    document.body.appendChild(bar);
+    function update() {
+      var h = document.documentElement;
+      var p = h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight);
+      bar.style.width = (Math.max(0, Math.min(1, p)) * 100).toFixed(2) + '%';
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  }
+
+  function stickyHeader() {
+    var header = document.querySelector('nav.nav');
+    if (!header || header.dataset.tvStickyBound) return;
+    header.dataset.tvStickyBound = '1';
+    function update() {
+      if (window.scrollY > 24) header.classList.add('tv-header-scrolled');
+      else header.classList.remove('tv-header-scrolled');
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  }
+
+  window.tvAnimationsRefresh = function () {
+    if (reduced) return;
+    autoTag();
+    runRevealPass();
+    requestAnimationFrame(runRevealPass);
+  };
+
+  function boot() {
+    if (booted) return;
+    booted = true;
+    document.body.classList.add('tv-loaded');
+    if (reduced) {
+      document.querySelectorAll('.tv-reveal, .tv-split').forEach(function (el) {
+        el.classList.add('tv-in');
+      });
+      return;
+    }
+    autoTag();
+    runRevealPass();
+    scrollProgress();
+    stickyHeader();
+    setTimeout(runRevealPass, 120);
+    setTimeout(runRevealPass, 400);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
 })();
 </script>
 

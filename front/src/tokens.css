@@ -1672,6 +1672,12 @@ textarea::placeholder {
     height: 320px;
   }
 
+  /* Registro — formulario más ancho en escritorio (móvil sigue en 28rem) */
+  .lw-login-page--register .lw-login-page__card {
+    max-width: 40rem;
+    width: 100%;
+  }
+
   /* Registro — hero como mockup (tipografía grande) */
   .lw-login-page--register .lw-login-page__hero-body {
     max-width: 36rem;

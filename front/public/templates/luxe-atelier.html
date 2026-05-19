@@ -11,7 +11,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script>
+(function () {
+  var p = new URLSearchParams(location.search);
+  if (p.get('thumb') === '1') return;
+  var l = document.createElement('link');
+  l.rel = 'stylesheet';
+  l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  l.crossOrigin = '';
+  document.head.appendChild(l);
+})();
+</script>
 <style>
   :root{
     --bg:#FBF9F4;
@@ -99,9 +109,9 @@
   .hero.in .tphoto::before{transform:scaleX(0)}
   .hero.in .tphoto:nth-child(2)::before{transition-delay:.2s}
   .hero.in .tphoto:nth-child(3)::before{transition-delay:.4s}
-  .tphoto.t1{aspect-ratio:3/4;margin-top:48px;background-image:var(--img-1,url('https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&w=600&q=75'))}
-  .tphoto.t2{aspect-ratio:4/5;background-image:var(--img-2,url('https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=700&q=75'))}
-  .tphoto.t3{aspect-ratio:3/4;margin-top:96px;background-image:var(--img-3,url('https://images.unsplash.com/photo-1535868463750-c78d9543614f?auto=format&fit=crop&w=600&q=75'))}
+  .tphoto.t1{aspect-ratio:3/4;margin-top:48px;background-image:var(--img-1,url('https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=600&q=75'))}
+  .tphoto.t2{aspect-ratio:4/5;background-image:var(--img-2,url('https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&w=700&q=75'))}
+  .tphoto.t3{aspect-ratio:3/4;margin-top:96px;background-image:var(--img-3,url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=600&q=75'))}
   .tphoto.fallback{background:linear-gradient(135deg,var(--champagne-soft),var(--bg-2));position:relative}
   .tphoto.fallback::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,var(--champagne),transparent 70%);opacity:.4}
   .tphoto.fallback.t2{background:linear-gradient(135deg,var(--ink),var(--ink-2))}
@@ -153,10 +163,9 @@
   /* ─── ABOUT · foto detrás del texto (mosaico) ─── */
   .about{padding:140px 0;position:relative;background:var(--bg-2)}
   .about-mosaic{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;max-width:1280px;margin:0 auto;padding:0 40px}
-  .about-photos{position:relative;height:640px}
-  .aphoto{position:absolute;overflow:hidden;background:var(--paper);background-size:cover;background-position:center}
-  .aphoto.a1{top:0;left:0;width:64%;height:62%;background-image:var(--about-1,url('https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=600&q=75'))}
-  .aphoto.a2{bottom:0;right:0;width:60%;height:56%;background-image:var(--about-2,url('https://images.unsplash.com/photo-1571513722275-4b41940f54b8?auto=format&fit=crop&w=600&q=75'));z-index:2}
+  .about-photos{position:relative;width:100%;aspect-ratio:4/5;max-height:640px;border-radius:2px;overflow:hidden}
+  .aphoto{overflow:hidden;background:var(--paper);background-size:cover;background-position:center}
+  .aphoto.a1{position:relative;width:100%;height:100%;min-height:480px;background-image:var(--about-1,url('https://images.unsplash.com/photo-1777628530456-bb93d3a03faf?auto=format&fit=crop&w=1000&q=75'))}
   .aphoto::after{content:"";position:absolute;inset:0;background:rgba(21,17,12,.05);transition:background .5s}
   .aphoto:hover::after{background:rgba(21,17,12,0)}
   .about-text h2{font-family:"Cormorant Garamond",serif;font-size:clamp(40px,5.5vw,72px);font-weight:400;line-height:1.04;letter-spacing:-.015em;margin:24px 0 32px}
@@ -271,7 +280,7 @@
     .hero-triptych{grid-template-columns:1fr 1.2fr 1fr;gap:14px}
     .hero-bottom{grid-template-columns:1fr;gap:32px}
     .about-mosaic{grid-template-columns:1fr;gap:64px;padding:0 32px}
-    .about-photos{height:520px;max-width:520px;margin:0 auto;width:100%}
+    .about-photos{max-width:520px;min-height:420px;margin:0 auto;width:100%}
     .hours-grid{grid-template-columns:1fr;gap:64px}
     .foot{grid-template-columns:1fr 1fr;gap:48px}
     .gallery{grid-template-columns:repeat(4,1fr);grid-auto-rows:120px}
@@ -352,7 +361,7 @@
 <nav class="nav" id="nav">
   <div class="nav-inner">
     <ul style="flex:1;justify-content:flex-start">
-      <li id="navServiciosLi"><a href="#servicios">Servicios</a></li>
+      <li id="navServiciosLi" style="display:none;"><a href="#servicios">Servicios</a></li>
       <li><a href="#sobre-nosotros">Nosotros</a></li>
       <li><a href="#galeria">Galería</a></li>
     </ul>
@@ -363,7 +372,7 @@
     </a>
     <ul style="flex:1;justify-content:flex-end">
       <li><a href="#horario">Horario</a></li>
-      <li id="navOpinionesLi"><a href="#opiniones">Opiniones</a></li>
+      <li id="navOpinionesLi" style="display:none;"><a href="#opiniones">Opiniones</a></li>
       <li><a href="#contacto">Contacto</a></li>
       <li><a href="https://wa.me/" data-wa-link target="_blank" rel="noopener noreferrer" class="nav-cta"><span class="wa"></span>Reservar</a></li>
     </ul>
@@ -374,11 +383,11 @@
 <aside class="mobile-menu" id="mobile-menu" aria-hidden="true">
   <button type="button" class="mobile-menu-close" id="mobileMenuClose" aria-label="Cerrar menú">×</button>
   <ul>
-    <li id="navServiciosMobileLi"><a href="#servicios">Servicios</a></li>
+    <li id="navServiciosMobileLi" style="display:none;"><a href="#servicios">Servicios</a></li>
     <li><a href="#sobre-nosotros">Sobre <em>nosotros</em></a></li>
     <li><a href="#galeria"><em>Galería</em></a></li>
     <li><a href="#horario">Horario</a></li>
-    <li id="navOpinionesMobileLi"><a href="#opiniones">Opiniones</a></li>
+    <li id="navOpinionesMobileLi" style="display:none;"><a href="#opiniones">Opiniones</a></li>
     <li><a href="#contacto"><em>Contacto</em></a></li>
   </ul>
   <a href="https://wa.me/" data-wa-link target="_blank" rel="noopener noreferrer" class="mobile-cta">Reservar</a>
@@ -432,7 +441,7 @@
 </div>
 
 <!-- 4. SERVICIOS -->
-<section id="servicios" data-section="servicios">
+<section id="servicios" class="is-hidden" data-section="servicios">
   <div class="container-narrow">
     <div class="section-head slide-up">
       <span class="eyebrow">Nuestros servicios</span>
@@ -466,7 +475,6 @@
   <div class="about-mosaic">
     <div class="about-photos slide-up">
       <div class="aphoto a1" id="aboutPhoto1"></div>
-      <div class="aphoto a2"></div>
     </div>
     <div class="about-text slide-up" data-d="1">
       <span class="eyebrow">La maison</span>
@@ -494,12 +502,12 @@
     </div>
   </div>
   <div class="gallery" id="galleryGrid">
-    <div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&w=900&q=75"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&w=900&q=75')"></div></div>
-    <div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1521577352947-9bb58764b69a?auto=format&fit=crop&w=900&q=75"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1521577352947-9bb58764b69a?auto=format&fit=crop&w=900&q=75')"></div></div>
-    <div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1535868463750-c78d9543614f?auto=format&fit=crop&w=600&q=75"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1535868463750-c78d9543614f?auto=format&fit=crop&w=600&q=75')"></div></div>
-    <div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=75"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=75')"></div></div>
-    <div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1605812860427-4024433a70fd?auto=format&fit=crop&w=600&q=75"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1605812860427-4024433a70fd?auto=format&fit=crop&w=600&q=75')"></div></div>
-    <div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1517702145080-e4a4d8c61f8e?auto=format&fit=crop&w=600&q=75"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1517702145080-e4a4d8c61f8e?auto=format&fit=crop&w=600&q=75')"></div></div>
+    <div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=75"><div class="gimg-bg" style="background-image:url(&quot;https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=75&quot;)"></div></div>
+    <div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&w=900&q=75"><div class="gimg-bg" style="background-image:url(&quot;https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&w=900&q=75&quot;)"></div></div>
+    <div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1521577352947-9bb58764b69a?auto=format&fit=crop&w=900&q=75"><div class="gimg-bg" style="background-image:url(&quot;https://images.unsplash.com/photo-1521577352947-9bb58764b69a?auto=format&fit=crop&w=900&q=75&quot;)"></div></div>
+    <div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1535868463750-c78d9543614f?auto=format&fit=crop&w=600&q=75"><div class="gimg-bg" style="background-image:url(&quot;https://images.unsplash.com/photo-1535868463750-c78d9543614f?auto=format&fit=crop&w=600&q=75&quot;)"></div></div>
+    <div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1605812860427-4024433a70fd?auto=format&fit=crop&w=600&q=75"><div class="gimg-bg" style="background-image:url(&quot;https://images.unsplash.com/photo-1605812860427-4024433a70fd?auto=format&fit=crop&w=600&q=75&quot;)"></div></div>
+    <div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1777628530456-bb93d3a03faf?auto=format&fit=crop&w=600&q=75"><div class="gimg-bg" style="background-image:url(&quot;https://images.unsplash.com/photo-1777628530456-bb93d3a03faf?auto=format&fit=crop&w=600&q=75&quot;)"></div></div>
   </div>
 </section>
 
@@ -571,7 +579,7 @@
 </section>
 
 <!-- 10. OPINIONES -->
-<section id="opiniones" class="reviews-cta" data-section="opiniones">
+<section id="opiniones" class="reviews-cta is-hidden" data-section="opiniones">
   <div class="reviews-cta-inner">
     <span class="eyebrow">Reseñas</span>
     <div class="gscore serif">{{nota_google}}<em>/5</em></div>
@@ -613,10 +621,10 @@
     <div>
       <h4>Maison</h4>
       <ul>
-        <li><a href="#servicios">Servicios</a></li>
+        <li id="footNavServicios" style="display:none;"><a href="#servicios">Servicios</a></li>
         <li><a href="#sobre-nosotros">Sobre nosotros</a></li>
         <li><a href="#galeria">Galería</a></li>
-        <li><a href="#opiniones">Reseñas</a></li>
+        <li id="footNavOpiniones" style="display:none;"><a href="#opiniones">Reseñas</a></li>
       </ul>
     </div>
     <div>
@@ -643,13 +651,118 @@
   </div>
 </footer>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(function () {
+  var p = new URLSearchParams(location.search);
+  if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
+  var s = document.createElement('script');
+  s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  s.crossOrigin = '';
+  document.head.appendChild(s);
+})();
+</script>
+<style>
+/* En modo preview, los enlaces externos y botones de acción no parecen clicables. */
+html.lw-preview-inert a[href^="tel:"],
+html.lw-preview-inert a[href^="mailto:"],
+html.lw-preview-inert a[href^="http"],
+html.lw-preview-inert a[target="_blank"],
+html.lw-preview-inert a[download],
+html.lw-preview-inert a[data-wa-link],
+html.lw-preview-inert a[data-tel-link],
+html.lw-preview-inert #tplBookingLink,
+html.lw-preview-inert #tplVcardLink,
+html.lw-preview-inert #tplGbizLink,
+html.lw-preview-inert #tplMapsExternalLink,
+html.lw-preview-inert #tplSocialInstagram,
+html.lw-preview-inert #tplSocialTiktok,
+html.lw-preview-inert #tplSocialFacebook {
+  cursor: default !important;
+}
+/* Navegación interna sigue como puntero. Se aplica por especificidad mayor. */
+html.lw-preview-inert a[href^="#"] {
+  cursor: pointer !important;
+}
+</style>
+<script>
+/* ─────────────────────────────────────────────────────────────────
+ * Modo preview (?preview=1): TODOS los elementos clicables quedan
+ * inertes excepto navegación interna (#anchors), el burger del nav
+ * móvil y los controles de Leaflet. La SPA del onboarding pasa
+ * preview=1 en thumbnails, en el modal "Ver" del paso 1 y en los
+ * previews laterales de los pasos 2+. La web pública del cliente
+ * NO pasa este flag, así que ahí los botones funcionan normal.
+ * ───────────────────────────────────────────────────────────────── */
+(function initPreviewInertMode() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('preview') !== '1') return;
+  document.documentElement.classList.add('lw-preview-inert');
+
+  function isAllowed(target) {
+    if (!target || target.nodeType !== 1) return false;
+    // 1) Anchor a sección interna: <a href="#xxx">
+    if (target.tagName === 'A') {
+      var href = target.getAttribute('href') || '';
+      if (href.charAt(0) === '#' && href.length > 1) return true;
+    }
+    // 2) Burger del menú móvil
+    if (target.id === 'burger') return true;
+    // 3) Controles internos de Leaflet
+    if (target.className && typeof target.className === 'string' &&
+        target.className.indexOf('leaflet-') === 0) return true;
+    return false;
+  }
+
+  function findClickable(node) {
+    var el = node;
+    while (el && el !== document.body) {
+      if (el.nodeType === 1 && (el.tagName === 'A' || el.tagName === 'BUTTON' || isAllowed(el))) {
+        return el;
+      }
+      el = el.parentNode;
+    }
+    return null;
+  }
+
+  function findAncestorWithLeaflet(node) {
+    var el = node;
+    while (el && el !== document.body) {
+      if (el.nodeType === 1 && el.className && typeof el.className === 'string') {
+        if (el.className.indexOf('leaflet-') >= 0) return true;
+      }
+      el = el.parentNode;
+    }
+    return false;
+  }
+
+  document.addEventListener('click', function (e) {
+    var clickable = findClickable(e.target);
+    if (!clickable) return;
+    if (isAllowed(clickable)) return;
+    if (findAncestorWithLeaflet(e.target)) return;
+    e.preventDefault();
+    e.stopPropagation();
+  }, true); // capture: nos ejecutamos antes que cualquier handler de la página
+
+  // También bloqueamos el "submit" por si algún template tuviese un <form>
+  document.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
+})();
+</script>
 <script src="/templates/lw-contact-links.js?v=2"></script>
 <script>
-if (new URLSearchParams(window.location.search).get('embed') === '1') {
-  document.documentElement.classList.add('embed-preview-root');
-  document.body.classList.add('embed-preview');
-}
+(function initLuxePreviewModeClasses() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('embed') === '1') {
+    document.documentElement.classList.add('embed-preview-root');
+    document.body.classList.add('embed-preview');
+  }
+  if (params.get('preview') === '1') {
+    document.body.classList.add('luxe-preview');
+  }
+})();
 
 var LUXE_SCHEDULE_DEFAULT = [
   { name: 'Lun', full: 'Lunes', idx: 1, open: '10:00', close: '20:00' },
@@ -691,6 +804,32 @@ function formatLuxePrice(p) {
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
 }
 
+/** Tienda de ropa / moda — solo en vista previa (?embed=1 o ?preview=1). */
+var LUXE_PREVIEW_SAMPLE = {
+  portada: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80',
+  portada_2: 'https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&w=1000&q=80',
+  portada_3: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1000&q=80',
+  foto_equipo: 'https://images.unsplash.com/photo-1777628530456-bb93d3a03faf?auto=format&fit=crop&w=1000&q=80',
+};
+
+function shouldUseLuxeSampleMedia() {
+  return document.body.classList.contains('embed-preview') || document.body.classList.contains('luxe-preview');
+}
+
+function luxeResolvePreviewPhotoSrc(userSrc, sampleKey) {
+  var src = userSrc ? String(userSrc).trim() : '';
+  if (src) return src;
+  if (!shouldUseLuxeSampleMedia()) return '';
+  return LUXE_PREVIEW_SAMPLE[sampleKey] || '';
+}
+
+var LUXE_DEFAULT_GALLERY_INNER =
+  '<div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=75"><div class="gimg-bg" style="background-image:url(&quot;https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=75&quot;)"></div></div>' +
+  '<div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&w=900&q=75"><div class="gimg-bg" style="background-image:url(&quot;https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&w=900&q=75&quot;)"></div></div>' +
+  '<div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1521577352947-9bb58764b69a?auto=format&fit=crop&w=900&q=75"><div class="gimg-bg" style="background-image:url(&quot;https://images.unsplash.com/photo-1521577352947-9bb58764b69a?auto=format&fit=crop&w=900&q=75&quot;)"></div></div>' +
+  '<div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1535868463750-c78d9543614f?auto=format&fit=crop&w=600&q=75"><div class="gimg-bg" style="background-image:url(&quot;https://images.unsplash.com/photo-1535868463750-c78d9543614f?auto=format&fit=crop&w=600&q=75&quot;)"></div></div>' +
+  '<div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1605812860427-4024433a70fd?auto=format&fit=crop&w=600&q=75"><div class="gimg-bg" style="background-image:url(&quot;https://images.unsplash.com/photo-1605812860427-4024433a70fd?auto=format&fit=crop&w=600&q=75&quot;)"></div></div>' +
+  '<div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1777628530456-bb93d3a03faf?auto=format&fit=crop&w=600&q=75"><div class="gimg-bg" style="background-image:url(&quot;https://images.unsplash.com/photo-1777628530456-bb93d3a03faf?auto=format&fit=crop&w=600&q=75&quot;)"></div></div>';
 function buildLuxeDirectionsUrl(raw) {
   raw = raw || {};
   var manual = (raw.google_maps_url || '').trim();
@@ -800,15 +939,21 @@ function luxeSetTphoto(el, varName, src) {
 }
 
 function updateLuxeHeroPhotos(raw) {
-  if (!raw || !Object.prototype.hasOwnProperty.call(raw, 'portada')) return;
-  luxeSetTphoto(document.getElementById('heroTphoto1'), '--img-1', raw.portada);
-  luxeSetTphoto(document.getElementById('heroTphoto2'), '--img-2', raw.portada_2);
-  luxeSetTphoto(document.getElementById('heroTphoto3'), '--img-3', raw.portada_3);
+  raw = raw || {};
+  var hasP1 = Object.prototype.hasOwnProperty.call(raw, 'portada');
+  var hasP2 = Object.prototype.hasOwnProperty.call(raw, 'portada_2');
+  var hasP3 = Object.prototype.hasOwnProperty.call(raw, 'portada_3');
+  if (!hasP1 && !hasP2 && !hasP3 && !shouldUseLuxeSampleMedia()) return;
+  luxeSetTphoto(document.getElementById('heroTphoto1'), '--img-1', luxeResolvePreviewPhotoSrc(raw.portada, 'portada'));
+  luxeSetTphoto(document.getElementById('heroTphoto2'), '--img-2', luxeResolvePreviewPhotoSrc(raw.portada_2, 'portada_2'));
+  luxeSetTphoto(document.getElementById('heroTphoto3'), '--img-3', luxeResolvePreviewPhotoSrc(raw.portada_3, 'portada_3'));
 }
 
 function updateLuxeAboutPhoto(raw) {
-  if (!raw || !Object.prototype.hasOwnProperty.call(raw, 'foto_equipo')) return;
-  var src = raw.foto_equipo ? String(raw.foto_equipo).trim() : '';
+  raw = raw || {};
+  var hasFoto = Object.prototype.hasOwnProperty.call(raw, 'foto_equipo');
+  if (!hasFoto && !shouldUseLuxeSampleMedia()) return;
+  var src = luxeResolvePreviewPhotoSrc(raw.foto_equipo, 'foto_equipo');
   var a1 = document.getElementById('aboutPhoto1');
   var sig = document.getElementById('aboutSigImg');
   if (a1) {
@@ -826,7 +971,10 @@ function renderLuxeGallery(urls) {
   var root = document.getElementById('galleryGrid');
   if (!root) return;
   var list = Array.isArray(urls) ? urls.filter(Boolean) : [];
-  if (list.length === 0) return;
+  if (list.length === 0) {
+    root.innerHTML = LUXE_DEFAULT_GALLERY_INNER;
+    return;
+  }
   root.innerHTML = list
     .slice(0, 6)
     .map(function (src) {
@@ -843,10 +991,22 @@ function renderLuxeGallery(urls) {
 function renderLuxeServices(services) {
   var list = document.getElementById('luxeServicesList');
   var sec = document.getElementById('servicios');
+  var navSvc = document.getElementById('navServiciosLi');
+  var navSvcMob = document.getElementById('navServiciosMobileLi');
+  var footSvc = document.getElementById('footNavServicios');
   if (!list || !sec) return;
-  sec.style.display = '';
+  if (!services.length) {
+    sec.classList.add('is-hidden');
+    list.innerHTML = '';
+    if (navSvc) navSvc.style.display = 'none';
+    if (navSvcMob) navSvcMob.style.display = 'none';
+    if (footSvc) footSvc.style.display = 'none';
+    return;
+  }
   sec.classList.remove('is-hidden');
-  if (!services.length) return;
+  if (navSvc) navSvc.style.display = '';
+  if (navSvcMob) navSvcMob.style.display = '';
+  if (footSvc) footSvc.style.display = '';
   var nums = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX'];
   list.innerHTML = services.slice(0, 9).map(function (svc, i) {
     var nm = escapeLuxeHtml(String(svc.name || ''));
@@ -889,12 +1049,13 @@ function destroyLuxePreviewMap() {
 
 function updateLuxePreviewMap(lat, lon, label) {
   var el = document.getElementById('map');
-  if (!el || typeof L === 'undefined') return;
+  if (!el || window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
     destroyLuxePreviewMap();
     return;
   }
   function applyMap() {
+    if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
     if (!luxePreviewMap) {
       luxePreviewMap = L.map(el, {
         zoomControl: true,
@@ -965,8 +1126,24 @@ function syncLuxeTemplateExtensions(raw) {
   var gUrl = (raw.google_business_url || '').trim();
   var opSec = document.getElementById('opiniones');
   var gBtn = document.getElementById('gbizBtn');
-  if (opSec) opSec.classList.remove('is-hidden');
-  if (gBtn && gUrl) gBtn.href = gUrl;
+  var navOp = document.getElementById('navOpinionesLi');
+  var navOpMob = document.getElementById('navOpinionesMobileLi');
+  var footOp = document.getElementById('footNavOpiniones');
+  if (opSec) {
+    if (gUrl) {
+      opSec.classList.remove('is-hidden');
+      if (gBtn) gBtn.href = gUrl;
+      if (navOp) navOp.style.display = '';
+      if (navOpMob) navOpMob.style.display = '';
+      if (footOp) footOp.style.display = '';
+    } else {
+      opSec.classList.add('is-hidden');
+      if (gBtn) gBtn.removeAttribute('href');
+      if (navOp) navOp.style.display = 'none';
+      if (navOpMob) navOpMob.style.display = 'none';
+      if (footOp) footOp.style.display = 'none';
+    }
+  }
 
   var vcOn = raw.vcard_enabled === true || raw.vcard_enabled === 'true' || raw.vcard_enabled === 1;
   var vcUrl = (raw.vcard_download_url || '').trim();
@@ -1132,7 +1309,12 @@ function applyLivePreviewData(raw, opts) {
 
   updateLuxeHeroPhotos(raw);
   updateLuxeAboutPhoto(raw);
-  renderLuxeGallery(Array.isArray(raw.galeria) ? raw.galeria : []);
+  var galeria = Array.isArray(raw.galeria) ? raw.galeria.filter(Boolean) : [];
+  if (Object.prototype.hasOwnProperty.call(raw, 'galeria')) {
+    renderLuxeGallery(galeria);
+  } else if (galeria.length) {
+    renderLuxeGallery(galeria);
+  }
   updateLuxeTicker(raw);
   syncLuxeScheduleFromPreview(raw.horario);
   renderLuxeSchedule();
@@ -1152,12 +1334,36 @@ function applyLivePreviewData(raw, opts) {
   if (opts.alignToHash) scrollEmbedPreviewToHash();
 }
 
+(function initLuxePreviewSampleMedia() {
+  if (!shouldUseLuxeSampleMedia()) return;
+  function boot() {
+    updateLuxeHeroPhotos({ portada: '', portada_2: '', portada_3: '' });
+    updateLuxeAboutPhoto({ foto_equipo: '' });
+    renderLuxeGallery([]);
+    syncLuxeTemplateExtensions({});
+    var hero = document.getElementById('hero');
+    if (hero) hero.classList.add('in');
+    revealLuxeScrollAnimations();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+
 (function initLivePreviewFromQuery() {
   var params = new URLSearchParams(window.location.search);
   if (!params.has('preview')) {
     syncLuxeScheduleFromPreview(null);
     renderLuxeSchedule();
+    syncLuxeTemplateExtensions({});
     revealLuxeScrollAnimations();
+    if (shouldUseLuxeSampleMedia()) {
+      updateLuxeHeroPhotos({ portada: '', portada_2: '', portada_3: '' });
+      updateLuxeAboutPhoto({ foto_equipo: '' });
+      renderLuxeGallery([]);
+    }
     return;
   }
   applyLivePreviewData({
@@ -1239,10 +1445,6 @@ function applyLivePreviewData(raw, opts) {
     document.querySelectorAll('.slide-up').forEach(function (el) { io.observe(el); });
   }
 
-  var gscore = document.querySelector('.gscore');
-  if (gscore) gscore.innerHTML = '4,9<em>/5</em>';
-  var greviews = document.querySelector('.greviews');
-  if (greviews) greviews.textContent = '120 reseñas en Google';
 })();
 </script>
 <div id="lw-gallery-lightbox" class="lw-gallery-lightbox" hidden aria-modal="true" role="dialog" aria-label="Imagen ampliada">

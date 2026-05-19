@@ -18,7 +18,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script>
+(function () {
+  var p = new URLSearchParams(location.search);
+  if (p.get('thumb') === '1') return;
+  var l = document.createElement('link');
+  l.rel = 'stylesheet';
+  l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  l.crossOrigin = '';
+  document.head.appendChild(l);
+})();
+</script>
 <style>
   :root{
     --bg:#FAFAF7;
@@ -130,9 +140,9 @@
   .ppic.p1{top:0;left:10%;width:62%;transform:rotate(-5deg);z-index:1}
   .ppic.p2{top:14%;right:0;width:54%;transform:rotate(3deg);z-index:3}
   .ppic.p3{bottom:0;left:0;width:60%;transform:rotate(-2deg);z-index:2}
-  .ppic.p1 .pimg{background-image:var(--img-1,url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=70'))}
-  .ppic.p2 .pimg{background-image:var(--img-2,url('https://images.unsplash.com/photo-1559026912-99b51309cb3a?auto=format&fit=crop&w=600&q=70'))}
-  .ppic.p3 .pimg{background-image:var(--img-3,url('https://images.unsplash.com/photo-1521295121783-8a321d551ad2?auto=format&fit=crop&w=600&q=70'))}
+  .ppic.p1 .pimg{background-image:var(--img-1,url('https://images.unsplash.com/photo-1763990897241-c40923908537?auto=format&fit=crop&w=600&q=70'))}
+  .ppic.p2 .pimg{background-image:var(--img-2,url('https://images.unsplash.com/photo-1552364708-8a19ac4e8923?auto=format&fit=crop&w=600&q=70'))}
+  .ppic.p3 .pimg{background-image:var(--img-3,url('https://images.unsplash.com/photo-1693620714112-a79a7d27308b?auto=format&fit=crop&w=600&q=70'))}
   .ppic.fallback .pimg{background:linear-gradient(135deg,var(--warm-soft),var(--warm));position:relative}
   .ppic.fallback .pimg::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.4),transparent 60%)}
   .ppic.fallback.p2 .pimg{background:linear-gradient(135deg,var(--bg-2),var(--ink-4))}
@@ -175,7 +185,7 @@
   .about{padding:120px 0;background:var(--bg-2)}
   .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
   .about-img-wrap{aspect-ratio:4/5;border-radius:32px;overflow:hidden;background:var(--bg-3);position:relative}
-  .about-img{position:absolute;inset:0;background:var(--bg-3) center/cover;background-image:var(--about-img,url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=700&q=70'));transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}
+  .about-img{position:absolute;inset:0;background:var(--bg-3) center/cover;background-image:var(--about-img,url('https://images.unsplash.com/photo-1632178151697-fd971baa906f?auto=format&fit=crop&w=700&q=70'));transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}
   .about-img-wrap:hover .about-img{transform:scale(1.05)}
   .about-img-tag{position:absolute;left:24px;bottom:24px;display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);border-radius:999px;font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:500;color:var(--ink);z-index:2}
   .about-img-tag .dot{width:8px;height:8px;border-radius:50%;background:var(--warm)}
@@ -530,12 +540,12 @@
     <button class="gallery-nav next" id="gnext" aria-label="Siguiente">→</button>
     <div class="container">
       <div class="gallery-scroll" id="gscroll">
-        <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>01</small><strong>El interior</strong></div></div>
-        <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1559026912-99b51309cb3a?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>02</small><strong>Detalle</strong></div></div>
-        <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1521295121783-8a321d551ad2?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>03</small><strong>Equipo</strong></div></div>
-        <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>04</small><strong>En el día</strong></div></div>
-        <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>05</small><strong>Espacio</strong></div></div>
-        <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>06</small><strong>Conversación</strong></div></div>
+        <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1658476293101-4181a2afc8f4?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>01</small><strong>El viaje</strong></div></div>
+        <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1552364708-8a19ac4e8923?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>02</small><strong>Playa</strong></div></div>
+        <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1693620714112-a79a7d27308b?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>03</small><strong>Documentación</strong></div></div>
+        <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1632178151697-fd971baa906f?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>04</small><strong>La ruta</strong></div></div>
+        <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1768751350689-07f19551adbd?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>05</small><strong>Salidas</strong></div></div>
+        <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>06</small><strong>Destino</strong></div></div>
       </div>
     </div>
   </div>
@@ -688,13 +698,118 @@
   </div>
 </footer>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+(function () {
+  var p = new URLSearchParams(location.search);
+  if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
+  var s = document.createElement('script');
+  s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  s.crossOrigin = '';
+  document.head.appendChild(s);
+})();
+</script>
+<style>
+/* En modo preview, los enlaces externos y botones de acción no parecen clicables. */
+html.lw-preview-inert a[href^="tel:"],
+html.lw-preview-inert a[href^="mailto:"],
+html.lw-preview-inert a[href^="http"],
+html.lw-preview-inert a[target="_blank"],
+html.lw-preview-inert a[download],
+html.lw-preview-inert a[data-wa-link],
+html.lw-preview-inert a[data-tel-link],
+html.lw-preview-inert #tplBookingLink,
+html.lw-preview-inert #tplVcardLink,
+html.lw-preview-inert #tplGbizLink,
+html.lw-preview-inert #tplMapsExternalLink,
+html.lw-preview-inert #tplSocialInstagram,
+html.lw-preview-inert #tplSocialTiktok,
+html.lw-preview-inert #tplSocialFacebook {
+  cursor: default !important;
+}
+/* Navegación interna sigue como puntero. Se aplica por especificidad mayor. */
+html.lw-preview-inert a[href^="#"] {
+  cursor: pointer !important;
+}
+</style>
+<script>
+/* ─────────────────────────────────────────────────────────────────
+ * Modo preview (?preview=1): TODOS los elementos clicables quedan
+ * inertes excepto navegación interna (#anchors), el burger del nav
+ * móvil y los controles de Leaflet. La SPA del onboarding pasa
+ * preview=1 en thumbnails, en el modal "Ver" del paso 1 y en los
+ * previews laterales de los pasos 2+. La web pública del cliente
+ * NO pasa este flag, así que ahí los botones funcionan normal.
+ * ───────────────────────────────────────────────────────────────── */
+(function initPreviewInertMode() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('preview') !== '1') return;
+  document.documentElement.classList.add('lw-preview-inert');
+
+  function isAllowed(target) {
+    if (!target || target.nodeType !== 1) return false;
+    // 1) Anchor a sección interna: <a href="#xxx">
+    if (target.tagName === 'A') {
+      var href = target.getAttribute('href') || '';
+      if (href.charAt(0) === '#' && href.length > 1) return true;
+    }
+    // 2) Burger del menú móvil
+    if (target.id === 'burger') return true;
+    // 3) Controles internos de Leaflet
+    if (target.className && typeof target.className === 'string' &&
+        target.className.indexOf('leaflet-') === 0) return true;
+    return false;
+  }
+
+  function findClickable(node) {
+    var el = node;
+    while (el && el !== document.body) {
+      if (el.nodeType === 1 && (el.tagName === 'A' || el.tagName === 'BUTTON' || isAllowed(el))) {
+        return el;
+      }
+      el = el.parentNode;
+    }
+    return null;
+  }
+
+  function findAncestorWithLeaflet(node) {
+    var el = node;
+    while (el && el !== document.body) {
+      if (el.nodeType === 1 && el.className && typeof el.className === 'string') {
+        if (el.className.indexOf('leaflet-') >= 0) return true;
+      }
+      el = el.parentNode;
+    }
+    return false;
+  }
+
+  document.addEventListener('click', function (e) {
+    var clickable = findClickable(e.target);
+    if (!clickable) return;
+    if (isAllowed(clickable)) return;
+    if (findAncestorWithLeaflet(e.target)) return;
+    e.preventDefault();
+    e.stopPropagation();
+  }, true); // capture: nos ejecutamos antes que cualquier handler de la página
+
+  // También bloqueamos el "submit" por si algún template tuviese un <form>
+  document.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
+})();
+</script>
 <script src="/templates/lw-contact-links.js?v=2"></script>
 <script>
-if (new URLSearchParams(window.location.search).get('embed') === '1') {
-  document.documentElement.classList.add('embed-preview-root');
-  document.body.classList.add('embed-preview');
-}
+(function initVersaPreviewModeClasses() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('embed') === '1') {
+    document.documentElement.classList.add('embed-preview-root');
+    document.body.classList.add('embed-preview');
+  }
+  if (params.get('preview') === '1') {
+    document.body.classList.add('versa-preview');
+  }
+})();
 
 const VERSA_SCHEDULE_DEFAULT = [
   { name: 'Lunes', idx: 1, open: '10:00', close: '21:00', split: false },
@@ -778,7 +893,37 @@ function buildDirectionsUrlFromRaw(raw) {
   return '';
 }
 
-var VERSA_DEFAULT_GALLERY_INNER = "<div class=\"gimg\"><div class=\"gimg-bg\" style=\"background-image:url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=700&q=70')\"></div><div class=\"gimg-overlay\"><small>01</small><strong>El interior</strong></div></div><div class=\"gimg\"><div class=\"gimg-bg\" style=\"background-image:url('https://images.unsplash.com/photo-1559026912-99b51309cb3a?auto=format&fit=crop&w=700&q=70')\"></div><div class=\"gimg-overlay\"><small>02</small><strong>Detalle</strong></div></div><div class=\"gimg\"><div class=\"gimg-bg\" style=\"background-image:url('https://images.unsplash.com/photo-1521295121783-8a321d551ad2?auto=format&fit=crop&w=700&q=70')\"></div><div class=\"gimg-overlay\"><small>03</small><strong>Equipo</strong></div></div><div class=\"gimg\"><div class=\"gimg-bg\" style=\"background-image:url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=700&q=70')\"></div><div class=\"gimg-overlay\"><small>04</small><strong>En el d\u00eda</strong></div></div><div class=\"gimg\"><div class=\"gimg-bg\" style=\"background-image:url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=700&q=70')\"></div><div class=\"gimg-overlay\"><small>05</small><strong>Espacio</strong></div></div><div class=\"gimg\"><div class=\"gimg-bg\" style=\"background-image:url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=700&q=70')\"></div><div class=\"gimg-overlay\"><small>06</small><strong>Conversaci\u00f3n</strong></div></div>";
+/** Agencia de viajes — solo en vista previa (?embed=1 o ?preview=1). */
+var VERSA_PREVIEW_SAMPLE = {
+  portada: 'https://images.unsplash.com/photo-1763990897241-c40923908537?auto=format&fit=crop&w=1200&q=80',
+  portada_2: 'https://images.unsplash.com/photo-1552364708-8a19ac4e8923?auto=format&fit=crop&w=1000&q=80',
+  portada_3: 'https://images.unsplash.com/photo-1693620714112-a79a7d27308b?auto=format&fit=crop&w=1000&q=80',
+  foto_equipo: 'https://images.unsplash.com/photo-1632178151697-fd971baa906f?auto=format&fit=crop&w=1000&q=80',
+};
+
+function shouldUseVersaSampleMedia() {
+  return document.body.classList.contains('embed-preview') || document.body.classList.contains('versa-preview');
+}
+
+function isVersaSampleUrl(url) {
+  if (!url) return false;
+  var u = String(url);
+  return (
+    u === VERSA_PREVIEW_SAMPLE.portada ||
+    u === VERSA_PREVIEW_SAMPLE.portada_2 ||
+    u === VERSA_PREVIEW_SAMPLE.portada_3 ||
+    u === VERSA_PREVIEW_SAMPLE.foto_equipo
+  );
+}
+
+function versaResolvePreviewPhotoSrc(userSrc, sampleKey) {
+  var src = userSrc ? String(userSrc).trim() : '';
+  if (src) return src;
+  if (!shouldUseVersaSampleMedia()) return '';
+  return VERSA_PREVIEW_SAMPLE[sampleKey] || '';
+}
+
+var VERSA_DEFAULT_GALLERY_INNER = "<div class=\"gimg\"><div class=\"gimg-bg\" style=\"background-image:url('https://images.unsplash.com/photo-1658476293101-4181a2afc8f4?auto=format&fit=crop&w=700&q=70')\"></div><div class=\"gimg-overlay\"><small>01</small><strong>El viaje</strong></div></div><div class=\"gimg\"><div class=\"gimg-bg\" style=\"background-image:url('https://images.unsplash.com/photo-1552364708-8a19ac4e8923?auto=format&fit=crop&w=700&q=70')\"></div><div class=\"gimg-overlay\"><small>02</small><strong>Playa</strong></div></div><div class=\"gimg\"><div class=\"gimg-bg\" style=\"background-image:url('https://images.unsplash.com/photo-1693620714112-a79a7d27308b?auto=format&fit=crop&w=700&q=70')\"></div><div class=\"gimg-overlay\"><small>03</small><strong>Documentación</strong></div></div><div class=\"gimg\"><div class=\"gimg-bg\" style=\"background-image:url('https://images.unsplash.com/photo-1632178151697-fd971baa906f?auto=format&fit=crop&w=700&q=70')\"></div><div class=\"gimg-overlay\"><small>04</small><strong>La ruta</strong></div></div><div class=\"gimg\"><div class=\"gimg-bg\" style=\"background-image:url('https://images.unsplash.com/photo-1768751350689-07f19551adbd?auto=format&fit=crop&w=700&q=70')\"></div><div class=\"gimg-overlay\"><small>05</small><strong>Salidas</strong></div></div><div class=\"gimg\"><div class=\"gimg-bg\" style=\"background-image:url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=700&q=70')\"></div><div class=\"gimg-overlay\"><small>06</small><strong>Destino</strong></div></div>";
 
 function renderVersaGallery(urls) {
   var root = document.getElementById('gscroll');
@@ -811,6 +956,7 @@ function renderVersaGallery(urls) {
 function versaHeroPhotoUrl(src) {
   var url = src ? String(src).trim() : '';
   if (!url) return '';
+  if (isVersaSampleUrl(url)) return url;
   if (/^https?:\/\//i.test(url)) {
     var sep = url.indexOf('?') >= 0 ? '&' : '?';
     return url + sep + 'lwts=' + Date.now();
@@ -841,10 +987,14 @@ function renderVersaHeroDateBadge() {
 
 /** Misma convención que tavola-warm: portada, portada_2 y portada_3 → polaroids p1–p3. */
 function updateVersaHeroImage(raw) {
-  if (!raw || !Object.prototype.hasOwnProperty.call(raw, 'portada')) return;
-  versaSetPpicBg(document.getElementById('ppic1Img'), raw.portada);
-  versaSetPpicBg(document.getElementById('ppic2Img'), raw.portada_2);
-  versaSetPpicBg(document.getElementById('ppic3Img'), raw.portada_3);
+  raw = raw || {};
+  var hasPortada = Object.prototype.hasOwnProperty.call(raw, 'portada');
+  var hasP2 = Object.prototype.hasOwnProperty.call(raw, 'portada_2');
+  var hasP3 = Object.prototype.hasOwnProperty.call(raw, 'portada_3');
+  if (!hasPortada && !hasP2 && !hasP3 && !shouldUseVersaSampleMedia()) return;
+  versaSetPpicBg(document.getElementById('ppic1Img'), versaResolvePreviewPhotoSrc(raw.portada, 'portada'));
+  versaSetPpicBg(document.getElementById('ppic2Img'), versaResolvePreviewPhotoSrc(raw.portada_2, 'portada_2'));
+  versaSetPpicBg(document.getElementById('ppic3Img'), versaResolvePreviewPhotoSrc(raw.portada_3, 'portada_3'));
 }
 
 var versaPreviewMap = null;
@@ -862,7 +1012,7 @@ function destroyVersaPreviewMap() {
 }
 
 function versaMapIcon() {
-  if (typeof L === 'undefined') return null;
+  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return null;
   var html =
     '<div style="width:34px;height:34px;background:#15171A;border:3px solid #fff;border-radius:50%;box-shadow:0 4px 16px rgba(0,0,0,.3);display:grid;place-items:center;color:#C7634D;font-family:Bricolage Grotesque,sans-serif;font-weight:700">●</div>';
   return L.divIcon({ html: html, className: '', iconSize: [34, 34], iconAnchor: [17, 17] });
@@ -876,13 +1026,14 @@ function updatePreviewMapEmbed(lat, lon, addressLine) {
     destroyVersaPreviewMap();
     return;
   }
-  if (typeof L === 'undefined') return;
+  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
   var name = (container.getAttribute('data-name') || '').trim() || 'Aquí estamos';
   var addr = (addressLine || container.getAttribute('data-addr') || '').trim();
   container.setAttribute('data-lat', String(lat));
   container.setAttribute('data-lng', String(lon));
 
   function applyMap() {
+    if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
     if (!versaPreviewMap) {
       versaPreviewMap = L.map(container, {
         zoomControl: true,
@@ -1267,8 +1418,16 @@ function applyLivePreviewData(raw, opts) {
   }
 
   var aboutImg = document.getElementById('aboutImg');
-  if (aboutImg && fotoEquipo) {
-    aboutImg.style.backgroundImage = 'url("' + fotoEquipo.replace(/"/g, '\\"') + '")';
+  if (aboutImg) {
+    var hasFoto = Object.prototype.hasOwnProperty.call(raw, 'foto_equipo');
+    if (hasFoto || shouldUseVersaSampleMedia()) {
+      var aboutSrc = versaResolvePreviewPhotoSrc(raw.foto_equipo, 'foto_equipo');
+      if (aboutSrc) {
+        aboutImg.style.backgroundImage = 'url("' + aboutSrc.replace(/"/g, '\\"') + '")';
+      } else {
+        aboutImg.style.removeProperty('background-image');
+      }
+    }
   }
 
   var sigName = document.querySelector('.about-sig-text strong');
@@ -1321,7 +1480,11 @@ function applyLivePreviewData(raw, opts) {
 
   updateVersaHeroImage(raw);
   var galeria = Array.isArray(raw.galeria) ? raw.galeria.filter(Boolean) : [];
-  if (galeria.length) renderVersaGallery(galeria);
+  if (Object.prototype.hasOwnProperty.call(raw, 'galeria')) {
+    renderVersaGallery(galeria);
+  } else if (galeria.length) {
+    renderVersaGallery(galeria);
+  }
 
   if (raw.horario != null && (typeof raw.horario === 'object' || versaHasStr(raw.horario))) {
     syncVersaScheduleFromPreview(raw.horario);
@@ -1342,11 +1505,40 @@ function applyLivePreviewData(raw, opts) {
   if (opts.alignToHash) scrollEmbedPreviewToHash();
 }
 
+(function initVersaPreviewSampleMedia() {
+  if (!shouldUseVersaSampleMedia()) return;
+  function boot() {
+    updateVersaHeroImage({ portada: '', portada_2: '', portada_3: '' });
+    var aboutImg = document.getElementById('aboutImg');
+    if (aboutImg) {
+      aboutImg.style.backgroundImage =
+        'url("' + VERSA_PREVIEW_SAMPLE.foto_equipo.replace(/"/g, '\\"') + '")';
+    }
+    renderVersaGallery([]);
+    var hero = document.getElementById('hero');
+    if (hero) hero.classList.add('in');
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+
 (function initLivePreviewFromQuery() {
   var params = new URLSearchParams(window.location.search);
   if (!params.has('preview')) {
     syncVersaTemplateExtensions({});
     syncVersaFooter({});
+    if (shouldUseVersaSampleMedia()) {
+      updateVersaHeroImage({ portada: '', portada_2: '', portada_3: '' });
+      var aboutImg = document.getElementById('aboutImg');
+      if (aboutImg) {
+        aboutImg.style.backgroundImage =
+          'url("' + VERSA_PREVIEW_SAMPLE.foto_equipo.replace(/"/g, '\\"') + '")';
+      }
+      renderVersaGallery([]);
+    }
     return;
   }
   var payload = {

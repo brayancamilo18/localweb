@@ -11,7 +11,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500;1,700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script>
+(function () {
+  var p = new URLSearchParams(location.search);
+  if (p.get('thumb') === '1') return;
+  var l = document.createElement('link');
+  l.rel = 'stylesheet';
+  l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  l.crossOrigin = '';
+  document.head.appendChild(l);
+})();
+</script>
 <style>
   :root{
     --bg:#FFFFFF; --bg-2:#F4F4F2; --bg-3:#E8E7E3;
@@ -111,9 +121,9 @@
   .hero.in .sphoto:nth-child(3)::before{transition-delay:.36s}
   .sphoto:hover{filter:grayscale(0) contrast(1)}
   /* staircase positions */
-  .sphoto.s1{top:0;left:0;width:38%;height:62%;background-image:var(--img-1,url('https://images.unsplash.com/photo-1554080353-a576cf803bda?auto=format&fit=crop&w=700&q=75'))}
-  .sphoto.s2{top:18%;left:34%;width:38%;height:64%;z-index:2;background-image:var(--img-2,url('https://images.unsplash.com/photo-1542038784456-1ea8e935640e?auto=format&fit=crop&w=700&q=75'))}
-  .sphoto.s3{top:36%;right:0;width:34%;height:62%;background-image:var(--img-3,url('https://images.unsplash.com/photo-1502920917128-1aa500764cbd?auto=format&fit=crop&w=700&q=75'))}
+  .sphoto.s1{top:0;left:0;width:38%;height:62%;background-image:var(--img-1,url('https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=700&q=75'))}
+  .sphoto.s2{top:18%;left:34%;width:38%;height:64%;z-index:2;background-image:var(--img-2,url('https://images.unsplash.com/photo-1650044252595-cacd425982ff?auto=format&fit=crop&w=700&q=75'))}
+  .sphoto.s3{top:36%;right:0;width:34%;height:62%;background-image:var(--img-3,url('https://images.unsplash.com/photo-1630595632518-8217c0bceb8f?auto=format&fit=crop&w=700&q=75'))}
   .sphoto.fallback{background:linear-gradient(180deg,var(--ink),var(--ink-2));filter:none}
   .sphoto.fallback.s2{background:linear-gradient(180deg,var(--bg-2),var(--bg-3))}
   .sphoto.fallback.s3{background:linear-gradient(180deg,var(--accent),#A8351E)}
@@ -179,7 +189,7 @@
   .about-cols p{margin-bottom:18px;break-inside:avoid}
   .about-cols p strong{color:var(--ink);font-weight:600}
   .about-side{position:sticky;top:120px}
-  .about-photo{aspect-ratio:3/4;background:var(--bg-3) center/cover;background-image:var(--about-img,url('https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=700&q=75'));filter:grayscale(1);transition:filter .8s}
+  .about-photo{aspect-ratio:3/4;background:var(--bg-3) center/cover;background-image:var(--about-img,url('https://images.unsplash.com/photo-1559185590-765cdc663325?auto=format&fit=crop&w=700&q=75'));filter:grayscale(1);transition:filter .8s}
   .about-photo:hover{filter:grayscale(0)}
   .about-cap{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--ink-3);letter-spacing:.16em;text-transform:uppercase;margin-top:14px;line-height:1.6;display:flex;justify-content:space-between;gap:16px;padding-top:12px;border-top:1px solid var(--ink)}
   .about-cap strong{color:var(--ink);font-family:"Playfair Display",serif;font-size:16px;font-weight:500;letter-spacing:-.005em;text-transform:none;font-style:italic}
@@ -354,7 +364,7 @@
 <nav class="nav" id="nav">
   <div class="nav-inner">
     <ul class="nav-left">
-      <li id="navServiciosLi"><a href="#servicios" class="lnk">Servicios</a></li>
+      <li id="navServiciosLi" style="display:none;"><a href="#servicios" class="lnk">Servicios</a></li>
       <li><a href="#sobre-nosotros" class="lnk">Nosotros</a></li>
       <li><a href="#galeria" class="lnk">Galería</a></li>
     </ul>
@@ -364,7 +374,7 @@
     </a>
     <ul class="nav-right">
       <li><a href="#horario" class="lnk">Horario</a></li>
-      <li id="navOpinionesLi"><a href="#opiniones" class="lnk">Opiniones</a></li>
+      <li id="navOpinionesLi" style="display:none;"><a href="#opiniones" class="lnk">Opiniones</a></li>
       <li><a href="#contacto" class="lnk">Contacto</a></li>
       <li><a href="https://wa.me/" data-wa-link target="_blank" rel="noopener noreferrer" class="nav-cta">Reservar</a></li>
     </ul>
@@ -375,11 +385,11 @@
 <aside class="mobile-menu" id="mobile-menu" aria-hidden="true">
   <button type="button" class="mobile-menu-close" id="mobileMenuClose" aria-label="Cerrar menú">×</button>
   <ul>
-    <li id="navServiciosMobileLi"><a href="#servicios">Servicios</a></li>
+    <li id="navServiciosMobileLi" style="display:none;"><a href="#servicios">Servicios</a></li>
     <li><a href="#sobre-nosotros">Sobre <em>nosotros</em></a></li>
     <li><a href="#galeria">Galería</a></li>
     <li><a href="#horario">Horario</a></li>
-    <li id="navOpinionesMobileLi"><a href="#opiniones">Opiniones</a></li>
+    <li id="navOpinionesMobileLi" style="display:none;"><a href="#opiniones">Opiniones</a></li>
     <li><a href="#contacto"><em>Contacto</em></a></li>
   </ul>
   <a href="https://wa.me/" data-wa-link target="_blank" rel="noopener noreferrer" class="mobile-cta">Reservar</a>
@@ -438,7 +448,7 @@
 </div>
 
 <!-- 4. SERVICIOS · acordeón -->
-<section id="servicios" data-section="servicios">
+<section id="servicios" class="is-hidden" data-section="servicios">
   <div class="container-tight">
     <div class="section-num slide-up"><span>§ 01 — Servicios</span></div>
     <div class="section-head slide-up">
@@ -511,13 +521,13 @@
     </div>
   </div>
   <div class="gallery-grid" id="galleryGrid">
-    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1554080353-a576cf803bda?auto=format&fit=crop&w=900&q=75')"></div></div>
-    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1542038784456-1ea8e935640e?auto=format&fit=crop&w=700&q=75')"></div></div>
-    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1502920917128-1aa500764cbd?auto=format&fit=crop&w=700&q=75')"></div></div>
-    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=700&q=75')"></div></div>
-    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=700&q=75')"></div></div>
-    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=75')"></div></div>
-    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1559026912-99b51309cb3a?auto=format&fit=crop&w=900&q=75')"></div></div>
+    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=900&q=75')"></div></div>
+    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1650044252595-cacd425982ff?auto=format&fit=crop&w=700&q=75')"></div></div>
+    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1757689314932-bec6e9c39e51?auto=format&fit=crop&w=700&q=75')"></div></div>
+    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1630595632518-8217c0bceb8f?auto=format&fit=crop&w=700&q=75')"></div></div>
+    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1672015521020-ab4f86d5cc00?auto=format&fit=crop&w=700&q=75')"></div></div>
+    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1671493228689-754b0f200c84?auto=format&fit=crop&w=700&q=75')"></div></div>
+    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1559185590-765cdc663325?auto=format&fit=crop&w=700&q=75')"></div></div>
   </div>
 </section>
 
@@ -569,7 +579,7 @@
 </section>
 
 <!-- 10. OPINIONES -->
-<section id="opiniones" class="reviews-cta" data-section="opiniones">
+<section id="opiniones" class="reviews-cta is-hidden" data-section="opiniones">
   <div class="reviews-cta-inner">
     <span class="eyebrow">Reseñas</span>
     <div class="gscore serif">{{nota_google}}<em>/5</em></div>
@@ -581,7 +591,7 @@
 </section>
 
 <!-- 11. VCARD -->
-<section class="vcard" class="vcard is-hidden" data-section="vcard">
+<section class="vcard is-hidden" data-section="vcard">
   <div class="vcard-inner">
     <h3 class="serif">Guarda nuestro <em>contacto</em>.</h3>
     <a href="#" id="vcardBtn" class="vcard-btn" download="{{nombre}}.vcf">↓ Tarjeta de contacto</a>
@@ -611,10 +621,10 @@
     <div>
       <h4>Sumario</h4>
       <ul>
-        <li id="footNavServicios"><a href="#servicios">Servicios</a></li>
+        <li id="footNavServicios" style="display:none;"><a href="#servicios">Servicios</a></li>
         <li><a href="#sobre-nosotros">Editorial</a></li>
         <li><a href="#galeria">Galería</a></li>
-        <li id="footNavOpiniones"><a href="#opiniones">Reseñas</a></li>
+        <li id="footNavOpiniones" style="display:none;"><a href="#opiniones">Reseñas</a></li>
       </ul>
     </div>
     <div>
@@ -641,13 +651,118 @@
   </div>
 </footer>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(function () {
+  var p = new URLSearchParams(location.search);
+  if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
+  var s = document.createElement('script');
+  s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  s.crossOrigin = '';
+  document.head.appendChild(s);
+})();
+</script>
+<style>
+/* En modo preview, los enlaces externos y botones de acción no parecen clicables. */
+html.lw-preview-inert a[href^="tel:"],
+html.lw-preview-inert a[href^="mailto:"],
+html.lw-preview-inert a[href^="http"],
+html.lw-preview-inert a[target="_blank"],
+html.lw-preview-inert a[download],
+html.lw-preview-inert a[data-wa-link],
+html.lw-preview-inert a[data-tel-link],
+html.lw-preview-inert #tplBookingLink,
+html.lw-preview-inert #tplVcardLink,
+html.lw-preview-inert #tplGbizLink,
+html.lw-preview-inert #tplMapsExternalLink,
+html.lw-preview-inert #tplSocialInstagram,
+html.lw-preview-inert #tplSocialTiktok,
+html.lw-preview-inert #tplSocialFacebook {
+  cursor: default !important;
+}
+/* Navegación interna sigue como puntero. Se aplica por especificidad mayor. */
+html.lw-preview-inert a[href^="#"] {
+  cursor: pointer !important;
+}
+</style>
+<script>
+/* ─────────────────────────────────────────────────────────────────
+ * Modo preview (?preview=1): TODOS los elementos clicables quedan
+ * inertes excepto navegación interna (#anchors), el burger del nav
+ * móvil y los controles de Leaflet. La SPA del onboarding pasa
+ * preview=1 en thumbnails, en el modal "Ver" del paso 1 y en los
+ * previews laterales de los pasos 2+. La web pública del cliente
+ * NO pasa este flag, así que ahí los botones funcionan normal.
+ * ───────────────────────────────────────────────────────────────── */
+(function initPreviewInertMode() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('preview') !== '1') return;
+  document.documentElement.classList.add('lw-preview-inert');
+
+  function isAllowed(target) {
+    if (!target || target.nodeType !== 1) return false;
+    // 1) Anchor a sección interna: <a href="#xxx">
+    if (target.tagName === 'A') {
+      var href = target.getAttribute('href') || '';
+      if (href.charAt(0) === '#' && href.length > 1) return true;
+    }
+    // 2) Burger del menú móvil
+    if (target.id === 'burger') return true;
+    // 3) Controles internos de Leaflet
+    if (target.className && typeof target.className === 'string' &&
+        target.className.indexOf('leaflet-') === 0) return true;
+    return false;
+  }
+
+  function findClickable(node) {
+    var el = node;
+    while (el && el !== document.body) {
+      if (el.nodeType === 1 && (el.tagName === 'A' || el.tagName === 'BUTTON' || isAllowed(el))) {
+        return el;
+      }
+      el = el.parentNode;
+    }
+    return null;
+  }
+
+  function findAncestorWithLeaflet(node) {
+    var el = node;
+    while (el && el !== document.body) {
+      if (el.nodeType === 1 && el.className && typeof el.className === 'string') {
+        if (el.className.indexOf('leaflet-') >= 0) return true;
+      }
+      el = el.parentNode;
+    }
+    return false;
+  }
+
+  document.addEventListener('click', function (e) {
+    var clickable = findClickable(e.target);
+    if (!clickable) return;
+    if (isAllowed(clickable)) return;
+    if (findAncestorWithLeaflet(e.target)) return;
+    e.preventDefault();
+    e.stopPropagation();
+  }, true); // capture: nos ejecutamos antes que cualquier handler de la página
+
+  // También bloqueamos el "submit" por si algún template tuviese un <form>
+  document.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
+})();
+</script>
 <script src="/templates/lw-contact-links.js?v=2"></script>
 <script>
-if (new URLSearchParams(window.location.search).get('embed') === '1') {
-  document.documentElement.classList.add('embed-preview-root');
-  document.body.classList.add('embed-preview');
-}
+(function initMonoPreviewModeClasses() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('embed') === '1') {
+    document.documentElement.classList.add('embed-preview-root');
+    document.body.classList.add('embed-preview');
+  }
+  if (params.get('preview') === '1') {
+    document.body.classList.add('mono-preview');
+  }
+})();
 
 var MONO_SCHEDULE_DEFAULT = [
   { name: 'Lun', full: 'Lunes', idx: 1, open: '10:00', close: '20:00' },
@@ -689,6 +804,33 @@ function formatMonoPrice(p) {
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
 }
 
+/** Spa / bienestar — solo en vista previa (?embed=1 o ?preview=1). */
+var MONO_PREVIEW_SAMPLE = {
+  portada: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80',
+  portada_2: 'https://images.unsplash.com/photo-1650044252595-cacd425982ff?auto=format&fit=crop&w=1000&q=80',
+  portada_3: 'https://images.unsplash.com/photo-1630595632518-8217c0bceb8f?auto=format&fit=crop&w=1000&q=80',
+  foto_equipo: 'https://images.unsplash.com/photo-1559185590-765cdc663325?auto=format&fit=crop&w=1000&q=80',
+};
+
+function shouldUseMonoSampleMedia() {
+  return document.body.classList.contains('embed-preview') || document.body.classList.contains('mono-preview');
+}
+
+function monoResolvePreviewPhotoSrc(userSrc, sampleKey) {
+  var src = userSrc ? String(userSrc).trim() : '';
+  if (src) return src;
+  if (!shouldUseMonoSampleMedia()) return '';
+  return MONO_PREVIEW_SAMPLE[sampleKey] || '';
+}
+
+var MONO_DEFAULT_GALLERY_INNER =
+  '<div class="gimg"><div class="gimg-bg" style="background-image:url(\'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=900&q=75\')"></div></div>' +
+  '<div class="gimg"><div class="gimg-bg" style="background-image:url(\'https://images.unsplash.com/photo-1650044252595-cacd425982ff?auto=format&fit=crop&w=700&q=75\')"></div></div>' +
+  '<div class="gimg"><div class="gimg-bg" style="background-image:url(\'https://images.unsplash.com/photo-1757689314932-bec6e9c39e51?auto=format&fit=crop&w=700&q=75\')"></div></div>' +
+  '<div class="gimg"><div class="gimg-bg" style="background-image:url(\'https://images.unsplash.com/photo-1630595632518-8217c0bceb8f?auto=format&fit=crop&w=700&q=75\')"></div></div>' +
+  '<div class="gimg"><div class="gimg-bg" style="background-image:url(\'https://images.unsplash.com/photo-1672015521020-ab4f86d5cc00?auto=format&fit=crop&w=700&q=75\')"></div></div>' +
+  '<div class="gimg"><div class="gimg-bg" style="background-image:url(\'https://images.unsplash.com/photo-1671493228689-754b0f200c84?auto=format&fit=crop&w=700&q=75\')"></div></div>' +
+  '<div class="gimg"><div class="gimg-bg" style="background-image:url(\'https://images.unsplash.com/photo-1559185590-765cdc663325?auto=format&fit=crop&w=700&q=75\')"></div></div>';
 function buildMonoDirectionsUrl(raw) {
   raw = raw || {};
   var manual = (raw.google_maps_url || '').trim();
@@ -797,16 +939,22 @@ function monoSetHeroPhoto(el, src) {
 }
 
 function updateMonoHeroPhotos(raw) {
-  if (!raw || !Object.prototype.hasOwnProperty.call(raw, 'portada')) return;
-  monoSetHeroPhoto(document.getElementById('heroPhoto1'), raw.portada);
-  monoSetHeroPhoto(document.getElementById('heroPhoto2'), raw.portada_2);
-  monoSetHeroPhoto(document.getElementById('heroPhoto3'), raw.portada_3);
+  raw = raw || {};
+  var hasP1 = Object.prototype.hasOwnProperty.call(raw, 'portada');
+  var hasP2 = Object.prototype.hasOwnProperty.call(raw, 'portada_2');
+  var hasP3 = Object.prototype.hasOwnProperty.call(raw, 'portada_3');
+  if (!hasP1 && !hasP2 && !hasP3 && !shouldUseMonoSampleMedia()) return;
+  monoSetHeroPhoto(document.getElementById('heroPhoto1'), monoResolvePreviewPhotoSrc(raw.portada, 'portada'));
+  monoSetHeroPhoto(document.getElementById('heroPhoto2'), monoResolvePreviewPhotoSrc(raw.portada_2, 'portada_2'));
+  monoSetHeroPhoto(document.getElementById('heroPhoto3'), monoResolvePreviewPhotoSrc(raw.portada_3, 'portada_3'));
 }
 
 function updateMonoAboutPhoto(raw) {
   var el = document.getElementById('aboutPhoto');
-  if (!el || !raw || !Object.prototype.hasOwnProperty.call(raw, 'foto_equipo')) return;
-  var src = raw.foto_equipo ? String(raw.foto_equipo).trim() : '';
+  if (!el) return;
+  var hasFoto = raw && Object.prototype.hasOwnProperty.call(raw, 'foto_equipo');
+  if (!hasFoto && !shouldUseMonoSampleMedia()) return;
+  var src = monoResolvePreviewPhotoSrc(raw && raw.foto_equipo, 'foto_equipo');
   if (src) {
     el.style.backgroundImage = 'url("' + escapeMonoAttr(src) + '")';
   } else {
@@ -818,7 +966,10 @@ function renderMonoGallery(urls) {
   var root = document.getElementById('galleryGrid');
   if (!root) return;
   var list = Array.isArray(urls) ? urls.filter(Boolean) : [];
-  if (list.length === 0) return;
+  if (list.length === 0) {
+    root.innerHTML = MONO_DEFAULT_GALLERY_INNER;
+    return;
+  }
   root.innerHTML = list
     .slice(0, 7)
     .map(function (src) {
@@ -848,9 +999,22 @@ function bindMonoAccordion() {
 function renderMonoServices(services) {
   var list = document.getElementById('monoServicesList');
   var sec = document.getElementById('servicios');
+  var navSvc = document.getElementById('navServiciosLi');
+  var navSvcMob = document.getElementById('navServiciosMobileLi');
+  var footSvc = document.getElementById('footNavServicios');
   if (!list || !sec) return;
-  if (!services.length) return;
+  if (!services.length) {
+    sec.classList.add('is-hidden');
+    list.innerHTML = '';
+    if (navSvc) navSvc.style.display = 'none';
+    if (navSvcMob) navSvcMob.style.display = 'none';
+    if (footSvc) footSvc.style.display = 'none';
+    return;
+  }
   sec.classList.remove('is-hidden');
+  if (navSvc) navSvc.style.display = '';
+  if (navSvcMob) navSvcMob.style.display = '';
+  if (footSvc) footSvc.style.display = '';
   list.innerHTML = services
     .slice(0, 9)
     .map(function (s, i) {
@@ -901,12 +1065,13 @@ function destroyMonoPreviewMap() {
 
 function updateMonoPreviewMap(lat, lon, label) {
   var el = document.getElementById('map');
-  if (!el || typeof L === 'undefined') return;
+  if (!el || window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
     destroyMonoPreviewMap();
     return;
   }
   function applyMap() {
+    if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
     if (!monoPreviewMap) {
       monoPreviewMap = L.map(el, {
         zoomControl: true,
@@ -976,9 +1141,25 @@ function syncMonoTemplateExtensions(raw) {
 
   var gUrl = (raw.google_business_url || '').trim();
   var opSec = document.getElementById('opiniones');
-  if (opSec) opSec.classList.remove('is-hidden');
   var gBtn = document.getElementById('gbizBtn');
-  if (gBtn && gUrl) gBtn.href = gUrl;
+  var navOp = document.getElementById('navOpinionesLi');
+  var navOpMob = document.getElementById('navOpinionesMobileLi');
+  var footOp = document.getElementById('footNavOpiniones');
+  if (opSec) {
+    if (gUrl) {
+      opSec.classList.remove('is-hidden');
+      if (gBtn) gBtn.href = gUrl;
+      if (navOp) navOp.style.display = '';
+      if (navOpMob) navOpMob.style.display = '';
+      if (footOp) footOp.style.display = '';
+    } else {
+      opSec.classList.add('is-hidden');
+      if (gBtn) gBtn.removeAttribute('href');
+      if (navOp) navOp.style.display = 'none';
+      if (navOpMob) navOpMob.style.display = 'none';
+      if (footOp) footOp.style.display = 'none';
+    }
+  }
 
   var vcOn = raw.vcard_enabled === true || raw.vcard_enabled === 'true' || raw.vcard_enabled === 1;
   var vcUrl = (raw.vcard_download_url || '').trim();
@@ -1138,7 +1319,12 @@ function applyLivePreviewData(raw, opts) {
 
   updateMonoHeroPhotos(raw);
   updateMonoAboutPhoto(raw);
-  renderMonoGallery(Array.isArray(raw.galeria) ? raw.galeria : []);
+  var galeria = Array.isArray(raw.galeria) ? raw.galeria.filter(Boolean) : [];
+  if (Object.prototype.hasOwnProperty.call(raw, 'galeria')) {
+    renderMonoGallery(galeria);
+  } else if (galeria.length) {
+    renderMonoGallery(galeria);
+  }
   updateMonoTicker(raw);
   syncMonoScheduleFromPreview(raw.horario);
   renderMonoSchedule();
@@ -1156,12 +1342,38 @@ function applyLivePreviewData(raw, opts) {
   if (opts.alignToHash) scrollEmbedPreviewToHash();
 }
 
+(function initMonoPreviewSampleMedia() {
+  if (!shouldUseMonoSampleMedia()) return;
+  function boot() {
+    updateMonoHeroPhotos({ portada: '', portada_2: '', portada_3: '' });
+    updateMonoAboutPhoto({ foto_equipo: '' });
+    renderMonoGallery([]);
+    syncMonoTemplateExtensions({});
+    var hero = document.getElementById('hero');
+    if (hero) hero.classList.add('in');
+    document.querySelectorAll('.slide-up').forEach(function (el, i) {
+      setTimeout(function () { el.classList.add('in'); }, 60 + i * 140);
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+
 (function initLivePreviewFromQuery() {
   var params = new URLSearchParams(window.location.search);
   if (!params.has('preview')) {
     syncMonoScheduleFromPreview(null);
     renderMonoSchedule();
+    syncMonoTemplateExtensions({});
     bindMonoAccordion();
+    if (shouldUseMonoSampleMedia()) {
+      updateMonoHeroPhotos({ portada: '', portada_2: '', portada_3: '' });
+      updateMonoAboutPhoto({ foto_equipo: '' });
+      renderMonoGallery([]);
+    }
     return;
   }
   applyLivePreviewData({
@@ -1246,10 +1458,6 @@ function applyLivePreviewData(raw, opts) {
 
   bindMonoAccordion();
 
-  var gscore = document.querySelector('.gscore');
-  if (gscore) gscore.innerHTML = '4,9<em>/5</em>';
-  var greviews = document.querySelector('.greviews');
-  if (greviews) greviews.textContent = '120 reseñas en Google';
 })();
 </script>
 <div id="lw-gallery-lightbox" class="lw-gallery-lightbox" hidden aria-modal="true" role="dialog" aria-label="Imagen ampliada">

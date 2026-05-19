@@ -68,6 +68,11 @@ function OnboardingSkeleton() {
 export default function OnboardingPage() {
   const persistUserId = useAuthStore((s) => s.user?.id)
   const businessSubdomain = useAuthStore((s) => s.business?.subdomain)
+  const authBusiness = useAuthStore((s) => s.business)
+  const authBusinessName = authBusiness?.name?.trim() ?? ''
+  const authBusinessCity = authBusiness?.city?.trim() ?? ''
+  const authBusinessCountry = authBusiness?.country?.trim() ?? ''
+  const authBusinessCountryCode = authBusiness?.country_code?.trim().toUpperCase() ?? ''
   const {
     currentStep,
     isPendingStatus,
@@ -410,27 +415,37 @@ export default function OnboardingPage() {
       })
     }
 
-    setPreviewName(String(p?.previewName ?? d.business_name ?? signupBusinessName ?? ''))
-    setPreviewTagline(String(p?.previewTagline ?? d.tagline ?? ''))
+    const serverName =
+      typeof d.business_name === 'string' ? d.business_name.trim() : ''
+    const persistedName = typeof p?.previewName === 'string' ? p.previewName.trim() : ''
+    setPreviewName(
+      String(serverName || authBusinessName || signupBusinessName || persistedName || ''),
+    )
+    const serverTagline = typeof d.tagline === 'string' ? d.tagline.trim() : ''
+    const persistedTagline = typeof p?.previewTagline === 'string' ? p.previewTagline.trim() : ''
+    setPreviewTagline(String(serverTagline || persistedTagline || ''))
     setPreviewPhone(String(p?.previewPhone ?? d.phone ?? ''))
     setPreviewDescription(String(p?.previewDescription ?? d.description ?? ''))
     setPreviewAddress(String(p?.previewAddress ?? d.address ?? ''))
     setPreviewLocation(
       coerceLocation({
         countryCode:
-          (typeof p?.previewCountryCode === 'string' && p.previewCountryCode) ||
-          (typeof d.country_code === 'string' && d.country_code) ||
+          (typeof d.country_code === 'string' && d.country_code.trim()) ||
+          authBusinessCountryCode ||
           signupLocation.countryCode ||
+          (typeof p?.previewCountryCode === 'string' && p.previewCountryCode) ||
           undefined,
         country:
-          (typeof p?.previewCountry === 'string' && p.previewCountry) ||
-          (typeof d.country === 'string' && d.country) ||
+          (typeof d.country === 'string' && d.country.trim()) ||
+          authBusinessCountry ||
           signupLocation.country ||
+          (typeof p?.previewCountry === 'string' && p.previewCountry) ||
           undefined,
         city:
-          (typeof p?.previewCity === 'string' && p.previewCity) ||
-          (typeof d.city === 'string' && d.city) ||
+          (typeof d.city === 'string' && d.city.trim()) ||
+          authBusinessCity ||
           signupLocation.city ||
+          (typeof p?.previewCity === 'string' && p.previewCity) ||
           undefined,
       }),
     )
@@ -493,7 +508,16 @@ export default function OnboardingPage() {
       setAboutPersistDataUrl(p.aboutDataUrl)
       void dataUrlToFile(p.aboutDataUrl, 'equipo.jpg').then((f) => f && setAboutTeamFile(f))
     }
-  }, [isPendingStatus, serverDraft, persistUserId, galleryProExperience])
+  }, [
+    isPendingStatus,
+    serverDraft,
+    persistUserId,
+    galleryProExperience,
+    authBusinessName,
+    authBusinessCity,
+    authBusinessCountry,
+    authBusinessCountryCode,
+  ])
 
   /**
    * Solo borrador sintético `draftFromBusiness` (`gallery_paths` = `__synced__`): tras Stripe,
@@ -609,7 +633,11 @@ export default function OnboardingPage() {
       useServer && b?.lat != null && Number.isFinite(Number(b.lat)) ? Number(b.lat) : previewMapLat
     const mapLng =
       useServer && b?.lng != null && Number.isFinite(Number(b.lng)) ? Number(b.lng) : previewMapLng
-    const name = (previewName.trim() || b?.name || '').trim() || undefined
+    const draftName =
+      serverDraft && typeof serverDraft.business_name === 'string'
+        ? serverDraft.business_name.trim()
+        : ''
+    const name = (previewName.trim() || draftName || b?.name || authBusinessName).trim() || undefined
     let templateServices: TemplatePreviewData['templateServices'] = undefined
     if (step9Active) {
       templateServices = !proOffersServices
@@ -663,6 +691,8 @@ export default function OnboardingPage() {
     aboutLiveObjectUrl,
     previewDescription,
     previewName,
+    authBusinessName,
+    serverDraft,
     previewPhone,
     previewTagline,
     previewAddress,
@@ -759,6 +789,25 @@ export default function OnboardingPage() {
       .join(' ')
   }, [selectedTemplate, step1PreviewVariant])
 
+  const step1PreviewOverrides = useMemo<TemplatePreviewData>(
+    () => ({
+      logoUrl: step1LogoPreviewUrl,
+      logoScale: step1LogoScale,
+      businessName: templatePreviewData.businessName,
+      tagline: templatePreviewData.tagline,
+      phone: templatePreviewData.phone,
+      description: templatePreviewData.description,
+    }),
+    [
+      step1LogoPreviewUrl,
+      step1LogoScale,
+      templatePreviewData.businessName,
+      templatePreviewData.tagline,
+      templatePreviewData.phone,
+      templatePreviewData.description,
+    ],
+  )
+
   const previewFocusDescription = useMemo(() => {
     switch (currentStep) {
       case 2:
@@ -787,12 +836,7 @@ export default function OnboardingPage() {
   const renderPreview = useCallback(() => {
     switch (currentStep) {
       case 1:
-        return (
-          <TplPreview
-            variant={step1PreviewVariant}
-            previewData={{ logoUrl: step1LogoPreviewUrl, logoScale: step1LogoScale }}
-          />
-        )
+        return <TplPreview variant={step1PreviewVariant} previewData={step1PreviewOverrides} />
       case 2:
         return <PortadaPreview variant={step1PreviewVariant} previewData={templatePreviewData} />
       case 3:
@@ -816,7 +860,7 @@ export default function OnboardingPage() {
       default:
         return null
     }
-  }, [currentStep, proSetupPhase, step1PreviewVariant, step1LogoPreviewUrl, step1LogoScale, templatePreviewData])
+  }, [currentStep, proSetupPhase, step1PreviewVariant, step1PreviewOverrides, templatePreviewData])
 
   const stepBody = useMemo(() => {
     const common = { errors, isLoading }
@@ -829,6 +873,7 @@ export default function OnboardingPage() {
             onTemplatePreviewChange={setStep1PreviewVariant}
             logoFile={step1LogoFile}
             pendingRemoveLogo={step1PendingRemoveLogo}
+            previewOverrides={step1PreviewOverrides}
           />
         )
       case 2:

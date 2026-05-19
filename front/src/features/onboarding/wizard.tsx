@@ -277,6 +277,30 @@ const STEP1_TEMPLATE_PREVIEW_DEMO_BY_VARIANT: Record<Step1PreviewVariant, Templa
 }
 
 /** URL ficticia en la barra del navegador simulado del preview (solo cosmética). */
+/**
+ * Combina el demo de la plantilla con datos reales del negocio.
+ * Si hay `businessName` (u otros) en overrides, sustituyen al texto demo fijo.
+ */
+export function mergeStep1TemplatePreview(
+  variant: Step1PreviewVariant,
+  overrides?: TemplatePreviewData,
+): TemplatePreviewData {
+  const demo = STEP1_TEMPLATE_PREVIEW_DEMO_BY_VARIANT[variant]
+  if (!overrides) return { ...demo }
+  const name = overrides.businessName?.trim()
+  const tagline = overrides.tagline?.trim()
+  const phone = overrides.phone?.trim()
+  const description = overrides.description?.trim()
+  return {
+    ...demo,
+    ...overrides,
+    businessName: name || demo.businessName,
+    tagline: tagline || demo.tagline,
+    phone: phone || demo.phone,
+    description: description || demo.description,
+  }
+}
+
 function previewDemoHostForVariant(variant: Step1PreviewVariant): string {
   switch (variant) {
     case 'noir-elite':
@@ -309,6 +333,21 @@ function previewDemoHostForVariant(variant: Step1PreviewVariant): string {
 /** Iframe “thumb” del paso plantilla: documento renderizado a esta resolución y escalado al ancho real de la tarjeta. */
 const TEMPLATE_THUMB_DOC_W = 1280
 const TEMPLATE_THUMB_DOC_H = 760
+
+/** Color de marca por variante: se usa como fondo del placeholder mientras el iframe carga. */
+const TEMPLATE_THUMB_PLACEHOLDER_COLOR: Record<Step1PreviewVariant, string> = {
+  'noir-elite': '#0A0A0A',
+  'bloom-studio': '#F5E6D3',
+  'urban-bold': '#0F0F0F',
+  'coastal-calm': '#E8DFD3',
+  'craft-pro': '#1A1A1A',
+  'tavola-warm': '#F4EDE0',
+  'tech-sleek': '#0EA5E9',
+  'trust-clinic': '#F8FAFC',
+  'versa-studio': '#FAF7F2',
+  'mono-edito': '#FAFAF7',
+  'luxe-atelier': '#1C1814',
+}
 
 function resolveStep1PreviewVariant(template: Pick<Template, 'slug' | 'name'>): Step1PreviewVariant {
   const slug = template.slug.toLowerCase().trim()
@@ -347,6 +386,7 @@ function TemplateIframe({
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
   const thumbWrapRef = useRef<HTMLDivElement | null>(null)
   const [thumbScale, setThumbScale] = useState(0.25)
+  const loadedRef = useRef(false)
 
   useLayoutEffect(() => {
     if (mode !== 'thumb') return
@@ -362,12 +402,51 @@ function TemplateIframe({
     return () => ro.disconnect()
   }, [mode])
 
+  const [isVisible, setIsVisible] = useState(mode !== 'thumb')
+
+  useEffect(() => {
+    if (mode !== 'thumb') return
+    // Si el navegador no soporta IntersectionObserver, montamos directamente.
+    if (typeof IntersectionObserver === 'undefined') {
+      setIsVisible(true)
+      return
+    }
+    const el = thumbWrapRef.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setIsVisible(true)
+            io.disconnect()
+            break
+          }
+        }
+      },
+      { rootMargin: '200px 0px', threshold: 0.01 },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [mode])
+
+  const [hasLoaded, setHasLoaded] = useState(false)
+
   const src = useMemo(() => {
     const params = new URLSearchParams()
     params.set('v', '2')
     if (embed) params.set('embed', '1')
-    if (previewData) params.set('preview', '1')
-    // El template usa parentOrigin para validar event.origin en su listener `message`.
+    if (mode === 'thumb') params.set('thumb', '1')
+    if (previewData) {
+      params.set('preview', '1')
+      const name = (previewData.businessName ?? '').trim()
+      const tagline = (previewData.tagline ?? '').trim()
+      const description = (previewData.description ?? '').trim()
+      const phone = (previewData.phone ?? '').trim()
+      if (name) params.set('nombre', name)
+      if (tagline) params.set('tagline', tagline)
+      if (description) params.set('descripcion', description.slice(0, 280))
+      if (phone) params.set('telefono', phone)
+    }
     if (typeof window !== 'undefined') params.set('parentOrigin', window.location.origin)
     const qs = params.size > 0 ? `?${params.toString()}` : ''
     const hash = initialHash
@@ -376,7 +455,7 @@ function TemplateIframe({
         : `#${initialHash}`
       : ''
     return `${templatePath}${qs}${hash}`
-  }, [templatePath, embed, variant, previewData, initialHash])
+  }, [templatePath, embed, variant, previewData, initialHash, mode])
 
   const syncPreview = useCallback(
     (options?: { alignToHash?: boolean }) => {
@@ -448,11 +527,12 @@ function TemplateIframe({
   )
 
   useEffect(() => {
-    syncPreview({ alignToHash: false })
+    if (loadedRef.current) syncPreview({ alignToHash: false })
   }, [syncPreview])
 
   if (mode === 'thumb') {
     const thumbAspectPct = (TEMPLATE_THUMB_DOC_H / TEMPLATE_THUMB_DOC_W) * 100
+    const placeholderColor = TEMPLATE_THUMB_PLACEHOLDER_COLOR[variant] ?? '#FAFAFA'
     return (
       <div
         ref={thumbWrapRef}
@@ -465,27 +545,37 @@ function TemplateIframe({
             width: '100%',
             height: 0,
             paddingBottom: `${thumbAspectPct}%`,
+            background: placeholderColor,
           }}
         >
-          <iframe
-            ref={iframeRef}
-            title={`Plantilla ${variant} portada`}
-            src={src}
-            onLoad={() => syncPreview({ alignToHash: true })}
-            sandbox="allow-scripts allow-popups allow-forms allow-same-origin"
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: TEMPLATE_THUMB_DOC_W,
-              height: TEMPLATE_THUMB_DOC_H,
-              border: 'none',
-              transform: `scale(${thumbScale})`,
-              transformOrigin: 'top left',
-              pointerEvents: 'none',
-              background: '#fff',
-            }}
-          />
+          {isVisible ? (
+            <iframe
+              ref={iframeRef}
+              title={`Plantilla ${variant} portada`}
+              src={src}
+              loading="lazy"
+              onLoad={() => {
+                loadedRef.current = true
+                setHasLoaded(true)
+                syncPreview({ alignToHash: true })
+              }}
+              sandbox="allow-scripts allow-popups allow-forms allow-same-origin"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: TEMPLATE_THUMB_DOC_W,
+                height: TEMPLATE_THUMB_DOC_H,
+                border: 'none',
+                transform: `scale(${thumbScale})`,
+                transformOrigin: 'top left',
+                pointerEvents: 'none',
+                background: '#fff',
+                opacity: hasLoaded ? 1 : 0,
+                transition: 'opacity 200ms ease-out',
+              }}
+            />
+          ) : null}
         </div>
       </div>
     )
@@ -496,7 +586,10 @@ function TemplateIframe({
       ref={iframeRef}
       title={`Vista previa completa ${variant}`}
       src={src}
-      onLoad={() => syncPreview({ alignToHash: true })}
+      onLoad={() => {
+        loadedRef.current = true
+        syncPreview({ alignToHash: true })
+      }}
       sandbox="allow-scripts allow-popups allow-forms allow-same-origin"
       style={{
         width: '100%',
@@ -1069,12 +1162,15 @@ function Step1Plantilla({
   onTemplatePreviewChange,
   logoFile,
   pendingRemoveLogo,
+  previewOverrides,
 }: WizardStepProps & {
   templates?: Template[]
   onTemplatePreviewChange?: (variant: Step1PreviewVariant) => void
   /** Estado del logo elevado al padre (logo antes que plantilla). */
   logoFile?: File | null
   pendingRemoveLogo?: boolean
+  /** Nombre/tagline reales (borrador o BD); si faltan, se usa el demo de la plantilla. */
+  previewOverrides?: TemplatePreviewData
 }) {
   const nav = useContext(WizardNavContext)
   const list = useMemo(() => (templates.length > 0 ? templates : FALLBACK_TEMPLATES), [templates])
@@ -1174,6 +1270,15 @@ function Step1Plantilla({
     onTemplatePreviewChange?.(resolveStep1PreviewVariant(selected))
   }, [list, selectedId, onTemplatePreviewChange])
 
+  const previewByVariant = useMemo(() => {
+    const out: Partial<Record<Step1PreviewVariant, TemplatePreviewData>> = {}
+    for (const t of visibleList) {
+      const v = resolveStep1PreviewVariant(t)
+      if (!out[v]) out[v] = mergeStep1TemplatePreview(v, previewOverrides)
+    }
+    return out
+  }, [visibleList, previewOverrides])
+
   return (
     <>
       <div>
@@ -1235,7 +1340,11 @@ function Step1Plantilla({
                 className="lw-template-card-preview"
                 style={{ position: 'relative', width: '100%', borderBottom: `1px solid ${BORDER}` }}
               >
-                <TemplateIframe variant={variant} mode="thumb" previewData={STEP1_TEMPLATE_PREVIEW_DEMO_BY_VARIANT[variant]} />
+                <TemplateIframe
+                  variant={variant}
+                  mode="thumb"
+                  previewData={previewByVariant[variant]}
+                />
                 <div style={{ position: 'absolute', top: 8, left: 8 }}>
                   <Badge
                     tone={t.requires_pro ? 'pro' : 'success'}
@@ -1427,7 +1536,12 @@ function Step1Plantilla({
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <TemplateIframe variant={fullscreen.variant} mode="full" embed={false} />
+                <TemplateIframe
+                  variant={fullscreen.variant}
+                  mode="full"
+                  embed={false}
+                  previewData={mergeStep1TemplatePreview(fullscreen.variant, previewOverrides)}
+                />
               </div>
             </div>,
             document.body,
@@ -1462,7 +1576,7 @@ function TplPreview({
   previewData?: TemplatePreviewData
 }) {
   const mergedPreview = useMemo(
-    () => ({ ...STEP1_TEMPLATE_PREVIEW_DEMO_BY_VARIANT[variant], ...previewData }),
+    () => mergeStep1TemplatePreview(variant, previewData),
     [variant, previewData],
   )
   return (
@@ -1632,6 +1746,14 @@ function Step2Portada({
   const file3 = currentCoverFile3 ?? null
   const [businessName, setBusinessName] = useState(initialBusinessName)
   const [tagline, setTagline] = useState(initialTagline)
+
+  useEffect(() => {
+    setBusinessName(initialBusinessName)
+  }, [initialBusinessName])
+
+  useEffect(() => {
+    setTagline(initialTagline)
+  }, [initialTagline])
 
   useLayoutEffect(() => {
     nav?.registerContinueHandler?.(() => ({
