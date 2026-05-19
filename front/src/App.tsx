@@ -37,6 +37,10 @@ import AdminUsersPage from './features/admin/AdminUsersPage'
 import AdminTopPagesPage from './features/admin/AdminTopPagesPage'
 import { useAuthStore } from './store/authStore'
 import CookieBanner from './components/cookies/CookieBanner'
+import AvisoLegalPage from './pages/legal/AvisoLegalPage'
+import CookiesPage from './pages/legal/CookiesPage'
+import PrivacidadPage from './pages/legal/PrivacidadPage'
+import TerminosPage from './pages/legal/TerminosPage'
 
 const queryClient = new QueryClient()
 
@@ -70,6 +74,11 @@ function AppRoutes() {
       <Route path="/" element={<RootRedirect />} />
 
       <Route path="/r/:code" element={<ReferralLanding />} />
+
+      <Route path="/aviso-legal" element={<AvisoLegalPage />} />
+      <Route path="/privacidad" element={<PrivacidadPage />} />
+      <Route path="/cookies" element={<CookiesPage />} />
+      <Route path="/terminos" element={<TerminosPage />} />
 
       <Route element={<GuestRoute />}>
         <Route path="/login" element={<LoginPage />} />

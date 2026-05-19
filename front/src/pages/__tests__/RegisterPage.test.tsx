@@ -70,7 +70,7 @@ describe('RegisterPage', () => {
     fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: '12345678' } })
     fireEvent.change(screen.getByLabelText('Repite tu contraseña'), { target: { value: '12345678' } })
     fireEvent.click(screen.getByRole('button', { name: 'Continuar' }))
-    expect(await screen.findByText('Debes aceptar los términos')).toBeInTheDocument()
+    expect(await screen.findByText(/Debes aceptar los términos/i)).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Tu negocio' })).not.toBeInTheDocument()
   })
 
@@ -97,6 +97,8 @@ describe('RegisterPage', () => {
           country_code: 'ES',
         }),
         undefined,
+        false,
+        true,
       ),
     )
   })

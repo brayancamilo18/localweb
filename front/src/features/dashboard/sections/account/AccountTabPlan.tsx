@@ -11,6 +11,10 @@ import {
   postResumeSubscription,
 } from '../../../../api/billing'
 import { keys } from '../../../../api/queryKeys'
+import {
+  ProCheckoutLegalNotice,
+  ProCheckoutTermsCheckbox,
+} from '../../../../components/legal/RegisterLegalNotices'
 import ReferralInviteBanner from '../../../../components/referrals/ReferralInviteBanner'
 import { navigateExternal } from '../../../../utils/navigate'
 
@@ -65,6 +69,8 @@ export default function AccountTabPlan() {
   const { showToast } = useToast()
   const qc = useQueryClient()
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false)
+  const [acceptProCheckout, setAcceptProCheckout] = useState(false)
+  const [proCheckoutError, setProCheckoutError] = useState<string | undefined>()
 
   const statusQ = useQuery({
     queryKey: keys.account.billingStatus,
@@ -280,17 +286,33 @@ export default function AccountTabPlan() {
               ))}
             </ul>
             <ReferralInviteBanner />
-            <Btn
-              kind="primary"
-              fullWidth
-              iconRight="sparkle"
-              type="button"
-              loading={checkoutM.isPending}
-              onClick={() => checkoutM.mutate()}
-              style={{ marginTop: 14 }}
-            >
-              Mejorar a Pro
-            </Btn>
+            <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <ProCheckoutLegalNotice />
+              <ProCheckoutTermsCheckbox
+                checked={acceptProCheckout}
+                onChange={(v) => {
+                  setAcceptProCheckout(v)
+                  if (v) setProCheckoutError(undefined)
+                }}
+                error={proCheckoutError}
+              />
+              <Btn
+                kind="primary"
+                fullWidth
+                iconRight="sparkle"
+                type="button"
+                loading={checkoutM.isPending}
+                onClick={() => {
+                  if (!acceptProCheckout) {
+                    setProCheckoutError('Debes aceptar las condiciones del plan Pro para continuar.')
+                    return
+                  }
+                  checkoutM.mutate()
+                }}
+              >
+                Pagar — Mejorar a Pro
+              </Btn>
+            </div>
           </Card>
         </div>
       </>

@@ -30,8 +30,10 @@ export async function register(
     country_code: string
   },
   referral_code?: string,
+  marketing_consent?: boolean,
+  accept_terms?: boolean,
 ): Promise<AuthResponse> {
-  const payload: Record<string, string> = {
+  const payload: Record<string, string | boolean> = {
     name,
     email,
     password,
@@ -41,9 +43,13 @@ export async function register(
     city: business.city,
     country: business.country,
     country_code: business.country_code,
+    accept_terms: accept_terms === true,
   }
   if (referral_code) {
     payload.referral_code = referral_code
+  }
+  if (marketing_consent) {
+    payload.marketing_consent = true
   }
   const response = await apiClient.post<ApiResponse<AuthResponse>>('/auth/register', payload)
   return response.data.data

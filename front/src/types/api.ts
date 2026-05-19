@@ -5,6 +5,10 @@ export interface User {
   is_admin?: boolean
   /** ISO-8601 string si el correo está verificado, null si no. */
   email_verified_at?: string | null
+  terms_accepted_at?: string | null
+  terms_version?: string | null
+  privacy_policy_version?: string | null
+  marketing_consent_at?: string | null
 }
 
 /** GET /admin/stats/overview */

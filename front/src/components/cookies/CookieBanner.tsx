@@ -25,6 +25,8 @@ import {
   writeConsent,
   type CookieConsentData,
 } from '../../lib/cookieConsent'
+import { Link } from 'react-router-dom'
+import { legalRoutes } from '../../lib/legal'
 import CookiePreferencesButton from './CookiePreferencesButton'
 
 // ---------- Tokens ----------
@@ -258,6 +260,7 @@ export default function CookieBanner() {
   const isPreview = isOnboardingEmbed()
 
   const [hasConsent, setHasConsent] = useState(false)
+  const [showBanner, setShowBanner] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [modalIn, setModalIn] = useState(false)
   const [prefs, setPrefs] = useState<Prefs>(() => {
@@ -272,6 +275,7 @@ export default function CookieBanner() {
   const lastFocusedRef = useRef<HTMLElement | null>(null);
 
   const openConsentModal = useCallback(() => {
+    setShowBanner(false)
     setShowModal(true)
     setModalIn(true)
   }, [])
@@ -281,12 +285,14 @@ export default function CookieBanner() {
     const existing = getConsent()
     if (existing) {
       setHasConsent(true)
+      setShowBanner(false)
       setShowModal(false)
       setModalIn(false)
     } else {
       setHasConsent(false)
-      setShowModal(true)
-      setModalIn(true)
+      setShowBanner(true)
+      setShowModal(false)
+      setModalIn(false)
     }
   }, [])
 
@@ -317,6 +323,7 @@ export default function CookieBanner() {
     const onStorage = (e: StorageEvent) => {
       if (e.key === CONSENT_KEY && e.newValue === null && !getConsent()) {
         setHasConsent(false);
+        setShowBanner(true);
         openConsentModal();
       }
     };
@@ -410,6 +417,7 @@ export default function CookieBanner() {
     setModalIn(false);
     setTimeout(() => {
       setShowModal(false);
+      setShowBanner(false);
       setHasConsent(true);
     }, 220);
   };
@@ -419,11 +427,65 @@ export default function CookieBanner() {
   return (
     <>
       <CookiePreferencesButton
-        visible={hasConsent && !showModal}
+        visible={hasConsent && !showModal && !showBanner}
         onClick={openConsentModal}
       />
 
-      {/* VIEW 2: Modal */}
+      {showBanner && !hasConsent && !showModal ? (
+        <div
+          role="dialog"
+          aria-labelledby="onez-cookie-banner-title"
+          style={{
+            position: 'fixed',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 10000,
+            padding: '16px clamp(16px, 4vw, 24px)',
+            background: C.surface,
+            borderTop: `1px solid ${C.border}`,
+            boxShadow: '0 -8px 32px rgba(11,31,26,0.12)',
+            fontFamily: fontStack,
+          }}
+        >
+          <div style={{ maxWidth: 960, margin: '0 auto' }}>
+            <h2
+              id="onez-cookie-banner-title"
+              style={{ margin: '0 0 8px', fontSize: 17, fontWeight: 600, color: C.text }}
+            >
+              Usamos cookies
+            </h2>
+            <p style={{ margin: '0 0 16px', fontSize: 13, color: C.muted, lineHeight: 1.55, maxWidth: 920 }}>
+              Utilizamos cookies estrictamente necesarias para que el servicio funcione. Si lo deseas, puedes activar
+              también cookies analíticas para ayudarnos a mejorar. Puedes consultar el detalle en nuestra{' '}
+              <Link to={legalRoutes.cookies} style={{ color: C.brand, textDecoration: 'underline' }}>
+                Política de Cookies
+              </Link>{' '}
+              y cambiar tus preferencias en cualquier momento desde Mi cuenta → Privacidad.
+            </p>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                gap: 10,
+                maxWidth: 640,
+              }}
+            >
+              <OutlineBtn full onClick={acceptNecessary}>
+                Rechazar todas
+              </OutlineBtn>
+              <OutlineBtn full onClick={openConsentModal}>
+                Personalizar
+              </OutlineBtn>
+              <PrimaryBtn full onClick={acceptAll}>
+                Aceptar todas
+              </PrimaryBtn>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Modal de personalización */}
       {showModal && (
         <div
           aria-hidden={false}

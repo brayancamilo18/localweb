@@ -9,6 +9,11 @@ import { PasswordVisibilityToggle } from '../components/auth/PasswordVisibilityT
 import { SocialAuthButtons } from '../components/auth/SocialAuthButtons'
 import { Btn, Field, Icon, Input } from '../components/primitives/primitives'
 import { emptyLocation, isValidLocation } from '../lib/location/locationData'
+import {
+  RegisterFormFooterNotice,
+  RegisterMarketingCheckbox,
+  RegisterTermsCheckbox,
+} from '../components/legal/RegisterLegalNotices'
 import { LoginLayout, REGISTER_FEATURES } from '../layouts/LoginLayout'
 import { useApiError } from '../hooks/useApiError'
 import { usePasswordReveal } from '../hooks/usePasswordReveal'
@@ -65,7 +70,8 @@ export default function RegisterPage() {
   const [passwordConfirmation, setPasswordConfirmation] = useState('')
   const passwordReveal = usePasswordReveal()
   const confirmReveal = usePasswordReveal()
-  const [accept, setAccept] = useState(false)
+  const [acceptTerms, setAcceptTerms] = useState(false)
+  const [acceptMarketing, setAcceptMarketing] = useState(false)
 
   const [bizName, setBizName] = useState('')
   const [sector, setSector] = useState('peluqueria')
@@ -117,7 +123,7 @@ export default function RegisterPage() {
         city: location.city.trim(),
         country: location.country.trim(),
         country_code: location.countryCode.trim().toUpperCase(),
-      }, referralCode)
+      }, referralCode, acceptMarketing, acceptTerms)
     },
     onSuccess(data) {
       clearReferralStorage()
@@ -141,7 +147,7 @@ export default function RegisterPage() {
     } else if (password !== passwordConfirmation) {
       e.password_confirmation = 'Las contraseñas no coinciden'
     }
-    if (!accept) e.accept = 'Debes aceptar los términos'
+    if (!acceptTerms) e.accept = 'Debes aceptar los términos y la política de privacidad'
     setClientErrors(e)
     return Object.keys(e).length === 0
   }
@@ -318,57 +324,12 @@ export default function RegisterPage() {
                 }
               />
 
-              <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer', marginTop: 4 }}>
-                <span
-                  role="checkbox"
-                  aria-label="Acepto términos y política de privacidad"
-                  aria-checked={accept}
-                  tabIndex={0}
-                  onKeyDown={(ev) => {
-                    if (ev.key === 'Enter' || ev.key === ' ') {
-                      ev.preventDefault()
-                      setAccept((a) => !a)
-                    }
-                  }}
-                  style={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: 4,
-                    flexShrink: 0,
-                    marginTop: 2,
-                    background: accept ? 'var(--lw-accent)' : 'var(--lw-bg-elev)',
-                    border: `1.5px solid ${clientErrors.accept ? 'var(--lw-danger)' : accept ? 'var(--lw-accent)' : 'var(--lw-border-2)'}`,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setAccept(!accept)
-                  }}
-                >
-                  {accept ? <Icon name="check" size={11} stroke={3} color="#fff" /> : null}
-                </span>
-                <span style={{ fontSize: 15, color: 'var(--lw-text-2)', lineHeight: 1.5 }}>
-                  Acepto los <span style={{ color: 'var(--lw-accent)' }}>términos</span> y la{' '}
-                  <span style={{ color: 'var(--lw-accent)' }}>política de privacidad</span>.
-                </span>
-              </label>
-              {clientErrors.accept ? (
-                <div
-                  style={{
-                    fontSize: 13,
-                    color: 'var(--lw-danger)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    marginTop: -6,
-                  }}
-                >
-                  <Icon name="alert" size={13} />
-                  {clientErrors.accept}
-                </div>
-              ) : null}
+              <RegisterTermsCheckbox
+                checked={acceptTerms}
+                onChange={setAcceptTerms}
+                error={clientErrors.accept}
+              />
+              <RegisterMarketingCheckbox checked={acceptMarketing} onChange={setAcceptMarketing} />
 
               <Btn
                 type="submit"
@@ -515,6 +476,8 @@ export default function RegisterPage() {
                 cityError={clientErrors.city}
                 countryError={clientErrors.country}
               />
+
+              <RegisterFormFooterNotice />
 
               <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
                 <Btn

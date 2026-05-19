@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { logout as logoutApi } from '../../api/auth'
 import { getBillingStatus, postCheckout } from '../../api/billing'
 import type { Business } from '../../types/api'
+import { SiteFooter } from '../../components/legal/SiteFooter'
 import { Icon, Btn, Card } from '../../components/primitives/primitives'
 import { useAuthStore } from '../../store/authStore'
 import './dashboard.css'
@@ -286,6 +287,7 @@ function Dashboard({ pro, business, children }: DashboardProps) {
           </span>
         </div>
         {children}
+        <SiteFooter />
       </main>
     </div>
   )

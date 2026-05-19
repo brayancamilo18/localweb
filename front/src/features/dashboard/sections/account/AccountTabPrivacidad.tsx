@@ -2,6 +2,23 @@ import { Badge, Btn, Card } from '../../../../components/primitives/primitives'
 import { useToast } from '../../../../components/ui/Toast'
 import { useCookieConsent } from '../../../../hooks/useCookieConsent'
 import { resetConsent } from '../../../../lib/cookieConsent'
+import { legalEntityName, legalEntityNif } from '../../../../lib/legal'
+import { useAuthStore } from '../../../../store/authStore'
+
+function formatLegalDate(iso: string | null | undefined): string | null {
+  if (!iso) return null
+  try {
+    return new Intl.DateTimeFormat('es-ES', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(iso))
+  } catch {
+    return null
+  }
+}
 
 const CATEGORY_LABELS = [
   { key: 'necessary' as const, label: 'Necesarias' },
@@ -13,6 +30,8 @@ const CATEGORY_LABELS = [
 export default function AccountTabPrivacidad() {
   const { showToast } = useToast()
   const { consent } = useCookieConsent()
+  const user = useAuthStore((s) => s.user)
+  const termsWhen = formatLegalDate(user?.terms_accepted_at)
 
   const handleChangePreferences = () => {
     resetConsent()
@@ -43,9 +62,45 @@ export default function AccountTabPrivacidad() {
           <a href="mailto:privacidad@onez.es" style={{ color: 'var(--lw-accent)' }}>
             privacidad@onez.es
           </a>
-          . Responsable del tratamiento: ONEZ (completar CIF y dirección fiscal cuando esté
-          disponible).
+          . Responsable del tratamiento: {legalEntityName}
+          {legalEntityNif ? `, ${legalEntityNif}` : ''}.
         </p>
+      </Card>
+
+      <Card padding={20}>
+        <h2 className="lw-h3" style={{ margin: '0 0 12px', fontSize: 16 }}>
+          Consentimientos registrados
+        </h2>
+        <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13 }}>
+          <li>
+            <strong>Términos y Política de Privacidad</strong>
+            <div className="lw-small" style={{ marginTop: 4, color: 'var(--lw-text-2)' }}>
+              {termsWhen ? (
+                <>
+                  Aceptados el {termsWhen}
+                  {user?.terms_version ? ` (Términos v.${user.terms_version}` : ''}
+                  {user?.privacy_policy_version
+                    ? `${user?.terms_version ? ', ' : ' ('}Privacidad v.${user.privacy_policy_version})`
+                    : user?.terms_version
+                      ? ')'
+                      : ''}
+                </>
+              ) : (
+                'Sin registro en base de datos (cuenta anterior a esta función).'
+              )}
+            </div>
+          </li>
+          <li>
+            <strong>Emails de marketing</strong>
+            <div style={{ marginTop: 6 }}>
+              <Badge tone={user?.marketing_consent_at ? 'success' : 'default'} size="sm">
+                {user?.marketing_consent_at
+                  ? `Aceptado el ${formatLegalDate(user.marketing_consent_at) ?? '—'}`
+                  : 'No activado'}
+              </Badge>
+            </div>
+          </li>
+        </ul>
       </Card>
 
       <Card padding={20}>

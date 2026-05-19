@@ -716,6 +716,7 @@ export default function OnboardingPage() {
               disabled={isLoading || (currentStep === 7 && !planContinueOk)}
               onClick={() => {
                 const payload = continueHandlerRef.current?.()
+                if (payload === null) return
                 if (currentStep === 2 && payload && typeof payload === 'object') {
                   const p = payload as Record<string, unknown>
                   if (coverFile2Ref.current) p.cover2 = coverFile2Ref.current

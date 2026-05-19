@@ -1,5 +1,9 @@
 import { useContext, useLayoutEffect, useState, type ReactNode } from 'react'
 import { Badge, Btn, Card, Field, Icon, Input } from '../../../components/primitives/primitives'
+import {
+  ProCheckoutLegalNotice,
+  ProCheckoutTermsCheckbox,
+} from '../../../components/legal/RegisterLegalNotices'
 import ReferralInviteBanner from '../../../components/referrals/ReferralInviteBanner'
 import { WizardNavContext, type WizardStepProps } from '../wizardNavContext'
 
@@ -96,22 +100,33 @@ export default function Step7Plan({
   const nav = useContext(WizardNavContext)
   const [plan, setPlan] = useState<'free' | 'pro' | null>(null)
   const [subdomain, setSubdomain] = useState('')
+  const [acceptProCheckout, setAcceptProCheckout] = useState(false)
+  const [proCheckoutError, setProCheckoutError] = useState<string | undefined>()
 
   useLayoutEffect(() => {
     if (templateRequiresPro && plan === 'free') {
       nav?.registerContinueEnabled?.(false)
+    } else if (plan === 'pro') {
+      nav?.registerContinueEnabled?.(acceptProCheckout && subdomain.trim().length > 0)
     } else {
       nav?.registerContinueEnabled?.(plan !== null)
     }
-  }, [nav, plan, templateRequiresPro])
+  }, [nav, plan, templateRequiresPro, acceptProCheckout, subdomain])
 
   useLayoutEffect(() => {
-    nav?.registerContinueHandler?.(() => ({
-      plan,
-      subdomain: plan === 'pro' ? subdomain.trim() || undefined : undefined,
-    }))
+    nav?.registerContinueHandler?.(() => {
+      if (plan === 'pro' && !acceptProCheckout) {
+        setProCheckoutError('Debes aceptar las condiciones del plan Pro para continuar.')
+        return null
+      }
+      setProCheckoutError(undefined)
+      return {
+        plan,
+        subdomain: plan === 'pro' ? subdomain.trim() || undefined : undefined,
+      }
+    })
     return () => nav?.registerContinueHandler?.(null)
-  }, [nav, plan, subdomain])
+  }, [nav, plan, subdomain, acceptProCheckout])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -291,6 +306,16 @@ export default function Step7Plan({
       </div>
 
       {plan === 'pro' ? (
+        <>
+          <ProCheckoutLegalNotice />
+          <ProCheckoutTermsCheckbox
+            checked={acceptProCheckout}
+            onChange={(v) => {
+              setAcceptProCheckout(v)
+              if (v) setProCheckoutError(undefined)
+            }}
+            error={proCheckoutError}
+          />
         <Field
           label="Subdominio Pro (obligatorio)"
           hint="Será la dirección de tu web: tu-subdominio.localhost. Debe estar libre."
@@ -303,6 +328,7 @@ export default function Step7Plan({
             placeholder="mi-negocio"
           />
         </Field>
+        </>
       ) : null}
 
       <p className="lw-small" style={{ margin: 0, textAlign: 'center', color: 'var(--lw-text-3)' }}>

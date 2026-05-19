@@ -21,6 +21,18 @@ it('register with valid data authenticates the user via session', function () {
 
     expect(auth('web')->check())->toBeTrue();
     expect(\App\Models\Business::count())->toBe(1);
+
+    $user = \App\Models\User::where('email', 'api-register@localweb.com')->first();
+    expect($user->terms_accepted_at)->not->toBeNull();
+    expect($user->terms_version)->toBe(config('legal.terms_version'));
+    expect($user->privacy_policy_version)->toBe(config('legal.privacy_version'));
+});
+
+it('register without accept_terms returns 422', function () {
+    test()->postJson('/api/v1/auth/register', validRegisterPayload([
+        'accept_terms' => false,
+    ]))->assertStatus(422)
+        ->assertJsonValidationErrors(['accept_terms']);
 });
 
 it('step3 updates business name when business exists from register', function () {

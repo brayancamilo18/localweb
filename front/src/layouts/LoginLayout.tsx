@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { LegalFooterLinks } from '../components/legal/LegalFooterLinks'
 import { Icon, Logo } from '../components/primitives/primitives'
 
 export type AuthFeature = {
@@ -108,9 +109,10 @@ export function LoginLayout({
           )}
         </div>
 
-        <p className="lw-login-page__hero-footer lw-login-page__hero-footer--desktop">
-          © {year} ONEZ · Hecho en Madrid
-        </p>
+        <div className="lw-login-page__hero-footer lw-login-page__hero-footer--desktop">
+          <LegalFooterLinks variant="onDark" />
+          <p style={{ margin: '12px 0 0', fontSize: 13, opacity: 0.72 }}>© {year} ONEZ · Hecho en Madrid</p>
+        </div>
       </header>
 
       <section className="lw-login-page__panel">
@@ -124,7 +126,8 @@ export function LoginLayout({
       </section>
 
       <footer className="lw-login-page__mobile-footer">
-        <p>© {year} ONEZ · Hecho en Madrid</p>
+        <LegalFooterLinks variant="onDark" />
+        <p style={{ margin: '12px 0 0' }}>© {year} ONEZ · Hecho en Madrid</p>
       </footer>
     </main>
   )

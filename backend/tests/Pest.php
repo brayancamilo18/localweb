@@ -20,5 +20,6 @@ function validRegisterPayload(array $overrides = []): array
         'city' => 'Madrid',
         'country' => 'España',
         'country_code' => 'ES',
+        'accept_terms' => true,
     ], $overrides);
 }

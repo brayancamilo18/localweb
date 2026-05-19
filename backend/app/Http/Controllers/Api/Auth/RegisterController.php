@@ -31,6 +31,8 @@ class RegisterController extends BaseApiController
             'city' => ['required', 'string', 'max:120'],
             'country' => ['required', 'string', 'max:120'],
             'country_code' => ['required', 'string', 'size:2', 'regex:/^[A-Za-z]{2}$/'],
+            'marketing_consent' => ['sometimes', 'boolean'],
+            'accept_terms' => ['required', 'accepted'],
         ]);
 
         if (! $sectors->exists($data['sector'])) {
@@ -38,10 +40,16 @@ class RegisterController extends BaseApiController
         }
 
         // El modelo aplica el cast 'hashed' a password: no usar Hash::make aquí (evita doble hash).
+        $acceptedAt = now();
+
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => $data['password'],
+            'marketing_consent_at' => ! empty($data['marketing_consent']) ? $acceptedAt : null,
+            'terms_accepted_at' => $acceptedAt,
+            'terms_version' => (string) config('legal.terms_version'),
+            'privacy_policy_version' => (string) config('legal.privacy_version'),
         ]);
 
         $business = $businessService->createAtRegistration($user, [
