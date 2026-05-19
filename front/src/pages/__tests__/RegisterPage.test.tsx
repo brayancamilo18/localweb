@@ -139,10 +139,10 @@ describe('RegisterPage', () => {
     fireEvent.change(screen.getByLabelText('Nombre del negocio'), { target: { value: 'Mi local' } })
     fireEvent.change(screen.getByLabelText('Ciudad'), { target: { value: 'Madrid' } })
     fireEvent.click(screen.getByRole('button', { name: 'Crear mi cuenta' }))
-    await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/verify-email'))
+    await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/verify-email', { replace: true }))
   })
 
-  it('navega a /onboarding tras registro si el backend ya devuelve email verificado', async () => {
+  it('navega a /verify-email tras registro aunque el backend devuelva email verificado', async () => {
     vi.spyOn(authApi, 'register').mockResolvedValue({
       user: { id: 1, name: 'Brayan', email: 'b@b.com', email_verified_at: '2026-05-07T18:00:00+00:00' },
       business: null,
@@ -152,6 +152,6 @@ describe('RegisterPage', () => {
     fireEvent.change(screen.getByLabelText('Nombre del negocio'), { target: { value: 'Mi local' } })
     fireEvent.change(screen.getByLabelText('Ciudad'), { target: { value: 'Madrid' } })
     fireEvent.click(screen.getByRole('button', { name: 'Crear mi cuenta' }))
-    await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/onboarding'))
+    await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/verify-email', { replace: true }))
   })
 })

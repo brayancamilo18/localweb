@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { login } from '../api/auth'
+import { markPostAuthGrace } from '../api/client'
 import { keys } from '../api/queryKeys'
 import { PasswordVisibilityToggle } from '../components/auth/PasswordVisibilityToggle'
 import { SocialAuthButtons } from '../components/auth/SocialAuthButtons'
@@ -46,6 +47,7 @@ export default function LoginPage() {
   const mutation = useMutation({
     mutationFn: () => login(email, password),
     async onSuccess(data) {
+      markPostAuthGrace()
       setAuth(data.user, data.business)
       queryClient.setQueryData(keys.auth.me, { user: data.user, business: data.business })
       if (returnTo) {

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { logout, me, resendEmailVerification } from '../api/auth'
+import { isInPostAuthGracePublic } from '../api/client'
 import { keys } from '../api/queryKeys'
 import { Btn, Icon } from '../components/primitives/primitives'
 import { LoginLayout } from '../layouts/LoginLayout'
@@ -23,6 +24,9 @@ export default function VerifyEmailPage() {
     queryKey: keys.auth.me,
     queryFn: me,
     retry: false,
+    // Reutilizamos la data fresca del registro/login para evitar refetch inmediato
+    // que podría dar 401 espurio mientras la cookie de sesión termina de propagarse.
+    staleTime: 30_000,
     refetchInterval: (query) => {
       const verifiedAt = query.state.data?.user?.email_verified_at
       if (verifiedAt) return false
@@ -107,7 +111,12 @@ export default function VerifyEmailPage() {
   const resendJustSent = feedback?.kind === 'ok' && !resendMutation.isPending
 
   const status401 = isError && (error as { response?: { status?: number } })?.response?.status === 401
-  if (status401) {
+  // Solo redirigimos a /login si:
+  //   1) Recibimos un 401 fiable (no estamos en ventana de gracia post-auth).
+  //   2) No tenemos user en store local (que indicaría que sí estamos logueados).
+  // Esto evita el bug de móvil donde un refetch al montar da 401 espurio justo
+  // después del registro mientras la cookie de sesión se propaga.
+  if (status401 && !isInPostAuthGracePublic() && !storeUser) {
     return <Navigate to="/login" replace />
   }
 

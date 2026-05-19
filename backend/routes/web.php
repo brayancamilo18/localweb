@@ -4,6 +4,7 @@ use App\Http\Controllers\StripeWebhookController;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Laravel\Cashier\Http\Controllers\PaymentController;
 
@@ -30,6 +31,13 @@ Route::get('/email/verify/{id}/{hash}', function (Request $request, string $id, 
         $user->markEmailAsVerified();
         event(new Verified($user));
     }
+
+    // Auto-login tras verificar para garantizar que el usuario aterrice en el flujo
+    // autenticado sin importar el dispositivo desde el que abra el correo.
+    // El link está firmado (signed middleware) y caduca en 60 min, así que es seguro
+    // tratar el click como prueba de propiedad del email y por tanto de la cuenta.
+    Auth::guard('web')->login($user, remember: true);
+    $request->session()->regenerate();
 
     return redirect()->away(rtrim((string) config('app.frontend_url'), '/').'/');
 })->middleware(['signed', 'throttle:6,1'])->name('verification.verify');

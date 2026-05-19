@@ -1,6 +1,25 @@
 import axios, { type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios'
 import { isOnboardingPreviewWithoutAuth } from '../config/devFlags'
 
+/** Marca de tiempo del último login/registro exitoso. Durante una breve
+ * ventana tras autenticarse, los 401 NO redirigen a /login porque la cookie
+ * de sesión puede tardar unos ms en propagarse en algunos navegadores móviles.
+ * El flujo normal de la app reintentará la petición. */
+const POST_AUTH_GRACE_MS = 3000
+let lastSuccessfulAuthAt = 0
+
+export function markPostAuthGrace(): void {
+  lastSuccessfulAuthAt = Date.now()
+}
+
+function isInPostAuthGrace(): boolean {
+  return lastSuccessfulAuthAt > 0 && Date.now() - lastSuccessfulAuthAt < POST_AUTH_GRACE_MS
+}
+
+export function isInPostAuthGracePublic(): boolean {
+  return isInPostAuthGrace()
+}
+
 /**
  * Auth: Sanctum SPA mode (cookie HttpOnly + CSRF).
  *
@@ -121,6 +140,7 @@ apiClient.interceptors.response.use(
 
       const skipRedirectToLogin =
         PUBLIC_AUTH_PATHS.has(path) ||
+        isInPostAuthGrace() ||
         (isOnboardingPreviewWithoutAuth() && path.startsWith('/onboarding'))
 
       if (!skipRedirectToLogin) {

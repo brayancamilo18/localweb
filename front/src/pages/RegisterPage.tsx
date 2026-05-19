@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register } from '../api/auth'
+import { markPostAuthGrace } from '../api/client'
 import { clearReferralStorage, getValidReferralCodeFromStorage } from '../lib/referralStorage'
 import { keys } from '../api/queryKeys'
 import { LocationPicker } from '../components/location/LocationPicker'
@@ -126,12 +127,14 @@ export default function RegisterPage() {
       }, referralCode, acceptMarketing, acceptTerms)
     },
     onSuccess(data) {
+      markPostAuthGrace()
       clearReferralStorage()
       clearAllOnboardingPersist()
       setAuth(data.user, data.business)
       queryClient.setQueryData(keys.auth.me, { user: data.user, business: data.business })
-      // El onboarding está bloqueado tras el muro de verificación de email.
-      navigate(data.user?.email_verified_at ? '/onboarding' : '/verify-email')
+      // Tras registro SIEMPRE pasamos por /verify-email. El usuario verifica el email
+      // y de ahí baja al onboarding. Esto unifica la experiencia entre móvil y desktop.
+      navigate('/verify-email', { replace: true })
     },
   })
 
