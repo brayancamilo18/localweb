@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { ReactNode } from 'react'
 
 import { TOUR_STEPS } from './tourSteps'
-import type { TourContextValue, TourState, TourStorageKeys } from './types'
+import type { TourContextValue, TourState } from './types'
 
 const STORAGE_KEY_COMPLETED = 'lw_tour_completed_v1'
 const STORAGE_KEY_PRO_COMPLETED = 'lw_pro_tour_completed_v1'

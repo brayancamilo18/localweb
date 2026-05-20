@@ -60,6 +60,7 @@ function makeBusiness(overrides: Partial<Business> = {}): Business {
     id: 1,
     name: 'Cafetería Luna',
     subdomain: 'luna',
+    subdomain_type: 'custom',
     sector: 'cafe',
     plan: 'pro',
     onboarding_completed_at: '2026-01-01T00:00:00Z',

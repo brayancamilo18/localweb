@@ -232,6 +232,8 @@ export interface Business {
   id: number
   name: string
   subdomain: string
+  /** 'random' (Free / pre-slug Pro) o 'custom' (slug elegido por el usuario). */
+  subdomain_type: string
   sector: string
   plan: 'free' | 'pro' | 'pending'
   /** ISO 8601; el usuario puede usar el dashboard solo tras publicar (paso 8). */

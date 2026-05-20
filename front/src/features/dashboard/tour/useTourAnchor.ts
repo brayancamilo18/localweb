@@ -53,13 +53,11 @@ export function useTourAnchor(selector: string | null): UseTourAnchorResult {
     let cancelled = false
     let rafId = 0
     const startedAt = performance.now()
-    let foundEl: Element | null = null
 
     const tick = (): void => {
       if (cancelled) return
       const el = findAnchorElement(selector)
       if (el !== null) {
-        foundEl = el
         setRect(readRect(el))
         setReady(true)
         return
@@ -78,7 +76,6 @@ export function useTourAnchor(selector: string | null): UseTourAnchorResult {
       if (sel === null || sel.length === 0) return
       const el = findAnchorElement(sel)
       if (el !== null) {
-        foundEl = el
         setRect(readRect(el))
       }
     }

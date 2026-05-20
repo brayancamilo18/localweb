@@ -21,7 +21,7 @@ function findNextVisibleIndex(from: number, isPro: boolean, proOnlyMode: boolean
   }
   return -1
 }
-import { useTour, TOUR_STORAGE_KEYS } from './TourContext'
+import { useTour } from './TourContext'
 import { findAnchorElement, useTourAnchor } from './useTourAnchor'
 import { useBreakpoint } from './useBreakpoint'
 import type { TourOverlayVariant } from './types'
