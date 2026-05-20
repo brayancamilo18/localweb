@@ -52,7 +52,7 @@ export default function Horarios() {
   ]
 
   return (
-    <div style={{ maxWidth: 640 }}>
+    <div style={{ maxWidth: 640 }} data-tour="horarios-main">
       <h1 className="lw-h2" style={{ marginBottom: 8 }}>
         Horarios
       </h1>

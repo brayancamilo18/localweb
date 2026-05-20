@@ -7,7 +7,7 @@ export default function Servicios() {
   const servicesAsPro = business.is_pro || business.plan === 'pending'
 
   return (
-    <div style={{ maxWidth: 720 }}>
+    <div style={{ maxWidth: 720 }} data-tour="servicios-main">
       <ProServicesEditor
         title="Servicios"
         subtitle="Lista de servicios que ofreces a tus clientes"

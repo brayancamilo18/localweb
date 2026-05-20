@@ -1,0 +1,516 @@
+/* ============================================================
+ * Tour guiado del dashboard (ONEZ).
+ * Todas las clases con prefijo `lw-tour-`. Reusa tokens de tokens.css:
+ *   --lw-bg-elev, --lw-accent, --lw-accent-soft, --lw-border, --lw-border-2,
+ *   --lw-text, --lw-text-2, --lw-text-3, --lw-shadow-pop, --lw-r-sm, --lw-r,
+ *   --lw-r-lg, --lw-surface. Color Pro: #FCD34D (no hay token).
+ * ============================================================ */
+
+/* ---------- Layers / overlay ---------- */
+.lw-tour-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+}
+.lw-tour-flatveil {
+  position: absolute;
+  inset: 0;
+}
+.lw-tour-flatveil--soft {
+  background: rgba(15, 110, 86, 0.1);
+}
+.lw-tour-flatveil--dark {
+  background: rgba(11, 31, 26, 0.45);
+}
+.lw-tour-spotlight {
+  position: absolute;
+  box-shadow: 0 0 0 9999px rgba(11, 31, 26, 0.45);
+}
+.lw-tour-spotlight--soft {
+  position: absolute;
+  box-shadow: 0 0 0 9999px rgba(15, 110, 86, 0.18);
+  transition:
+    top 200ms ease-out,
+    left 200ms ease-out,
+    width 200ms ease-out,
+    height 200ms ease-out;
+}
+.lw-tour-ring {
+  position: absolute;
+  pointer-events: none;
+  background: transparent;
+}
+.lw-tour-ring--glow {
+  box-shadow: 0 0 0 2px var(--lw-accent), 0 0 0 7px rgba(15, 110, 86, 0.15);
+  animation: lw-tour-glow 2.2s ease-in-out infinite alternate;
+}
+
+/* Ítem del nav por encima del velo (única zona del sidebar sin blur). */
+.lw-tour-target-active {
+  position: relative;
+  z-index: 10000;
+  background: var(--lw-bg-elev) !important;
+  box-shadow: 0 0 0 2px var(--lw-accent), 0 0 0 6px rgba(15, 110, 86, 0.12);
+  border-radius: var(--lw-r-sm);
+  isolation: isolate;
+}
+.lw-tour-ring--pulse {
+  background: #fff;
+  box-shadow: 0 0 0 2px var(--lw-accent), 0 0 0 6px rgba(15, 110, 86, 0.15);
+  animation: lw-tour-pulse 2.2s ease-in-out infinite alternate;
+}
+
+/* Variante "attenuate": atenuamos el shell del dashboard, no document.body.
+ * Si en algún momento extraemos el tour a otra ruta, asegúrate de tener
+ * .lw-dashboard-shell en el DOM. */
+.lw-dashboard-shell.lw-tour-attenuate-shell .lw-dashboard-main,
+.lw-dashboard-shell.lw-tour-attenuate-shell .lw-dashboard-desktop-sidebar {
+  opacity: 0.5;
+  transition: opacity 220ms ease-out;
+}
+
+@keyframes lw-tour-glow {
+  0% {
+    box-shadow: 0 0 0 2px var(--lw-accent), 0 0 0 6px rgba(15, 110, 86, 0.1);
+  }
+  100% {
+    box-shadow: 0 0 0 2px var(--lw-accent), 0 0 0 10px rgba(15, 110, 86, 0.18);
+  }
+}
+@keyframes lw-tour-pulse {
+  0% {
+    box-shadow: 0 0 0 2px var(--lw-accent), 0 0 0 4px rgba(15, 110, 86, 0.1);
+  }
+  100% {
+    box-shadow: 0 0 0 2px var(--lw-accent), 0 0 0 9px rgba(15, 110, 86, 0.18);
+  }
+}
+
+/* ---------- Tooltip ---------- */
+.lw-tour-tooltip {
+  position: fixed;
+  z-index: 9999;
+  background: #fff;
+  border-radius: var(--lw-r, 10px);
+  box-shadow: var(--lw-shadow-pop);
+  padding: 14px 16px 12px;
+  border: 1px solid rgba(11, 31, 26, 0.04);
+}
+.lw-tour-tooltip--in {
+  animation: lw-tour-fade-in 180ms ease-out both;
+}
+@keyframes lw-tour-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lw-tour-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--lw-text-3);
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.lw-tour-close:hover {
+  color: var(--lw-text-2);
+  background: var(--lw-surface, #f3f2ef);
+}
+
+.lw-tour-tooltip__indicator {
+  margin-bottom: 10px;
+  padding-right: 24px;
+}
+.lw-tour-step-text {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--lw-text-3);
+  display: block;
+  margin-top: 6px;
+}
+.lw-tour-progress {
+  display: flex;
+  gap: 4px;
+}
+.lw-tour-progress__seg {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--lw-border);
+}
+.lw-tour-progress__seg--done {
+  background: var(--lw-accent);
+}
+.lw-tour-progress__seg--cur {
+  background: var(--lw-accent);
+  box-shadow: 0 0 0 2px rgba(15, 110, 86, 0.12);
+}
+
+.lw-tour-tooltip__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.lw-tour-tooltip__icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--lw-accent-soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--lw-accent);
+  flex-shrink: 0;
+}
+.lw-tour-tooltip__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--lw-text);
+}
+.lw-tour-tooltip__desc {
+  margin: 4px 0 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--lw-text-2);
+}
+
+.lw-tour-tip {
+  background: var(--lw-surface, #f3f2ef);
+  border: 1px solid var(--lw-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--lw-text-2);
+  margin-bottom: 12px;
+}
+.lw-tour-tip b {
+  color: var(--lw-accent);
+  font-weight: 600;
+}
+
+.lw-tour-locked {
+  background: var(--lw-accent-soft);
+  border: 1px solid #fcd34d;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--lw-text-2);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.lw-tour-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 500;
+}
+.lw-tour-chip--pro {
+  background: var(--lw-accent-soft);
+  color: var(--lw-accent);
+  border: 1px solid #fcd34d;
+  margin-left: auto;
+}
+
+.lw-tour-tooltip__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.lw-tour-tooltip__actions-right {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+/* arrow */
+.lw-tour-arrow {
+  position: absolute;
+  filter: drop-shadow(0 1px 1px rgba(11, 31, 26, 0.08));
+}
+
+/* ---------- Bottom-sheet (mobile) ---------- */
+.lw-tour-sheet {
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  padding: 10px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -10px 30px rgba(11, 31, 26, 0.14);
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.lw-tour-sheet--in {
+  animation: lw-tour-slide-up 220ms ease-out both;
+}
+@keyframes lw-tour-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.lw-tour-drag-handle {
+  display: block;
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--lw-border-2, #d4d2cc);
+  margin: 0 auto 14px;
+}
+.lw-tour-sheet__actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ---------- Welcome / Finish modals ---------- */
+.lw-tour-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 110, 86, 0.08);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.lw-tour-backdrop--welcome {
+  align-items: flex-end;
+}
+@media (min-width: 641px) {
+  .lw-tour-backdrop--welcome {
+    align-items: center;
+  }
+}
+
+.lw-tour-welcome {
+  position: relative;
+  background: #fff;
+  box-shadow: var(--lw-shadow-pop);
+  padding: 28px;
+}
+.lw-tour-welcome--desktop {
+  width: 480px;
+  max-width: 100%;
+  border-radius: var(--lw-r-lg, 14px);
+}
+.lw-tour-welcome--sheet {
+  width: 100%;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  padding: 16px 20px calc(28px + env(safe-area-inset-bottom, 0px));
+  animation: lw-tour-slide-up 220ms ease-out both;
+}
+.lw-tour-welcome__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--lw-accent-soft);
+  color: var(--lw-accent);
+  margin-bottom: 4px;
+}
+.lw-tour-welcome__title {
+  margin: 18px 0 6px;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--lw-text);
+}
+.lw-tour-welcome--sheet .lw-tour-welcome__title {
+  font-size: 22px;
+  margin-top: 14px;
+}
+.lw-tour-welcome__desc {
+  margin: 0 0 22px;
+  color: var(--lw-text-2);
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 380px;
+}
+.lw-tour-welcome__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.lw-tour-welcome--sheet .lw-tour-welcome__actions {
+  flex-direction: column;
+  align-items: stretch;
+}
+.lw-tour-welcome__microcopy {
+  margin-top: 18px;
+  font-size: 11.5px;
+  color: var(--lw-text-3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.lw-tour-welcome--sheet .lw-tour-welcome__microcopy {
+  justify-content: center;
+}
+
+.lw-tour-confirm-skip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--lw-text-2);
+  flex-wrap: wrap;
+}
+.lw-tour-confirm-skip__yes,
+.lw-tour-confirm-skip__no {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+}
+.lw-tour-confirm-skip__yes {
+  background: var(--lw-accent);
+  color: #fff;
+  border: 0;
+}
+.lw-tour-confirm-skip__no {
+  background: #fff;
+  color: var(--lw-text);
+  border: 1px solid var(--lw-border);
+}
+
+/* ---------- Finish checkmark ---------- */
+.lw-tour-checkmark {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--lw-accent);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 8px var(--lw-accent-soft);
+  animation: lw-tour-bounce-in 600ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes lw-tour-bounce-in {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ---------- Resume tour FAB ---------- */
+.lw-tour-fab {
+  position: fixed;
+  z-index: 9997;
+  right: 24px;
+  bottom: 24px;
+  background: #fff;
+  border: 1px solid var(--lw-border);
+  border-radius: 999px;
+  padding: 6px 14px 6px 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 14px rgba(11, 31, 26, 0.12), 0 1px 2px rgba(11, 31, 26, 0.06);
+  cursor: pointer;
+  color: var(--lw-text);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+}
+.lw-tour-fab__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--lw-accent);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(15, 110, 86, 0.25);
+}
+.lw-tour-fab__title {
+  display: block;
+}
+
+/* En móvil, el FAB pasa a iconito redondo sin etiqueta para no taparlo todo. */
+@media (max-width: 640px) {
+  .lw-tour-fab {
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    padding: 4px;
+    gap: 0;
+  }
+  .lw-tour-fab__label {
+    display: none;
+  }
+  .lw-tour-fab__icon {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+.lw-tour-reduced-motion .lw-tour-tooltip--in,
+.lw-tour-reduced-motion .lw-tour-sheet--in,
+.lw-tour-reduced-motion .lw-tour-welcome--sheet,
+.lw-tour-reduced-motion .lw-tour-checkmark,
+.lw-tour-reduced-motion .lw-tour-spotlight--soft,
+.lw-tour-reduced-motion .lw-tour-ring--glow,
+.lw-tour-reduced-motion .lw-tour-ring--pulse {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* ---------- Mobile tap targets ---------- */
+@media (max-width: 640px) {
+  .lw-tour-close {
+    width: 44px;
+    height: 44px;
+  }
+}

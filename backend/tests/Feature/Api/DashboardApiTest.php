@@ -16,6 +16,83 @@ it('dashboard business without business returns 403', function () {
         ->assertStatus(403);
 });
 
+it('dashboard tour complete sets timestamp and is idempotent', function () {
+    $business = Business::create(['name' => 'B', 'subdomain' => 'tour-done-test', 'subdomain_type' => 'random', 'sector' => 'otros']);
+    $user = User::factory()->create(['business_id' => $business->id]);
+
+    test()->actingAs($user)
+        ->postJson('/api/v1/dashboard/tour/complete')
+        ->assertNoContent();
+
+    expect($business->fresh()->dashboard_tour_completed_at)->not->toBeNull();
+
+    $first = $business->fresh()->dashboard_tour_completed_at;
+
+    test()->actingAs($user)
+        ->postJson('/api/v1/dashboard/tour/complete')
+        ->assertNoContent();
+
+    expect($business->fresh()->dashboard_tour_completed_at?->toIso8601String())
+        ->toBe($first?->toIso8601String());
+});
+
+it('dashboard set subdomain converts random to custom once', function () {
+    $business = Business::create([
+        'name' => 'B',
+        'subdomain' => 'xrj-twg5-phnk',
+        'subdomain_type' => 'random',
+        'sector' => 'otros',
+        'is_published' => false,
+    ]);
+    $user = User::factory()->create(['business_id' => $business->id]);
+
+    test()->actingAs($user)
+        ->postJson('/api/v1/dashboard/subdomain', ['subdomain' => 'mi-marca-pro'])
+        ->assertStatus(200)
+        ->assertJsonPath('data.subdomain', 'mi-marca-pro')
+        ->assertJsonPath('data.subdomain_type', 'custom')
+        ->assertJsonPath('data.is_published', true);
+
+    expect($business->fresh()->subdomain)->toBe('mi-marca-pro')
+        ->and($business->fresh()->subdomain_type)->toBe('custom')
+        ->and($business->fresh()->is_published)->toBeTrue();
+});
+
+it('dashboard set subdomain rejects when already custom', function () {
+    $business = Business::create([
+        'name' => 'B',
+        'subdomain' => 'ya-fijo',
+        'subdomain_type' => 'custom',
+        'sector' => 'otros',
+    ]);
+    $user = User::factory()->create(['business_id' => $business->id]);
+
+    test()->actingAs($user)
+        ->postJson('/api/v1/dashboard/subdomain', ['subdomain' => 'otro-slug'])
+        ->assertStatus(422)
+        ->assertJsonPath('message', 'El subdominio ya está configurado y es inmutable.');
+});
+
+it('dashboard pro tour complete sets timestamp and is idempotent', function () {
+    $business = Business::create(['name' => 'B', 'subdomain' => 'pro-tour-done-test', 'subdomain_type' => 'random', 'sector' => 'otros']);
+    $user = User::factory()->create(['business_id' => $business->id]);
+
+    test()->actingAs($user)
+        ->postJson('/api/v1/dashboard/tour/pro/complete')
+        ->assertNoContent();
+
+    expect($business->fresh()->dashboard_pro_tour_completed_at)->not->toBeNull();
+
+    $first = $business->fresh()->dashboard_pro_tour_completed_at;
+
+    test()->actingAs($user)
+        ->postJson('/api/v1/dashboard/tour/pro/complete')
+        ->assertNoContent();
+
+    expect($business->fresh()->dashboard_pro_tour_completed_at?->toIso8601String())
+        ->toBe($first?->toIso8601String());
+});
+
 it('dashboard business with business returns 200', function () {
     $template = Template::create(['name' => 'Noir Elite', 'slug' => 'noir-elite', 'primary_color' => '#C9A84C', 'is_active' => true, 'requires_pro' => false]);
     $business = Business::create(['name' => 'B', 'subdomain' => 'abc-def-ghij', 'subdomain_type' => 'random', 'sector' => 'otros', 'template_id' => $template->id]);

@@ -7,6 +7,8 @@ use App\Http\Resources\BusinessResource;
 use App\Models\PageVisit;
 use App\Services\BusinessService;
 use App\Services\GeocodingService;
+use App\Support\PublicPageCache;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class BusinessController extends BaseApiController
@@ -87,5 +89,56 @@ class BusinessController extends BaseApiController
         $updated->load(['template', 'services', 'images' => fn ($q) => $q->ordered()]);
 
         return $this->success(new BusinessResource($updated));
+    }
+
+    public function completeTour(Request $request)
+    {
+        $business = $request->user()->business;
+        if ($business->dashboard_tour_completed_at === null) {
+            $business->dashboard_tour_completed_at = now();
+            $business->save();
+        }
+
+        return response()->noContent();
+    }
+
+    public function completeProTour(Request $request)
+    {
+        $business = $request->user()->business;
+        if ($business->dashboard_pro_tour_completed_at === null) {
+            $business->dashboard_pro_tour_completed_at = now();
+            $business->save();
+        }
+
+        return response()->noContent();
+    }
+
+    public function setSubdomain(Request $request, BusinessService $businessService): JsonResponse
+    {
+        $business = $request->user()->business;
+
+        if ($business->subdomain_type === 'custom') {
+            return $this->error('El subdominio ya está configurado y es inmutable.', [], 422);
+        }
+
+        $raw = strtolower(trim((string) ($request->input('subdomain') ?? '')));
+        $reason = $businessService->getSubdomainRejectionReason($raw, $business->id);
+        if ($reason !== null) {
+            return $this->error('Subdominio no válido', ['subdomain' => $reason], 422);
+        }
+
+        $previousSubdomain = $business->subdomain;
+        $business->subdomain = $raw;
+        $business->subdomain_type = 'custom';
+        // Tras upgrade Free→Pro, Stripe deja is_published=false hasta elegir el slug público.
+        $business->is_published = true;
+        $business->save();
+
+        PublicPageCache::forgetSubdomain($previousSubdomain);
+        PublicPageCache::forget($business);
+
+        $business->load(['template', 'services', 'images' => fn ($q) => $q->ordered()]);
+
+        return $this->success(new BusinessResource($business));
     }
 }

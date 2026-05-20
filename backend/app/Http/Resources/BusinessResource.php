@@ -45,6 +45,8 @@ class BusinessResource extends JsonResource
             'plan' => is_object($this->plan) ? $this->plan->value : $this->plan,
             'plan_activated_at' => $this->plan_activated_at,
             'onboarding_completed_at' => $this->onboarding_completed_at,
+            'dashboard_tour_completed_at' => $this->dashboard_tour_completed_at,
+            'dashboard_pro_tour_completed_at' => $this->dashboard_pro_tour_completed_at,
             'is_free' => $this->is_free,
             'is_pro' => $this->is_pro,
             'template' => $this->whenLoaded('template', fn () => new TemplateResource($this->template)),

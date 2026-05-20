@@ -21,7 +21,7 @@ export default function EnlacesPro() {
 
   if (businessQuery.isLoading || !business) {
     return (
-      <div style={{ maxWidth: 560 }}>
+      <div style={{ maxWidth: 560 }} data-tour="enlaces-pro-main">
         <div className="lw-shimmer" style={{ height: 32, borderRadius: 8, maxWidth: 280, marginBottom: 16 }} />
         <div className="lw-shimmer" style={{ height: 120, borderRadius: 12 }} />
       </div>
@@ -29,7 +29,7 @@ export default function EnlacesPro() {
   }
 
   return (
-    <div style={{ maxWidth: 560 }}>
+    <div style={{ maxWidth: 560 }} data-tour="enlaces-pro-main">
       <h1 className="lw-h2" style={{ marginBottom: 8 }}>
         Enlaces y contacto Pro
       </h1>

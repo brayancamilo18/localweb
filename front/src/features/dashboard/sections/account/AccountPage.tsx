@@ -59,7 +59,7 @@ export default function AccountPage() {
   }
 
   return (
-    <>
+    <div data-tour="cuenta-main">
       <div className="lw-account-header">
         <div>
           <h1 className="lw-h2">Mi cuenta</h1>
@@ -118,6 +118,6 @@ export default function AccountPage() {
         {activeTab === 'referidos' && <AccountTabReferidos />}
         {activeTab === 'privacidad' && <AccountTabPrivacidad />}
       </div>
-    </>
+    </div>
   )
 }

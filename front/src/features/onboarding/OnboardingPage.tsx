@@ -216,21 +216,6 @@ export default function OnboardingPage() {
     setPreviewEmail((prev) => (prev === next ? prev : next))
   }, [])
 
-  /**
-   * Handler estable para evitar bucles: con un arrow inline, `Step2Portada` ve una identidad nueva
-   * en cada render del padre y dispara su `useEffect` continuamente, lo que multiplica los renders
-   * y los `postMessage` al iframe — y deja la UI inutilizable al cambiar la portada.
-   */
-  const handleBusinessMetaChange = useCallback(
-    (payload: { businessName?: string; tagline?: string }) => {
-      const nextName = payload.businessName ?? ''
-      const nextTagline = payload.tagline ?? ''
-      setPreviewName((prev) => (prev === nextName ? prev : nextName))
-      setPreviewTagline((prev) => (prev === nextTagline ? prev : nextTagline))
-    },
-    [],
-  )
-
   // Mismo patrón que `aboutTeamFile` (que funciona sin congelar): crea la object URL para el iframe
   // y la revoca síncronamente al cambiar el archivo. La miniatura del paso usa su propia URL local.
   useEffect(() => {
@@ -887,9 +872,10 @@ export default function OnboardingPage() {
             currentCoverFile3={coverFile3}
             onCoverChange3={setCoverFile3}
             heroPhotoSlots={heroPhotoSlots}
-            initialBusinessName={previewName}
-            initialTagline={previewTagline}
-            onBusinessMetaChange={handleBusinessMetaChange}
+            businessName={previewName}
+            onBusinessNameChange={setPreviewName}
+            tagline={previewTagline}
+            onTaglineChange={setPreviewTagline}
             logoPreviewUrl={step1LogoPreviewUrl}
             onLogoPreviewUrlChange={setStep1LogoPreviewUrl}
             logoScale={step1LogoScale}
@@ -980,7 +966,6 @@ export default function OnboardingPage() {
     isLoading,
     templates,
     coverFile,
-    handleBusinessMetaChange,
     previewName,
     previewTagline,
     previewPhone,

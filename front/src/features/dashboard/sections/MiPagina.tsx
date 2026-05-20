@@ -79,7 +79,7 @@ export default function MiPagina() {
         </div>
       </div>
 
-      <Card padding={18} className="lw-mipagina-hero-card">
+      <Card padding={18} className="lw-mipagina-hero-card" data-tour="mi-pagina-main">
         {business.images?.cover?.[0]?.url ? (
           <img
             src={business.images.cover[0].url}

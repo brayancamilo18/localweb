@@ -438,14 +438,6 @@ function TemplateIframe({
     if (mode === 'thumb') params.set('thumb', '1')
     if (previewData) {
       params.set('preview', '1')
-      const name = (previewData.businessName ?? '').trim()
-      const tagline = (previewData.tagline ?? '').trim()
-      const description = (previewData.description ?? '').trim()
-      const phone = (previewData.phone ?? '').trim()
-      if (name) params.set('nombre', name)
-      if (tagline) params.set('tagline', tagline)
-      if (description) params.set('descripcion', description.slice(0, 280))
-      if (phone) params.set('telefono', phone)
     }
     if (typeof window !== 'undefined') params.set('parentOrigin', window.location.origin)
     const qs = params.size > 0 ? `?${params.toString()}` : ''
@@ -455,7 +447,7 @@ function TemplateIframe({
         : `#${initialHash}`
       : ''
     return `${templatePath}${qs}${hash}`
-  }, [templatePath, embed, variant, previewData, initialHash, mode])
+  }, [templatePath, embed, variant, initialHash, mode])
 
   const syncPreview = useCallback(
     (options?: { alignToHash?: boolean }) => {
@@ -1709,9 +1701,10 @@ function Step2Portada({
   currentCoverFile3,
   onCoverChange3,
   heroPhotoSlots = 1,
-  onBusinessMetaChange,
-  initialBusinessName = '',
-  initialTagline = '',
+  businessName,
+  onBusinessNameChange,
+  tagline,
+  onTaglineChange,
   logoPreviewUrl,
   onLogoPreviewUrlChange,
   logoScale,
@@ -1728,9 +1721,10 @@ function Step2Portada({
   currentCoverFile3?: File | null
   onCoverChange3?: (file: File | null) => void
   heroPhotoSlots?: number
-  onBusinessMetaChange?: (payload: { businessName?: string; tagline?: string }) => void
-  initialBusinessName?: string
-  initialTagline?: string
+  businessName: string
+  onBusinessNameChange: (value: string) => void
+  tagline: string
+  onTaglineChange: (value: string) => void
   logoPreviewUrl?: string
   onLogoPreviewUrlChange?: (url: string | undefined) => void
   logoScale?: number
@@ -1744,17 +1738,6 @@ function Step2Portada({
   const file = currentCoverFile ?? null
   const file2 = currentCoverFile2 ?? null
   const file3 = currentCoverFile3 ?? null
-  const [businessName, setBusinessName] = useState(initialBusinessName)
-  const [tagline, setTagline] = useState(initialTagline)
-
-  useEffect(() => {
-    setBusinessName(initialBusinessName)
-  }, [initialBusinessName])
-
-  useEffect(() => {
-    setTagline(initialTagline)
-  }, [initialTagline])
-
   useLayoutEffect(() => {
     nav?.registerContinueHandler?.(() => ({
       cover: file as File,
@@ -1765,13 +1748,6 @@ function Step2Portada({
     }))
     return () => nav?.registerContinueHandler?.(null)
   }, [nav, file, file2, file3, heroPhotoSlots, logoFile, pendingRemoveLogo])
-
-  useEffect(() => {
-    onBusinessMetaChange?.({
-      businessName: businessName.trim() || undefined,
-      tagline: tagline.trim() || undefined,
-    })
-  }, [businessName, tagline, onBusinessMetaChange])
 
   return (
     <>
@@ -1787,7 +1763,7 @@ function Step2Portada({
         <Input
           value={businessName}
           disabled={busy}
-          onChange={(e) => setBusinessName(e.target.value)}
+          onChange={(e) => onBusinessNameChange(e.target.value)}
           placeholder="Estudio Marta"
         />
       </Field>
@@ -1795,7 +1771,7 @@ function Step2Portada({
         <Input
           value={tagline}
           disabled={busy}
-          onChange={(e) => setTagline(e.target.value)}
+          onChange={(e) => onTaglineChange(e.target.value)}
           placeholder="Cortes con criterio en el corazón de Lavapiés"
         />
       </Field>

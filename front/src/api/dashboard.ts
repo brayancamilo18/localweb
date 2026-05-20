@@ -17,6 +17,11 @@ export async function getBusiness(): Promise<Business> {
   return response.data.data
 }
 
+export async function setBusinessSubdomain(subdomain: string): Promise<Business> {
+  const response = await apiClient.post<ApiResponse<Business>>('/dashboard/subdomain', { subdomain })
+  return response.data.data
+}
+
 export async function updateBusiness(data: Partial<Business> & { template_id?: number }): Promise<Business> {
   const response = await apiClient.put<ApiResponse<Business>>('/dashboard/business', data)
   return response.data.data

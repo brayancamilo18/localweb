@@ -507,6 +507,7 @@ export function Card({
   hover: _hover,
   onClick,
   className,
+  'data-tour': dataTour,
 }: {
   children: ReactNode
   padding?: number
@@ -514,11 +515,13 @@ export function Card({
   hover?: boolean
   onClick?: () => void
   className?: string
+  'data-tour'?: string
 }) {
   void _hover
   return (
     <div
       className={className}
+      data-tour={dataTour}
       onClick={onClick}
       style={{
         background: 'var(--lw-bg-elev)',

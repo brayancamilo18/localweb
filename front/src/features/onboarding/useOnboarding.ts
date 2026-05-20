@@ -299,6 +299,9 @@ export function useOnboarding(): UseOnboardingResult {
             // setAuth(viejo) sobreescribe lo que acabamos de hacer y `hasCompletedOnboarding`
             // vuelve a false → ping-pong de redirects entre /dashboard y /onboarding.
             queryClient.setQueryData(keys.auth.me, fresh)
+            if (fresh.business) {
+              queryClient.setQueryData(keys.dashboard.business, fresh.business)
+            }
             if (fresh.business?.is_pro) {
               setProExtrasSource('publish')
               setCurrentStep(9)

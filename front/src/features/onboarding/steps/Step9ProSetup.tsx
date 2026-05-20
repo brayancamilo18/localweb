@@ -49,6 +49,9 @@ export default function Step9ProSetup({
       try {
         const fresh = await me()
         qc.setQueryData(keys.auth.me, fresh)
+        if (fresh.business) {
+          qc.setQueryData(keys.dashboard.business, fresh.business)
+        }
         setAuth(fresh.user, fresh.business)
       } catch {
         // /auth/me caído: dejamos que ProtectedRoute decida con la cache que haya.

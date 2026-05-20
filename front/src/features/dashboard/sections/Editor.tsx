@@ -81,7 +81,7 @@ export default function Editor() {
     ]
 
   return (
-    <div style={{ maxWidth: 560 }}>
+    <div style={{ maxWidth: 560 }} data-tour="editor-main">
       <h1 className="lw-h2" style={{ marginBottom: 8 }}>
         Editar contenido
       </h1>

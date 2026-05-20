@@ -236,6 +236,9 @@ export interface Business {
   plan: 'free' | 'pro' | 'pending'
   /** ISO 8601; el usuario puede usar el dashboard solo tras publicar (paso 8). */
   onboarding_completed_at?: string | null
+  /** ISO 8601; cuando el usuario ha completado el tour del dashboard. */
+  dashboard_tour_completed_at?: string | null
+  dashboard_pro_tour_completed_at?: string | null
   tagline: string | null
   description: string | null
   phone: string | null

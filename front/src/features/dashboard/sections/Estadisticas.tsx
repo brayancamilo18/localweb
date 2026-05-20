@@ -139,6 +139,7 @@ function StatsProUpsell() {
   return (
     <Card
       padding={24}
+      data-tour="estadisticas-main"
       style={{
         maxWidth: 720,
         display: 'flex',
@@ -430,7 +431,7 @@ export default function Estadisticas() {
           outline: none !important;
         }
       `}</style>
-      <div style={{ maxWidth: 1100 }}>
+      <div style={{ maxWidth: 1100 }} data-tour="estadisticas-main">
         <h1 className="lw-h2" style={{ marginBottom: 8 }}>
           Estadísticas
         </h1>

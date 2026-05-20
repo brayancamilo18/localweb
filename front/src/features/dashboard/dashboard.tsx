@@ -34,10 +34,12 @@ function DashSidebar({
   pro,
   businessName,
   onNavigateItem,
+  variant = 'desktop',
 }: {
   pro: boolean
   businessName?: string
   onNavigateItem?: () => void
+  variant?: 'desktop' | 'mobile'
 }) {
   const navigate = useNavigate()
   const qc = useQueryClient()
@@ -93,15 +95,15 @@ function DashSidebar({
   }
 
   const items = [
-    { icon: 'home', t: 'Mi página', to: '/dashboard', end: true },
-    { icon: 'edit', t: 'Editar', to: '/dashboard/editor' },
-    { icon: 'image', t: 'Imágenes', to: '/dashboard/images' },
-    { icon: 'clock', t: 'Horarios', to: '/dashboard/schedule' },
-    { icon: 'list', t: 'Servicios', to: '/dashboard/services' },
-    { icon: 'arrowUpRight', t: 'Enlaces Pro', to: '/dashboard/enlaces' },
-    { icon: 'barChart', t: 'Estadísticas', to: '/dashboard/stats', locked: !pro },
-    { icon: 'user', t: 'Cuenta', to: '/dashboard/account' },
-    { icon: 'shield', t: 'Seguridad', to: '/dashboard/security' },
+    { icon: 'home', t: 'Mi página', to: '/dashboard', end: true, dataTour: 'mi-pagina' },
+    { icon: 'edit', t: 'Editar', to: '/dashboard/editor', dataTour: 'editor' },
+    { icon: 'image', t: 'Imágenes', to: '/dashboard/images', dataTour: 'imagenes' },
+    { icon: 'clock', t: 'Horarios', to: '/dashboard/schedule', dataTour: 'horarios' },
+    { icon: 'list', t: 'Servicios', to: '/dashboard/services', dataTour: 'servicios' },
+    { icon: 'arrowUpRight', t: 'Enlaces Pro', to: '/dashboard/enlaces', dataTour: 'enlaces-pro' },
+    { icon: 'barChart', t: 'Estadísticas', to: '/dashboard/stats', locked: !pro, dataTour: 'estadisticas' },
+    { icon: 'user', t: 'Cuenta', to: '/dashboard/account', dataTour: 'cuenta' },
+    { icon: 'shield', t: 'Seguridad', to: '/dashboard/security', dataTour: 'seguridad' },
   ] as const
   return (
     <aside
@@ -127,6 +129,7 @@ function DashSidebar({
             key={it.to}
             to={it.to}
             end={Boolean((it as { end?: boolean }).end)}
+            data-tour={variant === 'desktop' ? it.dataTour : undefined}
             onClick={onNavigateItem}
             style={({ isActive }) => ({
               display: 'flex',
@@ -272,14 +275,21 @@ function Dashboard({ pro, business, children }: DashboardProps) {
     <div className="lw-dashboard-shell">
       <div className={`lw-dashboard-overlay${menuOpen ? ' is-open' : ''}`} onClick={() => setMenuOpen(false)} />
       <div className={`lw-dashboard-drawer${menuOpen ? ' is-open' : ''}`}>
-        <DashSidebar pro={pro} businessName={business?.name} onNavigateItem={() => setMenuOpen(false)} />
+        <DashSidebar variant="mobile" pro={pro} businessName={business?.name} onNavigateItem={() => setMenuOpen(false)} />
       </div>
       <div className="lw-dashboard-desktop-sidebar">
-        <DashSidebar pro={pro} businessName={business?.name} />
+        <DashSidebar variant="desktop" pro={pro} businessName={business?.name} />
       </div>
       <main className="lw-scroll lw-dashboard-main">
         <div className="lw-dashboard-mobilebar">
-          <Btn kind="outline" size="sm" icon="menu" type="button" onClick={() => setMenuOpen((v) => !v)}>
+          <Btn
+            kind="outline"
+            size="sm"
+            icon="menu"
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            data-tour-mobile="menu-button"
+          >
             Menú
           </Btn>
           <span className="lw-small" style={{ fontWeight: 600, color: 'var(--lw-text)' }}>

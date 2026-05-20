@@ -38,6 +38,8 @@ class Business extends Tenant
         'plan',
         'plan_activated_at',
         'onboarding_completed_at',
+        'dashboard_tour_completed_at',
+        'dashboard_pro_tour_completed_at',
         'google_maps_url',
         'google_business_url',
         'booking_url',
@@ -52,6 +54,8 @@ class Business extends Tenant
         return [
             'plan_activated_at' => 'datetime',
             'onboarding_completed_at' => 'datetime',
+            'dashboard_tour_completed_at' => 'datetime',
+            'dashboard_pro_tour_completed_at' => 'datetime',
             'schedule' => 'array',
             'lat' => 'float',
             'lng' => 'float',

@@ -1,6 +1,6 @@
 export default function Seguridad() {
   return (
-    <div>
+    <div data-tour="seguridad-main">
       <h1 className="lw-h2" style={{ marginBottom: 8 }}>
         Seguridad
       </h1>

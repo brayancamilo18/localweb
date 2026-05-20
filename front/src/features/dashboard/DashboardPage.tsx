@@ -1,11 +1,22 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getBusiness, getStats } from '../../api/dashboard'
 import { keys } from '../../api/queryKeys'
 import type { Business, StatsData } from '../../types/api'
+import { useAuthStore } from '../../store/authStore'
 import { Dashboard } from './dashboard'
 import { DashboardContext, EMPTY_STATS } from './context/DashboardContext'
+import {
+  TourProvider,
+  TourRunner,
+  TourAutoStart,
+  useTour,
+  completeDashboardTour,
+  completeDashboardProTour,
+} from './tour'
+import { SubdomainSetupModal } from './sections/SubdomainSetupModal'
+import { SubdomainTourPause } from './sections/SubdomainTourPause'
 
 function DashboardSkeleton() {
   return (
@@ -54,13 +65,53 @@ function fallbackStatsFromBusiness(business: Business): StatsData {
   }
 }
 
+function TourRunnerWithComplete({ business }: { business: Business }) {
+  const { proOnlyMode } = useTour()
+
+  return (
+    <TourRunner
+      isPro={business.is_pro}
+      overlayVariant="soft-veil"
+      editRoute="/dashboard/editor"
+      onComplete={() => {
+        if (proOnlyMode) {
+          completeDashboardProTour().catch(() => {
+            /* fire-and-forget */
+          })
+          return
+        }
+        completeDashboardTour().catch(() => {
+          /* fire-and-forget */
+        })
+        if (business.is_pro) {
+          completeDashboardProTour().catch(() => {
+            /* fire-and-forget */
+          })
+        }
+      }}
+    />
+  )
+}
+
 export default function DashboardPage() {
   const qc = useQueryClient()
+  const [subdomainDeferred, setSubdomainDeferred] = useState(false)
+  const authBusiness = useAuthStore((s) => s.business)
 
   const { data: business, isLoading, isError } = useQuery({
     queryKey: keys.dashboard.business,
     queryFn: getBusiness,
   })
+
+  /** La query se precarga en onboarding (paso 8+) y puede quedar sin `onboarding_completed_at`. */
+  useEffect(() => {
+    const authDone = authBusiness?.onboarding_completed_at
+    if (!authDone || !business || business.onboarding_completed_at != null) return
+    qc.setQueryData(keys.dashboard.business, {
+      ...business,
+      onboarding_completed_at: authDone,
+    })
+  }, [authBusiness?.onboarding_completed_at, business, qc])
 
   const statsQuery = useQuery({
     queryKey: keys.dashboard.stats,
@@ -88,11 +139,38 @@ export default function DashboardPage() {
 
   const stats = statsQuery.data ?? fallbackStatsFromBusiness(business)
 
+  const needsSubdomainSetup = business.is_pro && business.subdomain_type === 'random'
+  const showSubdomainModal = needsSubdomainSetup && !subdomainDeferred
+  const subdomainSetupBlocking = needsSubdomainSetup && !subdomainDeferred
+  const onboardingCompletedAt =
+    business.onboarding_completed_at ?? authBusiness?.onboarding_completed_at ?? null
+
   return (
     <DashboardContext.Provider value={{ business, stats, refetch }}>
-      <Dashboard pro={business.is_pro} business={business}>
-        <Outlet />
-      </Dashboard>
+      {showSubdomainModal ? (
+        <SubdomainSetupModal
+          business={business}
+          onDone={() => {
+            void qc.invalidateQueries({ queryKey: keys.dashboard.business })
+          }}
+          onLater={() => setSubdomainDeferred(true)}
+        />
+      ) : null}
+      <TourProvider
+        businessId={business.id}
+        onboardingCompletedAt={onboardingCompletedAt}
+        isPro={business.is_pro}
+        backendCompletedAt={business.dashboard_tour_completed_at}
+        backendProCompletedAt={business.dashboard_pro_tour_completed_at ?? null}
+        subdomainSetupBlocking={subdomainSetupBlocking}
+      >
+        <Dashboard pro={business.is_pro} business={business}>
+          <Outlet />
+        </Dashboard>
+        <TourRunnerWithComplete business={business} />
+        <TourAutoStart />
+        {subdomainDeferred && needsSubdomainSetup ? <SubdomainTourPause /> : null}
+      </TourProvider>
     </DashboardContext.Provider>
   )
 }

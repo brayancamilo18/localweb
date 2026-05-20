@@ -457,7 +457,7 @@ export default function Imagenes() {
         </Card>
       ) : null}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }} data-tour="imagenes-main">
         <DropZone
           title={heroPhotoSlots > 1 ? `Portada (${cover.length}/${heroPhotoSlots} fotos)` : 'Portada'}
           section="cover"
