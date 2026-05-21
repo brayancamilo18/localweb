@@ -810,16 +810,9 @@ function lwTrackClick(kind) {
 (function () {
   var p = new URLSearchParams(location.search);
   if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
-  if (window.__LW_LEAFLET_LOADER_STARTED) return;
-  window.__LW_LEAFLET_LOADER_STARTED = true;
   var s = document.createElement('script');
   s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
   s.crossOrigin = '';
-  s.onload = function () {
-    if (typeof lwBootTenantMap === 'function') {
-      lwBootTenantMap(window.__lwMapAddress || '');
-    }
-  };
   document.head.appendChild(s);
 })();
 </script>
@@ -1138,14 +1131,8 @@ function updateBoldPreviewMap(lat, lon) {
     sec.classList.add('bold-map-empty');
     return;
   }
-  if (window.__LW_SKIP_LEAFLET) return;
+  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
   sec.classList.remove('bold-map-empty');
-  if (typeof L === 'undefined') {
-    if (typeof lwWhenLeafletReady === 'function') {
-      lwWhenLeafletReady(function () { updateBoldPreviewMap(lat, lon); });
-    }
-    return;
-  }
 
   function applyMap() {
     if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
@@ -1607,9 +1594,6 @@ function applyLivePreviewData(raw, opts) {
 (function initLivePreviewFromQuery() {
   var params = new URLSearchParams(window.location.search);
   if (!params.has('preview')) {
-    syncBoldScheduleFromPreview(null);
-    renderBoldSchedule();
-    renderBoldGallery([]);
     if (shouldUseUrbanSampleMedia()) {
       updateBoldHeroPhoto({ portada: '' });
       updateBoldAboutPhoto({ foto_equipo: '' });
@@ -2064,13 +2048,43 @@ setInterval(renderBoldSchedule, 60000);
 <script>
 (function bootUrbanBoldTenantPage() {
   function run() {
+    if (typeof applyLivePreviewData === 'function') {
+      applyLivePreviewData({
+        logo_url: @json($logo_url),
+        nombre: @json($nombre),
+        tagline: @json($tagline),
+        telefono: @json($telefono),
+        whatsapp: @json($whatsapp),
+        portada: @json($portada),
+        portada_2: @json($portada_2),
+        portada_3: @json($portada_3),
+        descripcion: @json($descripcion),
+        foto_equipo: @json($foto_equipo),
+        direccion: @json($direccion),
+        correo: @json($correo),
+        galeria: @json($galeria),
+        horario: @json($horario),
+        map_lat: @json($map_lat),
+        map_lon: @json($map_lon),
+        services: @json($services),
+        google_maps_url: @json($google_maps_url),
+        google_business_url: @json($google_business_url),
+        booking_url: @json($booking_url),
+        vcard_enabled: @json($vcard_enabled),
+        is_pro: @json($is_pro),
+        subdomain: @json($subdomain),
+        api_base_url: @json($api_base_url),
+        vcard_download_url: @json($vcard_download_url),
+        instagram_url: @json($instagram_url),
+        tiktok_url: @json($tiktok_url),
+        facebook_url: @json($facebook_url)
+      });
+    }
     updateBoldTicker({
       nombre: @json($nombre),
       tagline: @json($tagline),
       direccion: @json($direccion)
     });
-    syncBoldScheduleFromPreview(@json($horario));
-    renderBoldSchedule();
     if (typeof window.__lwLat === 'number' && typeof window.__lwLon === 'number') {
       updateBoldPreviewMap(window.__lwLat, window.__lwLon);
     } else {
