@@ -5,6 +5,7 @@
 @stack('head-extras')
 </head>
 <body>
+@include('public.partials.tenant-leaflet-bridge')
 @yield('content')
 @stack('body-end')
 </body>

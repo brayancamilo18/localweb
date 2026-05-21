@@ -467,6 +467,7 @@
     .tv-img-reveal::before,.tv-img-reveal::after{display:none}
   }
 </style>
+@endverbatim
 
 @endpush
 
@@ -751,9 +752,9 @@
       <h4>Contactar</h4>
       <ul>
         <li><a href="{{ $whatsapp ? 'tel:+'.$whatsapp : 'tel:' }}" data-tel-link><span data-phone-display>{{ $telefono ?: 'Tu teléfono' }}</span></a></li>
-        <li id="footEmailRow"@if(!$correo) hidden@endif><a id="footEmailLink" href="mailto:{{ $correo }}"><span id="footEmailDisplay"></span></a></li>
+        <li id="footEmailRow"@if(!$correo) hidden @endif><a id="footEmailLink" href="mailto:{{ $correo }}"><span id="footEmailDisplay"></span></a></li>
         <li><a href="https://wa.me/{{ $whatsapp }}" data-wa-link>WhatsApp</a></li>
-        <li id="footAddressRow"@if(!$direccion) hidden@endif><a href="{{ $google_maps_url ?: '#' }}" id="footAddressLink"@if($google_maps_url) target="_blank" rel="noopener noreferrer"@endif><span id="footAddressText">{{ $direccion }}</span></a></li>
+        <li id="footAddressRow"@if(!$direccion) hidden @endif><a href="{{ $google_maps_url ?: '#' }}" id="footAddressLink"@if($google_maps_url) target="_blank" rel="noopener noreferrer"@endif><span id="footAddressText">{{ $direccion }}</span></a></li>
       </ul>
     </div>
     <div>
@@ -809,9 +810,16 @@ function lwTrackClick(kind) {
 (function () {
   var p = new URLSearchParams(location.search);
   if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
+  if (window.__LW_LEAFLET_LOADER_STARTED) return;
+  window.__LW_LEAFLET_LOADER_STARTED = true;
   var s = document.createElement('script');
   s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
   s.crossOrigin = '';
+  s.onload = function () {
+    if (typeof lwBootTenantMap === 'function') {
+      lwBootTenantMap(window.__lwMapAddress || '');
+    }
+  };
   document.head.appendChild(s);
 })();
 </script>
@@ -1130,8 +1138,14 @@ function updateBoldPreviewMap(lat, lon) {
     sec.classList.add('bold-map-empty');
     return;
   }
-  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
+  if (window.__LW_SKIP_LEAFLET) return;
   sec.classList.remove('bold-map-empty');
+  if (typeof L === 'undefined') {
+    if (typeof lwWhenLeafletReady === 'function') {
+      lwWhenLeafletReady(function () { updateBoldPreviewMap(lat, lon); });
+    }
+    return;
+  }
 
   function applyMap() {
     if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;

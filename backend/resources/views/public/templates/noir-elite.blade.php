@@ -870,9 +870,16 @@ function lwTrackClick(kind) {
 (function () {
   var p = new URLSearchParams(location.search);
   if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
+  if (window.__LW_LEAFLET_LOADER_STARTED) return;
+  window.__LW_LEAFLET_LOADER_STARTED = true;
   var s = document.createElement('script');
   s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
   s.crossOrigin = '';
+  s.onload = function () {
+    if (typeof lwBootTenantMap === 'function') {
+      lwBootTenantMap(window.__lwMapAddress || '');
+    }
+  };
   document.head.appendChild(s);
 })();
 </script>
@@ -1203,10 +1210,15 @@ function updatePreviewMapEmbed(lat, lon, addressLine) {
     if (ph) ph.hidden = false;
     return;
   }
-  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
-
+  if (window.__LW_SKIP_LEAFLET) return;
   shell.hidden = false;
   if (ph) ph.hidden = true;
+  if (typeof L === 'undefined') {
+    if (typeof lwWhenLeafletReady === 'function') {
+      lwWhenLeafletReady(function () { updatePreviewMapEmbed(lat, lon, addressLine); });
+    }
+    return;
+  }
 
   function applyMap() {
     if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;

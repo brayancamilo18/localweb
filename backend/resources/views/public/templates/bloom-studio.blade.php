@@ -626,7 +626,6 @@
 
   <div class="hero-meta">
     <div class="item"><span class="num">12<em>·</em>11</span><span>Años en el barrio</span></div>
-    <div class="item"><span class="num">4.<em>9</em></span><span>Google · 312 reseñas</span></div>
     <div class="item"><span class="num">5</span><span>Peluqueros del equipo</span></div>
   </div>
 </header>
@@ -636,13 +635,12 @@
   <div class="wrap" id="aboutSec">
     <div class="about">
       <div class="about-photo r-left" id="aboutPhotoBg">
-        <div class="badge"><span class="star">★</span> 4.9 / 5 · 312 reseñas</div>
       </div>
       <div class="about-text r-right d-1">
         <span class="eyebrow-coral">Sobre nosotros</span>
         <h2>Cinco peluqueros, un <em>café</em> y mucha calle.</h2>
         <p id="aboutDescripcion">{{ $descripcion }}</p>
-        <p id="aboutExtra">Te recibimos con un café de la torrefactora de la esquina y, si quieres, te enseñamos cómo cuidar tu pelo en casa. Sin prisas. Sin venderte nada que no necesites.</p>
+        <p id="aboutExtra" hidden></p>
 
         <div class="about-actions">
           <a href="tel:{{ $telefono }}" class="pill-tel" data-tel-link>
@@ -693,7 +691,7 @@
   <div class="wrap" id="gallerySec">
     <div class="gallery-head">
       <h2 class="r-left">Trabajos <em>recientes</em>.</h2>
-      <p class="right r-right d-1">Color, corte, mechas, recogidos. Una pequeña selección de lo último que hemos firmado.</p>
+      <p class="right r-right d-1" id="gallerySub"></p>
     </div>
     <div class="grid" id="galleryLiveBloom"></div>
   </div>
@@ -739,7 +737,7 @@
       <div id="bloomMapShell" class="bloom-map-shell" hidden>
         <div id="bloomMapLeafletContainer" class="bloom-map-leaflet" role="img" aria-label="Mapa del negocio"></div>
       </div>
-      <p id="bloomMapPlaceholder" class="bloom-map-placeholder">En el asistente, escribe tu dirección y pulsa «Buscar» para ver el mapa aquí.</p>
+      <p id="bloomMapPlaceholder" class="bloom-map-placeholder"@if(is_numeric($map_lat) && is_numeric($map_lon)) hidden @endif>En el asistente, escribe tu dirección y pulsa «Buscar» para ver el mapa aquí.</p>
       <div id="tplMapsDirectionsRow" class="bloom-map-directions-row" style="display:none;">
         <a href="{{ $google_maps_url ?: '#' }}" id="tplMapsExternalLink" class="btn outline light sm" target="_blank" rel="noopener noreferrer">Abrir en Google Maps</a>
       </div>
@@ -747,7 +745,7 @@
     <div class="foot">
       <div>
         <div class="logo"><span class="dot"></span> <span id="footBrand">Salón Margarita</span></div>
-        <p id="footTagline">{{ $tagline }} — Peluquería de barrio en Lavapiés, Madrid. Cinco peluqueros, cita previa y mucho cariño por el oficio.</p>
+        <p id="footTagline">{{ $tagline }}</p>
         <div class="social">
           <a href="#" href="{{ $instagram_url }}" id="tplSocialInstagram" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>
           <a href="#" href="{{ $tiktok_url }}" id="tplSocialTiktok" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3a5 5 0 0 0 4 4v3a8 8 0 0 1-4-1.2v6.7a5.5 5.5 0 1 1-5.5-5.5v3a2.5 2.5 0 1 0 2.5 2.5V3z"/></svg></a>
@@ -781,10 +779,6 @@
 @endsection
 
 @push('body-end')
-<script>
-  window.__lwLat = {{ is_numeric($map_lat) ? $map_lat : 'null' }};
-  window.__lwLon = {{ is_numeric($map_lon) ? $map_lon : 'null' }};
-</script>
 
 <script>
 window.__lwTrackUrl = '{{ $api_base_url }}/api/v1/public/{{ $subdomain }}/track';
@@ -818,9 +812,16 @@ function lwTrackClick(kind) {
 (function () {
   var p = new URLSearchParams(location.search);
   if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
+  if (window.__LW_LEAFLET_LOADER_STARTED) return;
+  window.__LW_LEAFLET_LOADER_STARTED = true;
   var s = document.createElement('script');
   s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
   s.crossOrigin = '';
+  s.onload = function () {
+    if (typeof lwBootTenantMap === 'function') {
+      lwBootTenantMap(window.__lwMapAddress || '');
+    }
+  };
   document.head.appendChild(s);
 })();
 </script>
@@ -1143,7 +1144,13 @@ function updateBloomPreviewMap(lat, lon, addressLine) {
     if (ph) ph.hidden = false;
     return;
   }
-  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
+  if (window.__LW_SKIP_LEAFLET) return;
+  if (typeof L === 'undefined') {
+    if (typeof lwWhenLeafletReady === 'function') {
+      lwWhenLeafletReady(function () { updateBloomPreviewMap(lat, lon, addressLine); });
+    }
+    return;
+  }
 
   shell.hidden = false;
   if (ph) ph.hidden = true;
@@ -1345,7 +1352,7 @@ function applyLivePreviewData(raw, opts) {
     name: 'Salón Margarita',
     tagline: 'Cinco peluqueros, productos cuidados y conversaciones tranquilas. Cita previa.',
     phoneWa: '34911234567',
-    footRest: ' — Peluquería de barrio en Lavapiés, Madrid. Cinco peluqueros, cita previa y mucho cariño por el oficio.',
+    footRest: '',
   };
 
   const name = (raw?.nombre || '').trim() || defaults.name;
@@ -1406,7 +1413,7 @@ function applyLivePreviewData(raw, opts) {
   if (heroTagline) heroTagline.textContent = tagline;
 
   const footTagline = document.getElementById('footTagline');
-  if (footTagline) footTagline.textContent = tagline ? tagline + defaults.footRest : defaults.tagline + defaults.footRest;
+  if (footTagline) footTagline.textContent = tagline || '';
 
   const footAddressBloom = document.getElementById('footAddressBloom');
   if (footAddressBloom) {
@@ -1417,10 +1424,17 @@ function applyLivePreviewData(raw, opts) {
   var bLon = raw?.map_lon;
   var latB = typeof bLat === 'number' ? bLat : parseFloat(bLat);
   var lonB = typeof bLon === 'number' ? bLon : parseFloat(bLon);
-  if (Number.isFinite(latB) && Number.isFinite(lonB)) {
-    updateBloomPreviewMap(latB, lonB, direccion || '');
+  function bootBloomMapFromPreview() {
+    if (Number.isFinite(latB) && Number.isFinite(lonB)) {
+      updateBloomPreviewMap(latB, lonB, direccion || '');
+    } else {
+      updateBloomPreviewMap(NaN, NaN, direccion || '');
+    }
+  }
+  if (typeof lwWhenLeafletReady === 'function') {
+    lwWhenLeafletReady(bootBloomMapFromPreview);
   } else {
-    updateBloomPreviewMap(NaN, NaN, direccion || '');
+    bootBloomMapFromPreview();
   }
 
   const aboutDescripcion = document.getElementById('aboutDescripcion');
@@ -1654,11 +1668,10 @@ setInterval(render, 60_000);
         facebook_url: @json($facebook_url)
       });
     }
-    if (typeof window.__lwLat === 'number' && typeof window.__lwLon === 'number') {
-      if (typeof updateBoldPreviewMap === 'function') updateBoldPreviewMap(window.__lwLat, window.__lwLon);
-      else if (typeof updateNoirPreviewMap === 'function') updateNoirPreviewMap(window.__lwLat, window.__lwLon);
-      else if (typeof updateSleekPreviewMap === 'function') updateSleekPreviewMap(window.__lwLat, window.__lwLon);
-      else if (typeof updateBloomPreviewMap === 'function') updateBloomPreviewMap(window.__lwLat, window.__lwLon);
+    if (typeof lwWhenLeafletReady === 'function' && typeof lwBootTenantMap === 'function') {
+      lwWhenLeafletReady(function () { lwBootTenantMap(@json($direccion)); });
+    } else if (typeof window.__lwLat === 'number' && typeof window.__lwLon === 'number' && typeof updateBloomPreviewMap === 'function') {
+      updateBloomPreviewMap(window.__lwLat, window.__lwLon, @json($direccion));
     }
     if (typeof window.tvAnimationsRefresh === 'function') {
       requestAnimationFrame(function () { window.tvAnimationsRefresh(); });

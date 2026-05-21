@@ -727,9 +727,16 @@ function lwTrackClick(kind) {
 (function () {
   var p = new URLSearchParams(location.search);
   if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
+  if (window.__LW_LEAFLET_LOADER_STARTED) return;
+  window.__LW_LEAFLET_LOADER_STARTED = true;
   var s = document.createElement('script');
   s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
   s.crossOrigin = '';
+  s.onload = function () {
+    if (typeof lwBootTenantMap === 'function') {
+      lwBootTenantMap(window.__lwMapAddress || '');
+    }
+  };
   document.head.appendChild(s);
 })();
 </script>
@@ -1136,7 +1143,13 @@ function destroyMonoPreviewMap() {
 
 function updateMonoPreviewMap(lat, lon, label) {
   var el = document.getElementById('map');
-  if (!el || window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
+  if (!el || window.__LW_SKIP_LEAFLET) return;
+  if (typeof L === 'undefined') {
+    if (typeof lwWhenLeafletReady === 'function') {
+      lwWhenLeafletReady(function () { updateMonoPreviewMap(lat, lon, label); });
+    }
+    return;
+  }
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
     destroyMonoPreviewMap();
     return;
