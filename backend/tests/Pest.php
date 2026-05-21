@@ -23,3 +23,43 @@ function validRegisterPayload(array $overrides = []): array
         'accept_terms' => true,
     ], $overrides);
 }
+
+/**
+ * Plantilla Blade usada en tests de páginas públicas (debe existir en resources/views).
+ */
+function createTestTemplate(array $overrides = []): \App\Models\Template
+{
+    return \App\Models\Template::query()->firstOrCreate(
+        ['slug' => $overrides['slug'] ?? 'urban-bold'],
+        array_merge([
+            'name' => 'Urban Bold',
+            'primary_color' => '#E55A3C',
+            'is_active' => true,
+            'requires_pro' => false,
+            'hero_photo_slots' => 1,
+            'sort_order' => 10,
+        ], $overrides)
+    );
+}
+
+function createPublishedBusiness(array $overrides = []): \App\Models\Business
+{
+    $template = createTestTemplate();
+    $business = \App\Models\Business::factory()
+        ->published()
+        ->create(array_merge([
+            'template_id' => $template->id,
+        ], $overrides));
+
+    return $business->load(['template', 'services', 'images']);
+}
+
+function tenantHost(\App\Models\Business $business): string
+{
+    return $business->subdomain.'.'.config('localweb.domains.tenant_suffix');
+}
+
+function tenantUrl(\App\Models\Business $business, string $path = '/'): string
+{
+    return 'http://'.tenantHost($business).$path;
+}

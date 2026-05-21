@@ -18,6 +18,52 @@ class PublicPageCache
 {
     public const KEY_PREFIX = 'public_page:';
 
+    // Cache key para el HTML renderizado de la página pública (Blade server-side).
+    // Separado de KEY_PREFIX (que cachea el JSON del API público) para poder
+    // invalidarlos independientemente si hace falta.
+    public const HTML_KEY_PREFIX = 'public_html:';
+
+    /**
+     * TTL del HTML renderizado en segundos.
+     * Más alto que el JSON del API (300s) porque el HTML cambia menos
+     * frecuentemente y regenerarlo es más costoso (renderizado Blade completo).
+     */
+    public const HTML_TTL = 900;
+
+    public static function getHtml(string $subdomain): ?string
+    {
+        $value = Cache::get(self::HTML_KEY_PREFIX.$subdomain);
+
+        return is_string($value) ? $value : null;
+    }
+
+    public static function putHtml(string $subdomain, string $html): void
+    {
+        Cache::put(
+            self::HTML_KEY_PREFIX.$subdomain,
+            $html,
+            self::HTML_TTL
+        );
+    }
+
+    public static function forgetHtml(string $subdomain): void
+    {
+        Cache::forget(self::HTML_KEY_PREFIX.$subdomain);
+    }
+
+    /**
+     * Invalida AMBAS caches (JSON del API y HTML renderizado) para un subdominio.
+     */
+    public static function forgetAll(string $subdomain): void
+    {
+        if ($subdomain === '') {
+            return;
+        }
+
+        Cache::forget(self::KEY_PREFIX.$subdomain);
+        self::forgetHtml($subdomain);
+    }
+
     public static function forget(?Business $business): void
     {
         if ($business?->subdomain) {
@@ -29,6 +75,7 @@ class PublicPageCache
     {
         if (is_string($subdomain) && $subdomain !== '') {
             Cache::forget(self::KEY_PREFIX.$subdomain);
+            Cache::forget(self::HTML_KEY_PREFIX.$subdomain);
         }
     }
 }

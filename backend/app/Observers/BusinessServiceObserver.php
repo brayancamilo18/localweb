@@ -9,11 +9,17 @@ class BusinessServiceObserver
 {
     public function saved(BusinessService $service): void
     {
-        PublicPageCache::forget($service->business);
+        $service->loadMissing('business');
+        if ($service->business?->subdomain) {
+            PublicPageCache::forgetAll($service->business->subdomain);
+        }
     }
 
     public function deleted(BusinessService $service): void
     {
-        PublicPageCache::forget($service->business);
+        $service->loadMissing('business');
+        if ($service->business?->subdomain) {
+            PublicPageCache::forgetAll($service->business->subdomain);
+        }
     }
 }

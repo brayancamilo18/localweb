@@ -119,6 +119,9 @@ function AppRoutes() {
         </Route>
       </Route>
 
+      {/* Fallback de desarrollo: en producción las páginas públicas las sirve
+          Laravel directamente (ResolveTenantForWeb + PublicTenantPageController).
+          Esta ruta solo se activa en local cuando no hay wildcard DNS. */}
       <Route path="/:subdomain" element={<PublicPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

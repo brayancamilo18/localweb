@@ -1,12 +1,34 @@
 <?php
 
+use App\Http\Controllers\PublicRobotsController;
+use App\Http\Controllers\PublicSitemapController;
+use App\Http\Controllers\PublicTenantPageController;
 use App\Http\Controllers\StripeWebhookController;
+use App\Http\Middleware\ResolveTenantForWeb;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Laravel\Cashier\Http\Controllers\PaymentController;
+
+// ─── Rutas públicas de tenant (subdominios de negocio) ───────────────────────
+// Registradas antes de GET / (home): Laravel prioriza la primera ruta coincidente.
+// El dominio {subdomain}.{tenant_suffix} evita colisión con la ruta raíz en localhost/app.onez.es.
+// ResolveTenantForWeb resuelve el negocio y adjunta tenant_business al request.
+
+Route::middleware(ResolveTenantForWeb::class)
+    ->domain('{subdomain}.'.config('localweb.domains.tenant_suffix'))
+    ->group(function (): void {
+        Route::get('/robots.txt', [PublicRobotsController::class, 'show'])
+            ->name('tenant.robots');
+
+        Route::get('/sitemap.xml', [PublicSitemapController::class, 'tenant'])
+            ->name('tenant.sitemap');
+
+        Route::get('/', [PublicTenantPageController::class, 'show'])
+            ->name('tenant.page');
+    });
 
 Route::get('/', function () {
     return view('welcome');
@@ -46,3 +68,8 @@ Route::prefix(config('cashier.path', 'stripe'))->name('cashier.')->group(functio
     Route::get('payment/{id}', [PaymentController::class, 'show'])->name('payment');
     Route::post('webhook', [StripeWebhookController::class, 'handleWebhook'])->name('webhook');
 });
+
+// Sitemap maestro — solo en el dominio raíz (no en subdominios de tenant)
+// Se registra fuera del grupo anterior para que no pase por ResolveTenantForWeb
+Route::get('/sitemap-index.xml', [PublicSitemapController::class, 'master'])
+    ->name('sitemap.master');

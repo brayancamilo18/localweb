@@ -11,3 +11,4 @@ Artisan::command('inspire', function () {
 Schedule::command('onboarding:clean-orphaned-drafts')->dailyAt('03:00');
 Schedule::command('onboarding:prune-drafts')->hourly();
 Schedule::command('analytics:prune')->daily();
+Schedule::command('sitemap:regenerate-master')->hourly();

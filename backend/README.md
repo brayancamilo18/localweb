@@ -57,3 +57,75 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+# Sistema de páginas públicas SEO
+
+## Arquitectura
+
+Las páginas públicas de los negocios (`kairos.app.onez.es`) se sirven
+directamente desde Laravel via Blade, sin pasar por el SPA de React.
+Esto garantiza HTML completamente renderizado en el servidor para
+indexación correcta por buscadores.
+
+## Flujo de una petición pública
+
+1. Nginx recibe `GET kairos.app.onez.es/`
+2. Laravel — `ResolveTenantForWeb` identifica el tenant desde el host
+3. `PublicTenantPageController::show()` busca en cache (Redis, TTL 900s)
+4. Cache HIT → devuelve HTML cacheado con header `X-Cache: HIT`
+5. Cache MISS → renderiza la plantilla Blade correspondiente, guarda en
+   cache y devuelve con header `X-Cache: MISS`
+
+## Invalidación de cache
+
+Los observers invalidan automáticamente todas las caches del subdominio
+cuando cambia cualquier dato del negocio:
+
+| Observer | Evento | Invalida |
+|---|---|---|
+| BusinessObserver | saved | HTML, JSON, robots, sitemap tenant |
+| BusinessObserver | saved (is_published cambia) | + sitemap maestro |
+| BusinessObserver | deleted / restored | sitemap maestro |
+| BusinessImageObserver | saved / deleted | HTML, JSON, sitemap tenant |
+| BusinessServiceObserver | saved / deleted | HTML, JSON |
+
+## Plantillas Blade
+
+Ubicación: `resources/views/public/templates/{slug}.blade.php`
+Layout base: `resources/views/public/layouts/tenant.blade.php`
+Partial SEO: `resources/views/public/partials/head-seo.blade.php`
+Partial JSON-LD: `resources/views/public/partials/json-ld.blade.php`
+
+Las plantillas HTML estáticas en `front/public/templates/{slug}.html`
+siguen existiendo y son usadas por el wizard de onboarding para
+previsualización. Son versiones paralelas — NO eliminar.
+
+## Servicios
+
+| Servicio | Responsabilidad |
+|---|---|
+| `TenantViewPayload` | Business → array de variables para la plantilla Blade |
+| `SeoMetaBuilder` | Business → array $seo con title, description, OG, etc. |
+| `JsonLdBuilder` | Business → string JSON-LD Schema.org LocalBusiness |
+
+## robots.txt
+
+- `{subdominio}.app.onez.es/robots.txt` — permite indexación, apunta al sitemap del tenant
+- `app.onez.es/robots.txt` — permite todo excepto rutas internas, apunta a sitemap-index.xml
+- Cache TTL: 3600s. Invalidado por BusinessObserver cuando cambia subdomain o is_published.
+
+## Sitemap
+
+- `{subdominio}.app.onez.es/sitemap.xml` — URL canónica del negocio + imágenes
+- `app.onez.es/sitemap-index.xml` — índice de todos los negocios publicados
+- Cache TTL sitemap tenant: 3600s. Cache TTL sitemap maestro: 1800s.
+- Comando manual: `php artisan sitemap:regenerate-master`
+- Scheduler: regeneración automática cada hora.
+
+## Fase 2 pendiente
+
+- Favicon dinámico por cliente Pro (`favicon_path` en tabla businesses,
+  campo añadido pero sin lógica Pro aún).
+- Unificación de plantillas Blade y HTML estáticas (Opción B) cuando el
+  catálogo supere ~40 plantillas.
+- Paginación del sitemap maestro si se superan 49.000 negocios publicados.

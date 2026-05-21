@@ -1,0 +1,2040 @@
+@extends('public.layouts.tenant')
+
+@push('head-extras')
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+(function () {
+  var p = new URLSearchParams(location.search);
+  if (p.get('thumb') === '1') return;
+  var l = document.createElement('link');
+  l.rel = 'stylesheet';
+  l.href = 'https://unpkg.com/leaflet@@1.9.4/dist/leaflet.css';
+  l.crossOrigin = '';
+  document.head.appendChild(l);
+})();
+</script>
+@verbatim
+<style>
+  /* ═══════════ TAVOLA-WARM — ORIGINAL TOKENS ═══════════ */
+  :root{
+    --cream:#F5EBDA;
+    --cream-2:#EDE0CB;
+    --paper:#FAF3E5;
+    --wine:#5A1F1F;
+    --wine-2:#7A2A2A;
+    --bottle:#2D3A28;
+    --terracotta:#C2643E;
+    --terracotta-soft:#E8B996;
+    --tan:#8B6840;
+    --ink:#2A1F18;
+    --ink-2:#5A4A3D;
+    --ink-3:#9A8775;
+    --line:#D9C9AE;
+    --line-2:#C2AC8A;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:"Lora",Georgia,serif;
+    font-size:16px;line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(ellipse 800px 400px at 0% 0%,rgba(194,100,62,.08),transparent 60%),
+      radial-gradient(ellipse 600px 400px at 100% 30%,rgba(90,31,31,.06),transparent 60%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence baseFrequency='1.2' numOctaves='1' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.2 0 0 0 0 0.1 0 0 0 0.04 0'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>");
+    background-attachment:fixed;
+  }
+  section[id],a[id]{scroll-margin-top:80px}
+  ::selection{background:var(--wine);color:var(--cream)}
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer;border:none;background:none}
+  img{display:block;max-width:100%}
+  .display{font-family:"DM Serif Display",Georgia,serif;font-weight:400;letter-spacing:-0.005em}
+  .sans{font-family:"Inter",sans-serif}
+  .container{max-width:1240px;margin:0 auto;padding:0 32px}
+  .eyebrow{font-family:"Lora",serif;font-style:italic;font-size:14px;color:var(--wine);letter-spacing:0.02em}
+  .eyebrow::before{content:"❦ ";font-style:normal;color:var(--terracotta);margin-right:2px}
+
+  /* ─── NAV ─── */
+  .nav{position:sticky;top:0;z-index:9000;background:rgba(245,235,218,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .nav-inner{max-width:1240px;margin:0 auto;padding:18px 32px;display:flex;justify-content:space-between;align-items:center}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand-mark{width:44px;height:44px;border-radius:50%;background:var(--wine);color:var(--cream);display:grid;place-items:center;font-family:"DM Serif Display",serif;font-size:22px;font-style:italic;flex-shrink:0;border:2px solid var(--terracotta-soft);position:relative}
+  .brand-mark::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:1px solid var(--wine);opacity:.3}
+  .brand-name{display:flex;flex-direction:column;line-height:1.1}
+  .brand-name strong{font-family:"DM Serif Display",serif;font-size:22px;color:var(--ink);letter-spacing:-0.005em;font-weight:400}
+  .brand-name small{font-family:"Lora",serif;font-style:italic;font-size:11.5px;color:var(--ink-2);margin-top:2px;letter-spacing:0.04em}
+  #navBrandName{font-family:"DM Serif Display",serif;font-size:22px;color:var(--ink);letter-spacing:-0.005em;font-weight:400}
+  .nav{--lw-logo-scale:1}
+  .nav .brand.brand-has-img .nav-brand-img{display:block;height:calc(36px * var(--lw-logo-scale,1));width:auto;max-width:calc(180px * var(--lw-logo-scale,1));object-fit:contain;image-rendering:auto}
+  .nav .brand.brand-has-img .brand-mark{display:none !important}
+  .nav .brand.brand-has-img #navBrandName{display:none !important}
+  .nav ul{list-style:none;display:flex;gap:32px;align-items:center}
+  .nav ul a{font-family:"Lora",serif;font-size:15px;color:var(--ink-2);transition:color .15s;position:relative;padding:4px 0}
+  .nav ul a:hover{color:var(--wine)}
+  .nav ul a:hover::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:1px;background:var(--terracotta)}
+  .nav ul a.is-active{color:var(--wine)}
+  .nav ul a.is-active::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:1px;background:var(--terracotta)}
+  .nav-actions{display:flex;align-items:center;gap:14px}
+  .nav-cta{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;background:var(--wine);color:var(--cream);font-family:"Inter";font-size:13.5px;font-weight:500;border-radius:999px;transition:background .15s,transform .15s}
+  .nav-cta:hover{background:var(--bottle);transform:translateY(-1px)}
+  .menu-toggle{display:none;width:42px;height:42px;background:transparent;border:1px solid var(--line-2);border-radius:50%;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0}
+  .menu-toggle span{display:block;width:18px;height:1.5px;background:var(--ink);transition:.25s}
+  .nav.is-open .menu-toggle span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+  .nav.is-open .menu-toggle span:nth-child(2){opacity:0}
+  .nav.is-open .menu-toggle span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+
+  /* ─── HERO ─── */
+  .hero{padding:80px 0 96px;position:relative;overflow:hidden}
+  .hero::before{content:"❦";position:absolute;top:60px;right:60px;font-family:"DM Serif Display";font-size:160px;color:var(--terracotta);opacity:.08;line-height:1;pointer-events:none}
+  .hero-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:72px;align-items:center;position:relative}
+  .hero-meta{display:flex;align-items:center;gap:14px;margin-bottom:28px}
+  .hero-meta .live{display:inline-flex;align-items:center;gap:8px;font-family:"Lora";font-style:italic;color:var(--wine)}
+  .hero-meta .live .dot{width:8px;height:8px;border-radius:50%;background:var(--terracotta);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .hero h1{font-family:"DM Serif Display",serif;font-size:clamp(56px,8vw,118px);font-weight:400;line-height:.96;letter-spacing:-0.02em;color:var(--ink);margin-bottom:32px}
+  .hero h1 em{font-style:italic;color:var(--wine)}
+  .hero h1 .amp{display:inline-block;font-style:italic;color:var(--terracotta);transform:translateY(4px) rotate(-4deg);margin:0 4px}
+  .hero-tag{font-size:19px;line-height:1.6;color:var(--ink-2);max-width:520px;margin-bottom:36px;font-style:italic}
+  .hero-tag strong{font-style:normal;color:var(--ink);font-weight:500}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:44px}
+  .btn-p{display:inline-flex;align-items:center;gap:10px;padding:15px 28px;background:var(--wine);color:var(--cream);font-family:"Inter";font-size:14px;font-weight:500;border-radius:999px;transition:background .15s,transform .15s}
+  .btn-p:hover{background:var(--bottle);transform:translateY(-1px)}
+  .btn-g{display:inline-flex;align-items:center;gap:10px;padding:15px 26px;background:transparent;color:var(--ink);font-family:"Inter";font-size:14px;font-weight:500;border:1.5px solid var(--ink);border-radius:999px;transition:background .15s,color .15s}
+  .btn-g:hover{background:var(--ink);color:var(--cream)}
+  .btn-wa{display:inline-flex;align-items:center;gap:10px;padding:15px 24px;background:#1F8A5B;color:#fff;font-family:"Inter";font-size:14px;font-weight:500;border-radius:999px;transition:background .15s,transform .15s}
+  .btn-wa:hover{background:#16613F;transform:translateY(-1px)}
+
+  .hero-photos{position:relative;height:560px}
+  .photo{position:absolute;border-radius:6px;background:var(--cream-2);overflow:hidden;box-shadow:0 24px 48px -16px rgba(42,31,24,.35)}
+  .photo img{width:100%;height:100%;object-fit:cover}
+  .photo.p1{top:0;left:0;width:62%;height:55%;transform:rotate(-3deg);z-index:2}
+  .photo.p2{top:30%;right:0;width:55%;height:50%;transform:rotate(4deg);z-index:3}
+  .photo.p3{bottom:0;left:14%;width:50%;height:45%;transform:rotate(-1deg);z-index:1}
+
+  /* ─── TICKER ─── */
+  .ticker{background:var(--paper);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:24px 0;overflow:hidden}
+  .ticker-track{display:flex;gap:32px;font-family:"Lora";font-style:italic;font-size:14px;color:var(--ink-2);white-space:nowrap;animation:scroll 40s linear infinite}
+  .ticker .star{color:var(--terracotta);font-size:10px;font-style:normal}
+  @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  /* ─── SECTIONS ─── */
+  section{padding:120px 0;position:relative}
+  .section-head{text-align:center;margin-bottom:80px;max-width:780px;margin-left:auto;margin-right:auto}
+  .section-head h2{font-family:"DM Serif Display",serif;font-size:clamp(44px,5.5vw,80px);font-weight:400;line-height:1.04;letter-spacing:-0.02em;margin:14px 0 18px}
+  .section-head h2 em{font-style:italic;color:var(--wine)}
+  .section-head .desc{font-size:17px;line-height:1.65;color:var(--ink-2);font-style:italic;max-width:560px;margin:0 auto}
+  .ornament{display:inline-flex;align-items:center;gap:14px;color:var(--terracotta);font-family:"DM Serif Display";font-size:18px;font-style:italic;margin-bottom:8px}
+  .ornament::before,.ornament::after{content:"";width:48px;height:1px;background:var(--terracotta)}
+
+  /* ─── MENU / SERVICES (tavola-warm original) ─── */
+  .menu-section{background:var(--paper);border-top:1px solid var(--line);border-bottom:1px solid var(--line);position:relative}
+  .menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px 80px}
+  .dish{display:flex;flex-direction:column;padding-bottom:18px;border-bottom:1px dashed var(--line-2);position:relative}
+  .dish:hover .dish-name{color:var(--wine)}
+  .dish-head{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
+  .dish-name{font-family:"DM Serif Display",serif;font-size:24px;color:var(--ink);transition:color .2s;flex-shrink:0;line-height:1.15;font-weight:400}
+  .dish-dots{flex:1;border-bottom:1.5px dotted var(--line-2);transform:translateY(-6px);min-width:24px;height:1px}
+  .dish-price{font-family:"DM Serif Display",serif;font-size:22px;color:var(--wine);font-weight:400;letter-spacing:-0.01em}
+  .dish-desc{font-family:"Lora",serif;font-style:italic;font-size:14.5px;color:var(--ink-2);line-height:1.55;margin-bottom:10px;max-width:90%}
+
+  /* ─── GALLERY (tavola-warm original) ─── */
+  .gallery-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+  .gimg{background:var(--cream-2);overflow:hidden;border-radius:4px;position:relative;background-size:cover;background-position:center;transition:transform .4s}
+  .gimg[data-lightbox-src]{cursor:zoom-in}
+  .gimg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(42,31,24,.5));opacity:0;transition:opacity .3s}
+  .gimg:hover{transform:scale(.98)}
+  .gimg:hover::after{opacity:1}
+
+  /* ─── STORY / ABOUT (tavola-warm original) ─── */
+  .story-section{background:var(--ink);color:var(--cream);position:relative;overflow:hidden;padding:120px 0}
+  .story-section::before{content:"";position:absolute;inset:0;background:
+    radial-gradient(ellipse 700px 400px at 70% 20%,rgba(194,100,62,.15),transparent),
+    radial-gradient(ellipse 500px 300px at 10% 80%,rgba(90,31,31,.25),transparent);pointer-events:none}
+  .story-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;position:relative}
+  .story-img{aspect-ratio:4/5;background-size:cover;background-position:center;border-radius:6px;filter:brightness(.85) saturate(1.1);position:relative;background-color:var(--cream-2)}
+  .story-img::after{content:"";position:absolute;inset:0;border:1px solid rgba(245,235,218,.15);border-radius:6px;transform:translate(14px,14px);pointer-events:none}
+  .story-content .ornament{color:var(--terracotta-soft)}
+  .story-content .ornament::before,.story-content .ornament::after{background:var(--terracotta-soft)}
+  .story-content h2{font-family:"DM Serif Display",serif;font-size:clamp(40px,5vw,68px);font-weight:400;line-height:1.05;letter-spacing:-0.02em;color:var(--cream);margin:14px 0 28px}
+  .story-content h2 em{font-style:italic;color:var(--terracotta-soft)}
+  .story-content p{font-size:17px;line-height:1.75;color:rgba(245,235,218,.82);font-style:italic;margin-bottom:18px;max-width:520px}
+  .story-content img{display:none!important}
+
+  /* ─── HOURS / VISIT (tavola-warm original) ─── */
+  .visit-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;border-top:1px solid var(--line)}
+  .visit-card{background:var(--paper);border:1px solid var(--line);padding:40px;border-radius:6px}
+  .visit-card h3{font-family:"DM Serif Display";font-size:30px;font-weight:400;letter-spacing:-0.015em;margin:14px 0 28px}
+  .schedule-row{display:grid;grid-template-columns:1fr auto;align-items:center;padding:13px 0;border-bottom:1px dashed var(--line-2);font-family:"Lora";font-size:15px;gap:16px}
+  .schedule-row:last-child{border-bottom:none}
+  .schedule-row .day{color:var(--ink-2);font-style:italic}
+  .schedule-row .time{color:var(--ink);font-family:"DM Serif Display";font-size:16px;font-variant-numeric:tabular-nums;letter-spacing:-0.005em}
+  .schedule-row .time.closed{color:var(--ink-3);font-style:italic;font-family:"Lora";font-size:14px}
+  .schedule-row.today{background:rgba(194,100,62,.1);margin:0 -16px;padding:14px 16px;border-radius:4px;border-bottom:1px dashed var(--line-2);position:relative}
+  .schedule-row.today::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--terracotta);border-radius:3px 0 0 3px}
+  .schedule-row.today .day{color:var(--wine);font-style:normal;font-weight:600}
+  .schedule-row.today .day::after{content:" — hoy";font-style:italic;font-weight:400;color:var(--ink-2);font-family:"Lora"}
+  .schedule-status{display:inline-flex;align-items:center;gap:9px;padding:7px 16px;background:rgba(31,138,91,.1);border:1px solid rgba(31,138,91,.4);color:#1F8A5B;border-radius:999px;font-family:"Inter";font-style:normal;font-size:12.5px;font-weight:600;margin-bottom:14px}
+  .schedule-status .dot{width:8px;height:8px;border-radius:50%;background:#1F8A5B}
+  .schedule-status.open .dot{animation:statusPulse 2.4s infinite}
+  .schedule-status.closed{background:rgba(90,31,31,.08);border-color:rgba(90,31,31,.3);color:var(--wine)}
+  .schedule-status.closed .dot{background:var(--wine);animation:none}
+  @keyframes statusPulse{0%{box-shadow:0 0 0 0 rgba(31,138,91,.6)}70%{box-shadow:0 0 0 8px rgba(31,138,91,0)}100%{box-shadow:0 0 0 0 rgba(31,138,91,0)}}
+
+  .visit-contact{display:flex;flex-direction:column;gap:0;margin-top:0}
+  .vcontact{display:flex;align-items:center;gap:18px;padding:18px 0;border-bottom:1px dashed var(--line-2);transition:padding .2s}
+  .vcontact:hover{padding-left:8px}
+  .vcontact:last-child{border-bottom:none}
+  .vcontact .ico{width:48px;height:48px;border-radius:50%;background:var(--cream);border:1px solid var(--line);display:grid;place-items:center;color:var(--wine);font-family:"DM Serif Display";font-size:20px;font-style:italic;flex-shrink:0}
+  .vcontact strong{display:block;font-family:"DM Serif Display";font-size:18px;font-weight:400;color:var(--ink);letter-spacing:-0.005em}
+  .vcontact small{display:block;font-family:"Lora";font-style:italic;font-size:13px;color:var(--ink-2);margin-top:2px}
+
+  /* ─── MAP ─── */
+  .map-section{max-width:1240px;margin:24px auto 0;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+  .map-section.bold-map-empty{display:none}
+  .map-shell{position:relative;background:#1a0f0b}
+  .map-leaflet{height:min(340px,50vh);min-height:220px;width:100%;background:#1a0f0b}
+  .map-shell .leaflet-container{font-family:"Lora";background:#1a0f0b}
+  .map-shell .leaflet-control-zoom a{background:var(--paper);color:var(--wine);border:1px solid var(--line);border-radius:4px!important;font-weight:600}
+  .map-shell .leaflet-control-zoom a:hover{background:var(--wine);color:var(--cream)}
+  .map-shell .leaflet-bar{border:none;box-shadow:none}
+  .map-shell .leaflet-control-attribution{background:var(--paper)!important;color:var(--ink-3)!important;font-size:10px!important}
+  .map-shell .leaflet-control-attribution a{color:var(--terracotta)!important}
+  .bold-leaflet-divicon{background:transparent!important;border:none!important}
+  .bold-map-pin-wrap{position:relative;width:48px;height:48px;display:flex;align-items:center;justify-content:center;pointer-events:none}
+  .bold-map-core{width:12px;height:12px;background:var(--wine);border:3px solid var(--paper);border-radius:50%;box-shadow:0 0 0 1px var(--wine),0 4px 12px rgba(0,0,0,.25);position:relative;z-index:2}
+  .bold-map-radar-ring{position:absolute;left:50%;top:50%;width:40px;height:40px;margin:-20px 0 0 -20px;border:2px solid var(--wine);border-radius:50%;box-shadow:0 0 10px rgba(90,31,31,.25);animation:boldMapRadar 2.5s cubic-bezier(.2,.7,.2,1) infinite;pointer-events:none}
+  .bold-map-radar-ring.d2{animation-delay:1.25s}
+  @keyframes boldMapRadar{0%{transform:scale(0.4);opacity:.95}65%{opacity:.2}100%{transform:scale(2.15);opacity:0}}
+  .map-directions-row{display:none;justify-content:flex-start;align-items:center;padding:20px 32px;background:var(--paper)}
+  .map-directions-row.is-visible{display:flex}
+
+  /* ─── REVIEWS CTA ─── */
+  .reviews-cta-section{max-width:1240px;margin:24px auto 0;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:40px;display:none;flex-direction:column;gap:14px;align-items:flex-start}
+  .reviews-cta-section.is-visible{display:flex}
+  .reviews-cta-section h3{font-family:"DM Serif Display";font-size:30px;font-weight:400;line-height:1.05;letter-spacing:-.01em}
+  .reviews-cta-section p{font-size:14px;line-height:1.55;color:var(--ink-2);font-style:italic;max-width:520px}
+
+  /* ─── VCARD ─── */
+  .vcard-strip{max-width:1240px;margin:24px auto 0;background:var(--ink);color:var(--cream);border-radius:6px;padding:28px 36px;display:none;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  .vcard-strip.is-visible{display:flex}
+  .vcard-strip strong{font-family:"DM Serif Display";font-size:22px;font-weight:400;letter-spacing:-.01em}
+  .vcard-strip small{font-size:11px;color:var(--ink-3);display:block;margin-top:4px;font-style:italic;letter-spacing:.02em}
+
+  /* ─── CTA (tavola-warm original) ─── */
+  .cta-section{background:linear-gradient(180deg,var(--cream) 0%,var(--cream-2) 100%);padding:120px 0;text-align:center;border-top:1px solid var(--line)}
+  .cta-section h2{font-family:"DM Serif Display";font-size:clamp(48px,7vw,96px);font-weight:400;line-height:1;letter-spacing:-0.02em;margin:18px 0 24px;max-width:920px;margin-left:auto;margin-right:auto}
+  .cta-section h2 em{font-style:italic;color:var(--wine)}
+  .cta-section h2 .amp{display:inline-block;font-style:italic;color:var(--terracotta);transform:rotate(-4deg)}
+  .cta-section .desc{font-size:18px;color:var(--ink-2);font-style:italic;max-width:560px;margin:0 auto 40px;line-height:1.55}
+  .cta-section .actions{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
+
+  /* ─── FOOTER (tavola-warm original) ─── */
+  footer{background:var(--ink);color:rgba(245,235,218,.7);padding:80px 0 32px;font-family:"Lora";position:relative;overflow:hidden}
+  footer::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--terracotta-soft),transparent)}
+  .foot{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:48px;padding-bottom:48px;border-bottom:1px solid rgba(245,235,218,.12)}
+  .foot-brand{font-family:"DM Serif Display";font-size:42px;font-weight:400;letter-spacing:-.015em;line-height:1;margin-bottom:18px;color:var(--cream)}
+  .foot-brand .accent{color:var(--terracotta-soft)}
+  .foot p{font-style:italic;font-size:14px;line-height:1.65;color:rgba(245,235,218,.65);max-width:340px}
+  .foot h4{font-family:"DM Serif Display";font-size:17px;font-weight:400;color:var(--cream);margin-bottom:18px;letter-spacing:-0.005em;font-style:italic}
+  .foot ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+  .foot ul a{font-size:14px;color:rgba(245,235,218,.7);font-style:italic;transition:color .15s}
+  .foot ul a:hover{color:var(--terracotta-soft)}
+  .foot-bottom{padding-top:24px;display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:rgba(245,235,218,.4);flex-wrap:wrap;gap:10px;font-style:italic}
+  .foot-bottom a{color:var(--terracotta-soft)}
+
+  /* ─── EMBED ─── */
+  html.embed-preview-root{scroll-behavior:auto!important}
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width:980px){
+    .hero-grid{grid-template-columns:1fr;gap:48px}
+    .hero-photos{height:480px;max-width:520px;margin:0 auto;width:100%}
+    .menu-grid{grid-template-columns:1fr;gap:36px}
+    .gallery-grid{grid-template-columns:repeat(6,1fr)}
+    .gimg{grid-column:span 3!important;aspect-ratio:1!important}
+    .gimg:first-child{grid-column:span 6!important;aspect-ratio:2/1!important}
+    .story-grid{grid-template-columns:1fr;gap:48px}
+    .story-img{max-width:480px;margin:0 auto;width:100%}
+    .visit-grid{grid-template-columns:1fr;gap:16px}
+    .foot{grid-template-columns:1fr 1fr;gap:36px}
+  }
+  @media (max-width:680px){
+    .container{padding:0 20px}
+    .nav-inner{padding:14px 20px}
+    .nav ul,.nav-cta{display:none}
+    .menu-toggle{display:flex}
+    .brand-mark{width:38px;height:38px;font-size:18px}
+    #navBrandName{font-size:18px}
+    .brand-name small{font-size:10.5px}
+    .hero{padding:48px 0 64px}
+    .hero::before{font-size:90px;top:30px;right:20px}
+    .hero-photos{height:400px}
+    section{padding:64px 0}
+    .section-head{margin-bottom:48px}
+    .gallery-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+    .gimg{grid-column:span 1!important;aspect-ratio:1!important}
+    .visit-card{padding:28px 22px}
+    .schedule-row.today{margin:0 -10px;padding:14px 10px}
+    .foot{grid-template-columns:1fr;gap:32px}
+    .foot-bottom{flex-direction:column;text-align:center;gap:8px}
+    .map-section,.reviews-cta-section,.vcard-strip{margin-left:0;margin-right:0}
+    .nav.is-open ul{display:flex;position:absolute;top:100%;left:0;right:0;flex-direction:column;gap:0;background:rgba(245,235,218,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:8px 20px 16px;z-index:100;box-shadow:0 14px 24px rgba(0,0,0,.12)}
+    .nav.is-open ul li{border-bottom:1px dashed var(--line)}
+    .nav.is-open ul li:last-child{border-bottom:none}
+    .nav.is-open ul a{display:block;padding:14px 4px;font-size:16px;color:var(--ink)}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+    html{scroll-behavior:auto!important}
+  }
+
+  /* ─── LIGHTBOX ─── */
+  #galeria .gimg{cursor:zoom-in}
+  .lw-gallery-lightbox{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:max(12px,3vw);box-sizing:border-box}
+  .lw-gallery-lightbox[hidden]{display:none!important}
+  .lw-gallery-lightbox-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.9);border:0;cursor:pointer;padding:0}
+  .lw-gallery-lightbox-frame{position:relative;z-index:1;margin:0;max-width:min(96vw,1600px);max-height:92vh}
+  .lw-gallery-lightbox-img{display:block;max-width:min(96vw,1600px);max-height:92vh;width:auto;height:auto;object-fit:contain;box-shadow:0 24px 100px rgba(0,0,0,.75)}
+  .lw-gallery-lightbox-close{position:absolute;top:-8px;right:-8px;width:44px;height:44px;border:2px solid #fff;background:#0a0a0a;color:#fff;font-size:24px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0;font-family:system-ui,sans-serif}
+  @media (max-width:640px){.lw-gallery-lightbox-close{top:8px;right:8px}}
+
+  /* ═══════════ TAVOLA PRO ANIMATIONS ═══════════ */
+  :root{
+    --tv-ease: cubic-bezier(.22,.61,.36,1);
+    --tv-ease-out-expo: cubic-bezier(.16,1,.3,1);
+    --tv-ease-in-out: cubic-bezier(.65,0,.35,1);
+  }
+
+  @keyframes tv-fade-in { from{opacity:0} to{opacity:1} }
+  @keyframes tv-fade-up { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes tv-fade-down { from{opacity:0;transform:translateY(-32px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes tv-fade-left { from{opacity:0;transform:translateX(-48px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes tv-fade-right { from{opacity:0;transform:translateX(48px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes tv-zoom-in { from{opacity:0;transform:scale(.92)} to{opacity:1;transform:scale(1)} }
+  @keyframes tv-blur-in { from{opacity:0;filter:blur(14px);transform:translateY(20px)} to{opacity:1;filter:blur(0);transform:translateY(0)} }
+  @keyframes tv-clip-up { from{opacity:0;clip-path:inset(100% 0 0 0);transform:translateY(40px)} to{opacity:1;clip-path:inset(0 0 0 0);transform:translateY(0)} }
+  @keyframes tv-kenburns { 0%{transform:scale(1) translate(0,0)} 100%{transform:scale(1.12) translate(-2%,-1.5%)} }
+  @keyframes tv-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  @keyframes tv-pulse-soft { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.04);opacity:.92} }
+  @keyframes tv-shimmer {
+    0%{background-position:-200% 0} 100%{background-position:200% 0}
+  }
+  @keyframes tv-marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  @keyframes tv-spin-slow { to{transform:rotate(360deg)} }
+  @keyframes tv-divider-grow { from{transform:scaleX(0);transform-origin:left} to{transform:scaleX(1);transform-origin:left} }
+  @keyframes tv-underline { from{transform:scaleX(0);transform-origin:left} to{transform:scaleX(1);transform-origin:left} }
+
+  .tv-reveal{ opacity:0; will-change:opacity,transform,filter,clip-path; }
+  .tv-reveal.tv-in{ animation: tv-fade-up 1s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-anim="fade"].tv-in{ animation: tv-fade-in 1s ease-out both; }
+  .tv-reveal[data-anim="up"].tv-in{ animation: tv-fade-up 1s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-anim="down"].tv-in{ animation: tv-fade-down 1s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-anim="left"].tv-in{ animation: tv-fade-left 1s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-anim="right"].tv-in{ animation: tv-fade-right 1s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-anim="zoom"].tv-in{ animation: tv-zoom-in 1.1s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-anim="blur"].tv-in{ animation: tv-blur-in 1.2s var(--tv-ease-out-expo) both; }
+  .tv-reveal[data-anim="clip"].tv-in{ animation: tv-clip-up 1.2s var(--tv-ease-out-expo) both; }
+
+  .tv-reveal[data-delay="1"].tv-in{animation-delay:.08s}
+  .tv-reveal[data-delay="2"].tv-in{animation-delay:.16s}
+  .tv-reveal[data-delay="3"].tv-in{animation-delay:.24s}
+  .tv-reveal[data-delay="4"].tv-in{animation-delay:.32s}
+  .tv-reveal[data-delay="5"].tv-in{animation-delay:.40s}
+  .tv-reveal[data-delay="6"].tv-in{animation-delay:.48s}
+  .tv-reveal[data-delay="7"].tv-in{animation-delay:.56s}
+  .tv-reveal[data-delay="8"].tv-in{animation-delay:.64s}
+
+  .tv-split .tv-word{ display:inline-block; overflow:hidden; vertical-align:top; }
+  .tv-split .tv-word > span{
+    display:inline-block; transform:translateY(110%) rotate(4deg);
+    opacity:0; transition:transform 1.1s var(--tv-ease-out-expo), opacity .9s ease-out;
+  }
+  .tv-split.tv-in .tv-word > span{ transform:translateY(0) rotate(0); opacity:1; }
+  .tv-split.tv-in .tv-word:nth-child(1) > span{transition-delay:.00s}
+  .tv-split.tv-in .tv-word:nth-child(2) > span{transition-delay:.06s}
+  .tv-split.tv-in .tv-word:nth-child(3) > span{transition-delay:.12s}
+  .tv-split.tv-in .tv-word:nth-child(4) > span{transition-delay:.18s}
+  .tv-split.tv-in .tv-word:nth-child(5) > span{transition-delay:.24s}
+  .tv-split.tv-in .tv-word:nth-child(6) > span{transition-delay:.30s}
+  .tv-split.tv-in .tv-word:nth-child(7) > span{transition-delay:.36s}
+  .tv-split.tv-in .tv-word:nth-child(8) > span{transition-delay:.42s}
+  .tv-split.tv-in .tv-word:nth-child(9) > span{transition-delay:.48s}
+  .tv-split.tv-in .tv-word:nth-child(n+10) > span{transition-delay:.54s}
+
+  .tv-img-reveal{ position:relative; overflow:hidden; isolation:isolate; }
+  .tv-img-reveal > img, .tv-img-reveal > .tv-bg{
+    transform: scale(1.15); transition: transform 1.6s var(--tv-ease-out-expo);
+    will-change: transform;
+  }
+  .tv-img-reveal::before, .tv-img-reveal::after{
+    content:""; position:absolute; inset:0; background: var(--cream, #F5EBDA); z-index:2;
+    transform: translateY(0); transition: transform 1.2s var(--tv-ease-out-expo);
+    pointer-events:none;
+  }
+  .tv-img-reveal::after{ background: var(--terracotta, #C2643E); transition-delay:.08s; }
+  .tv-img-reveal.tv-in::before{ transform: translateY(-101%); }
+  .tv-img-reveal.tv-in::after{ transform: translateY(-101%); transition-delay: 0s; }
+  .tv-img-reveal.tv-in > img, .tv-img-reveal.tv-in > .tv-bg{ transform: scale(1); }
+
+  .tv-line-grow{ display:inline-block; height:1px; background: currentColor; width:64px; vertical-align:middle;
+    transform:scaleX(0); transform-origin:left; }
+  .tv-reveal.tv-in .tv-line-grow,
+  .tv-line-grow.tv-in{ animation: tv-divider-grow 1s var(--tv-ease-out-expo) both .15s; }
+
+  .tv-underline{ position:relative; display:inline-block; }
+  .tv-underline::after{
+    content:""; position:absolute; left:0; right:0; bottom:-3px; height:1.5px; background: currentColor;
+    transform: scaleX(0); transform-origin: right; transition: transform .55s var(--tv-ease-out-expo);
+  }
+  .tv-underline:hover::after{ transform: scaleX(1); transform-origin: left; }
+
+  .tv-hover-lift{ transition: transform .5s var(--tv-ease-out-expo), box-shadow .5s ease; }
+  .tv-hover-lift:hover{ transform: translateY(-6px); }
+  .tv-hover-zoom{ overflow:hidden; }
+  .tv-hover-zoom img, .tv-hover-zoom .tv-bg{ transition: transform .9s var(--tv-ease-out-expo); will-change: transform; }
+  .tv-hover-zoom:hover img, .tv-hover-zoom:hover .tv-bg{ transform: scale(1.06); }
+  .tv-hover-tilt{ transition: transform .5s var(--tv-ease); transform-style:preserve-3d; }
+  .tv-magnetic{ transition: transform .3s var(--tv-ease); }
+  /* Sin máscara en contenedores del hero (mantienen rotación CSS de .photo) */
+  .photo.tv-img-reveal::before, .photo.tv-img-reveal::after{ display:none; }
+  .photo.tv-img-reveal > img{ transform:none; }
+  .photo.tv-img-reveal.tv-in > img{ transform:none; }
+  /* Split del título: no usar opacity:0 en el h1 entero */
+  .tv-split.tv-reveal{ opacity:1; }
+
+  .tv-btn-shine{ position:relative; overflow:hidden; isolation:isolate; }
+  .tv-btn-shine::before{
+    content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
+    background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.35) 50%, transparent 70%);
+    transform: translateX(-120%); transition: transform .9s var(--tv-ease-out-expo);
+  }
+  .tv-btn-shine:hover::before{ transform: translateX(120%); }
+
+  .tv-kenburns{ animation: tv-kenburns 14s ease-in-out infinite alternate; will-change: transform; }
+  .tv-float{ animation: tv-float 5s ease-in-out infinite; }
+  .tv-pulse-soft{ animation: tv-pulse-soft 3.4s ease-in-out infinite; }
+
+  .tv-marquee{ overflow:hidden; }
+  .tv-marquee-track{ display:inline-flex; gap:3rem; animation: tv-marquee 28s linear infinite; will-change: transform; }
+  .tv-marquee:hover .tv-marquee-track{ animation-play-state: paused; }
+
+  .tv-parallax{ transform: translate3d(0, var(--tv-py, 0px), 0); transition: transform .15s linear; will-change: transform; }
+  .tv-tilt{ transform: perspective(900px) rotateX(var(--tv-rx, 0deg)) rotateY(var(--tv-ry, 0deg)); transition: transform .25s var(--tv-ease); will-change: transform; }
+
+  .tv-cursor-glow{
+    position: fixed; top:0; left:0; width:380px; height:380px; pointer-events:none; z-index:8998;
+    transform: translate3d(var(--tv-cx,-9999px), var(--tv-cy,-9999px), 0) translate(-50%,-50%);
+    background: radial-gradient(circle, rgba(194,100,62,.18), transparent 60%);
+    mix-blend-mode: multiply; opacity:0; transition: opacity .4s ease;
+  }
+  .tv-cursor-glow.tv-on{ opacity:1; }
+
+  body.tv-loaded .tv-hero-anim{ animation: tv-fade-up 1.2s var(--tv-ease-out-expo) both; }
+  body.tv-loaded .tv-hero-anim.d1{ animation-delay:.15s }
+  body.tv-loaded .tv-hero-anim.d2{ animation-delay:.30s }
+  body.tv-loaded .tv-hero-anim.d3{ animation-delay:.45s }
+  body.tv-loaded .tv-hero-anim.d4{ animation-delay:.60s }
+
+  .nav.tv-header-scrolled{ backdrop-filter: blur(12px) saturate(1.1); -webkit-backdrop-filter: blur(12px) saturate(1.1); transition: background-color .4s ease, box-shadow .4s ease; box-shadow:0 8px 32px rgba(42,31,24,.08); }
+
+  .tv-scroll-progress{
+    position: fixed; top:0; left:0; height:2px; width:0%;
+    background: linear-gradient(90deg, var(--terracotta,#C2643E), var(--wine,#5A1F1F));
+    z-index: 10001; transition: width .12s linear;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .tv-reveal, .tv-reveal.tv-in, .tv-hero-anim, .tv-float, .tv-pulse-soft, .tv-kenburns,
+    .tv-marquee-track, .tv-img-reveal::before, .tv-img-reveal::after, .tv-split .tv-word > span{
+      animation: none !important; transition: none !important; opacity:1 !important;
+      transform: none !important; clip-path: none !important; filter: none !important;
+    }
+    .tv-img-reveal::before, .tv-img-reveal::after{ display:none; }
+  }
+</style>
+@endverbatim
+
+@endpush
+
+@section('content')
+
+<!-- ═══════════════════ NAV ═══════════════════ -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="brand" id="navBrandWrap">
+      @if($logo_url)
+      <img id="navBrandLogo" class="nav-brand-img" src="{{ $logo_url }}" alt="{{ $nombre }}" decoding="async"/>
+      @else
+      <img id="navBrandLogo" class="nav-brand-img" alt="" hidden style="display:none"/>
+      @endif
+      <span class="brand-mark" id="navBrandMark">★</span>
+      <span id="navBrandName">{{ $nombre }}</span>
+    </a>
+    <ul role="menu" id="boldNavList">
+      <li><a href="#servicios" id="tplNavServicios" data-nav-link="servicios" style="display:none;">Carta</a></li>
+      <li><a href="#galeria" data-nav-link="galeria">Galería</a></li>
+      <li><a href="#sobre-nosotros" data-nav-link="sobre-nosotros">Historia</a></li>
+      <li><a href="#horario" data-nav-link="horario">Visítanos</a></li>
+      <li><a href="#contacto" data-nav-link="contacto">Contacto</a></li>
+      <li><a href="#opiniones" id="tplNavOpiniones" data-nav-link="opiniones" style="display:none;">Opiniones</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="https://wa.me/{{ $whatsapp }}" class="nav-cta" data-wa-link>Reservar mesa →</a>
+      <button type="button" id="navMenuToggle" class="menu-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="boldNavList">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-meta">
+          <span class="live" id="heroStatusPill"><span class="dot"></span><span id="heroStatusText">Comprobando…</span></span>
+        </div>
+        <h1 class="display" id="heroTitle">{{ $nombre }}</h1>
+        <p class="hero-tag" id="heroTagline">{{ $tagline }}</p>
+        <div class="hero-cta">
+          <a href="{{ $whatsapp ? 'tel:+'.$whatsapp : 'tel:' }}" class="btn-p" data-tel-link>Llamar ahora →</a>
+          <a href="https://wa.me/{{ $whatsapp }}" class="btn-wa" data-wa-link>WhatsApp</a>
+          <a href="#servicios" class="btn-g">Ver la carta</a>
+        </div>
+        </div>
+      <div class="hero-photos" id="heroPhotoWrap">
+        <div class="photo p1">@if($portada)
+      <img id="heroPhotoImg" src="{{ $portada }}" alt="{{ $nombre }}" decoding="async"/>
+      @else
+      <img id="heroPhotoImg" src="" alt="" hidden style="display:none"/>
+      @endif</div>
+        <div class="photo p2">@if($portada_2)
+      <img id="heroPhotoImg2" src="{{ $portada_2 }}" alt="{{ $nombre }}" decoding="async"/>
+      @else
+      <img id="heroPhotoImg2" src="" alt="" hidden style="display:none"/>
+      @endif</div>
+        <div class="photo p3">@if($portada_3)
+      <img id="heroPhotoImg3" src="{{ $portada_3 }}" alt="{{ $nombre }}" decoding="async"/>
+      @else
+      <img id="heroPhotoImg3" src="" alt="" hidden style="display:none"/>
+      @endif</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker" id="tplTicker" style="display:none;">
+  <div class="ticker-track" id="tplTickerTrack"></div>
+</div>
+</div>
+
+<!-- ═══════════════════ SERVICES / CARTA ═══════════════════ -->
+<section id="servicios" class="menu-section" style="display:none;">
+  <div class="container">
+    <div class="section-head">
+      <div class="ornament">la carta</div>
+      <h2 class="display">Lo que ponemos<br/>en la <em>mesa</em>.</h2>
+      <p class="desc">Todo lo que podemos ofrecerte, hecho con producto de temporada.</p>
+    </div>
+    <div class="menu-grid" id="tplServicesList">
+
+@foreach($services as $service)
+    <div class="service">
+      <h3>{{ $service['name'] }}</h3>
+      @if($service['description'])<p>{{ $service['description'] }}</p>@endif
+      <div class="service-price">
+        @if($service['price'] !== null)
+        {{ number_format($service['price'], 2, ",", ".") }} €
+        @else
+        Consultar
+        @endif
+      </div>
+    </div>
+@endforeach
+  </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ GALLERY ═══════════════════ -->
+<section id="galeria">
+  <div class="container">
+    <div class="section-head">
+      <div class="ornament">así somos</div>
+      <h2 class="display">El sitio en <em>fotos</em>.</h2>
+      <p class="desc">Pásate y véalo en persona.</p>
+    </div>
+      <div class="gallery-grid" id="galleryLive">
+@forelse($galeria as $imgUrl)
+    <div class="gimg"><img src="{{ $imgUrl }}" alt=""/></div>
+@empty
+@endforelse
+  </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ STORY / ABOUT ═══════════════════ -->
+<section id="sobre-nosotros" class="story-section">
+  <div class="container">
+    <div class="story-grid">
+      <div class="story-img" id="storyImgDiv" style="background-image:none"></div>
+      <div class="story-content">
+        <div class="ornament">nuestra historia</div>
+        <h2 class="display" id="aboutTitle">Tu negocio.</h2>
+        <p id="aboutDescripcion">Descripción del negocio: quiénes sois, qué hacéis y por qué importa.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ HOURS + CONTACT ═══════════════════ -->
+<section id="horario">
+  <div class="container">
+    <div class="section-head">
+      <div class="ornament">cuándo venir</div>
+      <h2 class="display">Horario y <em>cómo encontrarnos</em>.</h2>
+      <p class="desc" id="contactSub">Reserva con antelación o pásate sin avisar.</p>
+    </div>
+    <div class="visit-grid">
+      <div class="visit-card">
+        <span class="schedule-status" id="statusPill">
+          <span class="dot"></span>
+          <span id="statusText">Comprobando…</span>
+        </span>
+        <h3 class="display">Horario de la casa</h3>
+        <div id="schedule"></div>
+      </div>
+      <div class="visit-card">
+        <a id="contacto" aria-hidden="true" style="display:block;height:0;overflow:hidden"></a>
+        <span class="eyebrow">dónde · cómo</span>
+        <h3 class="display">Encuéntranos aquí</h3>
+        <div class="visit-contact">
+          <a href="{{ $whatsapp ? 'tel:+'.$whatsapp : 'tel:' }}" class="vcontact" data-tel-link>
+            <span class="ico">☏</span>
+            <div><strong data-phone-display>Tu teléfono</strong><small>llamada directa</small></div>
+          </a>
+          <a href="mailto:" class="vcontact" id="contactEmailLink" hidden>
+            <span class="ico">@</span>
+            <div><strong id="contactEmailDisplay"></strong><small>respondemos en 24h</small></div>
+          </a>
+          <a href="https://wa.me/{{ $whatsapp }}" class="vcontact" data-wa-link>
+            <span class="ico">✆</span>
+            <div><strong>WhatsApp directo</strong><small>respondemos rápido</small></div>
+          </a>
+          <a href="#" class="vcontact" id="contactAddressRow" hidden>
+            <span class="ico">⌖</span>
+            <div><strong id="contactAddressText"></strong><small>nuestra dirección</small></div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="map-section bold-map-empty" id="mapSection">
+    <div class="map-shell">
+      <div id="mapLeafletContainer" class="map-leaflet" role="img" aria-label="Mapa del negocio"></div>
+    </div>
+    <div class="map-directions-row" id="mapDirectionsRow">
+      <a href="{{ $google_maps_url ?: '#' }}" id="tplMapsExternalLink" class="btn-p" target="_blank" rel="noopener noreferrer">Abrir en Google Maps →</a>
+    </div>
+  </div>
+  <section id="opiniones" class="reviews-cta-section">
+    <span class="eyebrow">lo que dicen de nosotros</span>
+    <h3 class="display">Lo que dicen quienes nos eligen.</h3>
+    <p>Lee experiencias reales y, si ya nos has visitado, deja tu valoración en Google.</p>
+    <a href="{{ $google_business_url ?: '#' }}" id="tplGbizLink" class="btn-p" target="_blank" rel="noopener noreferrer">Ver y escribir reseñas →</a>
+  </section>
+  <div class="vcard-strip" id="tplVcardWrap">
+    <div>
+      <strong>Guarda nuestro contacto.</strong>
+      <small>Descarga la tarjeta y añádenos a tu agenda con un toque.</small>
+    </div>
+    <a href="{{ $vcard_download_url ?: '#' }}" id="tplVcardLink" class="btn-p" download>Descargar vCard →</a>
+  </div>
+</section>
+
+<!-- ═══════════════════ CTA ═══════════════════ -->
+<section class="cta-section">
+  <div class="container">
+    <div class="ornament">te esperamos</div>
+    <h2 class="display" id="ctaTitle">Mesa <span class="amp">&amp;</span> <em>copa</em><br/>para cuando quieras.</h2>
+    <p class="desc">Reserva por teléfono, por WhatsApp o asómate sin avisar.</p>
+    <div class="actions">
+      <a href="https://wa.me/{{ $whatsapp }}" class="btn-wa" data-wa-link>WhatsApp ahora</a>
+      <a href="{{ $whatsapp ? 'tel:+'.$whatsapp : 'tel:' }}" class="btn-p" data-tel-link>Llamar</a>
+      <a href="#servicios" class="btn-g">Mirar la carta</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer>
+  <div class="container">
+    <div class="foot">
+      <div>
+        <div class="foot-brand" id="footBrand">Tu<br/><span class="accent">negocio</span></div>
+        <p id="footTagline">Tagline corto que describe lo que hacéis.</p>
+      </div>
+      <div>
+        <h4>La casa</h4>
+        <ul>
+          <li><a href="#servicios" id="footNavServicios" style="display:none;">Carta</a></li>
+          <li><a href="#galeria">Galería</a></li>
+          <li><a href="#sobre-nosotros">Historia</a></li>
+          <li><a href="#horario">Horario</a></li>
+          <li><a href="#opiniones" id="footNavOpiniones" style="display:none;">Opiniones</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Encontrarnos</h4>
+        <ul>
+          <li><a href="{{ $whatsapp ? 'tel:+'.$whatsapp : 'tel:' }}" data-tel-link><span data-phone-display>{{ $telefono ?: 'Tu teléfono' }}</span></a></li>
+          <li id="footEmailRow" hidden><a id="footEmailLink" href="#"><span id="footEmailDisplay"></span></a></li>
+          <li><a href="https://wa.me/{{ $whatsapp }}" data-wa-link>WhatsApp</a></li>
+          <li id="footAddressRow" hidden><a href="#" id="footAddressLink"><span id="footAddressText"></span></a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Síguenos</h4>
+        <ul>
+          <li><a href="#" href="{{ $instagram_url }}" id="tplSocialInstagram" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+          <li><a href="#" href="{{ $tiktok_url }}" id="tplSocialTiktok" target="_blank" rel="noopener noreferrer">TikTok</a></li>
+          <li><a href="#" href="{{ $facebook_url }}" id="tplSocialFacebook" target="_blank" rel="noopener noreferrer">Facebook</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span id="footBottomBrand">© 2026 · Tu negocio — gracias por venir.</span>
+      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Web hecha con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
+    </div>
+  </div>
+</footer>
+@endsection
+
+@push('body-end')
+<script>
+  window.__lwLat = {{ is_numeric($map_lat) ? $map_lat : 'null' }};
+  window.__lwLon = {{ is_numeric($map_lon) ? $map_lon : 'null' }};
+</script>
+
+<script>
+window.__lwTrackUrl = '{{ $api_base_url }}/api/v1/public/{{ $subdomain }}/track';
+function lwTrackClick(kind) {
+  fetch(window.__lwTrackUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: kind })
+  }).catch(function () {});
+}
+(function () {
+  function bindTrack(el, kind) {
+    if (!el || el.dataset.lwTrackBound === '1') return;
+    el.dataset.lwTrackBound = '1';
+    el.addEventListener('click', function () { lwTrackClick(kind); });
+  }
+  document.querySelectorAll('a[data-wa-link], a[href*="wa.me"]').forEach(function (el) {
+    bindTrack(el, 'whatsapp_click');
+  });
+  document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+    bindTrack(el, 'phone_click');
+  });
+})();
+</script>
+
+
+@verbatim
+
+
+<script>
+(function () {
+  var p = new URLSearchParams(location.search);
+  if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
+  var s = document.createElement('script');
+  s.src = 'https://unpkg.com/leaflet@@1.9.4/dist/leaflet.js';
+  s.crossOrigin = '';
+  document.head.appendChild(s);
+})();
+</script>
+<style>
+/* En modo preview, los enlaces externos y botones de acción no parecen clicables. */
+html.lw-preview-inert a[href^="tel:"],
+html.lw-preview-inert a[href^="mailto:"],
+html.lw-preview-inert a[href^="http"],
+html.lw-preview-inert a[target="_blank"],
+html.lw-preview-inert a[download],
+html.lw-preview-inert a[data-wa-link],
+html.lw-preview-inert a[data-tel-link],
+html.lw-preview-inert #tplBookingLink,
+html.lw-preview-inert #tplVcardLink,
+html.lw-preview-inert #tplGbizLink,
+html.lw-preview-inert #tplMapsExternalLink,
+html.lw-preview-inert #tplSocialInstagram,
+html.lw-preview-inert #tplSocialTiktok,
+html.lw-preview-inert #tplSocialFacebook {
+  cursor: default !important;
+}
+/* Navegación interna sigue como puntero. Se aplica por especificidad mayor. */
+html.lw-preview-inert a[href^="#"] {
+  cursor: pointer !important;
+}
+</style>
+<script>
+/* ─────────────────────────────────────────────────────────────────
+ * Modo preview (?preview=1): TODOS los elementos clicables quedan
+ * inertes excepto navegación interna (#anchors), el burger del nav
+ * móvil y los controles de Leaflet. La SPA del onboarding pasa
+ * preview=1 en thumbnails, en el modal "Ver" del paso 1 y en los
+ * previews laterales de los pasos 2+. La web pública del cliente
+ * NO pasa este flag, así que ahí los botones funcionan normal.
+ * ───────────────────────────────────────────────────────────────── */
+(function initPreviewInertMode() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('preview') !== '1') return;
+  document.documentElement.classList.add('lw-preview-inert');
+
+  function isAllowed(target) {
+    if (!target || target.nodeType !== 1) return false;
+    // 1) Anchor a sección interna: <a href="#xxx">
+    if (target.tagName === 'A') {
+      var href = target.getAttribute('href') || '';
+      if (href.charAt(0) === '#' && href.length > 1) return true;
+    }
+    // 2) Burger del menú móvil
+    if (target.id === 'burger') return true;
+    // 3) Controles internos de Leaflet
+    if (target.className && typeof target.className === 'string' &&
+        target.className.indexOf('leaflet-') === 0) return true;
+    return false;
+  }
+
+  function findClickable(node) {
+    var el = node;
+    while (el && el !== document.body) {
+      if (el.nodeType === 1 && (el.tagName === 'A' || el.tagName === 'BUTTON' || isAllowed(el))) {
+        return el;
+      }
+      el = el.parentNode;
+    }
+    return null;
+  }
+
+  function findAncestorWithLeaflet(node) {
+    var el = node;
+    while (el && el !== document.body) {
+      if (el.nodeType === 1 && el.className && typeof el.className === 'string') {
+        if (el.className.indexOf('leaflet-') >= 0) return true;
+      }
+      el = el.parentNode;
+    }
+    return false;
+  }
+
+  document.addEventListener('click', function (e) {
+    var clickable = findClickable(e.target);
+    if (!clickable) return;
+    if (isAllowed(clickable)) return;
+    if (findAncestorWithLeaflet(e.target)) return;
+    e.preventDefault();
+    e.stopPropagation();
+  }, true); // capture: nos ejecutamos antes que cualquier handler de la página
+
+  // También bloqueamos el "submit" por si algún template tuviese un <form>
+  document.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
+})();
+</script>
+<script>
+(function initTavolaPreviewModeClasses() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('embed') === '1') {
+    document.documentElement.classList.add('embed-preview-root');
+    document.body.classList.add('embed-preview');
+  }
+  if (params.get('preview') === '1') {
+    document.body.classList.add('tavola-preview');
+  }
+})();
+
+/* ───── DATA: horario por defecto ────────────────────── */
+const BOLD_SCHEDULE_DEFAULT = [
+  { name:"Lun", full:"Lunes",     idx:1, open:"10:00", close:"20:00" },
+  { name:"Mar", full:"Martes",    idx:2, open:"10:00", close:"20:00" },
+  { name:"Mié", full:"Miércoles", idx:3, open:"10:00", close:"20:00" },
+  { name:"Jue", full:"Jueves",    idx:4, open:"10:00", close:"21:00" },
+  { name:"Vie", full:"Viernes",   idx:5, open:"10:00", close:"21:00" },
+  { name:"Sáb", full:"Sábado",    idx:6, open:"10:00", close:"18:00" },
+  { name:"Dom", full:"Domingo",   idx:0, open:null,    close:null    },
+];
+let SCHEDULE = BOLD_SCHEDULE_DEFAULT.map(function (d) {
+  return { name: d.name, full: d.full, idx: d.idx, open: d.open, close: d.close };
+});
+
+function syncBoldScheduleFromPreview(h) {
+  if (h == null || typeof h !== 'object') {
+    SCHEDULE = BOLD_SCHEDULE_DEFAULT.map(function (d) {
+      return { name: d.name, full: d.full, idx: d.idx, open: d.open, close: d.close };
+    });
+    return;
+  }
+  var map = [
+    ['mon', 'Lun', 'Lunes', 1],
+    ['tue', 'Mar', 'Martes', 2],
+    ['wed', 'Mié', 'Miércoles', 3],
+    ['thu', 'Jue', 'Jueves', 4],
+    ['fri', 'Vie', 'Viernes', 5],
+    ['sat', 'Sáb', 'Sábado', 6],
+    ['sun', 'Dom', 'Domingo', 0],
+  ];
+  SCHEDULE = map.map(function (t) {
+    var row = h[t[0]];
+    if (!row || row.closed) {
+      return { name: t[1], full: t[2], idx: t[3], open: null, close: null };
+    }
+    return { name: t[1], full: t[2], idx: t[3], open: row.open || '10:00', close: row.close || '20:00' };
+  });
+}
+
+/* ───── GALERÍA ──────────────────────────────────────── */
+function escapeBoldGalleryAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+/** Restaurante / gastronomía — solo en vista previa (?embed=1 o ?preview=1). */
+var TAVOLA_PREVIEW_SAMPLE = {
+  portada: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1200&q=80',
+  portada_2: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1000&q=80',
+  portada_3: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1000&q=80',
+  foto_equipo: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=80',
+};
+
+function shouldUseTavolaSampleMedia() {
+  return document.body.classList.contains('embed-preview') || document.body.classList.contains('tavola-preview');
+}
+
+function tavolaResolvePreviewPhotoSrc(userSrc, sampleKey) {
+  var src = userSrc ? String(userSrc).trim() : '';
+  if (src) return src;
+  if (!shouldUseTavolaSampleMedia()) return '';
+  return TAVOLA_PREVIEW_SAMPLE[sampleKey] || '';
+}
+
+var BOLD_DEFAULT_GALLERY_INNER =
+  '<div class="gimg" style="grid-column:span 7;aspect-ratio:4/3;background-image:url(https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=1200&q=70)" role="button" tabindex="0" data-lightbox-src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=1600&q=75"></div>' +
+  '<div class="gimg" style="grid-column:span 5;aspect-ratio:1;background-image:url(https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=900&q=70)" role="button" tabindex="0" data-lightbox-src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1600&q=75"></div>' +
+  '<div class="gimg" style="grid-column:span 4;aspect-ratio:1;background-image:url(https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=70)" role="button" tabindex="0" data-lightbox-src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=75"></div>' +
+  '<div class="gimg" style="grid-column:span 4;aspect-ratio:1;background-image:url(https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=900&q=70)" role="button" tabindex="0" data-lightbox-src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1600&q=75"></div>' +
+  '<div class="gimg" style="grid-column:span 4;aspect-ratio:1;background-image:url(https://images.unsplash.com/photo-1466637574441-749b8f19452f?auto=format&fit=crop&w=900&q=70)" role="button" tabindex="0" data-lightbox-src="https://images.unsplash.com/photo-1466637574441-749b8f19452f?auto=format&fit=crop&w=1600&q=75"></div>';
+
+function renderBoldGallery(urls) {
+  var root = document.getElementById('galleryLive');
+  if (!root) return;
+  var list = Array.isArray(urls) ? urls.filter(Boolean) : [];
+  if (list.length === 0) {
+    root.innerHTML = BOLD_DEFAULT_GALLERY_INNER;
+    return;
+  }
+  root.innerHTML = list
+    .map(function (src, i) {
+      var spans = [7,5,4,4,4];
+      var ratios = ['4/3','1','1','1','1'];
+      var col = (i < spans.length) ? spans[i] : 4;
+      var rat = (i < ratios.length) ? ratios[i] : '1';
+      return (
+        '<div class="gimg" style="grid-column:span ' + col + ';aspect-ratio:' + rat + ';background-image:url(' + escapeBoldGalleryAttr(src) + ')" role="button" tabindex="0" data-lightbox-src="' + escapeBoldGalleryAttr(src) + '"></div>'
+      );
+    })
+    .join('');
+}
+
+function updateBoldGallerySlider(_isPro) {
+  // Mantenemos siempre el grid editorial con sus tarjetas + hover (sin slider en Pro).
+  var root = document.getElementById('galleryLive');
+  if (!root) return;
+  // No slider in tavola-warm — gallery uses CSS grid with .gimg divs.
+  return;
+}
+
+/* ───── HERO + ABOUT photo ───────────────────────────── */
+function updateBoldHeroPhoto(raw) {
+  var img = document.getElementById('heroPhotoImg');
+  if (!img) return;
+  var hasPortada = raw && Object.prototype.hasOwnProperty.call(raw, 'portada');
+  if (!hasPortada) return;
+  var src = (raw && raw.portada ? String(raw.portada).trim() : '');
+  if (!src) {
+    img.removeAttribute('src');
+    img.hidden = true;
+    img.style.display = 'none';
+    return;
+  }
+  var withCacheBust = src;
+  if (/^https?:\/\//i.test(src)) {
+    var sep = src.indexOf('?') >= 0 ? '&' : '?';
+    withCacheBust = src + sep + 'lwts=' + Date.now();
+  }
+  img.src = withCacheBust;
+  img.hidden = false;
+  img.style.display = 'block';
+}
+
+function updateBoldAboutPhoto(raw) {
+  var storyImg = document.getElementById('storyImgDiv');
+  if (!storyImg) return;
+  var hasFoto = raw && Object.prototype.hasOwnProperty.call(raw, 'foto_equipo');
+  if (!hasFoto && !shouldUseTavolaSampleMedia()) return;
+  var src = tavolaResolvePreviewPhotoSrc(raw && raw.foto_equipo, 'foto_equipo');
+  storyImg.style.backgroundImage = src ? 'url("' + String(src).replace(/"/g, '\\"') + '")' : 'none';
+}
+
+/* ───── TICKER (frases derivadas del payload) ────────── */
+function updateBoldTicker(raw) {
+  var ticker = document.getElementById('tplTicker');
+  var track = document.getElementById('tplTickerTrack');
+  if (!ticker || !track) return;
+  var brand = (raw && raw.nombre ? String(raw.nombre) : '').trim();
+  var tagline = (raw && raw.tagline ? String(raw.tagline) : '').trim();
+  var phrases = [];
+  if (brand) phrases.push(brand);
+  if (tagline) phrases.push(tagline);
+  if (raw && raw.direccion) {
+    var parts = String(raw.direccion).split(',').map(function(s){return s.trim();}).filter(Boolean);
+    if (parts.length > 1) phrases.push(parts[parts.length - 1]);
+  }
+  if (phrases.length === 0) {
+    ticker.style.display = 'none';
+    track.innerHTML = '';
+    return;
+  }
+  ticker.style.display = 'block';
+  var bullet = ' <span class="star">●</span> ';
+  var seq = phrases.join(bullet);
+  track.innerHTML =
+    '<span>' + seq + bullet + seq + bullet + '</span>' +
+    '<span>' + seq + bullet + seq + bullet + '</span>';
+}
+
+/* ───── MAP (Leaflet) ────────────────────────────────── */
+var boldPreviewMap = null;
+var boldPreviewMarker = null;
+var BOLD_MAP_ZOOM = 18;
+
+function destroyBoldPreviewMap() {
+  if (boldPreviewMap) {
+    try { boldPreviewMap.remove(); } catch (e) {}
+    boldPreviewMap = null;
+    boldPreviewMarker = null;
+  }
+}
+
+function boldRadarIcon() {
+  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return null;
+  var html =
+    '<div class="bold-map-pin-wrap">' +
+    '<span class="bold-map-radar-ring"></span>' +
+    '<span class="bold-map-radar-ring d2"></span>' +
+    '<span class="bold-map-core"></span></div>';
+  return L.divIcon({
+    className: 'bold-leaflet-divicon',
+    html: html,
+    iconSize: [56, 56],
+    iconAnchor: [28, 28],
+  });
+}
+
+function updateBoldPreviewMap(lat, lon) {
+  if (typeof lat !== 'number' || typeof lon !== 'number') {
+    lat = window.__lwLat;
+    lon = window.__lwLon;
+  }
+  var sec = document.getElementById('mapSection');
+  var container = document.getElementById('mapLeafletContainer');
+  if (!sec || !container) return;
+  var ok = typeof lat === 'number' && typeof lon === 'number' && isFinite(lat) && isFinite(lon);
+  if (!ok) {
+    destroyBoldPreviewMap();
+    sec.classList.add('bold-map-empty');
+    return;
+  }
+  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
+  sec.classList.remove('bold-map-empty');
+
+  function applyMap() {
+    if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
+    if (!boldPreviewMap) {
+      boldPreviewMap = L.map(container, {
+        zoomControl: true,
+        attributionControl: false,
+        /** Solo se permite zoom desde los botones +/-: la rueda atrapaba el
+         * scroll de la página al pasar por encima del mapa, el doble-clic
+         * acercaba accidentalmente al hacer foco, y el shift+drag (boxZoom)
+         * confundía a usuarios con teclado. `touchZoom` se deja en el default
+         * (true) para que el pinch siga funcionando en móvil. */
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false,
+      }).setView([lat, lon], BOLD_MAP_ZOOM);
+      L.control.attribution({ prefix: false }).addTo(boldPreviewMap);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20,
+      }).addTo(boldPreviewMap);
+    } else {
+      boldPreviewMap.setView([lat, lon], BOLD_MAP_ZOOM);
+    }
+    if (boldPreviewMarker) boldPreviewMap.removeLayer(boldPreviewMarker);
+    boldPreviewMarker = L.marker([lat, lon], { icon: boldRadarIcon() }).addTo(boldPreviewMap);
+    setTimeout(function () { if (boldPreviewMap) boldPreviewMap.invalidateSize(); }, 80);
+    setTimeout(function () { if (boldPreviewMap) boldPreviewMap.invalidateSize(); }, 320);
+  }
+
+  requestAnimationFrame(function () {
+    requestAnimationFrame(applyMap);
+  });
+}
+
+/* ───── HELPERS ──────────────────────────────────────── */
+function escapeHtmlTextBold(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function formatBoldPrice(p) {
+  if (p === null || p === undefined || p === '') return 'Consultar';
+  var n = typeof p === 'number' ? p : parseFloat(String(p).replace(',', '.'));
+  if (!Number.isFinite(n)) return 'Consultar';
+  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits:0 }).format(n);
+}
+
+function buildDirectionsUrlBold(raw) {
+  raw = raw || {};
+  var manual = (raw.google_maps_url || '').trim();
+  if (manual) return manual;
+  var mlat = raw.map_lat;
+  var mlon = raw.map_lon;
+  var la = typeof mlat === 'number' ? mlat : parseFloat(mlat);
+  var lo = typeof mlon === 'number' ? mlon : parseFloat(mlon);
+  if (Number.isFinite(la) && Number.isFinite(lo)) {
+    return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(la + ',' + lo);
+  }
+  var addr = (raw.direccion || '').trim();
+  if (addr) return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
+  return '';
+}
+
+function syncBoldTemplateExtensions(raw) {
+  raw = raw || {};
+  var isPro = raw.is_pro === true || raw.is_pro === 'true' || raw.is_pro === 1;
+
+  var branding = document.getElementById('tpl-platform-branding');
+  if (branding) branding.style.display = isPro ? 'none' : '';
+
+  var services = Array.isArray(raw.services)
+    ? raw.services.filter(function (s) { return s && String(s.name || '').trim(); })
+    : [];
+  var sec = document.getElementById('servicios');
+  var list = document.getElementById('tplServicesList');
+  var navSvc = document.getElementById('tplNavServicios');
+  var footSvc = document.getElementById('footNavServicios');
+  if (sec && list) {
+    if (services.length === 0) {
+      sec.style.display = 'none';
+      list.innerHTML = '';
+      if (navSvc) navSvc.style.display = 'none';
+      if (footSvc) footSvc.style.display = 'none';
+    } else {
+      sec.style.display = '';
+      if (navSvc) navSvc.style.display = '';
+      if (footSvc) footSvc.style.display = '';
+      list.innerHTML = services
+        .slice(0, 9)
+        .map(function (s, i) {
+          var num = String(i + 1).padStart(2, '0');
+          var nm = escapeHtmlTextBold(String(s.name || ''));
+          var pr = escapeHtmlTextBold(formatBoldPrice(s.price));
+          var dc = s.description && String(s.description).trim();
+          var descHtml = dc
+            ? '<p>' + escapeHtmlTextBold(String(s.description)) + '</p>'
+            : '<p>&nbsp;</p>';
+          return (
+            '<div class="dish">' +
+            '<div class="dish-head">' +
+            '<span class="dish-name display">' + nm + '</span>' +
+            '<span class="dish-dots"></span>' +
+            '<span class="dish-price">' + pr + '</span>' +
+            '</div>' +
+            (dc ? '<p class="dish-desc">' + escapeHtmlTextBold(String(s.description)) + '</p>' : '') +
+            '</div>'
+          );
+        })
+        .join('');
+    }
+  }
+
+  var mapsUrl = buildDirectionsUrlBold(raw);
+  var mapsRow = document.getElementById('mapDirectionsRow');
+  var mapsA = document.getElementById('tplMapsExternalLink');
+  if (mapsRow && mapsA) {
+    if (mapsUrl) {
+      mapsRow.classList.add('is-visible');
+      mapsA.href = mapsUrl;
+    } else {
+      mapsRow.classList.remove('is-visible');
+      mapsA.removeAttribute('href');
+    }
+  }
+
+  var gUrl = (raw.google_business_url || '').trim();
+  var gSection = document.getElementById('opiniones');
+  var gLink = document.getElementById('tplGbizLink');
+  var navOp = document.getElementById('tplNavOpiniones');
+  var footOp = document.getElementById('footNavOpiniones');
+  if (gSection && gLink) {
+    if (gUrl) {
+      gSection.classList.add('is-visible');
+      gLink.href = gUrl;
+      if (navOp) navOp.style.display = '';
+      if (footOp) footOp.style.display = '';
+    } else {
+      gSection.classList.remove('is-visible');
+      gLink.removeAttribute('href');
+      if (navOp) navOp.style.display = 'none';
+      if (footOp) footOp.style.display = 'none';
+    }
+  }
+
+  var vcEnabled = raw.vcard_enabled === true || raw.vcard_enabled === 'true' || raw.vcard_enabled === 1;
+  var vcUrl = (raw.vcard_download_url || '').trim();
+  var vcWrap = document.getElementById('tplVcardWrap');
+  var vcA = document.getElementById('tplVcardLink');
+  if (vcWrap && vcA) {
+    if (vcEnabled && vcUrl) {
+      vcWrap.classList.add('is-visible');
+      vcA.href = vcUrl;
+    } else {
+      vcWrap.classList.remove('is-visible');
+      vcA.removeAttribute('href');
+    }
+  }
+
+  var LW_DEFAULT_SOCIAL_BOLD = {
+    instagram: 'https://www.instagram.com/localweb.es',
+    tiktok: 'https://www.tiktok.com/@localweb',
+    facebook: 'https://www.facebook.com/localweb'
+  };
+  function boldResolveSocialHref(raw, key, fallback) {
+    var u = (raw[key] || '').trim();
+    return u || fallback || '#';
+  }
+  var igEl = document.getElementById('tplSocialInstagram');
+  var ttEl = document.getElementById('tplSocialTiktok');
+  var fbEl = document.getElementById('tplSocialFacebook');
+  if (igEl) igEl.href = boldResolveSocialHref(raw, 'instagram_url', LW_DEFAULT_SOCIAL_BOLD.instagram);
+  if (ttEl) ttEl.href = boldResolveSocialHref(raw, 'tiktok_url', LW_DEFAULT_SOCIAL_BOLD.tiktok);
+  if (fbEl) fbEl.href = boldResolveSocialHref(raw, 'facebook_url', LW_DEFAULT_SOCIAL_BOLD.facebook);
+}
+
+/* ───── HORARIO render + estado abierto/cerrado ──────── */
+function renderBoldSchedule() {
+  var now = new Date();
+  var today = now.getDay();
+
+  var wrap = document.getElementById('schedule');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  var ordered = SCHEDULE.slice().sort(function (a, b) {
+    return ((a.idx + 6) % 7) - ((b.idx + 6) % 7);
+  });
+  ordered.forEach(function (d) {
+    var isToday = d.idx === today;
+    var openDay = Boolean(d.open);
+    var row = document.createElement('div');
+    row.className = 'schedule-row' + (isToday ? ' today' : '');
+    var dayLabel = isToday ? d.name + ' · hoy' : d.name;
+    row.innerHTML =
+      '<span class="day">' + dayLabel + '</span>' +
+      (openDay
+        ? '<span class="time">' + d.open + ' – ' + d.close + '</span>'
+        : '<span class="time closed">descansamos</span>');
+    wrap.appendChild(row);
+  });
+
+  var todayD = SCHEDULE.find(function (d) { return d.idx === today; });
+  var openToday = Boolean(todayD && todayD.open);
+  var pill = document.getElementById('statusPill');
+  var txt = document.getElementById('statusText');
+  if (pill && txt) {
+    pill.classList.toggle('open', openToday);
+    pill.classList.toggle('closed', !openToday);
+    txt.textContent = openToday ? 'Abierto hoy · cierra ' + todayD.close : 'Cerrado hoy';
+  }
+
+  var heroPill = document.getElementById('heroStatusPill');
+  var heroTxt = document.getElementById('heroStatusText');
+  if (heroPill && heroTxt) {
+    heroTxt.textContent = openToday
+      ? 'Abierto · cierra ' + todayD.close
+      : 'Cerrado hoy';
+    heroPill.style.color = openToday ? 'var(--terracotta)' : '#999';
+    var dot = heroPill.querySelector('.dot');
+    if (dot) {
+      dot.style.background = openToday ? 'var(--terracotta)' : '#999';
+      dot.style.animation = openToday ? 'pulse 2s infinite' : 'none';
+    }
+  }
+}
+
+function scrollEmbedPreviewToHash() {
+  if (new URLSearchParams(window.location.search).get('embed') !== '1') return;
+  var id = (window.location.hash || '').replace(/^#/, '');
+  if (!id) return;
+  function doScroll() {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var nav = document.querySelector('nav.nav');
+    var offset = nav ? Math.round(nav.getBoundingClientRect().height) + 10 : 10;
+    var y = el.getBoundingClientRect().top + window.pageYOffset - offset;
+    window.scrollTo({ top: Math.max(0, y), behavior: 'auto' });
+  }
+  requestAnimationFrame(function () { requestAnimationFrame(doScroll); });
+  setTimeout(doScroll, 80);
+  setTimeout(doScroll, 280);
+}
+
+/* ───── APPLY LIVE PREVIEW DATA ──────────────────────── */
+function applyLivePreviewData(raw, opts) {
+  opts = opts || {};
+  var defaults = {
+    name: 'Tu negocio',
+    tagline: 'Tagline corto que describe lo que hacéis.',
+    aboutText: 'Descripción del negocio: quiénes sois, qué hacéis y por qué importa.',
+    phoneWa: '',
+  };
+
+  var name = (raw && raw.nombre ? String(raw.nombre).trim() : '') || defaults.name;
+  var tagline = (raw && raw.tagline ? String(raw.tagline).trim() : '') || defaults.tagline;
+  var phoneRaw = (raw && raw.telefono ? String(raw.telefono).trim() : '');
+  var phoneWa = phoneRaw.replace(/\D/g, '') || defaults.phoneWa;
+  var descripcion = (raw && raw.descripcion ? String(raw.descripcion).trim() : '');
+  var direccion = (raw && raw.direccion ? String(raw.direccion).trim() : '');
+  var correo = (raw && raw.correo ? String(raw.correo).trim() : '');
+
+  var logoUrl = (raw && raw.logo_url ? String(raw.logo_url).trim() : '');
+  var navEl = document.querySelector('nav.nav');
+  if (navEl) {
+    if (logoUrl) {
+      var lsc = (raw && typeof raw.logo_scale === 'number' && isFinite(raw.logo_scale)) ? raw.logo_scale : 1;
+      if (lsc < 0.45) lsc = 0.45;
+      if (lsc > 1.5) lsc = 1.5;
+      navEl.style.setProperty('--lw-logo-scale', String(lsc));
+    } else {
+      navEl.style.removeProperty('--lw-logo-scale');
+    }
+  }
+  var navBrandWrap = document.getElementById('navBrandWrap');
+  var navBrandLogo = document.getElementById('navBrandLogo');
+  var navBrandName = document.getElementById('navBrandName');
+  if (navBrandWrap && navBrandLogo && navBrandName) {
+    if (logoUrl) {
+      navBrandLogo.src = logoUrl;
+      navBrandLogo.alt = name + ' · logo';
+      navBrandLogo.hidden = false;
+      navBrandLogo.style.display = 'block';
+      navBrandName.style.display = 'none';
+      navBrandWrap.classList.add('brand-has-img');
+    } else {
+      navBrandLogo.removeAttribute('src');
+      navBrandLogo.hidden = true;
+      navBrandLogo.style.display = 'none';
+      navBrandName.style.display = '';
+      navBrandWrap.classList.remove('brand-has-img');
+    }
+  }
+  if (navBrandName) navBrandName.textContent = name;
+
+  var heroMetaBrand = document.getElementById('heroMetaBrand');
+  if (heroMetaBrand) heroMetaBrand.textContent = name;
+
+  var heroTitle = document.getElementById('heroTitle');
+  if (heroTitle) heroTitle.textContent = name;
+
+  var heroTagline = document.getElementById('heroTagline');
+  if (heroTagline) heroTagline.textContent = tagline;
+
+  var aboutTitle = document.getElementById('aboutTitle');
+  if (aboutTitle) aboutTitle.textContent = name + '.';
+
+  var aboutDescripcion = document.getElementById('aboutDescripcion');
+  if (aboutDescripcion) aboutDescripcion.textContent = descripcion || defaults.aboutText;
+
+  var footBrand = document.getElementById('footBrand');
+  if (footBrand) {
+    var parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      var first = parts[0];
+      var rest = parts.slice(1).join(' ');
+      footBrand.innerHTML = escapeHtmlTextBold(first) + '<br/><span class="accent">' + escapeHtmlTextBold(rest) + '</span>';
+    } else {
+      footBrand.innerHTML = '<span class="accent">' + escapeHtmlTextBold(name) + '</span>';
+    }
+  }
+
+  var footTagline = document.getElementById('footTagline');
+  if (footTagline) footTagline.textContent = tagline;
+
+  var footBottomBrand = document.getElementById('footBottomBrand');
+  if (footBottomBrand) {
+    footBottomBrand.textContent = '© ' + new Date().getFullYear() + ' · ' + name;
+  }
+
+  var ctaTitle = document.getElementById('ctaTitle');
+  if (ctaTitle && !ctaTitle.dataset.userOverride) {
+    ctaTitle.innerHTML = 'Mesa <span class="amp">&amp;</span> <em>copa</em><br/>para cuando quieras.';
+  }
+
+  if (typeof lwApplyContactLinks === 'function') lwApplyContactLinks(raw);
+
+  var contactEmailLink = document.getElementById('contactEmailLink');
+  var contactEmailDisplay = document.getElementById('contactEmailDisplay');
+  if (contactEmailLink && contactEmailDisplay) {
+    if (correo) {
+      contactEmailLink.href = 'mailto:' + correo;
+      contactEmailDisplay.textContent = correo;
+      contactEmailLink.hidden = false;
+    } else {
+      contactEmailDisplay.textContent = '';
+      contactEmailLink.hidden = true;
+    }
+  }
+  var footEmailRow = document.getElementById('footEmailRow');
+  var footEmailLink = document.getElementById('footEmailLink');
+  var footEmailDisplay = document.getElementById('footEmailDisplay');
+  if (footEmailRow && footEmailLink && footEmailDisplay) {
+    if (correo) {
+      footEmailLink.href = 'mailto:' + correo;
+      footEmailDisplay.textContent = correo;
+      footEmailRow.hidden = false;
+    } else {
+      footEmailDisplay.textContent = '';
+      footEmailRow.hidden = true;
+    }
+  }
+
+  var contactAddressRow = document.getElementById('contactAddressRow');
+  var contactAddressText = document.getElementById('contactAddressText');
+  if (contactAddressRow && contactAddressText) {
+    if (direccion) {
+      contactAddressText.textContent = direccion;
+      contactAddressRow.hidden = false;
+      var dirUrl = buildDirectionsUrlBold(raw);
+      if (dirUrl) {
+        contactAddressRow.href = dirUrl;
+        contactAddressRow.target = '_blank';
+        contactAddressRow.rel = 'noopener noreferrer';
+      }
+    } else {
+      contactAddressText.textContent = '';
+      contactAddressRow.hidden = true;
+    }
+  }
+  var footAddressRow = document.getElementById('footAddressRow');
+  var footAddressLink = document.getElementById('footAddressLink');
+  var footAddressText = document.getElementById('footAddressText');
+  if (footAddressRow && footAddressLink && footAddressText) {
+    if (direccion) {
+      footAddressText.textContent = direccion;
+      footAddressRow.hidden = false;
+      var dirUrl2 = buildDirectionsUrlBold(raw);
+      if (dirUrl2) {
+        footAddressLink.href = dirUrl2;
+        footAddressLink.target = '_blank';
+        footAddressLink.rel = 'noopener noreferrer';
+      } else {
+        footAddressLink.href = '#';
+      }
+    } else {
+      footAddressText.textContent = '';
+      footAddressRow.hidden = true;
+    }
+  }
+
+  updateBoldHeroPhoto(raw || {});
+  updateBoldAboutPhoto(raw || {});
+
+  var galeria = (raw && Array.isArray(raw.galeria)) ? raw.galeria.filter(Boolean) : [];
+  renderBoldGallery(galeria);
+  var isPro = raw && (raw.is_pro === true || raw.is_pro === 'true' || raw.is_pro === 1);
+  updateBoldGallerySlider(isPro);
+
+  updateBoldTicker(raw || {});
+
+  var mlat = raw && raw.map_lat;
+  var mlon = raw && raw.map_lon;
+  var latN = typeof mlat === 'number' ? mlat : parseFloat(mlat);
+  var lonN = typeof mlon === 'number' ? mlon : parseFloat(mlon);
+  if (Number.isFinite(latN) && Number.isFinite(lonN)) {
+    updateBoldPreviewMap(latN, lonN);
+  } else {
+    updateBoldPreviewMap(NaN, NaN);
+  }
+
+  syncBoldScheduleFromPreview(raw && raw.horario);
+  renderBoldSchedule();
+
+  syncBoldTemplateExtensions(raw || {});
+
+  if (opts.alignToHash) scrollEmbedPreviewToHash();
+
+  if (typeof window.tvAnimationsRefresh === 'function') {
+    requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
+  }
+}
+
+/* ───── INIT FROM QUERY (fallback dev) ──────────────── */
+(function initLivePreviewFromQuery() {
+  var params = new URLSearchParams(window.location.search);
+  if (!params.has('preview')) {
+    syncBoldScheduleFromPreview(null);
+    renderBoldSchedule();
+    renderBoldGallery([]);
+    return;
+  }
+  applyLivePreviewData({
+    nombre: params.get('nombre') || '',
+    tagline: params.get('tagline') || '',
+    telefono: params.get('telefono') || '',
+    portada: params.get('portada') || '',
+    descripcion: params.get('descripcion') || '',
+    foto_equipo: params.get('foto_equipo') || '',
+    direccion: params.get('direccion') || '',
+    correo: params.get('correo') || '',
+  }, { alignToHash: !!window.location.hash.replace(/^#/, '') });
+})();
+
+/* ───── NAV ACTIVO (IntersectionObserver) ────────────── */
+(function initBoldActiveNav() {
+  var navList = document.getElementById('boldNavList');
+  if (!navList) return;
+  var links = Array.prototype.slice.call(navList.querySelectorAll('a[data-nav-link]'));
+  if (links.length === 0) return;
+
+  // Mapa hash → enlace
+  var byId = {};
+  links.forEach(function (a) {
+    var key = a.getAttribute('data-nav-link');
+    if (key) byId[key] = a;
+  });
+
+  // IDs reales que existen en el DOM
+  var ids = Object.keys(byId).filter(function (id) {
+    return document.getElementById(id) != null;
+  });
+  if (ids.length === 0) return;
+
+  function setActive(id) {
+    links.forEach(function (a) {
+      a.classList.toggle('is-active', a.getAttribute('data-nav-link') === id);
+    });
+  }
+
+  // IntersectionObserver: el ítem activo es la sección cuya parte superior está
+  // más cerca del 25% superior del viewport
+  var visible = new Map();
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) visible.set(e.target.id, e.intersectionRatio);
+      else visible.delete(e.target.id);
+    });
+    // Elegir la sección con mayor ratio visible
+    var bestId = null;
+    var bestRatio = 0;
+    visible.forEach(function (ratio, id) {
+      if (ratio > bestRatio) { bestRatio = ratio; bestId = id; }
+    });
+    if (bestId) setActive(bestId);
+  }, {
+    // Margen superior negativo para que la sección "active" cambie cuando
+    // su título cruza un 25% por debajo del top del viewport
+    rootMargin: '-25% 0px -55% 0px',
+    threshold: [0, 0.1, 0.25, 0.5, 0.75, 1],
+  });
+
+  ids.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) io.observe(el);
+  });
+
+  // Click en un enlace marca su sección como activa de inmediato (UX inmediato
+  // antes de que el smooth scroll termine).
+  links.forEach(function (a) {
+    a.addEventListener('click', function () {
+      var id = a.getAttribute('data-nav-link');
+      if (id) setActive(id);
+    });
+  });
+
+  // Estado inicial: si hay hash, marcarlo
+  var initial = (window.location.hash || '').replace(/^#/, '');
+  if (initial && byId[initial]) setActive(initial);
+})();
+
+/* ───── MENÚ MÓVIL (hamburguesa) ─────────────────────── */
+(function initBoldMobileMenu() {
+  var nav = document.querySelector('nav.nav');
+  var btn = document.getElementById('navMenuToggle');
+  var list = document.getElementById('boldNavList');
+  if (!nav || !btn || !list) return;
+
+  function setOpen(open) {
+    nav.classList.toggle('is-open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    btn.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+  }
+
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    setOpen(!nav.classList.contains('is-open'));
+  });
+
+  // Cerrar al pulsar un enlace del menú
+  list.addEventListener('click', function (e) {
+    var t = e.target;
+    while (t && t !== list) {
+      if (t.tagName === 'A') { setOpen(false); break; }
+      t = t.parentNode;
+    }
+  });
+
+  // Cerrar al hacer click fuera del nav
+  document.addEventListener('click', function (e) {
+    if (!nav.classList.contains('is-open')) return;
+    if (nav.contains(e.target)) return;
+    setOpen(false);
+  });
+
+  // Cerrar con Escape
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && nav.classList.contains('is-open')) setOpen(false);
+  });
+
+  // Si se redimensiona a desktop, cerrar (por si quedó abierto)
+  var mq = window.matchMedia('(min-width:881px)');
+  function onChange(ev) { if (ev.matches) setOpen(false); }
+  if (mq.addEventListener) mq.addEventListener('change', onChange);
+  else if (mq.addListener) mq.addListener(onChange);
+})();
+
+setInterval(renderBoldSchedule, 60000);
+
+
+/* ─── TAVOLA-WARM: Hero collage (3 fotos) + historia con muestras en preview ─── */
+(function() {
+  function setPhotoImg(el, src, skipCacheBust) {
+    if (!el) return;
+    if (src) {
+      var finalSrc = src;
+      if (!skipCacheBust && /^https?:\/\//i.test(src)) {
+        var sep = src.indexOf('?') >= 0 ? '&' : '?';
+        finalSrc = src + sep + 'lwts=' + Date.now();
+      }
+      el.src = finalSrc;
+      el.hidden = false;
+      el.style.display = 'block';
+    } else {
+      el.removeAttribute('src');
+      el.hidden = true;
+      el.style.display = 'none';
+    }
+  }
+
+  function isTavolaSampleUrl(url) {
+    if (!url) return false;
+    var u = String(url);
+    return (
+      u === TAVOLA_PREVIEW_SAMPLE.portada ||
+      u === TAVOLA_PREVIEW_SAMPLE.portada_2 ||
+      u === TAVOLA_PREVIEW_SAMPLE.portada_3
+    );
+  }
+
+  updateBoldHeroPhoto = function(raw) {
+    var hasPortada = raw && Object.prototype.hasOwnProperty.call(raw, 'portada');
+    var hasP2 = raw && Object.prototype.hasOwnProperty.call(raw, 'portada_2');
+    var hasP3 = raw && Object.prototype.hasOwnProperty.call(raw, 'portada_3');
+    if (!hasPortada && !hasP2 && !hasP3 && !shouldUseTavolaSampleMedia()) return;
+
+    var src = tavolaResolvePreviewPhotoSrc(raw && raw.portada, 'portada');
+    var src2 = tavolaResolvePreviewPhotoSrc(raw && raw.portada_2, 'portada_2');
+    var src3 = tavolaResolvePreviewPhotoSrc(raw && raw.portada_3, 'portada_3');
+
+    var p1 = document.querySelector('.photo.p1 img');
+    setPhotoImg(p1, src, isTavolaSampleUrl(src));
+    setPhotoImg(document.getElementById('heroPhotoImg2'), src2, isTavolaSampleUrl(src2));
+    setPhotoImg(document.getElementById('heroPhotoImg3'), src3, isTavolaSampleUrl(src3));
+  };
+
+  updateBoldAboutPhoto = function(raw) {
+    var hasFoto = raw && Object.prototype.hasOwnProperty.call(raw, 'foto_equipo');
+    if (!hasFoto && !shouldUseTavolaSampleMedia()) return;
+    var src = tavolaResolvePreviewPhotoSrc(raw && raw.foto_equipo, 'foto_equipo');
+    var storyImg = document.getElementById('storyImgDiv');
+    if (storyImg) {
+      storyImg.style.backgroundImage = src ? 'url("' + String(src).replace(/"/g, '\\"') + '")' : 'none';
+    }
+  };
+
+  function bootTavolaPreviewSamples() {
+    if (!shouldUseTavolaSampleMedia()) return;
+    updateBoldHeroPhoto({ portada: '', portada_2: '', portada_3: '' });
+    updateBoldAboutPhoto({ foto_equipo: '' });
+    renderBoldGallery([]);
+    if (typeof window.tvAnimationsRefresh === 'function') {
+      requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootTavolaPreviewSamples);
+  } else {
+    bootTavolaPreviewSamples();
+  }
+})();
+</script>
+<div id="lw-gallery-lightbox" class="lw-gallery-lightbox" hidden aria-modal="true" role="dialog" aria-label="Imagen a tamaño completo">
+  <button type="button" class="lw-gallery-lightbox-backdrop" tabindex="-1" aria-label="Cerrar"></button>
+  <figure class="lw-gallery-lightbox-frame">
+    <button type="button" class="lw-gallery-lightbox-close" aria-label="Cerrar">×</button>
+    <img class="lw-gallery-lightbox-img" src="" alt="" decoding="async"/>
+  </figure>
+</div>
+<script>
+(function initLwGalleryLightbox(){
+  var lb=document.getElementById('lw-gallery-lightbox');
+  if(!lb)return;
+  var backdrop=lb.querySelector('.lw-gallery-lightbox-backdrop');
+  var closeBtn=lb.querySelector('.lw-gallery-lightbox-close');
+  var imgEl=lb.querySelector('.lw-gallery-lightbox-img');
+  var prevOverflow='';
+  function openLb(src,alt){
+    if(!src)return;
+    imgEl.src=src;imgEl.alt=alt||'';lb.hidden=false;
+    prevOverflow=document.body.style.overflow;
+    document.body.style.overflow='hidden';
+  }
+  function closeLb(){
+    lb.hidden=true;imgEl.removeAttribute('src');imgEl.alt='';
+    document.body.style.overflow=prevOverflow||'';
+  }
+  document.addEventListener('click',function(e){
+    var sec=document.getElementById('galeria');
+    if(!sec||!sec.contains(e.target))return;
+    if(e.target.closest('#lw-gallery-lightbox'))return;
+    var im=e.target.closest('img');
+    if(im&&sec.contains(im)){
+      e.preventDefault();e.stopPropagation();
+      openLb(im.currentSrc||im.src,im.alt||'');
+      return;
+    }
+    var tile=e.target.closest('[data-lightbox-src]');
+    if(tile&&sec.contains(tile)){
+      var u=tile.getAttribute('data-lightbox-src');
+      if(u){e.preventDefault();openLb(u,'');}
+    }
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&!lb.hidden)closeLb();
+    if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.closest){
+      var t=e.target.closest('#galeria [data-lightbox-src]');
+      if(t&&document.getElementById('galeria')&&document.getElementById('galeria').contains(t)){
+        e.preventDefault();
+        var u=t.getAttribute('data-lightbox-src');
+        if(u)openLb(u,'');
+      }
+    }
+  });
+  if(backdrop)backdrop.addEventListener('click',closeLb);
+  if(closeBtn)closeBtn.addEventListener('click',closeLb);
+})();
+</script>
+
+<script>
+/* ═══════════ TAVOLA PRO ANIMATIONS — solo capa visual; no toca preview ni datos ═══════════ */
+(function () {
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var tvIo = null;
+  var booted = false;
+
+  function isHidden(el) {
+    if (!el) return true;
+    var st = window.getComputedStyle(el);
+    return st.display === 'none' || st.visibility === 'hidden';
+  }
+
+  function markReveal(el, anim) {
+    if (!el || el.classList.contains('tv-reveal') || el.closest('.no-anim')) return;
+    if (isHidden(el)) return;
+    el.classList.add('tv-reveal');
+    if (anim) el.setAttribute('data-anim', anim);
+  }
+
+  function splitWords(el) {
+    if (!el || el.dataset.tvSplit === 'done') return;
+    if (el.children.length > 0 && !el.querySelector('.tv-word')) return;
+    var text = el.textContent;
+    var words = text.split(/(\s+)/);
+    el.textContent = '';
+    words.forEach(function (w) {
+      if (/^\s+$/.test(w)) {
+        el.appendChild(document.createTextNode(w));
+        return;
+      }
+      if (!w) return;
+      var wrap = document.createElement('span');
+      wrap.className = 'tv-word';
+      var inner = document.createElement('span');
+      inner.textContent = w;
+      wrap.appendChild(inner);
+      el.appendChild(wrap);
+    });
+    el.dataset.tvSplit = 'done';
+  }
+
+  function refreshHeroTitleSplit() {
+    var el = document.getElementById('heroTitle');
+    if (!el) return;
+    el.classList.remove('tv-reveal');
+    el.removeAttribute('data-anim');
+    el.classList.add('tv-split');
+    delete el.dataset.tvSplit;
+    splitWords(el);
+    if (isInViewport(el)) el.classList.add('tv-in');
+  }
+
+  function isInViewport(el) {
+    var r = el.getBoundingClientRect();
+    return r.top < window.innerHeight * 0.95 && r.bottom > 0;
+  }
+
+  function cleanupLegacyTvTags() {
+    document.querySelectorAll('section.tv-reveal, .photo.tv-img-reveal, .tv-magnetic').forEach(function (el) {
+      el.classList.remove('tv-reveal', 'tv-in', 'tv-img-reveal', 'tv-magnetic');
+      el.removeAttribute('data-anim');
+      el.removeAttribute('data-delay');
+      if (el.style && el.style.transform) el.style.transform = '';
+    });
+  }
+
+  function autoTag() {
+    cleanupLegacyTvTags();
+    document.querySelectorAll('.section-head, .story-content > .ornament, .story-content > p').forEach(function (el) {
+      markReveal(el, 'up');
+    });
+    document.querySelectorAll('.section-head h2, .visit-card h3, .story-content h2').forEach(function (el) {
+      markReveal(el, 'blur');
+    });
+
+    document.querySelectorAll('#tplServicesList .dish').forEach(function (el, i) {
+      markReveal(el, 'up');
+      el.setAttribute('data-delay', String(Math.min(i + 1, 8)));
+    });
+
+    document.querySelectorAll('#galleryLive .gimg').forEach(function (el, i) {
+      markReveal(el, 'zoom');
+      el.classList.add('tv-hover-zoom');
+      el.setAttribute('data-delay', String(Math.min(i + 1, 8)));
+    });
+
+    var storyImg = document.getElementById('storyImgDiv');
+    if (storyImg && !isHidden(storyImg)) markReveal(storyImg, 'left');
+
+    document.querySelectorAll('.visit-card').forEach(function (el, i) {
+      markReveal(el, i === 0 ? 'right' : 'left');
+    });
+
+    document.querySelectorAll('.reviews-cta-section, .vcard-strip, .cta-section .container').forEach(function (el) {
+      markReveal(el, 'fade');
+    });
+
+    document.querySelectorAll('.nav-cta, .hero-cta .btn-p, .hero-cta .btn-wa').forEach(function (el) {
+      if (!el.classList.contains('tv-btn-shine')) el.classList.add('tv-btn-shine');
+    });
+
+    document.querySelectorAll('.hero-meta, .hero-tag, .hero-cta a').forEach(function (el, i) {
+      if (!el.classList.contains('tv-hero-anim')) {
+        el.classList.add('tv-hero-anim', 'd' + Math.min(i + 1, 4));
+      }
+    });
+
+    refreshHeroTitleSplit();
+  }
+
+  function revealInViewport() {
+    document.querySelectorAll('.tv-reveal:not(.tv-in), .tv-split:not(.tv-in)').forEach(function (el) {
+      if (isInViewport(el)) el.classList.add('tv-in');
+    });
+  }
+
+  function observe() {
+    if (!('IntersectionObserver' in window)) {
+      document.querySelectorAll('.tv-reveal, .tv-split').forEach(function (el) {
+        el.classList.add('tv-in');
+      });
+      return;
+    }
+    if (!tvIo) {
+      tvIo = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('tv-in');
+              tvIo.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.08, rootMargin: '0px 0px -40px 0px' },
+      );
+    }
+    document.querySelectorAll('.tv-reveal:not(.tv-in), .tv-split:not(.tv-in)').forEach(function (el) {
+      if (!isHidden(el)) tvIo.observe(el);
+    });
+  }
+
+  function runRevealPass() {
+    revealInViewport();
+    observe();
+  }
+
+  function scrollProgress() {
+    if (document.querySelector('.tv-scroll-progress')) return;
+    var bar = document.createElement('div');
+    bar.className = 'tv-scroll-progress';
+    document.body.appendChild(bar);
+    function update() {
+      var h = document.documentElement;
+      var p = h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight);
+      bar.style.width = (Math.max(0, Math.min(1, p)) * 100).toFixed(2) + '%';
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  }
+
+  function stickyHeader() {
+    var header = document.querySelector('nav.nav');
+    if (!header || header.dataset.tvStickyBound) return;
+    header.dataset.tvStickyBound = '1';
+    function update() {
+      if (window.scrollY > 24) header.classList.add('tv-header-scrolled');
+      else header.classList.remove('tv-header-scrolled');
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  }
+
+  window.tvAnimationsRefresh = function () {
+    if (reduced) return;
+    autoTag();
+    runRevealPass();
+    requestAnimationFrame(runRevealPass);
+  };
+
+  function boot() {
+    if (booted) return;
+    booted = true;
+    document.body.classList.add('tv-loaded');
+    if (reduced) {
+      document.querySelectorAll('.tv-reveal, .tv-split').forEach(function (el) {
+        el.classList.add('tv-in');
+      });
+      return;
+    }
+    autoTag();
+    runRevealPass();
+    scrollProgress();
+    stickyHeader();
+    setTimeout(runRevealPass, 120);
+    setTimeout(runRevealPass, 400);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+
+
+@endverbatim
+
+<script>
+(function bootTavolaWarmTenantPage() {
+  function run() {
+    if (typeof applyLivePreviewData === 'function') {
+      applyLivePreviewData({
+        logo_url: @json($logo_url),
+        nombre: @json($nombre),
+        tagline: @json($tagline),
+        telefono: @json($telefono),
+        whatsapp: @json($whatsapp),
+        portada: @json($portada),
+        portada_2: @json($portada_2),
+        portada_3: @json($portada_3),
+        descripcion: @json($descripcion),
+        foto_equipo: @json($foto_equipo),
+        direccion: @json($direccion),
+        correo: @json($correo),
+        galeria: @json($galeria),
+        horario: @json($horario),
+        map_lat: @json($map_lat),
+        map_lon: @json($map_lon),
+        services: @json($services),
+        google_maps_url: @json($google_maps_url),
+        google_business_url: @json($google_business_url),
+        booking_url: @json($booking_url),
+        vcard_enabled: @json($vcard_enabled),
+        is_pro: @json($is_pro),
+        subdomain: @json($subdomain),
+        api_base_url: @json($api_base_url),
+        vcard_download_url: @json($vcard_download_url),
+        instagram_url: @json($instagram_url),
+        tiktok_url: @json($tiktok_url),
+        facebook_url: @json($facebook_url)
+      });
+    }
+    if (typeof updateBoldTicker === 'function') updateBoldTicker({
+      nombre: @json($nombre),
+      tagline: @json($tagline),
+      direccion: @json($direccion)
+    });
+    if (typeof syncBoldScheduleFromPreview === 'function') syncBoldScheduleFromPreview(@json($horario));
+    if (typeof renderBoldSchedule === 'function') renderBoldSchedule();
+    if (typeof window.__lwLat === 'number' && typeof window.__lwLon === 'number') {
+      if (typeof updateBoldPreviewMap === 'function') updateBoldPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateNoirPreviewMap === 'function') updateNoirPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateSleekPreviewMap === 'function') updateSleekPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateBloomPreviewMap === 'function') updateBloomPreviewMap(window.__lwLat, window.__lwLon);
+    }
+    if (typeof window.tvAnimationsRefresh === 'function') {
+      requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', run);
+  } else {
+    run();
+  }
+})();
+</script>
+
+@endpush

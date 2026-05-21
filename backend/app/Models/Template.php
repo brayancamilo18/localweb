@@ -15,6 +15,11 @@ class Template extends Model
         'is_active',
         'requires_pro',
         'hero_photo_slots',
+        'thumbnail_url',
+        'category',
+        'suitable_sectors',
+        'sort_order',
+        'featured',
     ];
 
     protected function casts(): array
@@ -23,12 +28,20 @@ class Template extends Model
             'is_active' => 'boolean',
             'requires_pro' => 'boolean',
             'hero_photo_slots' => 'integer',
+            'suitable_sectors' => 'array',
+            'sort_order' => 'integer',
+            'featured' => 'boolean',
         ];
     }
 
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    public function scopeOrdered(Builder $query): Builder
+    {
+        return $query->orderBy('sort_order')->orderBy('id');
     }
 
     public function businesses(): HasMany

@@ -55,6 +55,11 @@ export interface AdminStatsTemplateItem {
   is_active: boolean
   requires_pro: boolean
   hero_photo_slots: number
+  thumbnail_url: string | null
+  category: string | null
+  suitable_sectors: string[]
+  sort_order: number
+  featured: boolean
   total_usage: number
 }
 
@@ -188,6 +193,11 @@ export interface Template {
   primary_color: string
   requires_pro: boolean
   hero_photo_slots: number
+  thumbnail_url: string | null
+  category: string | null
+  suitable_sectors: string[]
+  sort_order: number
+  featured: boolean
 }
 
 export interface BusinessImage {

@@ -17,6 +17,11 @@ class AdminTemplateResource extends JsonResource
             'is_active' => (bool) $this->is_active,
             'requires_pro' => (bool) $this->requires_pro,
             'hero_photo_slots' => (int) ($this->hero_photo_slots ?? 1),
+            'thumbnail_url' => $this->thumbnail_url,
+            'category' => $this->category,
+            'suitable_sectors' => (array) ($this->suitable_sectors ?: []),
+            'sort_order' => (int) $this->sort_order,
+            'featured' => (bool) $this->featured,
             'total_usage' => (int) ($this->total_usage ?? 0),
         ];
     }

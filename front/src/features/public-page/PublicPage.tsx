@@ -5,6 +5,16 @@ import { keys } from '../../api/queryKeys'
 import { PublicBusinessRenderer } from './PublicBusinessRenderer'
 import { PublicPageSkeleton } from './PublicPageSkeleton'
 
+/**
+ * NOTA DE ARQUITECTURA (post-migración SEO):
+ * En producción, las páginas públicas de los negocios son servidas
+ * directamente por Laravel (Blade SSR) para garantizar indexación SEO.
+ * Este componente actúa como FALLBACK en entornos de desarrollo local
+ * donde no existe wildcard DNS para subdominios.
+ *
+ * Referencia: backend/app/Http/Controllers/PublicTenantPageController.php
+ */
+
 // keep in sync with backend config/subdomains.php (GET /api/v1/public/subdomain-rules)
 const RESERVED_SUBDOMAINS = new Set([
   'admin', 'api', 'www', 'mail', 'cdn', 'support', 'help',

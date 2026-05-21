@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Business;
 use App\Support\PublicPageCache;
+use Illuminate\Support\Facades\Cache;
 
 class BusinessObserver
 {
@@ -15,23 +16,33 @@ class BusinessObserver
     {
         $original = $business->getOriginal('subdomain');
         if (is_string($original) && $original !== '' && $original !== $business->subdomain) {
-            PublicPageCache::forgetSubdomain($original);
+            PublicPageCache::forgetAll($original);
+            Cache::forget('robots:'.$original);
+            Cache::forget('sitemap:tenant:'.$original);
         }
-        PublicPageCache::forget($business);
+        PublicPageCache::forgetAll($business->subdomain);
+        Cache::forget('robots:'.$business->subdomain);
+        Cache::forget('sitemap:tenant:'.$business->subdomain);
+
+        if ($business->wasChanged('is_published') || $business->wasRecentlyCreated) {
+            Cache::forget('sitemap:master');
+        }
     }
 
     public function deleted(Business $business): void
     {
-        PublicPageCache::forget($business);
+        PublicPageCache::forgetAll($business->subdomain);
+        Cache::forget('sitemap:master');
     }
 
     public function restored(Business $business): void
     {
-        PublicPageCache::forget($business);
+        PublicPageCache::forgetAll($business->subdomain);
+        Cache::forget('sitemap:master');
     }
 
     public function forceDeleted(Business $business): void
     {
-        PublicPageCache::forget($business);
+        PublicPageCache::forgetAll($business->subdomain);
     }
 }
