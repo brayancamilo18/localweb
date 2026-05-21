@@ -1,9 +1,10 @@
 import { fireEvent, render, screen } from '@testing-library/react'
+import { mockTemplate } from '../../../test/mockTemplate'
 import Step1Plantilla from '../steps/Step1Plantilla'
 
 const templates = [
-  { id: 1, name: 'Clásica', slug: 'classic', primary_color: '#111111', requires_pro: false, hero_photo_slots: 1 },
-  { id: 2, name: 'Premium', slug: 'premium', primary_color: '#ff00aa', requires_pro: true, hero_photo_slots: 1 },
+  mockTemplate({ id: 1, name: 'Clásica', slug: 'classic', primary_color: '#111111' }),
+  mockTemplate({ id: 2, name: 'Premium', slug: 'premium', primary_color: '#ff00aa', requires_pro: true }),
 ]
 
 describe('Step1Plantilla', () => {

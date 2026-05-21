@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import MiPagina from '../MiPagina'
 import { DashboardContext, EMPTY_STATS } from '../../context/DashboardContext'
 import { ToastProvider } from '../../../../components/ui/Toast'
+import { mockTemplate } from '../../../../test/mockTemplate'
 import type { Business } from '../../../../types/api'
 
 const navigateMock = vi.fn()
@@ -46,7 +47,7 @@ function makeBusiness(): Business {
     is_published: true,
     is_free: false,
     is_pro: true,
-    template: { id: 1, name: 'D', slug: 'd', primary_color: '#000', requires_pro: false, hero_photo_slots: 1 },
+    template: mockTemplate({ id: 1, name: 'D', slug: 'd', primary_color: '#000' }),
     images: { cover: [], gallery: [], about: [] },
     services: [],
     stats: null,

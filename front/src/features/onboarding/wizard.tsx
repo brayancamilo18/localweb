@@ -930,7 +930,19 @@ export function WizardLayout({
 
 /** Coincide con `TemplateSeeder`: si la API falla, mostramos al menos Urban Bold. */
 const FALLBACK_TEMPLATES: Template[] = [
-  { id: 1, name: 'Urban Bold', slug: 'urban-bold', primary_color: '#D4FF3A', requires_pro: false, hero_photo_slots: 1 },
+  {
+    id: 1,
+    name: 'Urban Bold',
+    slug: 'urban-bold',
+    primary_color: '#D4FF3A',
+    requires_pro: false,
+    hero_photo_slots: 1,
+    thumbnail_url: null,
+    category: null,
+    suitable_sectors: [],
+    sort_order: 10,
+    featured: false,
+  },
 ]
 
 // ─── Step 1 · Plantilla ──────────────────────────────────────
