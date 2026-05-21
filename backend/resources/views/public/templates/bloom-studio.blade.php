@@ -10,7 +10,7 @@
   if (p.get('thumb') === '1') return;
   var l = document.createElement('link');
   l.rel = 'stylesheet';
-  l.href = 'https://unpkg.com/leaflet@@1.9.4/dist/leaflet.css';
+  l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
   l.crossOrigin = '';
   document.head.appendChild(l);
 })();
@@ -819,7 +819,7 @@ function lwTrackClick(kind) {
   var p = new URLSearchParams(location.search);
   if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
   var s = document.createElement('script');
-  s.src = 'https://unpkg.com/leaflet@@1.9.4/dist/leaflet.js';
+  s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
   s.crossOrigin = '';
   document.head.appendChild(s);
 })();
