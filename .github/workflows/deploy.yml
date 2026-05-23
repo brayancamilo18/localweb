@@ -8,6 +8,22 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: front/.nvmrc
+          cache: npm
+          cache-dependency-path: front/package-lock.json
+
+      - name: Build frontend (CI)
+        run: |
+          cd front
+          npm ci
+          npm run build
+
       - name: Determinar entorno
         id: env
         run: |
@@ -17,11 +33,41 @@ jobs:
             des)  echo "name=des"  >> "$GITHUB_OUTPUT" ;;
           esac
 
-      - name: SSH y deploy
+      - name: SSH y deploy (backend + servidor)
+        id: deploy
+        continue-on-error: true
         uses: appleboy/ssh-action@v1.2.0
         with:
           host:     ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key:      ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           script: |
-            sudo /var/www/onez/deploy.sh ${{ steps.env.outputs.name }}
+            set -e
+            ENV="${{ steps.env.outputs.name }}"
+            if ! sudo /var/www/onez/deploy.sh "$ENV"; then
+              echo "deploy.sh falló; intentando build-frontend.sh con Node moderno..."
+              REPO="/var/www/onez/${ENV}"
+              if [ -f "${REPO}/scripts/build-frontend.sh" ]; then
+                sudo bash "${REPO}/scripts/build-frontend.sh"
+              else
+                exit 1
+              fi
+            fi
+
+      - name: Subir dist compilado al VPS
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host:     ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key:      ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          source: front/dist/*
+          target: /var/www/onez/${{ steps.env.outputs.name }}/front/dist
+          strip_components: 2
+          rm: true
+          overwrite: true
+
+      - name: Comprobar resultado
+        run: |
+          if [ "${{ steps.deploy.outcome }}" != "success" ]; then
+            echo "::warning::deploy.sh falló en el VPS; se usó dist compilado en GitHub Actions."
+          fi

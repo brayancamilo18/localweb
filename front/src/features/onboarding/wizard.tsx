@@ -1323,6 +1323,9 @@ function Step1Plantilla({
     if (match) setActiveSector(signupSector)
   }, [list, signupSector])
 
+  const userId = useAuthStore((s) => s.user?.id)
+  const [recoModalOpen, setRecoModalOpen] = useState(false)
+
   const isMobile = useSyncExternalStore(
     subscribeWizardNarrowPreview,
     getWizardNarrowPreviewSnapshot,
@@ -1358,6 +1361,33 @@ function Step1Plantilla({
 
   const sectors = useMemo(() => deriveSectors(list), [list])
   const counts = useMemo(() => countsBySector(list), [list])
+
+  // Plantilla recomendada = primera plantilla del sector del registro.
+  // Si el sector no tiene plantilla (o es 'otros'), no hay recomendación.
+  const recommendedTemplate = useMemo(() => {
+    if (!signupSector || signupSector === 'otros') return null
+    const matches = applyTemplateFilters(list, signupSector, 'all')
+    return matches[0] ?? null
+  }, [list, signupSector])
+
+  useEffect(() => {
+    if (!recommendedTemplate || userId == null) return
+    const key = `lw.onboarding.reco-modal.shown.u${userId}`
+    let alreadyShown = false
+    try {
+      alreadyShown = localStorage.getItem(key) === '1'
+    } catch {
+      alreadyShown = false
+    }
+    if (alreadyShown) return
+    setRecoModalOpen(true)
+    try {
+      localStorage.setItem(key, '1')
+    } catch {
+      // localStorage no disponible: el modal se mostrará de nuevo, es aceptable.
+    }
+  }, [recommendedTemplate, userId])
+
   const [fullscreen, setFullscreen] = useState<{ variant: Step1PreviewVariant; label: string } | null>(null)
 
   // Keep selection in sync when API data replaces cache/fallback (IDs in DB may not match stale template_id).
@@ -1405,6 +1435,34 @@ function Step1Plantilla({
       document.body.style.overflow = prev
     }
   }, [fullscreen])
+
+  const acceptRecommendation = useCallback(() => {
+    if (recommendedTemplate) {
+      setSelectedId(recommendedTemplate.id)
+      setActiveSector(signupSector)
+    }
+    setRecoModalOpen(false)
+  }, [recommendedTemplate, signupSector])
+
+  const dismissRecommendation = useCallback(() => {
+    // "Ver todas": limpiamos el filtro de sector para que vea el catálogo completo.
+    setActiveSector('all')
+    setRecoModalOpen(false)
+  }, [])
+
+  useEffect(() => {
+    if (!recoModalOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setRecoModalOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prev
+    }
+  }, [recoModalOpen])
 
   useLayoutEffect(() => {
     nav?.registerContinueHandler?.(() => ({
@@ -1879,6 +1937,127 @@ function Step1Plantilla({
           {errors.message}
         </div>
       ) : null}
+      {recoModalOpen && recommendedTemplate
+        ? createPortal(
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Plantilla recomendada"
+              onClick={dismissRecommendation}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 10000,
+                background: 'rgba(15, 23, 42, 0.55)',
+                backdropFilter: 'blur(6px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 'clamp(16px, 4vw, 32px)',
+              }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  width: '100%',
+                  maxWidth: 440,
+                  background: 'var(--lw-bg-elev)',
+                  borderRadius: 'var(--lw-r)',
+                  overflow: 'hidden',
+                  boxShadow: '0 24px 80px rgba(0,0,0,.35)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <div style={{ padding: '20px 20px 0' }}>
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: 'var(--lw-accent)',
+                      background: 'var(--lw-accent-soft)',
+                      padding: '4px 10px',
+                      borderRadius: 99,
+                      marginBottom: 12,
+                    }}
+                  >
+                    <Icon name="sparkle" size={14} />
+                    Recomendado para tu sector
+                  </div>
+                  <h2 className="lw-h2" style={{ margin: 0, fontSize: 19 }}>
+                    Empieza con {recommendedTemplate.name}
+                  </h2>
+                  <p
+                    className="lw-body"
+                    style={{ margin: '6px 0 0', fontSize: 14, color: 'var(--lw-text-2)' }}
+                  >
+                    Hemos elegido esta plantilla pensando en tu sector. Puedes usarla tal cual
+                    o explorar todas y elegir la que más te guste — podrás cambiarla cuando quieras.
+                  </p>
+                </div>
+
+                <div style={{ padding: 20 }}>
+                  <div
+                    style={{
+                      position: 'relative',
+                      width: '100%',
+                      borderRadius: 'var(--lw-r-sm)',
+                      overflow: 'hidden',
+                      border: '1px solid var(--lw-border)',
+                    }}
+                  >
+                    {(() => {
+                      const recoVariant = resolveStep1PreviewVariant(recommendedTemplate)
+                      return (
+                        <TemplateIframe
+                          variant={recoVariant}
+                          mode="thumb"
+                          previewData={
+                            previewByVariant[recoVariant]
+                            ?? mergeStep1TemplatePreview(recoVariant, previewOverrides)
+                          }
+                        />
+                      )
+                    })()}
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: 10,
+                    padding: '0 20px 20px',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <Btn
+                    type="button"
+                    kind="outline"
+                    size="md"
+                    style={{ flex: 1, minWidth: 130 }}
+                    onClick={dismissRecommendation}
+                  >
+                    Ver todas
+                  </Btn>
+                  <Btn
+                    type="button"
+                    kind="primary"
+                    size="md"
+                    iconRight="arrowRight"
+                    style={{ flex: 1, minWidth: 130 }}
+                    onClick={acceptRecommendation}
+                  >
+                    Usar esta
+                  </Btn>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
       {fullscreen
         ? createPortal(
             <div
