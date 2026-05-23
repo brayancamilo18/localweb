@@ -17,13 +17,12 @@ jobs:
             pre)  echo "name=pre"  >> "$GITHUB_OUTPUT" ;;
             des)  echo "name=des"  >> "$GITHUB_OUTPUT" ;;
             *)
-              echo "Rama no válida para deploy: ${GITHUB_REF_NAME}"
-              echo "Ramas permitidas: main, pre, des"
+              echo "Rama no válida: ${GITHUB_REF_NAME}"
               exit 1
               ;;
           esac
 
-      - name: Deploy en VPS
+      - name: SSH y deploy
         uses: appleboy/ssh-action@v1.2.0
         with:
           host:            ${{ secrets.VPS_HOST }}
@@ -32,23 +31,6 @@ jobs:
           port:            ${{ secrets.VPS_PORT || 22 }}
           command_timeout: 30m
           script_stop:     true
-          request_pty:     true
+          request_pty:     false
           script: |
-            set -euo pipefail
-            ENV="${{ steps.env.outputs.name }}"
-            DEPLOY="/var/www/onez/deploy.sh"
-
-            echo "usuario: $(whoami) uid=$(id -u)"
-            echo "entorno: $ENV"
-
-            if [ ! -f "$DEPLOY" ]; then
-              echo "No existe $DEPLOY"
-              exit 1
-            fi
-
-            # root: sudo-rs suele rechazar "sudo" (prueba manual con usuario normal + sudo)
-            if [ "$(id -u)" -eq 0 ]; then
-              /bin/bash "$DEPLOY" "$ENV"
-            else
-              sudo -n /bin/bash "$DEPLOY" "$ENV"
-            fi
+            sudo -n /bin/bash /var/www/onez/deploy.sh ${{ steps.env.outputs.name }}
