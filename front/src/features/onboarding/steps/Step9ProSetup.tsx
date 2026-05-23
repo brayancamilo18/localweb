@@ -10,6 +10,7 @@ import { useAuthStore } from '../../../store/authStore'
 import { clearOnboardingPersistForUser } from '../onboardingPersist'
 import ProServicesEditor from '../../shared/ProServicesEditor'
 import ProIntegrationsForm from '../../shared/ProIntegrationsForm'
+import FaviconUploader from '../../shared/FaviconUploader'
 import type { WizardStepProps } from '../wizardNavContext'
 
 export type Step9ProSetupProps = WizardStepProps & {
@@ -125,6 +126,26 @@ export default function Step9ProSetup({
                   type: 'success',
                   title: 'Enlaces guardados',
                   description: 'Ya están conectados a tu web pública.',
+                })
+                void qc.invalidateQueries({ queryKey: keys.dashboard.business })
+              }}
+            />
+          </Card>
+
+          <Card padding={20} style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <Icon name="sparkle" size={20} color="var(--lw-accent)" />
+              <h2 className="lw-h2" style={{ margin: 0, fontSize: 17 }}>
+                Icono de tu web (favicon)
+              </h2>
+            </div>
+            <FaviconUploader
+              enabled
+              onSaved={() => {
+                showToast({
+                  type: 'success',
+                  title: 'Favicon guardado',
+                  description: 'Ya identifica tu web en la pestaña del navegador.',
                 })
                 void qc.invalidateQueries({ queryKey: keys.dashboard.business })
               }}

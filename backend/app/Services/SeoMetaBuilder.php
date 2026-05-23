@@ -29,8 +29,8 @@ class SeoMetaBuilder
             'twitter_image' => $ogImage,
             'robots' => $business->is_published ? 'index, follow' : 'noindex, nofollow',
             'hreflang' => 'es',
-            'favicon_url' => null,
-            'favicon_type' => null,
+            'favicon_url' => $business->is_pro ? $business->favicon_url : null,
+            'favicon_type' => $business->is_pro ? $business->favicon_type : null,
         ];
     }
 

@@ -120,4 +120,44 @@ class ImagesController extends BaseApiController
 
         return $this->success(new BusinessResource($fresh ?? $business));
     }
+
+    public function storeFavicon(Request $request, ImageService $images)
+    {
+        $business = $request->user()->business;
+        if (! $business) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        if (! $business->is_pro) {
+            return response()->json([
+                'message' => 'El favicon personalizado es una función Pro.',
+                'upgrade_required' => true,
+            ], 422);
+        }
+
+        $request->validate([
+            'file' => ['required', 'file', 'max:1024', 'mimetypes:image/png,image/svg+xml,image/x-icon,image/vnd.microsoft.icon,image/webp'],
+        ]);
+
+        // BusinessObserver invalida public_page:{subdomain} en saved.
+        $images->replaceBusinessFavicon($request->file('file'), $business);
+
+        $fresh = $business->fresh()?->load(['template', 'services', 'images' => fn ($q) => $q->ordered()]);
+
+        return $this->success(new BusinessResource($fresh ?? $business));
+    }
+
+    public function destroyFavicon(Request $request, ImageService $images)
+    {
+        $business = $request->user()->business;
+        if (! $business) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $images->deleteBusinessFavicon($business);
+
+        $fresh = $business->fresh()?->load(['template', 'services', 'images' => fn ($q) => $q->ordered()]);
+
+        return $this->success(new BusinessResource($fresh ?? $business));
+    }
 }

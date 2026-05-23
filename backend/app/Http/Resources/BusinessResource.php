@@ -20,6 +20,7 @@ class BusinessResource extends JsonResource
             'template_id' => $this->template_id,
             'logo_path' => $this->logo_path,
             'logo_url' => $this->logo_url,
+            'favicon_url' => $this->favicon_url,
             'description' => $this->description,
             'tagline' => $this->tagline,
             'phone' => $this->phone,

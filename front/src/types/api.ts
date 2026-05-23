@@ -271,6 +271,7 @@ export interface Business {
   vcard_enabled: boolean
   schedule: Schedule | null
   logo_url: string | null
+  favicon_url: string | null
   whatsapp_url: string | null
   is_published: boolean
   is_free: boolean

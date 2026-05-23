@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Btn, Card, Icon } from '../../../components/primitives/primitives'
 import { deleteBusinessLogo, deleteImage, uploadBusinessLogo, uploadImage } from '../../../api/dashboard'
 import { compressImageForUpload } from '../../../utils/compressImageForUpload'
+import FaviconUploader from '../../shared/FaviconUploader'
 import { keys } from '../../../api/queryKeys'
 import { useDashboard } from '../context/DashboardContext'
 import type { BusinessImage } from '../../../types/api'
@@ -406,6 +407,10 @@ export default function Imagenes() {
             ) : null}
           </div>
         </div>
+      </Card>
+
+      <Card padding={18} style={{ marginBottom: 20 }}>
+        <FaviconUploader enabled={isPro} />
       </Card>
 
       {upgradeBanner && !isPro ? (

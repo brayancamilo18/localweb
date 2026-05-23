@@ -121,6 +121,56 @@ class ImageService
         $business->update(['logo_path' => null]);
     }
 
+    /**
+     * Favicon del negocio (solo Pro) en `businesses/{id}/favicon/{uuid}.png`.
+     * Siempre PNG con alpha y recortado a cuadrado; máx. 180 px.
+     *
+     * @param  UploadedFile|string  $file  Multipart o ruta absoluta en disco local.
+     */
+    public function replaceBusinessFavicon(UploadedFile|string $file, Business $business): void
+    {
+        $manager = $this->createImageManager();
+        $image = $this->decodeSource($manager, $file);
+
+        // Recorte cuadrado centrado al lado menor.
+        $side = min($image->width(), $image->height());
+        $image = $image->coverDown($side, $side);
+
+        // No ampliar imágenes pequeñas; solo reducir si excede 180 px.
+        if ($image->width() > 180) {
+            $image = $image->scaleDown(width: 180, height: 180);
+        }
+
+        $path = sprintf(
+            'businesses/%d/favicon/%s.png',
+            $business->id,
+            (string) Str::uuid(),
+        );
+
+        /** @var FilesystemAdapter $disk */
+        $disk = Storage::disk('r2');
+        if ($business->favicon_path) {
+            $disk->delete($business->favicon_path);
+        }
+
+        // preserveTransparency forzado a true: el favicon siempre se sirve como PNG.
+        $this->persistToR2($image, true, $path);
+
+        $business->update(['favicon_path' => $path]);
+    }
+
+    public function deleteBusinessFavicon(Business $business): void
+    {
+        if (! $business->favicon_path) {
+            return;
+        }
+
+        /** @var FilesystemAdapter $disk */
+        $disk = Storage::disk('r2');
+        $disk->delete($business->favicon_path);
+        $business->update(['favicon_path' => null]);
+    }
+
     public function reorder(Business $business, array $imageIds): void
     {
         DB::transaction(function () use ($business, $imageIds): void {

@@ -110,3 +110,24 @@ export async function deleteBusinessLogo(): Promise<Business> {
   const response = await apiClient.delete<ApiResponse<Business>>('/dashboard/logo')
   return response.data.data
 }
+
+export async function uploadBusinessFavicon(
+  file: File,
+  onProgress?: (pct: number) => void,
+): Promise<Business> {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const response = await apiClient.post<ApiResponse<Business>>('/dashboard/favicon', formData, {
+    onUploadProgress(progressEvent) {
+      if (!onProgress || !progressEvent.total) return
+      onProgress(Math.round((progressEvent.loaded * 100) / progressEvent.total))
+    },
+  })
+  return response.data.data
+}
+
+export async function deleteBusinessFavicon(): Promise<Business> {
+  const response = await apiClient.delete<ApiResponse<Business>>('/dashboard/favicon')
+  return response.data.data
+}

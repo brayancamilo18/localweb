@@ -118,6 +118,8 @@ Route::prefix('v1')->group(function (): void {
             Route::put('/images/reorder', [ImagesController::class, 'reorder']);
             Route::post('/logo', [ImagesController::class, 'storeLogo']);
             Route::delete('/logo', [ImagesController::class, 'destroyLogo']);
+            Route::post('/favicon', [ImagesController::class, 'storeFavicon']);
+            Route::delete('/favicon', [ImagesController::class, 'destroyFavicon']);
             Route::get('/services', [ServicesController::class, 'index']);
             Route::post('/services', [ServicesController::class, 'store']);
             Route::put('/services/reorder', [ServicesController::class, 'reorder']);

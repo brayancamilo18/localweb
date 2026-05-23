@@ -23,6 +23,7 @@ class Business extends Tenant
         'sector',
         'template_id',
         'logo_path',
+        'favicon_path',
         'description',
         'tagline',
         'phone',
@@ -109,6 +110,32 @@ class Business extends Tenant
         }
 
         return R2PublicUrl::forPath($this->logo_path);
+    }
+
+    public function getFaviconUrlAttribute(): ?string
+    {
+        if (! $this->favicon_path) {
+            return null;
+        }
+
+        return \App\Support\R2PublicUrl::forPath($this->favicon_path);
+    }
+
+    public function getFaviconTypeAttribute(): ?string
+    {
+        if (! $this->favicon_path) {
+            return null;
+        }
+
+        $ext = strtolower(pathinfo($this->favicon_path, PATHINFO_EXTENSION));
+
+        return match ($ext) {
+            'png' => 'image/png',
+            'ico' => 'image/x-icon',
+            'svg' => 'image/svg+xml',
+            'webp' => 'image/webp',
+            default => 'image/png',
+        };
     }
 
     public function getIsFreeAttribute(): bool
