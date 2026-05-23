@@ -7,6 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: Determinar entorno
         id: env
@@ -17,25 +18,50 @@ jobs:
             des)  echo "name=des" >> "$GITHUB_OUTPUT" ;;
           esac
 
-      # El script en el VPS (/var/www/onez/deploy.sh) hace git pull, build front,
-      # composer, migrate y reload. Debe ejecutarse como root o con sudo NOPASSWD.
-      # Configuración una vez en el servidor: scripts/setup-vps-github-deploy.sh
+      # /var/www/onez/deploy.sh usa systemctl, chown www-data, nginx → hace falta ROOT
+      # o sudo NOPASSWD. Si sudo-rs bloquea: VPS_USER=root en GitHub Secrets.
       - name: Deploy en VPS
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host:     ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key:      ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          host:            ${{ secrets.VPS_HOST }}
+          username:        ${{ secrets.VPS_USER }}
+          key:             ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          command_timeout: 40m
+          script_stop:     true
           script: |
             set -euo pipefail
             ENV="${{ steps.env.outputs.name }}"
             DEPLOY="/var/www/onez/deploy.sh"
+
+            echo "==> GitHub Actions deploy"
+            echo "    usuario: $(whoami)  uid: $(id -u)"
+            echo "    entorno: $ENV"
+
             if [ ! -f "$DEPLOY" ]; then
-              echo "No existe $DEPLOY"
+              echo "ERROR: no existe $DEPLOY"
               exit 1
             fi
-            if [ "$(id -u)" -eq 0 ]; then
+
+            run_deploy() {
               bash "$DEPLOY" "$ENV"
-            else
+            }
+
+            if [ "$(id -u)" -eq 0 ]; then
+              echo "==> Ejecutando como root"
+              run_deploy
+            elif sudo -n true 2>/dev/null; then
+              echo "==> Ejecutando con sudo -n"
               sudo -n bash "$DEPLOY" "$ENV"
+            else
+              echo "ERROR: hace falta root o sudo sin contraseña."
+              echo ""
+              echo "Solución rápida (GitHub → Settings → Secrets):"
+              echo "  VPS_USER = root"
+              echo "  VPS_SSH_PRIVATE_KEY = clave privada SSH de root"
+              echo ""
+              echo "Solución con usuario limitado (en el VPS como root):"
+              echo "  sudo bash scripts/setup-vps-github-deploy.sh $(whoami)"
+              echo ""
+              sudo -v 2>&1 || true
+              exit 1
             fi
