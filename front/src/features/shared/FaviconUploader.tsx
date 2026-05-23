@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Btn, Card, Icon } from '../../components/primitives/primitives'
@@ -214,6 +215,30 @@ export default function FaviconUploader({ enabled, onSaved, onSaveError }: Favic
           PNG con fondo transparente, mínimo 64×64 px.
         </p>
       </div>
+
+      {!enabled ? (
+        <Card
+          padding={14}
+          style={{
+            border: '1px solid #FCD34D',
+            background: 'var(--lw-pro-soft)',
+            display: 'flex',
+            gap: 12,
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          <Icon name="lock" size={18} color="#92400E" />
+          <div style={{ flex: 1, minWidth: 200, fontSize: 13, fontWeight: 600, color: '#78350F' }}>
+            El favicon personalizado está disponible en el plan Pro
+          </div>
+          <Link to="/dashboard/account?tab=plan" style={{ textDecoration: 'none' }}>
+            <Btn type="button" kind="primary" size="sm">
+              Ver planes
+            </Btn>
+          </Link>
+        </Card>
+      ) : null}
 
       <div>
         <BrowserTabPreview faviconUrl={business.favicon_url} businessName={business.name} />

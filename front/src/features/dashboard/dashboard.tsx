@@ -101,7 +101,7 @@ function DashSidebar({
     { icon: 'clock', t: 'Horarios', to: '/dashboard/schedule', dataTour: 'horarios' },
     { icon: 'list', t: 'Servicios', to: '/dashboard/services', dataTour: 'servicios' },
     { icon: 'arrowUpRight', t: 'Enlaces Pro', to: '/dashboard/enlaces', dataTour: 'enlaces-pro' },
-    { icon: 'barChart', t: 'Estadísticas', to: '/dashboard/stats', locked: !pro, dataTour: 'estadisticas' },
+    { icon: 'barChart', t: 'Estadísticas', to: '/dashboard/stats', dataTour: 'estadisticas' },
     { icon: 'user', t: 'Cuenta', to: '/dashboard/account', dataTour: 'cuenta' },
     { icon: 'shield', t: 'Seguridad', to: '/dashboard/security', dataTour: 'seguridad' },
   ] as const
@@ -142,8 +142,6 @@ function DashSidebar({
               textDecoration: 'none',
               background: isActive ? 'var(--lw-surface)' : 'transparent',
               color: isActive ? 'var(--lw-text)' : 'var(--lw-text-2)',
-              pointerEvents: 'locked' in it && it.locked ? 'none' : 'auto',
-              opacity: 'locked' in it && it.locked ? 0.55 : 1,
             })}
           >
             {({ isActive }) => (
@@ -154,7 +152,6 @@ function DashSidebar({
                   color={isActive ? 'var(--lw-accent)' : 'var(--lw-text-3)'}
                 />
                 <span style={{ flex: 1 }}>{it.t}</span>
-                {'locked' in it && it.locked ? <Icon name="lock" size={12} color="var(--lw-text-4)" /> : null}
               </>
             )}
           </NavLink>
@@ -218,6 +215,7 @@ function StatCard({
   deltaTone = 'success',
   icon,
   locked,
+  demo,
 }: {
   label: string
   value: string
@@ -225,6 +223,8 @@ function StatCard({
   deltaTone?: 'success' | 'danger'
   icon: string
   locked?: boolean
+  /** Métrica de ejemplo (Free): número atenuado + candado + sufijo «ejemplo». */
+  demo?: boolean
 }) {
   return (
     <Card padding={16} style={{
@@ -236,8 +236,30 @@ function StatCard({
         <span className="lw-small">{label}</span>
         <Icon name={icon} size={14} color="var(--lw-text-4)"/>
       </div>
-      <div style={{ fontSize: 26, fontWeight: 600, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>
-        {locked ? "—" : value}
+      <div
+        style={{
+          fontSize: 26,
+          fontWeight: 600,
+          letterSpacing: "-0.02em",
+          fontVariantNumeric: "tabular-nums",
+          display: "flex",
+          alignItems: "baseline",
+          gap: 8,
+          flexWrap: "wrap",
+          color: demo && locked ? "var(--lw-text-4)" : undefined,
+        }}
+      >
+        {demo && locked ? (
+          <>
+            <Icon name="lock" size={16} color="var(--lw-text-4)" />
+            <span>{value}</span>
+            <span style={{ fontSize: 12, fontWeight: 500, color: "var(--lw-text-4)" }}>ejemplo</span>
+          </>
+        ) : locked ? (
+          "—"
+        ) : (
+          value
+        )}
       </div>
       {!locked && delta && (
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>

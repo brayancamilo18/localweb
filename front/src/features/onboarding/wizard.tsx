@@ -28,6 +28,7 @@ import {
   MiniMap,
   BrowserChrome,
 } from '../../components/primitives/primitives'
+import { SectorIcon } from '../../components/primitives/SectorIcon'
 import Step7Plan from './steps/Step7Plan'
 import { buildGoogleDirectionsUrl } from '../../lib/googleMapsDirectionsUrl'
 import {
@@ -373,6 +374,7 @@ function TemplateIframe({
   embed = true,
   previewData,
   initialHash = '',
+  compactThumb = false,
 }: {
   variant: Step1PreviewVariant
   mode?: 'full' | 'thumb'
@@ -381,6 +383,8 @@ function TemplateIframe({
   previewData?: TemplatePreviewData
   /** Ej. #sobre-nosotros para centrar la vista previa en esa sección */
   initialHash?: string
+  /** Vista miniatura más baja en móvil (paso plantilla). */
+  compactThumb?: boolean
 }) {
   const templatePath = TEMPLATE_URL_BY_VARIANT[variant]
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
@@ -394,13 +398,13 @@ function TemplateIframe({
     if (!el) return
     const update = () => {
       const w = el.getBoundingClientRect().width
-      if (w > 0) setThumbScale(w / TEMPLATE_THUMB_DOC_W)
+      if (w > 0) setThumbScale(Math.min(w, el.parentElement?.clientWidth ?? w) / TEMPLATE_THUMB_DOC_W)
     }
     update()
     const ro = new ResizeObserver(update)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [mode])
+  }, [mode, compactThumb])
 
   const [isVisible, setIsVisible] = useState(mode !== 'thumb')
 
@@ -523,13 +527,70 @@ function TemplateIframe({
   }, [syncPreview])
 
   if (mode === 'thumb') {
-    const thumbAspectPct = (TEMPLATE_THUMB_DOC_H / TEMPLATE_THUMB_DOC_W) * 100
     const placeholderColor = TEMPLATE_THUMB_PLACEHOLDER_COLOR[variant] ?? '#FAFAFA'
+    const iframeEl = isVisible ? (
+      <iframe
+        ref={iframeRef}
+        title={`Plantilla ${variant} portada`}
+        src={src}
+        loading="lazy"
+        onLoad={() => {
+          loadedRef.current = true
+          setHasLoaded(true)
+          syncPreview({ alignToHash: true })
+        }}
+        sandbox="allow-scripts allow-popups allow-forms allow-same-origin"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: TEMPLATE_THUMB_DOC_W,
+          height: TEMPLATE_THUMB_DOC_H,
+          border: 'none',
+          transform: `scale(${thumbScale})`,
+          transformOrigin: 'top left',
+          pointerEvents: 'none',
+          background: '#fff',
+          opacity: hasLoaded ? 1 : 0,
+          transition: 'opacity 200ms ease-out',
+        }}
+      />
+    ) : null
+
+    if (compactThumb) {
+      return (
+        <div
+          ref={thumbWrapRef}
+          className="lw-template-thumb-wrap lw-template-thumb-wrap--compact"
+          style={{
+            position: 'relative',
+            width: '100%',
+            maxWidth: '100%',
+            minWidth: 0,
+            height: 148,
+            overflow: 'hidden',
+            background: placeholderColor,
+            contain: 'layout paint',
+          }}
+        >
+          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>{iframeEl}</div>
+        </div>
+      )
+    }
+
+    const thumbAspectPct = (TEMPLATE_THUMB_DOC_H / TEMPLATE_THUMB_DOC_W) * 100
     return (
       <div
         ref={thumbWrapRef}
         className="lw-template-thumb-wrap"
-        style={{ position: 'relative', width: '100%', overflow: 'hidden' }}
+        style={{
+          position: 'relative',
+          width: '100%',
+          maxWidth: '100%',
+          minWidth: 0,
+          overflow: 'hidden',
+          contain: 'layout paint',
+        }}
       >
         <div
           style={{
@@ -540,34 +601,7 @@ function TemplateIframe({
             background: placeholderColor,
           }}
         >
-          {isVisible ? (
-            <iframe
-              ref={iframeRef}
-              title={`Plantilla ${variant} portada`}
-              src={src}
-              loading="lazy"
-              onLoad={() => {
-                loadedRef.current = true
-                setHasLoaded(true)
-                syncPreview({ alignToHash: true })
-              }}
-              sandbox="allow-scripts allow-popups allow-forms allow-same-origin"
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: TEMPLATE_THUMB_DOC_W,
-                height: TEMPLATE_THUMB_DOC_H,
-                border: 'none',
-                transform: `scale(${thumbScale})`,
-                transformOrigin: 'top left',
-                pointerEvents: 'none',
-                background: '#fff',
-                opacity: hasLoaded ? 1 : 0,
-                transition: 'opacity 200ms ease-out',
-              }}
-            />
-          ) : null}
+          {iframeEl}
         </div>
       </div>
     )
@@ -1159,6 +1193,83 @@ function Step1Logo({
   )
 }
 
+/**
+ * Deriva la lista de sectores disponibles a partir de las plantillas reales.
+ * Solo devuelve sectores que tienen al menos 1 plantilla asignada.
+ * El sector 'all' siempre está primero.
+ *
+ * Mapea entre los valores de `suitable_sectors` del backend y las etiquetas
+ * en español para mostrar al usuario.
+ */
+const SECTOR_LABELS: Record<string, string> = {
+  all:            'Todas',
+  peluqueria:     'Peluquería',
+  barberia:       'Barbería',
+  estetica:       'Estética',
+  spa:            'Spa',
+  restaurante:    'Restaurante',
+  cafeteria:      'Cafetería',
+  bar:            'Bar',
+  panaderia:      'Panadería',
+  tienda_ropa:    'Tienda de ropa',
+  tienda_calzado: 'Calzado',
+  floristeria:    'Floristería',
+  farmacia:       'Farmacia',
+  clinica_dental: 'Clínica dental',
+  fisioterapia:   'Fisioterapia',
+  gimnasio:       'Gimnasio',
+  otros:          'Otros',
+}
+
+function deriveSectors(templates: Template[]): Array<{ id: string; label: string }> {
+  const seen = new Set<string>()
+  for (const t of templates) {
+    for (const s of (t.suitable_sectors ?? [])) {
+      if (s in SECTOR_LABELS && s !== 'all') seen.add(s)
+    }
+  }
+  const out: Array<{ id: string; label: string }> = [{ id: 'all', label: 'Todas' }]
+  // Orden estable según el orden del registro, no alfabético:
+  const ORDER = Object.keys(SECTOR_LABELS).filter((k) => k !== 'all')
+  for (const id of ORDER) {
+    if (seen.has(id)) out.push({ id, label: SECTOR_LABELS[id]! })
+  }
+  return out
+}
+
+/**
+ * Cuenta cuántas plantillas hay por sector. Resultado: { all: N, peluqueria: M, ... }
+ */
+function countsBySector(templates: Template[]): Record<string, number> {
+  const counts: Record<string, number> = { all: templates.length }
+  for (const t of templates) {
+    for (const s of (t.suitable_sectors ?? [])) {
+      counts[s] = (counts[s] ?? 0) + 1
+    }
+  }
+  return counts
+}
+
+/**
+ * Aplica los filtros activos (sector + tier) a la lista de plantillas.
+ * Devuelve una nueva lista filtrada, respetando sort_order existente.
+ */
+function applyTemplateFilters(
+  templates: Template[],
+  activeSector: string,
+  tierFilter: 'all' | 'free' | 'pro',
+): Template[] {
+  return templates.filter((t) => {
+    if (activeSector !== 'all') {
+      const sectors = t.suitable_sectors ?? []
+      if (!sectors.includes(activeSector)) return false
+    }
+    if (tierFilter === 'free' && t.requires_pro) return false
+    if (tierFilter === 'pro' && !t.requires_pro) return false
+    return true
+  })
+}
+
 function Step1Plantilla({
   errors,
   isLoading: busy,
@@ -1179,6 +1290,8 @@ function Step1Plantilla({
   const nav = useContext(WizardNavContext)
   const list = useMemo(() => (templates.length > 0 ? templates : FALLBACK_TEMPLATES), [templates])
   const [selectedId, setSelectedId] = useState<number | null>(list[0]?.id ?? null)
+  const [activeSector, setActiveSector] = useState<string>('all')
+  const [tierFilter, setTierFilter] = useState<'all' | 'free' | 'pro'>('all')
   /*
    * Paginación visual del grid (no toca la lista canónica de plantillas).
    *  - `templatePage`  : página actual, 0-indexada.
@@ -1191,15 +1304,6 @@ function Step1Plantilla({
   const [templatePage, setTemplatePage] = useState(0)
   const [animKey, setAnimKey] = useState(0)
   const [animDir, setAnimDir] = useState<1 | -1>(1)
-  const pageCount = Math.max(1, Math.ceil(list.length / TEMPLATES_PAGE_SIZE))
-  const visibleList = useMemo(
-    () =>
-      list.slice(
-        templatePage * TEMPLATES_PAGE_SIZE,
-        templatePage * TEMPLATES_PAGE_SIZE + TEMPLATES_PAGE_SIZE,
-      ),
-    [list, templatePage],
-  )
   const businessSector = useAuthStore((s) => s.business?.sector)
   const signupSector = useMemo(() => {
     if (typeof businessSector === 'string' && businessSector.trim()) {
@@ -1211,6 +1315,49 @@ function Step1Plantilla({
     }
     return 'otros'
   }, [businessSector])
+
+  useEffect(() => {
+    if (!signupSector || signupSector === 'otros') return
+    const available = deriveSectors(list)
+    const match = available.find((s) => s.id === signupSector)
+    if (match) setActiveSector(signupSector)
+  }, [list, signupSector])
+
+  const isMobile = useSyncExternalStore(
+    subscribeWizardNarrowPreview,
+    getWizardNarrowPreviewSnapshot,
+    getWizardNarrowPreviewSnapshot,
+  )
+
+  // Aplicar filtros antes de paginar
+  const filteredList = useMemo(
+    () => applyTemplateFilters(list, activeSector, tierFilter),
+    [list, activeSector, tierFilter],
+  )
+
+  // Móvil: lista completa con scroll vertical natural; escritorio: paginación 8 por página.
+  const pageCount = isMobile
+    ? 1
+    : Math.max(1, Math.ceil(filteredList.length / TEMPLATES_PAGE_SIZE))
+  const visibleList = useMemo(
+    () =>
+      isMobile
+        ? filteredList
+        : filteredList.slice(
+            templatePage * TEMPLATES_PAGE_SIZE,
+            templatePage * TEMPLATES_PAGE_SIZE + TEMPLATES_PAGE_SIZE,
+          ),
+    [filteredList, templatePage, isMobile],
+  )
+
+  // Cuando cambia el filtro, volver a la primera página
+  useEffect(() => {
+    setTemplatePage(0)
+    setAnimKey(0)
+  }, [activeSector, tierFilter])
+
+  const sectors = useMemo(() => deriveSectors(list), [list])
+  const counts = useMemo(() => countsBySector(list), [list])
   const [fullscreen, setFullscreen] = useState<{ variant: Step1PreviewVariant; label: string } | null>(null)
 
   // Keep selection in sync when API data replaces cache/fallback (IDs in DB may not match stale template_id).
@@ -1228,11 +1375,12 @@ function Step1Plantilla({
    */
   useEffect(() => {
     if (selectedId == null) return
-    const idx = list.findIndex((t) => t.id === selectedId)
+    const idx = filteredList.findIndex((t) => t.id === selectedId)
     if (idx < 0) return
+    if (isMobile) return
     const targetPage = Math.floor(idx / TEMPLATES_PAGE_SIZE)
     setTemplatePage((prev) => (prev === targetPage ? prev : targetPage))
-  }, [selectedId, list])
+  }, [selectedId, filteredList, isMobile])
 
   /*
    * Si la lista se acorta (p. ej. el admin retira una plantilla mientras estoy en
@@ -1305,6 +1453,8 @@ function Step1Plantilla({
   /* Respeta el OS: cambio instantáneo de página, sin slide. */
   .lw-step1-template-grid-anim { animation: none !important; }
 }
+.lw-step1-sector-chips-scroll::-webkit-scrollbar,
+.lw-step1-sector-chips::-webkit-scrollbar { display: none; }
 `}
       </style>
       {/*
@@ -1312,41 +1462,269 @@ function Step1Plantilla({
         horizontal no provoque scroll lateral en el panel del wizard. Cambiar `key`
         del hijo fuerza un remount y reinicia el keyframe sin necesidad de Web Animations.
       */}
-      <div style={{ overflow: 'hidden' }}>
-        <div
-          key={animKey}
-          className={`lw-step1-template-grid${animKey > 0 ? ' lw-step1-template-grid-anim' : ''}`}
-          style={{
-            ...(animKey > 0
-              ? {
-                  animation: `${
-                    animDir === 1 ? 'lw-tpl-slide-in-right' : 'lw-tpl-slide-in-left'
-                  } 220ms ease-out`,
-                }
-              : {}),
-          }}
-        >
-        {visibleList.map((t) => {
+      <div
+        className={isMobile ? 'lw-step1-layout' : undefined}
+        style={
+          isMobile
+            ? { width: '100%', maxWidth: '100%', minWidth: 0 }
+            : { display: 'grid', gridTemplateColumns: '200px 1fr', gap: 24, alignItems: 'start' }
+        }
+      >
+        {!isMobile ? (
+        <aside>
+          <div style={{
+            fontSize: 11, fontWeight: 600, color: 'var(--lw-text-3)',
+            textTransform: 'uppercase', letterSpacing: '0.06em',
+            padding: '0 8px 8px',
+          }}>Sector</div>
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {sectors.map((s) => {
+              const isActive = s.id === activeSector
+              const count = counts[s.id] ?? 0
+              if (count === 0 && s.id !== 'all') return null
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setActiveSector(s.id)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '7px 8px', borderRadius: 'var(--lw-r-sm)',
+                    background: isActive ? 'var(--lw-accent-soft)' : 'transparent',
+                    border: 'none', cursor: 'pointer', textAlign: 'left',
+                    color: isActive ? 'var(--lw-accent)' : 'var(--lw-text-2)',
+                    fontSize: 13, fontWeight: isActive ? 500 : 400,
+                    transition: 'background 120ms ease-out, color 120ms ease-out',
+                  }}
+                >
+                  <span style={{ display: 'inline-flex', opacity: isActive ? 1 : 0.7, flexShrink: 0 }}>
+                    <SectorIcon id={s.id} size={15} />
+                  </span>
+                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {s.label}
+                  </span>
+                  <span style={{
+                    fontSize: 11, fontVariantNumeric: 'tabular-nums',
+                    color: isActive ? 'var(--lw-accent)' : 'var(--lw-text-3)',
+                    fontWeight: 500,
+                  }}>{count}</span>
+                </button>
+              )
+            })}
+          </nav>
+
+          <div style={{ height: 1, background: 'var(--lw-border)', margin: '12px 8px' }} />
+
+          <div style={{
+            fontSize: 11, fontWeight: 600, color: 'var(--lw-text-3)',
+            textTransform: 'uppercase', letterSpacing: '0.06em',
+            padding: '0 8px 8px',
+          }}>Tipo</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {([
+              { id: 'all' as const, label: 'Todas' },
+              { id: 'free' as const, label: 'Gratis' },
+              { id: 'pro' as const, label: 'Pro', isPro: true },
+            ] as const).map((o) => {
+              const isActive = tierFilter === o.id
+              return (
+                <button
+                  key={o.id}
+                  type="button"
+                  onClick={() => setTierFilter(o.id)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '7px 8px', borderRadius: 'var(--lw-r-sm)',
+                    background: 'transparent', border: 'none',
+                    cursor: 'pointer', textAlign: 'left',
+                    color: 'var(--lw-text-2)', fontSize: 13,
+                  }}
+                >
+                  <span style={{
+                    width: 14, height: 14, borderRadius: 3, flexShrink: 0,
+                    border: `1.5px solid ${isActive ? 'var(--lw-accent)' : 'var(--lw-border-2)'}`,
+                    background: isActive ? 'var(--lw-accent)' : 'transparent',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    {isActive && (
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12.5l4.5 4.5L19 7"/>
+                      </svg>
+                    )}
+                  </span>
+                  <span style={{ flex: 1 }}>{o.label}</span>
+                  {'isPro' in o && o.isPro && (
+                    <Badge tone="pro" size="sm">PRO</Badge>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </aside>
+        ) : null}
+
+        <div style={{ minWidth: 0, width: '100%', maxWidth: '100%' }}>
+          {isMobile ? (
+            <>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                width: '100%',
+                maxWidth: '100%',
+                boxSizing: 'border-box',
+                height: 40,
+                padding: 3,
+                background: 'var(--lw-surface)',
+                borderRadius: 10,
+                border: '1px solid var(--lw-border)',
+                marginBottom: 14,
+              }}>
+                {(['all', 'free', 'pro'] as const).map((o) => {
+                  const labels = { all: 'Todas', free: 'Gratis', pro: 'Pro' }
+                  const isActive = tierFilter === o
+                  return (
+                    <button
+                      key={o}
+                      type="button"
+                      onClick={() => setTierFilter(o)}
+                      style={{
+                        flex: 1, minWidth: 0, borderRadius: 8,
+                        background: isActive ? 'var(--lw-bg-elev)' : 'transparent',
+                        border: 'none', fontSize: 13.5, fontWeight: 500,
+                        color: isActive ? 'var(--lw-text)' : 'var(--lw-text-3)',
+                        boxShadow: isActive ? '0 1px 2px rgba(11,31,26,.06)' : 'none',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {labels[o]}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="lw-step1-sector-chips-scroll">
+              <div className="lw-step1-sector-chips">
+                {sectors.map((s) => {
+                  const isActive = s.id === activeSector
+                  const count = counts[s.id] ?? 0
+                  if (count === 0 && s.id !== 'all') return null
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setActiveSector(s.id)}
+                      style={{
+                        flex: '0 0 auto',
+                        display: 'inline-flex', alignItems: 'center', gap: 5,
+                        height: 32, padding: '0 11px',
+                        background: isActive ? 'var(--lw-text)' : 'var(--lw-bg-elev)',
+                        border: isActive ? '1px solid var(--lw-text)' : '1px solid var(--lw-border)',
+                        color: isActive ? '#fff' : 'var(--lw-text-2)',
+                        borderRadius: 99, fontSize: 13, fontWeight: 500,
+                        whiteSpace: 'nowrap', cursor: 'pointer',
+                      }}
+                    >
+                      <SectorIcon id={s.id} size={13} />
+                      {s.label}
+                    </button>
+                  )
+                })}
+              </div>
+              </div>
+            </>
+          ) : null}
+
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            marginBottom: 14,
+          }}>
+            <div style={{ color: 'var(--lw-text-3)', fontSize: 13 }}>
+              <span style={{ color: 'var(--lw-text-2)', fontWeight: 500 }}>
+                {filteredList.length}
+              </span>
+              {' '}plantilla{filteredList.length === 1 ? '' : 's'}
+              {activeSector !== 'all' && (
+                <span> · {sectors.find((s) => s.id === activeSector)?.label}</span>
+              )}
+            </div>
+            {(activeSector !== 'all' || tierFilter !== 'all') && (
+              <button
+                type="button"
+                onClick={() => { setActiveSector('all'); setTierFilter('all') }}
+                style={{
+                  background: 'transparent', border: 'none',
+                  color: 'var(--lw-accent)', fontSize: 13, fontWeight: 500,
+                  cursor: 'pointer', padding: 0,
+                }}
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </div>
+
+          {filteredList.length === 0 ? (
+            <div style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              justifyContent: 'center', padding: '48px 24px',
+              background: 'var(--lw-surface)',
+              border: '1px dashed var(--lw-border-2)', borderRadius: 'var(--lw-r)',
+              color: 'var(--lw-text-3)', textAlign: 'center',
+            }}>
+              <Icon name="search" size={28} style={{ opacity: 0.4, marginBottom: 10 }} />
+              <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--lw-text-2)', marginBottom: 4 }}>
+                No hay plantillas para este sector todavía
+              </div>
+              <button
+                type="button"
+                onClick={() => { setActiveSector('all'); setTierFilter('all') }}
+                style={{
+                  marginTop: 8, background: 'transparent', border: 'none',
+                  color: 'var(--lw-accent)', fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                }}
+              >
+                Ver todas las plantillas
+              </button>
+            </div>
+          ) : (
+            <>
+              <div style={{ overflow: 'visible', minWidth: 0, width: '100%', maxWidth: '100%' }}>
+                <div
+                  key={animKey}
+                  className={`lw-step1-template-grid${animKey > 0 ? ' lw-step1-template-grid-anim' : ''}`}
+                  style={{
+                    ...(animKey > 0
+                      ? {
+                          animation: `${
+                            animDir === 1 ? 'lw-tpl-slide-in-right' : 'lw-tpl-slide-in-left'
+                          } 220ms ease-out`,
+                        }
+                      : {}),
+                  }}
+                >
+                {visibleList.map((t) => {
           const isSel = t.id === selectedId
           const variant = resolveStep1PreviewVariant(t)
           return (
-            <Card
+            <div
               key={t.id}
+              className={`lw-step1-template-card-outer${isSel ? ' lw-step1-template-card-outer--selected' : ''}`}
+            >
+            <Card
               padding={0}
+              className="lw-step1-template-card"
               style={{
-                overflow: 'hidden',
                 padding: 0,
-                borderColor: isSel ? ACCENT : BORDER,
-                boxShadow: isSel ? '0 0 0 3px var(--lw-accent-ring), var(--lw-shadow-1)' : 'var(--lw-shadow-1)',
+                minWidth: 0,
+                maxWidth: '100%',
+                width: '100%',
+                borderRadius: 'var(--lw-r-lg)',
               }}
             >
-              <div
-                className="lw-template-card-preview"
-                style={{ position: 'relative', width: '100%', borderBottom: `1px solid ${BORDER}` }}
-              >
+              <div className="lw-template-card-preview">
                 <TemplateIframe
                   variant={variant}
                   mode="thumb"
+                  compactThumb={isMobile}
                   previewData={previewByVariant[variant]}
                 />
                 <div style={{ position: 'absolute', top: 8, left: 8 }}>
@@ -1404,9 +1782,17 @@ function Step1Plantilla({
                   <div style={{ fontSize: 14, fontWeight: 600 }}>{t.name}</div>
                   <div className="lw-small">{t.slug}</div>
                 </div>
-                <div style={{ display: 'flex', gap: 6 }}>
+                <div
+                  className="lw-step1-template-card-actions"
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+                    gap: 8,
+                    minWidth: 0,
+                  }}
+                >
                   <Btn
-                    size="sm"
+                    size={isMobile ? 'md' : 'sm'}
                     kind="outline"
                     fullWidth
                     type="button"
@@ -1416,7 +1802,7 @@ function Step1Plantilla({
                     Ver
                   </Btn>
                   <Btn
-                    size="sm"
+                    size={isMobile ? 'md' : 'sm'}
                     kind={isSel ? 'dark' : 'primary'}
                     fullWidth
                     type="button"
@@ -1428,11 +1814,12 @@ function Step1Plantilla({
                 </div>
               </div>
             </Card>
+            </div>
           )
         })}
         </div>
       </div>
-      {pageCount > 1 ? (
+      {!isMobile && pageCount > 1 ? (
         <div
           role="tablist"
           aria-label="Páginas de plantillas"
@@ -1441,7 +1828,8 @@ function Step1Plantilla({
             justifyContent: 'center',
             alignItems: 'center',
             gap: 8,
-            marginTop: 4,
+            paddingTop: 16,
+            marginTop: 8,
           }}
         >
           {Array.from({ length: pageCount }).map((_, pi) => {
@@ -1477,6 +1865,10 @@ function Step1Plantilla({
           })}
         </div>
       ) : null}
+            </>
+          )}
+        </div>
+      </div>
       {errors?.template_id ? (
         <div className="lw-small" style={{ color: 'var(--lw-danger)' }}>
           {errors.template_id}

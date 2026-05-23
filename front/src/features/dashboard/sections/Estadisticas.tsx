@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { DayPicker } from 'react-day-picker'
 import { es } from 'react-day-picker/locale'
 import 'react-day-picker/style.css'
@@ -14,6 +14,8 @@ import {
   YAxis,
 } from 'recharts'
 import { Btn, Card, Icon } from '../../../components/primitives/primitives'
+import { useToast } from '../../../components/ui/Toast'
+import { postCheckout } from '../../../api/billing'
 import { getStats } from '../../../api/dashboard'
 import { keys } from '../../../api/queryKeys'
 import type { StatsBucket } from '../../../types/api'
@@ -135,44 +137,28 @@ function SingleDatePopover({
   )
 }
 
-function StatsProUpsell() {
-  return (
-    <Card
-      padding={24}
-      data-tour="estadisticas-main"
-      style={{
-        maxWidth: 720,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 18,
-        background: 'linear-gradient(180deg, var(--lw-bg-elev), var(--lw-surface))',
-      }}
-    >
-      <div
-        style={{
-          width: 48,
-          height: 48,
-          borderRadius: 'var(--lw-r)',
-          background: 'var(--lw-pro-soft)',
-          color: 'var(--lw-pro)',
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Icon name="lock" size={20} />
-      </div>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 15, fontWeight: 600 }}>Estadísticas detalladas en Pro</div>
-        <p className="lw-small" style={{ fontSize: 13, marginTop: 2 }}>
-          Mira cuántas personas visitan tu web, de dónde llegan y qué les interesa más.
-        </p>
-      </div>
-      <Btn kind="primary" iconRight="sparkle" type="button" onClick={() => (window.location.href = '/dashboard/account?tab=plan')}>
-        Mejorar a Pro
-      </Btn>
-    </Card>
-  )
+function buildDemoSeries(base: number, spread: number, growth: number): { series: StatsBucket[]; total: number } {
+  const out: StatsBucket[] = []
+  let total = 0
+  const today = new Date()
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today)
+    d.setDate(d.getDate() - i)
+    const ymd = d.toISOString().slice(0, 10)
+    const t = (29 - i) / 29
+    const wave = Math.sin((29 - i) * 0.7) * spread
+    const count = Math.max(0, Math.round(base + growth * t * base + wave))
+    total += count
+    out.push({ bucket: ymd, date: ymd, count })
+  }
+  return { series: out, total }
+}
+
+function buildDemoStats() {
+  const visits = buildDemoSeries(38, 14, 0.8)
+  const whatsapp = buildDemoSeries(6, 3, 0.6)
+  const phone = buildDemoSeries(3, 2, 0.5)
+  return { visits, whatsapp, phone }
 }
 
 function formatBucketLabel(bucket: string, granularity: 'day' | 'hour'): string {
@@ -336,6 +322,147 @@ function StatChart({
   )
 }
 
+
+function StatsLockedPreview() {
+  const demo = buildDemoStats()
+  const { showToast } = useToast()
+
+  const checkoutM = useMutation({
+    mutationFn: postCheckout,
+    onSuccess: (url) => {
+      window.location.href = url
+    },
+    onError: () =>
+      showToast({
+        type: 'error',
+        title: 'No se pudo abrir el checkout',
+        description: 'Inténtalo de nuevo en unos segundos.',
+      }),
+  })
+
+  return (
+    <>
+      <style>{`
+        .recharts-wrapper,
+        .recharts-wrapper *,
+        .recharts-surface,
+        .recharts-surface *,
+        .recharts-layer,
+        .recharts-active-dot,
+        .recharts-active-dot circle {
+          outline: none !important;
+        }
+        .recharts-wrapper:focus,
+        .recharts-wrapper *:focus,
+        .recharts-surface:focus,
+        .recharts-surface *:focus {
+          outline: none !important;
+        }
+      `}</style>
+      <div style={{ maxWidth: 1100 }} data-tour="estadisticas-main">
+        <h1 className="lw-h2" style={{ marginBottom: 8 }}>
+          Estadísticas
+        </h1>
+        <p className="lw-small" style={{ marginBottom: 18 }}>
+          Las gráficas reflejan el rango de fechas seleccionado. Los totales mostrados son acumulados desde el inicio.
+        </p>
+
+        <div style={{ position: 'relative' }}>
+          <div aria-hidden="true" style={{ pointerEvents: 'none', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <StatChart
+              title="Visitas totales"
+              icon="barChart"
+              iconColor="var(--lw-accent)"
+              total={demo.visits.total}
+              series={demo.visits.series}
+              color="var(--lw-accent)"
+              granularity="day"
+            />
+            <StatChart
+              title="Clics WhatsApp"
+              icon="phone"
+              iconColor="#16a34a"
+              total={demo.whatsapp.total}
+              series={demo.whatsapp.series}
+              color="#16a34a"
+              granularity="day"
+            />
+            <StatChart
+              title="Clics teléfono"
+              icon="phone"
+              iconColor="#2563eb"
+              total={demo.phone.total}
+              series={demo.phone.series}
+              color="#2563eb"
+              granularity="day"
+            />
+          </div>
+
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 24,
+              background: 'color-mix(in srgb, var(--lw-bg) 55%, transparent)',
+              backdropFilter: 'blur(2px)',
+            }}
+          >
+            <Card
+              padding={24}
+              style={{
+                maxWidth: 480,
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                gap: 14,
+                background: 'linear-gradient(180deg, var(--lw-bg-elev), var(--lw-surface))',
+                boxShadow: 'var(--lw-shadow-2)',
+              }}
+            >
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 'var(--lw-r)',
+                  background: 'var(--lw-pro-soft)',
+                  color: 'var(--lw-pro)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Icon name="lock" size={20} />
+              </div>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>Estadísticas detalladas en Pro</div>
+                <p className="lw-small" style={{ fontSize: 13, margin: 0, color: 'var(--lw-text-2)', lineHeight: 1.5 }}>
+                  Mira cuántas personas visitan tu web, de dónde llegan y qué les interesa más. Estos son datos de ejemplo.
+                </p>
+              </div>
+              <Btn
+                kind="primary"
+                iconRight="sparkle"
+                type="button"
+                loading={checkoutM.isPending}
+                disabled={checkoutM.isPending}
+                onClick={() => checkoutM.mutate()}
+              >
+                Mejorar a Pro
+              </Btn>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
 /** Coincide con `now()->subDays(90)` del backend Pro: hoy + 89 días anteriores = ventana de 90 días. */
 const PLAN_DAYS = 90
 
@@ -383,7 +510,7 @@ export default function Estadisticas() {
   })
 
   if (!business.is_pro) {
-    return <StatsProUpsell />
+    return <StatsLockedPreview />
   }
 
   const locked =
@@ -393,7 +520,7 @@ export default function Estadisticas() {
     Boolean((q.error.response?.data as { upgrade_required?: boolean })?.upgrade_required)
 
   if (locked) {
-    return <StatsProUpsell />
+    return <StatsLockedPreview />
   }
 
   const activeGranularity: 'day' | 'hour' = q.data?.granularity ?? granularity

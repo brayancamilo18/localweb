@@ -6,6 +6,15 @@ import { useDashboard } from '../context/DashboardContext'
 import { buildPublicBusinessUrl } from '../../../lib/tenant'
 import MiPaginaQrSection from './MiPaginaQrSection'
 
+
+/** Valores fijos de ejemplo para el resumen Free (no son métricas reales del negocio). */
+const DEMO_SUMMARY = {
+  visitsToday: '12',
+  visitsWeek: '84',
+  whatsapp: '7',
+  phone: '4',
+} as const
+
 function fmtStat(n: number | undefined): string {
   return n === undefined || Number.isNaN(n) ? '—' : String(n)
 }
@@ -154,18 +163,32 @@ export default function MiPagina() {
       <div className="lw-mipagina-stats-grid">
         <StatCard
           label="Visitas hoy"
-          value={fmtStat(visitsToday)}
+          value={pro ? fmtStat(visitsToday) : DEMO_SUMMARY.visitsToday}
           icon="eye"
-          locked={!pro || visitsToday === undefined}
+          locked={pro ? visitsToday === undefined : true}
+          demo={!pro}
         />
         <StatCard
           label="Visitas (7 días)"
-          value={fmtStat(visitsWeek)}
+          value={pro ? fmtStat(visitsWeek) : DEMO_SUMMARY.visitsWeek}
           icon="trending"
-          locked={visitsWeek === undefined}
+          locked={pro ? visitsWeek === undefined : true}
+          demo={!pro}
         />
-        <StatCard label="Clics WhatsApp" value={fmtStat(wa)} icon="whatsapp" locked={wa === undefined} />
-        <StatCard label="Clics teléfono" value={fmtStat(ph)} icon="phone" locked={ph === undefined} />
+        <StatCard
+          label="Clics WhatsApp"
+          value={pro ? fmtStat(wa) : DEMO_SUMMARY.whatsapp}
+          icon="whatsapp"
+          locked={pro ? wa === undefined : true}
+          demo={!pro}
+        />
+        <StatCard
+          label="Clics teléfono"
+          value={pro ? fmtStat(ph) : DEMO_SUMMARY.phone}
+          icon="phone"
+          locked={pro ? ph === undefined : true}
+          demo={!pro}
+        />
       </div>
 
       <MiPaginaQrSection />
