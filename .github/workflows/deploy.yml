@@ -34,9 +34,8 @@ jobs:
             des)  echo "name=des"  >> "$GITHUB_OUTPUT" ;;
           esac
 
-      # Sin sudo: el usuario SSH (secrets.VPS_USER) debe poder ejecutar deploy.sh
-      # y escribir en /var/www/onez/{env}/. Si falla, revisar sudoers en el VPS.
-      - name: Deploy backend en VPS
+      # Requiere sudoers en el VPS: ver scripts/vps-sudoers.example
+      - name: Deploy backend en VPS (sudo)
         id: deploy_backend
         continue-on-error: true
         uses: appleboy/ssh-action@v1.2.0
@@ -52,9 +51,9 @@ jobs:
               echo "No existe $DEPLOY"
               exit 1
             fi
-            bash "$DEPLOY" "$ENV"
+            sudo "$DEPLOY" "$ENV"
 
-      - name: Preparar carpeta dist (sin sudo)
+      - name: Preparar carpeta dist (sudo + chown para SCP)
         uses: appleboy/ssh-action@v1.2.0
         with:
           host:     ${{ secrets.VPS_HOST }}
@@ -64,8 +63,8 @@ jobs:
             set -euo pipefail
             ENV="${{ steps.env.outputs.name }}"
             DIST="/var/www/onez/${ENV}/front/dist"
-            mkdir -p "$DIST"
-            chmod -R u+rwX "$DIST" 2>/dev/null || true
+            sudo mkdir -p "$DIST"
+            sudo chown -R "$(whoami):$(whoami)" "/var/www/onez/${ENV}/front"
 
       - name: Subir dist compilado al VPS
         uses: appleboy/scp-action@v1.0.0
@@ -79,8 +78,24 @@ jobs:
           rm: false
           overwrite: true
 
+      # Opcional: quita este paso si deploy.sh ya deja permisos correctos
+      - name: Permisos finales dist (sudo www-data)
+        continue-on-error: true
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host:     ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key:      ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          script: |
+            set -euo pipefail
+            ENV="${{ steps.env.outputs.name }}"
+            DIST="/var/www/onez/${ENV}/front/dist"
+            if id www-data &>/dev/null; then
+              sudo chown -R www-data:www-data "$DIST" || true
+            fi
+
       - name: Comprobar deploy
         if: steps.deploy_backend.outcome != 'success'
         run: |
-          echo "::warning::deploy.sh falló en el VPS (¿permisos o Node en el servidor?)."
-          echo "El frontend sí se subió desde CI; revisa logs SSH y /var/www/onez/deploy.sh"
+          echo "::warning::sudo deploy.sh falló. Revisa /var/www/onez/deploy.sh y sudoers."
+          echo "Frontend subido desde CI si los pasos SCP terminaron bien."
