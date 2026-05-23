@@ -24,6 +24,9 @@ jobs:
           npm ci
           npm run build
 
+      - name: Verificar artefacto frontend
+        run: test -f front/dist/index.html
+
       - name: Determinar entorno
         id: env
         run: |
@@ -54,16 +57,30 @@ jobs:
               fi
             fi
 
+      - name: Preparar carpeta dist en el VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host:     ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key:      ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            ENV="${{ steps.env.outputs.name }}"
+            DIST="/var/www/onez/${ENV}/front/dist"
+            sudo mkdir -p "$DIST"
+            sudo chown -R "$(whoami):$(whoami)" "/var/www/onez/${ENV}/front"
+            chmod -R u+rwX "/var/www/onez/${ENV}/front/dist"
+
       - name: Subir dist compilado al VPS
         uses: appleboy/scp-action@v1.0.0
         with:
           host:     ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key:      ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-          source: front/dist/*
-          target: /var/www/onez/${{ steps.env.outputs.name }}/front/dist
-          strip_components: 2
-          rm: true
+          source: front/dist/
+          target: /var/www/onez/${{ steps.env.outputs.name }}/front/
+          strip_components: 1
+          rm: false
           overwrite: true
 
       - name: Comprobar resultado
