@@ -43,6 +43,7 @@ function makeBusiness(): Business {
     vcard_enabled: false,
     schedule: null,
     logo_url: null,
+    favicon_url: null,
     whatsapp_url: null,
     is_published: true,
     is_free: false,
