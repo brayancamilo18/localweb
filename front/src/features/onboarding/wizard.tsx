@@ -1494,7 +1494,7 @@ function Step1Plantilla({
       <div>
         <h1 className="lw-h2">Elige tu plantilla</h1>
         <p className="lw-body" style={{ marginTop: 6, maxWidth: 540 }}>
-          Empieza con un diseño hecho para tu sector. Podrás cambiarlo en cualquier momento, sin perder lo que ya hayas escrito.
+          Empieza con un diseño hecho para tu sector.
         </p>
       </div>
       <style>
