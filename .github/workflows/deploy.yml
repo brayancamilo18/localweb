@@ -8,36 +8,19 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: front/.nvmrc
-          cache: npm
-          cache-dependency-path: front/package-lock.json
-
-      - name: Build frontend (CI)
-        run: |
-          cd front
-          npm ci
-          npm run build
-          test -f dist/index.html
-
       - name: Determinar entorno
         id: env
         run: |
           case "${GITHUB_REF_NAME}" in
             main) echo "name=prod" >> "$GITHUB_OUTPUT" ;;
             pre)  echo "name=pre"  >> "$GITHUB_OUTPUT" ;;
-            des)  echo "name=des"  >> "$GITHUB_OUTPUT" ;;
+            des)  echo "name=des" >> "$GITHUB_OUTPUT" ;;
           esac
 
-      # Requiere sudoers en el VPS: ver scripts/vps-sudoers.example
-      - name: Deploy backend en VPS (sudo)
-        id: deploy_backend
-        continue-on-error: true
+      # El script en el VPS (/var/www/onez/deploy.sh) hace git pull, build front,
+      # composer, migrate y reload. Debe ejecutarse como root o con sudo NOPASSWD.
+      # Configuración una vez en el servidor: scripts/setup-vps-github-deploy.sh
+      - name: Deploy en VPS
         uses: appleboy/ssh-action@v1.2.0
         with:
           host:     ${{ secrets.VPS_HOST }}
@@ -51,51 +34,8 @@ jobs:
               echo "No existe $DEPLOY"
               exit 1
             fi
-            sudo "$DEPLOY" "$ENV"
-
-      - name: Preparar carpeta dist (sudo + chown para SCP)
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host:     ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key:      ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-          script: |
-            set -euo pipefail
-            ENV="${{ steps.env.outputs.name }}"
-            DIST="/var/www/onez/${ENV}/front/dist"
-            sudo mkdir -p "$DIST"
-            sudo chown -R "$(whoami):$(whoami)" "/var/www/onez/${ENV}/front"
-
-      - name: Subir dist compilado al VPS
-        uses: appleboy/scp-action@v1.0.0
-        with:
-          host:     ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key:      ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-          source: front/dist/
-          target: /var/www/onez/${{ steps.env.outputs.name }}/front/
-          strip_components: 1
-          rm: false
-          overwrite: true
-
-      # Opcional: quita este paso si deploy.sh ya deja permisos correctos
-      - name: Permisos finales dist (sudo www-data)
-        continue-on-error: true
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host:     ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key:      ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-          script: |
-            set -euo pipefail
-            ENV="${{ steps.env.outputs.name }}"
-            DIST="/var/www/onez/${ENV}/front/dist"
-            if id www-data &>/dev/null; then
-              sudo chown -R www-data:www-data "$DIST" || true
+            if [ "$(id -u)" -eq 0 ]; then
+              bash "$DEPLOY" "$ENV"
+            else
+              sudo -n bash "$DEPLOY" "$ENV"
             fi
-
-      - name: Comprobar deploy
-        if: steps.deploy_backend.outcome != 'success'
-        run: |
-          echo "::warning::sudo deploy.sh falló. Revisa /var/www/onez/deploy.sh y sudoers."
-          echo "Frontend subido desde CI si los pasos SCP terminaron bien."

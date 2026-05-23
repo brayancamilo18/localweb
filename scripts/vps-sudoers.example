@@ -1,31 +1,14 @@
-# Ejemplo de sudoers para el usuario de deploy de GitHub Actions.
+# /etc/sudoers.d/onez-github-deploy
+# Sustituye DEPLOY_USER por secrets.VPS_USER de GitHub.
 #
-# 1. Sustituye DEPLOY_USER por el valor de secrets.VPS_USER (ej. deploy, github, ubuntu).
-# 2. En el VPS como root:
-#      sudo visudo -f /etc/sudoers.d/onez-github-deploy
-# 3. Pega el bloque (sin comentarios de instrucciones), guarda y valida:
-#      sudo visudo -c
-#
-# Opción A — Mínima (recomendada): solo los comandos del pipeline
-# -----------------------------------------------------------------------------
+# Crear con: sudo visudo -f /etc/sudoers.d/onez-github-deploy
+# Validar:   sudo visudo -c
 
+DEPLOY_USER ALL=(ALL) NOPASSWD: /usr/bin/bash /var/www/onez/deploy.sh
 DEPLOY_USER ALL=(ALL) NOPASSWD: /var/www/onez/deploy.sh
-DEPLOY_USER ALL=(ALL) NOPASSWD: /usr/bin/bash /var/www/onez/prod/scripts/build-frontend.sh
-DEPLOY_USER ALL=(ALL) NOPASSWD: /usr/bin/bash /var/www/onez/pre/scripts/build-frontend.sh
-DEPLOY_USER ALL=(ALL) NOPASSWD: /usr/bin/bash /var/www/onez/des/scripts/build-frontend.sh
 
-# Preparar dist y dejar permisos al usuario de deploy para el SCP (sin contraseña)
-DEPLOY_USER ALL=(ALL) NOPASSWD: /bin/mkdir -p /var/www/onez/prod/front/dist
-DEPLOY_USER ALL=(ALL) NOPASSWD: /bin/mkdir -p /var/www/onez/pre/front/dist
-DEPLOY_USER ALL=(ALL) NOPASSWD: /bin/mkdir -p /var/www/onez/des/front/dist
-DEPLOY_USER ALL=(ALL) NOPASSWD: /bin/chown -R DEPLOY_USER\:DEPLOY_USER /var/www/onez/prod/front
-DEPLOY_USER ALL=(ALL) NOPASSWD: /bin/chown -R DEPLOY_USER\:DEPLOY_USER /var/www/onez/pre/front
-DEPLOY_USER ALL=(ALL) NOPASSWD: /bin/chown -R DEPLOY_USER\:DEPLOY_USER /var/www/onez/des/front
-
-# Opcional: devolver dist a www-data tras el SCP (si nginx/php-fpm usan www-data)
-# DEPLOY_USER ALL=(ALL) NOPASSWD: /bin/chown -R www-data\:www-data /var/www/onez/prod/front/dist
-# DEPLOY_USER ALL=(ALL) NOPASSWD: /bin/chown -R www-data\:www-data /var/www/onez/pre/front/dist
-# DEPLOY_USER ALL=(ALL) NOPASSWD: /bin/chown -R www-data\:www-data /var/www/onez/des/front/dist
-
-# Opción B — Si sudo-rs sigue bloqueando reglas finas (solo para usuario de CI dedicado):
+# Si sudo-rs sigue bloqueando, solo para el usuario de CI (no uses en cuentas humanas):
 # DEPLOY_USER ALL=(ALL) NOPASSWD: ALL
+
+# Alternativa: en GitHub Secrets pon VPS_USER=root y el workflow detecta id -u 0
+# y ejecuta deploy.sh sin sudo externo (deploy.sh ya usa sudo -u www-data por dentro).
