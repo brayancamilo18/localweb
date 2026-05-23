@@ -4,12 +4,14 @@
 # Crear con: sudo visudo -f /etc/sudoers.d/onez-github-deploy
 # Validar:   sudo visudo -c
 
-# Recomendado (deploy.sh llama systemctl, chown, nginx - no basta un solo comando):
-DEPLOY_USER ALL=(ALL) NOPASSWD: ALL
+# Obligatorio para appleboy/ssh-action (SSH sin TTY):
 Defaults:DEPLOY_USER !requiretty
 
-# Mínimo (a menudo falla con sudo-rs si deploy.sh hace más cosas):
-# DEPLOY_USER ALL=(ALL) NOPASSWD: /var/www/onez/deploy.sh
+# Debe coincidir con el workflow: sudo -n /bin/bash /var/www/onez/deploy.sh <env>
+DEPLOY_USER ALL=(ALL) NOPASSWD: /bin/bash /var/www/onez/deploy.sh *
+
+# Si deploy.sh necesita systemctl/chown y falla dentro del script:
+# DEPLOY_USER ALL=(ALL) NOPASSWD: ALL
 
 # Alternativa: en GitHub Secrets pon VPS_USER=root y el workflow detecta id -u 0
 # y ejecuta deploy.sh sin sudo externo (deploy.sh ya usa sudo -u www-data por dentro).

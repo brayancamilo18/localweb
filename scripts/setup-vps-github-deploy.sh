@@ -20,20 +20,17 @@ fi
 
 SUDOERS_FILE="/etc/sudoers.d/onez-github-deploy"
 cat > "$SUDOERS_FILE" <<EOF
-# GitHub Actions → /var/www/onez/deploy.sh (requiere privilegios de root)
-${DEPLOY_USER} ALL=(ALL) NOPASSWD: ALL
+# GitHub Actions (SSH sin TTY, como appleboy/ssh-action)
 Defaults:${DEPLOY_USER} !requiretty
+${DEPLOY_USER} ALL=(ALL) NOPASSWD: /bin/bash /var/www/onez/deploy.sh *
 EOF
 chmod 440 "$SUDOERS_FILE"
-visudo -cf "$SUDOERS_FILE" 2>/dev/null || true
+visudo -c
 
-echo "==> Probando como ${DEPLOY_USER}..."
-if sudo -u "$DEPLOY_USER" sudo -n -v 2>&1; then
-  echo "OK: ${DEPLOY_USER} tiene sudo -n"
-  echo ""
-  echo "Prueba el deploy (tarda varios minutos):"
-  echo "  sudo -u ${DEPLOY_USER} sudo -n bash /var/www/onez/deploy.sh prod"
+echo "==> Prueba sin TTY (igual que GitHub Actions)..."
+if sudo -u "$DEPLOY_USER" script -q -c "sudo -n /bin/bash /var/www/onez/deploy.sh des" /dev/null; then
+  echo "OK: sudo -n funciona sin TTY"
 else
-  echo "FALLO: sudo -n no funciona. Usa VPS_USER=root en GitHub Secrets."
+  echo "FALLO: añade !requiretty o usa VPS_USER=root en GitHub Secrets"
   exit 1
 fi
