@@ -204,10 +204,14 @@ export function Field({ label, hint, error, counter, children, optional }: Field
             {label}
             {optional && <span style={{ color: "var(--lw-text-4)", fontWeight: 400, marginLeft: 4 }}>· opcional</span>}
           </label>
-          {counter && <span style={{ fontSize: 11, color: "var(--lw-text-4)", fontVariantNumeric: "tabular-nums" }}>{counter}</span>}
         </div>
       )}
       {children}
+      {counter && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', fontVariantNumeric: 'tabular-nums' }}>
+          {counter}
+        </div>
+      )}
       {error && <div style={{ fontSize: 'var(--lw-form-caption)', color: "var(--lw-danger)", display: "flex", alignItems: "center", gap: 4 }}>
         <Icon name="alert" size={12}/>{error}
       </div>}

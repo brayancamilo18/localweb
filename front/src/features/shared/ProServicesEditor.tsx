@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Btn, Card, Field, Icon, Input, Textarea } from '../../components/primitives/primitives'
+import { Modal } from '../../components/ui/Modal'
 import {
   createService,
   deleteService,
@@ -64,6 +65,7 @@ export default function ProServicesEditor({
   const [formMode, setFormMode] = useState<'none' | 'create' | 'edit'>('none')
   const [editingId, setEditingId] = useState<number | null>(null)
   const [form, setForm] = useState<FormState>(emptyForm())
+  const [query, setQuery] = useState('')
 
   const servicesQuery = useQuery({
     queryKey: keys.dashboard.services,
@@ -71,6 +73,15 @@ export default function ProServicesEditor({
   })
 
   const services = servicesQuery.data ?? []
+  const visibleServices = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return services
+    return services.filter(
+      (s) =>
+        s.name.toLowerCase().includes(q) ||
+        (s.description ?? '').toLowerCase().includes(q),
+    )
+  }, [services, query])
   const freeAtLimit = !isPro && services.length >= FREE_MAX
   const proAtLimit = isPro && services.length >= PRO_MAX
   const atLimit = freeAtLimit || proAtLimit
@@ -235,9 +246,9 @@ export default function ProServicesEditor({
               icon="plus"
               size={onboarding ? 'sm' : 'md'}
               disabled={freeAtLimit || servicesQuery.isLoading}
-              onClick={() => (formMode === 'create' ? cancelForm() : openCreate())}
+              onClick={openCreate}
             >
-              {formMode === 'create' ? (onboarding ? 'Cerrar' : 'Cerrar formulario') : 'Añadir servicio'}
+              Añadir servicio
             </Btn>
           ) : null}
         </div>
@@ -354,47 +365,58 @@ export default function ProServicesEditor({
         </Card>
       ) : null}
 
-      {formMode === 'create' || formMode === 'edit' ? (
-        <Card padding={18} style={{ marginBottom: 20 }}>
-          <div style={{ fontWeight: 600, marginBottom: 14 }}>{formMode === 'create' ? 'Nuevo servicio' : 'Editar servicio'}</div>
-          <div style={{ display: 'grid', gap: 14, maxWidth: 480 }}>
-            <Field label="Nombre" error={nameError}>
-              <Input
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                placeholder="Ej. Corte de pelo"
-                disabled={saving}
-              />
-            </Field>
+      <Modal
+        open={formMode === 'create' || formMode === 'edit'}
+        onClose={cancelForm}
+        title={formMode === 'create' ? 'Nuevo servicio' : 'Editar servicio'}
+        closeOnBackdrop={!saving}
+        footer={
+          <>
+            <Btn type="button" kind="ghost" disabled={saving} onClick={cancelForm}>
+              Cancelar
+            </Btn>
+            <Btn
+              type="button"
+              kind="primary"
+              loading={saving}
+              onClick={formMode === 'create' ? submitCreate : submitEdit}
+            >
+              {formMode === 'create' ? 'Crear servicio' : 'Guardar cambios'}
+            </Btn>
+          </>
+        }
+      >
+        <div className="lw-modal-form">
+          <Field label="Nombre del servicio" error={nameError}>
             <Input
-              label="Precio"
-              type="text"
-              inputMode="decimal"
-              value={form.price}
-              onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-              placeholder="Opcional (ej. 25 o 25,50)"
-              disabled={saving}
-              hint="Déjalo vacío para mostrar «Consultar» en la ficha"
-            />
-            <Textarea
-              label="Descripción"
-              value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              placeholder="Opcional"
-              rows={3}
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              placeholder="Ej. Corte de pelo premium"
               disabled={saving}
             />
-            <div style={{ display: 'flex', gap: 10 }}>
-              <Btn type="button" kind="primary" loading={saving} onClick={formMode === 'create' ? submitCreate : submitEdit}>
-                {formMode === 'create' ? 'Crear' : 'Guardar'}
-              </Btn>
-              <Btn type="button" kind="outline" disabled={saving} onClick={cancelForm}>
-                Cancelar
-              </Btn>
-            </div>
-          </div>
-        </Card>
-      ) : null}
+          </Field>
+          <Input
+            label="Precio"
+            labelAside={<span className="lw-modal-optional-badge">Opcional</span>}
+            type="text"
+            inputMode="decimal"
+            prefix="€"
+            value={form.price}
+            onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+            placeholder="0,00"
+            disabled={saving}
+            hint="Déjalo vacío para mostrar «Consultar» en la ficha del servicio."
+          />
+          <Textarea
+            label="Descripción"
+            value={form.description}
+            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+            placeholder="Añade detalles sobre lo que incluye este servicio..."
+            rows={4}
+            disabled={saving}
+          />
+        </div>
+      </Modal>
 
       {servicesQuery.isLoading ? (
         <div className="lw-shimmer" style={{ height: 120, borderRadius: 12 }} />
@@ -403,58 +425,153 @@ export default function ProServicesEditor({
           <p style={{ margin: 0 }}>Aún no hay servicios. Pulsa «Añadir servicio» para crear el primero.</p>
         </Card>
       ) : (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-            gap: 12,
-          }}
-        >
-          {services.map((s) => (
-            <Card key={s.id} padding={16}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>{s.name}</div>
-                  <div style={{ fontSize: 14, color: 'var(--lw-accent)', fontWeight: 600, marginBottom: 6 }}>
-                    {formatPrice(s.price)}
-                  </div>
-                  {s.description ? (
-                    <p className="lw-small" style={{ margin: 0, color: 'var(--lw-text-2)', lineHeight: 1.5 }}>
-                      {s.description}
-                    </p>
-                  ) : (
-                    <p className="lw-small" style={{ margin: 0, color: 'var(--lw-text-4)' }}>
-                      Sin descripción
-                    </p>
-                  )}
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <Btn
-                    type="button"
-                    kind="outline"
-                    size="sm"
-                    icon="edit"
-                    disabled={saving || (formMode === 'edit' && editingId === s.id)}
-                    onClick={() => (formMode === 'edit' && editingId === s.id ? cancelForm() : openEdit(s))}
-                  >
-                    Editar
-                  </Btn>
-                  <Btn
-                    type="button"
-                    kind="danger"
-                    size="sm"
-                    icon="trash"
-                    disabled={saving}
-                    loading={deleteMut.isPending && deleteMut.variables === s.id}
-                    onClick={() => onDelete(s)}
-                  >
-                    Eliminar
-                  </Btn>
-                </div>
-              </div>
+        <>
+          <div style={{ position: 'relative', marginBottom: 16 }}>
+            <span
+              style={{
+                position: 'absolute',
+                left: 12,
+                top: 0,
+                height: 'var(--lw-form-control-height)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                color: 'var(--lw-text-4)',
+                pointerEvents: 'none',
+                zIndex: 1,
+              }}
+            >
+              <Icon name="search" size={16} />
+            </span>
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Buscar servicio por nombre o descripción…"
+              style={{ paddingLeft: 36 }}
+            />
+          </div>
+
+          {visibleServices.length === 0 ? (
+            <Card padding={24} style={{ textAlign: 'center', color: 'var(--lw-text-3)' }}>
+              <p style={{ margin: 0 }}>No hay servicios que coincidan con «{query}».</p>
             </Card>
-          ))}
-        </div>
+          ) : (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+                gap: 16,
+              }}
+            >
+              {visibleServices.map((s) => (
+                <Card
+                  key={s.id}
+                  padding={20}
+                  className="lw-service-card"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 14,
+                    transition: 'box-shadow 160ms ease, transform 160ms ease',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontWeight: 600,
+                          fontSize: 16,
+                          letterSpacing: '-0.01em',
+                          marginBottom: 6,
+                          lineHeight: 1.25,
+                        }}
+                      >
+                        {s.name}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                        <span
+                          style={{
+                            fontSize: 22,
+                            fontWeight: 700,
+                            color: 'var(--lw-accent)',
+                            fontVariantNumeric: 'tabular-nums',
+                          }}
+                        >
+                          {formatPrice(s.price)}
+                        </span>
+                      </div>
+                    </div>
+                    <span
+                      aria-hidden
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 36,
+                        height: 36,
+                        borderRadius: 'var(--lw-r, 10px)',
+                        flexShrink: 0,
+                        background: 'var(--lw-accent-soft)',
+                        color: 'var(--lw-accent)',
+                      }}
+                    >
+                      <Icon name="scissors" size={16} />
+                    </span>
+                  </div>
+
+                  <p
+                    className="lw-small"
+                    style={{
+                      margin: 0,
+                      color: 'var(--lw-text-2)',
+                      lineHeight: 1.5,
+                      minHeight: 40,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {s.description ? s.description : 'Sin descripción'}
+                  </p>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: 8,
+                      paddingTop: 12,
+                      borderTop: '1px solid var(--lw-border)',
+                    }}
+                  >
+                    <Btn
+                      type="button"
+                      kind="outline"
+                      size="sm"
+                      icon="edit"
+                      disabled={saving || (formMode === 'edit' && editingId === s.id)}
+                      onClick={() =>
+                        formMode === 'edit' && editingId === s.id ? cancelForm() : openEdit(s)
+                      }
+                      style={{ flex: 1 }}
+                    >
+                      Editar
+                    </Btn>
+                    <Btn
+                      type="button"
+                      kind="danger"
+                      size="sm"
+                      icon="trash"
+                      disabled={saving}
+                      loading={deleteMut.isPending && deleteMut.variables === s.id}
+                      onClick={() => onDelete(s)}
+                    >
+                      Eliminar
+                    </Btn>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </>
   )

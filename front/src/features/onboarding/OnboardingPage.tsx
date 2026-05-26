@@ -136,7 +136,7 @@ export default function OnboardingPage() {
     staleTime: 0,
     refetchOnMount: 'always',
   })
-  const templates = data ?? EMPTY_TEMPLATES
+  const templates = useMemo(() => (Array.isArray(data) ? data : EMPTY_TEMPLATES), [data])
   const businessIsPro = useAuthStore((s) => s.business?.is_pro ?? false)
   const businessPlan = useAuthStore((s) => s.business?.plan)
   const galleryProExperience = businessIsPro || businessPlan === 'pending' || postCheckoutProGallery

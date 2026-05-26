@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Btn, Field, Input, Textarea } from '../../../components/primitives/primitives'
-import Select from '../../../components/primitives/Select'
 import { useToast } from '../../../components/ui/Toast'
 import { CharCounter } from '../../../components/ui/CharCounter'
-import { getTemplates, updateBusiness } from '../../../api/dashboard'
+import { updateBusiness } from '../../../api/dashboard'
 import { keys } from '../../../api/queryKeys'
 import { useDashboard } from '../context/DashboardContext'
 
@@ -25,7 +25,6 @@ export default function Editor() {
   const [phone, setPhone] = useState(business.phone ?? '')
   const [email, setEmail] = useState(business.email ?? '')
   const [address, setAddress] = useState(business.address ?? '')
-  const [templateId, setTemplateId] = useState(String(business.template.id))
 
   useEffect(() => {
     setName(business.name)
@@ -34,13 +33,7 @@ export default function Editor() {
     setPhone(business.phone ?? '')
     setEmail(business.email ?? '')
     setAddress(business.address ?? '')
-    setTemplateId(String(business.template.id))
   }, [business])
-
-  const templatesQ = useQuery({
-    queryKey: keys.dashboard.templates,
-    queryFn: getTemplates,
-  })
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -51,7 +44,6 @@ export default function Editor() {
         phone: phone.trim() || null,
         email: email.trim() || null,
         address: address.trim() || null,
-        template_id: Number(templateId),
       }),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: keys.dashboard.business })
@@ -75,18 +67,16 @@ export default function Editor() {
     },
   })
 
-  const templateOptions =
-    templatesQ.data?.map((t) => ({ value: String(t.id), label: t.name })) ?? [
-      { value: String(business.template.id), label: business.template.name },
-    ]
-
   return (
     <div style={{ maxWidth: 560 }} data-tour="editor-main">
       <h1 className="lw-h2" style={{ marginBottom: 8 }}>
         Editar contenido
       </h1>
+      <p className="lw-small" style={{ marginBottom: 16, fontSize: 13 }}>
+        ¿Quieres cambiar el diseño? Ve a <Link to="/dashboard/diseno">Diseño</Link>.
+      </p>
       <p className="lw-small" style={{ marginBottom: 24, fontSize: 13 }}>
-        Nombre, tagline, descripción y plantilla de tu página pública.
+        Nombre, tagline, descripción y datos de contacto de tu página pública.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -147,13 +137,6 @@ export default function Editor() {
         <Field label="Dirección" optional>
           <Input value={address} onChange={(e) => setAddress(e.target.value)} />
         </Field>
-        <Select
-          label="Plantilla"
-          value={templateId}
-          onChange={(e) => setTemplateId(e.target.value)}
-          options={templateOptions}
-          disabled={templatesQ.isLoading}
-        />
         <Btn kind="primary" type="button" loading={mutation.isPending} onClick={() => mutation.mutate()}>
           Guardar cambios
         </Btn>

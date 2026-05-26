@@ -59,6 +59,10 @@ function lwBootTenantMap(addressLine) {
     updateLuxePreviewMap(c.ok ? c.lat : NaN, c.ok ? c.lon : NaN, addressLine);
     return;
   }
+  if (typeof updateWildPreviewMap === 'function') {
+    updateWildPreviewMap(c.ok ? c.lat : 40.4168, c.ok ? c.lon : -3.7038, addressLine || '');
+    return;
+  }
 }
 
 (function lwScheduleTenantMapBoot() {

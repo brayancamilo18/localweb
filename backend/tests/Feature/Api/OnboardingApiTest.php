@@ -20,20 +20,32 @@ it('status without business returns step one and incomplete', function () {
         ->assertJsonPath('data.step', 1);
 });
 
-it('templates without business returns free tier list', function () {
+it('templates without business returns full catalog with pro templates locked', function () {
     Template::create([
         'name' => 'Noir Elite',
         'slug' => 'noir-elite',
         'primary_color' => '#C9A84C',
         'is_active' => true,
         'requires_pro' => false,
+        'sort_order' => 10,
+    ]);
+    Template::create([
+        'name' => 'Tavola Warm',
+        'slug' => 'tavola-warm',
+        'primary_color' => '#C8553D',
+        'is_active' => true,
+        'requires_pro' => true,
+        'sort_order' => 20,
     ]);
     $user = User::factory()->create();
     test()->actingAs($user)
         ->getJson('/api/v1/onboarding/templates')
         ->assertStatus(200)
-        ->assertJsonCount(1, 'data')
-        ->assertJsonPath('data.0.slug', 'noir-elite');
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('data.0.slug', 'noir-elite')
+        ->assertJsonPath('data.0.locked', false)
+        ->assertJsonPath('data.1.slug', 'tavola-warm')
+        ->assertJsonPath('data.1.locked', true);
 });
 
 it('step1 invalid template returns 422', function () {

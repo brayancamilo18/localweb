@@ -1,0 +1,1670 @@
+<!doctype html>
+<!--
+  Convención de mensajería SPA → template (igual que noir-elite).
+  El SPA padre inyecta `?parentOrigin=<origin>` en el iframe; el listener
+  `message` solo procesa mensajes cuyo `event.origin` coincide.
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>{{nombre}}</title>
+<meta name="description" content="Plantilla editorial para tienda, boutique y conceptstore." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script>
+(function () {
+  var p = new URLSearchParams(location.search);
+  if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
+  var l = document.createElement('link');
+  l.rel = 'stylesheet';
+  l.href = 'https://unpkg.com/leaflet@' + '1.9.4/dist/leaflet.css';
+  l.crossOrigin = '';
+  document.head.appendChild(l);
+})();
+</script>
+<style>
+:root{
+  --bg:#1f1d1a;
+  --bg-alt:#26231f;
+  --bg-soft:#2a2724;
+  --cream:#f0ebe1;
+  --cream-2:#ddd5c7;
+  --muted:#9a9489;
+  --line:rgba(240,235,225,.16);
+  --accent:#c47550;          /* terracota apagada */
+  --accent-soft:rgba(196,117,80,.18);
+  --ease:cubic-bezier(.22,1,.36,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --ease-std:cubic-bezier(.4,0,.2,1);
+  --section-pad:clamp(88px,12vh,160px);
+  --section-pad-sm:clamp(56px,8vh,112px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+html.embed-preview-root{scroll-behavior:auto}
+html{background:var(--bg);color:var(--cream);overflow-x:clip}
+body{background:var(--bg);color:var(--cream);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:visible}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+/* Type */
+.serif{font-family:'Fraunces',Georgia,serif;font-weight:400;font-variation-settings:"SOFT" 50;letter-spacing:-.025em;line-height:.95}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.h-display{font-size:clamp(60px,10vw,140px)}
+.h-section{font-size:clamp(40px,6vw,82px)}
+.lede{font-size:clamp(17px,1.4vw,20px);color:var(--cream-2);max-width:58ch;line-height:1.55}
+
+/* Layout */
+.wrap{max-width:1440px;margin:0 auto;padding:0 clamp(20px,4vw,56px)}
+section{padding:var(--section-pad) 0;position:relative}
+section.section-tight{padding:var(--section-pad-sm) 0}
+.divider{height:1px;background:var(--line);width:100%}
+
+/* Grain */
+.grain{position:fixed;inset:0;pointer-events:none;z-index:80;opacity:.04;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
+
+/* Nav */
+.nav{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:32px;padding:12px 20px;background:rgba(31,29,26,.55);backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);border:1px solid var(--line);border-radius:999px;max-width:calc(100% - 32px)}
+.nav-top{display:contents}
+.nav-panel{display:contents}
+.nav .brand{font-family:'Fraunces',serif;font-size:16px;letter-spacing:-.01em;padding-right:8px;border-right:1px solid var(--line);margin-right:4px;flex-shrink:0}
+.nav ul{display:flex;gap:22px;list-style:none}
+.nav a.lk{font-size:13px;color:var(--cream-2);position:relative;padding:6px 0;transition:color .3s var(--ease)}
+.nav a.lk::after{content:"";position:absolute;left:0;right:0;bottom:2px;height:1px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .4s var(--ease)}
+.nav a.lk:hover{color:var(--cream)}
+.nav a.lk:hover::after{transform:scaleX(1)}
+.nav .cta{font-size:13px;padding:9px 16px;border-radius:999px;background:var(--cream);color:var(--bg);white-space:nowrap;transition:transform .3s var(--ease),background .3s var(--ease),opacity .35s var(--ease),transform .35s var(--ease)}
+.nav .cta:hover{transform:scale(1.02);background:#fff}
+.nav .cta:active{transform:scale(.98)}
+.burger{display:none;width:38px;height:38px;align-items:center;justify-content:center;flex-shrink:0;border-radius:999px;border:1px solid var(--line);background:rgba(31,29,26,.4)}
+.burger span{display:block;width:18px;height:1px;background:var(--cream);position:relative;transition:background .25s var(--ease)}
+.burger span::before,.burger span::after{content:"";position:absolute;left:0;width:18px;height:1px;background:var(--cream);transition:transform .35s var(--ease),top .35s var(--ease)}
+.burger span::before{top:-5px}.burger span::after{top:5px}
+.nav.open .burger span{background:transparent}
+.nav.open .burger span::before{top:0;transform:rotate(45deg)}
+.nav.open .burger span::after{top:0;transform:rotate(-45deg)}
+header.hero,#servicios,#sobre-nosotros,#galeria,#horario,#contacto,#opiniones,#mapaSection{scroll-margin-top:clamp(96px,14vw,120px)}
+@media(min-width:781px){
+  .burger{display:none!important}
+}
+@media(max-width:780px){
+  .nav{left:10px;right:10px;transform:none;width:auto;max-width:none;flex-direction:column;align-items:stretch;gap:0;border-radius:18px;padding:14px 16px}
+  .nav-top{display:flex;align-items:center;justify-content:space-between;width:100%;gap:12px}
+  .nav-panel{width:100%}
+  .nav-panel{display:flex;flex-direction:column;max-height:0;opacity:0;overflow:hidden;transform:translateY(-10px);pointer-events:none;margin-top:0;transition:max-height .5s var(--ease),opacity .4s var(--ease),transform .4s var(--ease),margin .4s var(--ease)}
+  .nav.open .nav-panel{max-height:min(78vh,560px);opacity:1;transform:translateY(0);pointer-events:auto;margin-top:14px}
+  .nav .brand{border-right:0;margin-right:0;padding-right:0;min-width:0}
+  .nav ul{flex-direction:column;gap:2px;padding:10px;border:1px solid var(--line);border-radius:14px;background:rgba(26,24,21,.98)}
+  .nav a.lk{display:block;padding:12px 10px;font-size:15px;border-radius:8px}
+  .nav a.lk::after{bottom:8px;left:10px;right:10px}
+  .nav-panel .cta{display:flex;align-items:center;justify-content:center;width:100%;margin-top:14px;padding:14px 20px;font-size:14px;font-weight:500;opacity:0;transform:translateY(8px)}
+  .nav.open .nav-panel .cta{opacity:1;transform:translateY(0);transition-delay:.28s}
+  .nav-panel .lk{opacity:0;transform:translateY(8px);transition:opacity .35s var(--ease),transform .35s var(--ease),color .3s var(--ease),background .25s var(--ease)}
+  .nav.open .nav-panel .lk{opacity:1;transform:translateY(0)}
+  .nav.open .nav-panel li:nth-child(1) .lk{transition-delay:.06s}
+  .nav.open .nav-panel li:nth-child(2) .lk{transition-delay:.1s}
+  .nav.open .nav-panel li:nth-child(3) .lk{transition-delay:.14s}
+  .nav.open .nav-panel li:nth-child(4) .lk{transition-delay:.18s}
+  .nav.open .nav-panel li:nth-child(5) .lk{transition-delay:.22s}
+  .nav.open .nav-panel li:nth-child(6) .lk{transition-delay:.26s}
+  .burger{display:flex}
+}
+
+/* Hero */
+.hero{min-height:88vh;padding-top:128px;padding-bottom:clamp(72px,10vh,120px);display:flex;flex-direction:column;justify-content:space-between;position:relative}
+.hero .top{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap}
+.hero .pill{display:inline-flex;align-items:center;gap:8px;padding:7px 13px;border:1px solid var(--line);border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--cream-2)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.dot.off{background:var(--muted);box-shadow:0 0 0 3px rgba(154,148,137,.18)}
+.hero h1{margin:48px 0 28px;font-weight:400}
+.hero h1 .word{display:inline-block;overflow:hidden;vertical-align:bottom}
+.hero h1 .word i{display:inline-block;font-style:normal;transform:translateY(110%);opacity:0;transition:transform 1s var(--ease),opacity 1s var(--ease)}
+.hero.ready h1 .word i{transform:translateY(0);opacity:1}
+.hero h1 em{font-style:italic;font-variation-settings:"SOFT" 100;color:var(--cream-2)}
+.hero .ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 22px;border-radius:999px;font-size:14px;border:1px solid var(--line);transition:transform .3s var(--ease),background .3s var(--ease),border-color .3s var(--ease)}
+.btn-primary{background:var(--cream);color:var(--bg);border-color:var(--cream)}
+.btn-primary:hover{transform:scale(1.02);background:#fff}
+.btn-primary:active{transform:scale(.98)}
+.btn-ghost:hover{transform:scale(1.02);border-color:var(--cream-2);background:rgba(240,235,225,.04)}
+.btn-ghost:active{transform:scale(.98)}
+
+/* Hero photos: asymmetric mosaic */
+.hero-photos{display:grid;grid-template-columns:1.6fr 1fr;grid-template-rows:auto auto;gap:14px;margin-top:48px;min-height:clamp(300px,52vh,560px)}
+.hero-photos:not(:has(.hp:not(.is-hidden))){min-height:0}
+.hp{position:relative;overflow:hidden;border-radius:6px;background:var(--bg)}
+.hp .img{position:absolute;inset:-1px;background-color:var(--bg);background-size:cover;background-position:center center;background-repeat:no-repeat;opacity:0;transition:opacity .85s var(--ease),transform .6s var(--ease)}
+.hp.in .img{opacity:1}
+.hp-2.in .img{transition-delay:.06s}
+.hp-3.in .img{transition-delay:.12s}
+.hp:hover .img{transform:scale(1.03)}
+@keyframes reveal{to{clip-path:inset(0 0 0 0)}}
+.hp::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 50%,rgba(0,0,0,.18));transition:opacity .4s var(--ease)}
+.hp:hover::after{opacity:.4}
+.hp-1{grid-row:1/3;aspect-ratio:4/5}
+.hp-2{aspect-ratio:4/3}
+.hp-3{aspect-ratio:4/3}
+@media(max-width:780px){
+  .hero-photos{grid-template-columns:1fr 1fr;gap:8px}
+  .hp-1{grid-row:1;aspect-ratio:3/4}
+}
+
+/* Scroll indicator */
+.scroll-i{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px}
+.scroll-i .ln{width:1px;height:48px;background:linear-gradient(180deg,transparent,var(--cream-2),transparent);animation:slideLine 2.4s var(--ease) infinite}
+@keyframes slideLine{0%{transform:translateY(-12px)}100%{transform:translateY(12px)}}
+
+/* Ticker */
+.ticker{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:22px 0;overflow:hidden;background:var(--bg-alt)}
+.ticker-track{display:flex;gap:64px;white-space:nowrap;animation:tick 38s linear infinite;font-family:'Fraunces',serif;font-size:clamp(22px,3vw,34px);font-weight:400;letter-spacing:-.01em}
+.ticker-track span{display:inline-flex;align-items:center;gap:64px;color:var(--cream-2)}
+.ticker-track span::after{content:"·";color:var(--accent);margin-left:0}
+@keyframes tick{to{transform:translateX(-50%)}}
+
+/* Section heading */
+.sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:28px;margin-bottom:44px;flex-wrap:wrap}
+.sec-head h2{font-weight:400;max-width:18ch}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:.2em}
+
+/* Reveal words for section titles */
+.split .w{display:inline-block;overflow:hidden;vertical-align:bottom}
+.split .w i{display:inline-block;font-style:inherit;transform:translateY(105%);opacity:0;transition:transform .9s var(--ease),opacity .9s var(--ease)}
+.split.in .w i{transform:translateY(0);opacity:1}
+
+/* Services */
+.svc{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.svc-row{display:grid;grid-template-columns:80px 1.2fr 1.6fr auto;gap:32px;align-items:center;padding:36px 8px;border-bottom:1px solid var(--line);transition:background .4s var(--ease),padding .4s var(--ease)}
+.svc-row:hover{background:rgba(240,235,225,.025);padding-left:18px}
+.svc-row .n{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent)}
+.svc-row .t{font-family:'Fraunces',serif;font-size:clamp(24px,3vw,36px);font-weight:400;letter-spacing:-.02em}
+.svc-row .d{color:var(--cream-2);max-width:50ch}
+.svc-row .p{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cream-2);font-variant-numeric:tabular-nums}
+@media(max-width:780px){.svc-row{grid-template-columns:auto 1fr;grid-template-areas:"n t" ". d" ". p";gap:8px 16px}.svc-row .n{grid-area:n}.svc-row .t{grid-area:t}.svc-row .d{grid-area:d}.svc-row .p{grid-area:p}}
+
+/* About — pinned */
+.about{position:relative}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start}
+.about-text{position:sticky;top:120px;align-self:start}
+.about-text h2{margin-bottom:24px}
+.about-text .meta{margin-top:32px;display:flex;flex-direction:column;gap:6px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:.1em}
+.about-text .meta b{color:var(--cream);font-weight:500}
+.about-photos{display:flex;flex-direction:column;gap:24px}
+.about-photo{position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:6px;background:var(--bg)}
+.about-photo .img{position:absolute;inset:0;background-color:var(--bg);background-size:cover;background-position:center center;background-repeat:no-repeat;will-change:background-position;clip-path:inset(100% 0 0 0);transition:transform .6s var(--ease)}
+.about-photo.in .img{animation:reveal 1s var(--ease) forwards}
+.about-photo:hover .img{transform:scale(1.03)}
+.about-photo cap{position:absolute;left:18px;bottom:18px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cream);letter-spacing:.15em;text-transform:uppercase;background:rgba(31,29,26,.6);backdrop-filter:blur(8px);padding:6px 10px;border-radius:999px}
+@media(max-width:880px){.about-grid{grid-template-columns:1fr;gap:40px}.about-text{position:static}}
+
+/* Gallery — al bajar: fotos fijas en pantalla y avance horizontal (desktop, pin con JS) */
+.gallery-h{position:relative;width:100%}
+.gallery-stick{height:100vh;overflow:hidden;display:flex;align-items:center;background:var(--bg)}
+.gallery-stick.is-pinned{position:fixed;top:0;left:0;right:0;z-index:5;width:100%;will-change:transform}
+.gallery-track{display:flex;gap:24px;padding:0 clamp(20px,4vw,56px);will-change:transform}
+.gallery-track .gi{flex:0 0 auto;width:38vw;max-width:420px;aspect-ratio:4/5;border-radius:6px;overflow:hidden;background:var(--bg);position:relative}
+.gallery-track .gi .img{position:absolute;inset:0;background-size:cover;background-position:center;transition:transform .6s var(--ease)}
+.gallery-track .gi:hover .img{transform:scale(1.03)}
+.gallery-track .gi.lg{width:46vw;max-width:520px;aspect-ratio:4/3}
+#galeria + section.wrap{padding-top:clamp(32px,5vh,56px)}
+@media(max-width:780px){
+  .gallery-h{height:auto!important;min-height:0!important}
+  .gallery-stick{position:static!important;height:auto;display:block;padding:12px 0 8px}
+  .gallery-stick.is-pinned{position:static!important}
+  .gallery-track{transform:none!important;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding:0 20px 8px}
+  .gallery-track .gi,.gallery-track .gi.lg{width:78vw;max-width:none;scroll-snap-align:start}
+}
+.nav .brand.brand-has-img #navBrandLogo{display:block;height:28px;width:auto;max-width:140px;object-fit:contain}
+.nav .brand.brand-has-img #navBrandName{display:none}
+.is-hidden{display:none!important}
+#mapaSection.is-hidden{display:none!important}
+.cta-final .bg.is-empty{display:none}
+
+/* CTA final — foto cubre todo el marco */
+.cta-final-section{width:100%;padding:var(--section-pad-sm) 0}
+.cta-final-section .cta-final{width:100%;max-width:none;margin:0;border-radius:0;min-height:clamp(300px,42vw,480px);padding:0;display:block}
+.cta-final-inner{position:relative;z-index:2;max-width:1440px;margin:0 auto;padding:clamp(40px,6vw,72px) clamp(20px,4vw,56px);display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:center}
+#tplVcardWrap.section-tight{padding-bottom:0}
+#tplVcardWrap + .cta-final-section{padding-top:clamp(28px,5vh,44px)}
+@media(max-width:780px){
+  .cta-final-inner{grid-template-columns:1fr;gap:20px}
+}
+
+/* Hours + Contact */
+.split-cols{display:grid;grid-template-columns:1fr 1fr;gap:80px}
+@media(max-width:880px){.split-cols{grid-template-columns:1fr;gap:48px}}
+.hours-list{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.hours-list .row{display:grid;grid-template-columns:1fr auto;padding:18px 0;border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.06em;color:var(--cream-2);font-variant-numeric:tabular-nums}
+.hours-list .row.today{color:var(--cream)}
+.hours-list .row.today::before{content:"●";color:var(--accent);margin-right:10px;font-size:8px;vertical-align:middle}
+.contact-list{display:flex;flex-direction:column;gap:18px;border-top:1px solid var(--line);padding-top:32px}
+.contact-list a{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--line);transition:color .3s var(--ease),padding .3s var(--ease)}
+.contact-list a:hover{color:var(--cream);padding-left:8px}
+.contact-list a .k{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.contact-list a .v{font-family:'Fraunces',serif;font-size:22px;color:var(--cream)}
+
+/* Map */
+#map{height:520px;border-radius:6px;border:1px solid var(--line);background:var(--bg-soft);filter:grayscale(.4) contrast(.95) brightness(.85)}
+.leaflet-container{background:var(--bg-soft)!important}
+
+/* Reviews */
+.reviews{text-align:center}
+.reviews .stars{color:var(--accent);letter-spacing:.3em;font-size:18px;margin-bottom:18px}
+.reviews h2{margin-bottom:18px}
+.reviews p{color:var(--cream-2);max-width:55ch;margin:0 auto 32px}
+
+/* VCard strip */
+.vcard{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:36px 0;display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+.vcard h3{font-family:'Fraunces',serif;font-size:clamp(28px,3.5vw,42px);font-weight:400;letter-spacing:-.02em;flex:1 1 auto;min-width:0}
+@media(max-width:780px){
+  #tplVcardWrap .vcard{flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  #tplVcardWrap .vcard h3{flex:none;width:100%;max-width:22ch;margin:0 auto}
+  #tplVcardWrap .vcard .btn{width:100%;max-width:min(100%,320px);justify-content:center}
+}
+
+/* CTA final */
+.cta-final{position:relative;border-radius:8px;overflow:hidden;background:var(--bg-soft)}
+.cta-final .bg{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center center;background-repeat:no-repeat;opacity:1;will-change:transform}
+.cta-final::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(120deg,rgba(31,29,26,.88),rgba(31,29,26,.6))}
+.cta-final-inner h2{font-weight:400}
+.cta-final-inner .body{display:flex;flex-direction:column;gap:24px}
+
+/* Footer */
+footer{background:var(--bg);color:var(--muted);padding:clamp(56px,8vh,80px) clamp(20px,4vw,56px) clamp(28px,4vh,40px);margin-top:clamp(40px,7vh,64px);border-top:1px solid var(--line)}
+.foot{max-width:1440px;margin:0 auto;display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:clamp(28px,4vw,40px);margin-bottom:clamp(36px,6vh,52px)}
+.foot-brand{font-family:'Fraunces',Georgia,serif;font-size:clamp(36px,5vw,48px);line-height:.92;font-weight:400;letter-spacing:-.025em;color:var(--cream)}
+.foot-brand .accent{font-style:italic;font-variation-settings:"SOFT" 100;color:var(--cream-2)}
+.foot p{color:var(--muted);margin-top:16px;line-height:1.6;max-width:280px;font-size:14px}
+.foot h4{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.18em;color:var(--accent);margin-bottom:18px}
+.foot ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.foot ul a{color:var(--cream-2);font-size:14px;transition:color .3s var(--ease)}
+.foot ul a:hover{color:var(--cream)}
+.foot-bottom{max-width:1440px;margin:0 auto;border-top:1px solid var(--line);padding-top:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.foot-bottom a{color:var(--cream-2);transition:color .3s var(--ease)}
+.foot-bottom a:hover{color:var(--cream)}
+@media(max-width:780px){
+  :root{
+    --section-pad:clamp(56px,11vh,84px);
+    --section-pad-sm:clamp(36px,7vh,56px);
+  }
+  section.wrap{padding-top:var(--section-pad);padding-bottom:var(--section-pad)}
+  #galeria{padding-top:clamp(48px,8vh,72px)!important;padding-bottom:0!important}
+  #galeria .wrap{margin-bottom:20px!important}
+  #galeria + section.wrap{padding-top:clamp(32px,6vh,48px);padding-bottom:var(--section-pad)}
+  #mapaSection.section-tight,#opiniones.section-tight{padding-top:var(--section-pad-sm);padding-bottom:var(--section-pad-sm)}
+  #tplVcardWrap.section-tight{padding-top:clamp(28px,6vh,40px);padding-bottom:0}
+  #tplVcardWrap .vcard{padding:clamp(22px,5vw,28px) clamp(16px,4vw,20px);gap:16px}
+  #tplVcardWrap + .cta-final-section{padding-top:clamp(20px,4vh,32px);padding-bottom:clamp(28px,6vh,40px)}
+  .cta-final-section .cta-final{min-height:clamp(260px,52vw,340px)}
+  .cta-final-inner{padding:clamp(28px,6vw,40px) clamp(16px,4vw,22px);gap:20px}
+  footer{margin-top:clamp(28px,6vh,40px);padding-top:clamp(44px,8vh,56px);padding-bottom:clamp(28px,5vh,36px)}
+  .foot{grid-template-columns:1fr 1fr;gap:32px}
+  .foot-brand{font-size:32px}
+}
+
+/* Reveal base */
+.fade{opacity:0;transform:translateY(20px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+.fade.in{opacity:1;transform:none}
+
+/* Focus visible */
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  html{scroll-behavior:auto!important}
+  .hero-photos .hp .img,.about-photo .img{opacity:1!important}
+  .hp .img,.about-photo .img{clip-path:none!important}
+  .gallery-h{height:auto}
+  .gallery-stick{position:static;height:auto}
+  .gallery-track{transform:none!important;overflow-x:auto;scroll-snap-type:x mandatory}
+  .nav-panel,.nav-panel .lk,.nav-panel .cta{opacity:1!important;transform:none!important}
+  .nav.open .nav-panel{transform:none!important}
+}
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- 1 NAV -->
+<nav class="nav" id="nav" aria-label="Principal">
+  <div class="nav-top">
+    <a class="brand" href="#top" id="navBrandWrap">
+      <img id="navBrandLogo" alt="" hidden style="display:none" />
+      <span id="navBrandName">Tu boutique</span>
+    </a>
+    <button class="burger" type="button" id="navBurger" aria-label="Abrir menú" aria-expanded="false" aria-controls="navPanel"><span></span></button>
+  </div>
+  <div class="nav-panel" id="navPanel">
+    <ul>
+      <li id="tplNavServiciosLi"><a class="lk" href="#servicios" id="tplNavServicios">Servicios</a></li>
+      <li><a class="lk" href="#sobre-nosotros">Nosotros</a></li>
+      <li id="tplNavGaleriaLi"><a class="lk" href="#galeria" id="tplNavGaleria">Galería</a></li>
+      <li><a class="lk" href="#horario">Horario</a></li>
+      <li id="tplNavOpinionesLi"><a class="lk" href="#opiniones" id="tplNavOpiniones">Opiniones</a></li>
+      <li><a class="lk" href="#contacto">Contacto</a></li>
+    </ul>
+    <a class="cta" href="https://wa.me/" data-wa-link target="_blank" rel="noopener noreferrer">WhatsApp</a>
+  </div>
+</nav>
+
+<!-- 2 HERO -->
+<header class="hero wrap" id="top">
+  <div class="top">
+    <div>
+      <span class="eyebrow" id="heroEyebrow"></span>
+    </div>
+    <span class="pill" id="statePill"><span class="dot" id="stateDot"></span><span id="stateText">Abierto ahora</span></span>
+  </div>
+
+  <h1 class="serif h-display" id="heroTitle">
+    <span class="word"><i>Tu boutique</i></span>
+  </h1>
+
+  <p class="lede" id="heroTagline" style="margin-bottom:28px"></p>
+
+  <div class="ctas">
+    <a class="btn btn-primary" id="tplBookingLink" href="#contacto">Reservar visita</a>
+    <a class="btn btn-ghost" href="tel:" data-tel-link>Llamar</a>
+  </div>
+
+  <div class="hero-photos">
+    <div class="hp hp-1 reveal-img is-hidden" id="hp1"><div class="img" id="hp1Img"></div></div>
+    <div class="hp hp-2 reveal-img is-hidden" id="hp2"><div class="img" id="hp2Img"></div></div>
+    <div class="hp hp-3 reveal-img is-hidden" id="hp3"><div class="img" id="hp3Img"></div></div>
+  </div>
+
+  <div class="scroll-i" aria-hidden="true"><span class="mono">Scroll</span><span class="ln"></span></div>
+</header>
+
+<!-- 3 TICKER (oculto por defecto; sin contenido propio) -->
+<div class="ticker is-hidden" id="tplTicker" aria-hidden="true">
+  <div class="ticker-track" id="tplTickerTrack"></div>
+</div>
+
+<!-- 4 SERVICIOS -->
+<section id="servicios" class="wrap">
+  <div class="sec-head">
+    <div>
+      <span class="sec-num">N° 01 — Servicios</span>
+      <h2 class="serif h-section split" style="margin-top:14px"><span class="w"><i>Lo que</i></span> <span class="w"><i>encontrarás.</i></span></h2>
+    </div>
+  </div>
+
+  <div class="svc" id="tplServicesList"></div>
+</section>
+
+<!-- 5 ABOUT pinned -->
+<section id="sobre-nosotros" class="about wrap">
+  <div class="about-grid">
+    <div class="about-text">
+      <span class="sec-num">N° 02 — Nosotros</span>
+      <h2 class="serif h-section split" style="margin-top:14px"><span class="w"><i>Una</i></span> <span class="w"><i>tienda</i></span> <span class="w"><i>con</i></span> <span class="w"><i><em>oficio.</em></i></span></h2>
+      <p class="lede" id="aboutDescripcion" style="margin-top:24px"></p>
+      <div class="meta" id="aboutMeta">
+        <span id="aboutMetaEquipo" class="is-hidden"><b>Equipo</b> · <span id="aboutMetaEquipoVal"></span></span>
+        <span id="aboutMetaDesde" class="is-hidden"><b>Desde</b> · <span id="aboutMetaDesdeVal"></span></span>
+        <span id="aboutMetaUbicacion" class="is-hidden"><b>Ubicación</b> · <span id="aboutMetaUbicacionVal"></span></span>
+      </div>
+    </div>
+    <div class="about-photos">
+      <div class="about-photo reveal-img is-hidden" id="aboutPhotoWrap">
+        <div class="img" data-parallax="0.6" id="aboutPhotoImg"></div>
+        <cap>Equipo</cap>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 GALERIA horizontal -->
+<section id="galeria" style="padding-top:clamp(64px,9vh,108px);padding-bottom:0">
+  <div class="wrap" style="margin-bottom:32px">
+    <div class="sec-head" style="margin-bottom:0">
+      <div>
+        <span class="sec-num">N° 03 — Galería</span>
+        <h2 class="serif h-section split" style="margin-top:14px"><span class="w"><i>Imágenes</i></span> <span class="w"><i>de</i></span> <span class="w"><i><em>tienda.</em></i></span></h2>
+      </div>
+    </div>
+  </div>
+  <div class="gallery-h" id="galleryH">
+    <div class="gallery-stick">
+      <div class="gallery-track" id="galleryTrack"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 HORARIO + 8 CONTACTO -->
+<section class="wrap">
+  <div class="split-cols">
+    <div id="horario">
+      <span class="sec-num">N° 04 — Horario</span>
+      <h2 class="serif h-section split" style="margin:14px 0 32px"><span class="w"><i>Cuándo</i></span> <span class="w"><i><em>visitarnos.</em></i></span></h2>
+      <div class="hours-list" id="hoursList"></div>
+    </div>
+    <div id="contacto">
+      <span class="sec-num">N° 05 — Contacto</span>
+      <h2 class="serif h-section split" style="margin:14px 0 32px"><span class="w"><i>Cómo</i></span> <span class="w"><i><em>encontrarnos.</em></i></span></h2>
+      <div class="contact-list" id="tplContactList">
+        <a href="tel:" id="tplContactPhone" data-tel-link class="is-hidden"><span class="k">Teléfono</span><span class="v serif" id="tplContactPhoneVal" data-phone-display></span></a>
+        <a href="mailto:" id="tplContactEmail" class="is-hidden"><span class="k">Email</span><span class="v serif" id="tplContactEmailVal"></span></a>
+        <a href="https://wa.me/" id="tplContactWhatsapp" data-wa-link target="_blank" rel="noopener noreferrer" class="is-hidden"><span class="k">WhatsApp</span><span class="v serif">Escríbenos</span></a>
+        <a href="#mapaSection" id="tplContactAddress" class="is-hidden"><span class="k">Dirección</span><span class="v serif" id="tplContactAddressVal"></span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 MAPA -->
+<section id="mapaSection" class="wrap is-hidden section-tight">
+  <div id="map" role="img" aria-label="Mapa con ubicación del negocio"></div>
+</section>
+
+<!-- 10 OPINIONES -->
+<section id="opiniones" class="wrap reviews is-hidden">
+  <span class="sec-num">N° 06 — Opiniones</span>
+  <h2 class="serif h-section split" style="margin-top:14px"><span class="w"><i>Lo que</i></span> <span class="w"><i>dicen</i></span> <span class="w"><i>de</i></span> <span class="w"><i><em>nosotros.</em></i></span></h2>
+  <p class="lede" style="margin:18px auto 32px">Si has visitado la tienda, tu opinión en Google nos ayuda a seguir cuidando el oficio.</p>
+  <a class="btn btn-primary" href="#" id="tplGbizLink" target="_blank" rel="noopener noreferrer">Dejar opinión en Google</a>
+</section>
+
+<!-- 11 VCARD -->
+<section class="wrap is-hidden section-tight" id="tplVcardWrap">
+  <div class="vcard">
+    <h3 class="serif">Guarda nuestro contacto.</h3>
+    <a class="btn btn-ghost" href="#" id="tplVcardLink" download>Descargar vCard</a>
+  </div>
+</section>
+
+<!-- 12 CTA FINAL -->
+<section class="cta-final-section">
+  <div class="cta-final" id="ctaFinal">
+    <div class="bg is-empty" data-parallax="0.5" id="ctaFinalBg" aria-hidden="true"></div>
+    <div class="cta-final-inner">
+      <h2 class="serif h-section split"><span class="w"><i>Pasa</i></span> <span class="w"><i>a</i></span> <span class="w"><i><em>vernos.</em></i></span></h2>
+      <div class="body">
+        <div class="ctas">
+          <a class="btn btn-primary" href="https://wa.me/" data-wa-link target="_blank" rel="noopener noreferrer">Escribir por WhatsApp</a>
+          <a class="btn btn-ghost" href="#mapaSection" id="tplMapsDirectionsLink">Ver mapa</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 FOOTER -->
+<footer>
+  <div class="foot">
+    <div>
+      <div class="foot-brand" id="footBrand"><span class="accent">Tu boutique</span></div>
+      <p id="footTagline"></p>
+    </div>
+    <div>
+      <h4>Visitar</h4>
+      <ul>
+        <li><a href="#servicios" id="footNavServicios" style="display:none">Servicios</a></li>
+        <li><a href="#sobre-nosotros">Nosotros</a></li>
+        <li><a href="#galeria" id="footNavGaleria" style="display:none">Galería</a></li>
+        <li><a href="#horario">Horario</a></li>
+        <li><a href="#opiniones" id="footNavOpiniones" style="display:none">Opiniones</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Contactar</h4>
+      <ul>
+        <li><a href="tel:" data-tel-link><span data-phone-display>Tu teléfono</span></a></li>
+        <li id="footEmailRow" hidden><a id="footEmailLink" href="mailto:"><span id="footEmailDisplay"></span></a></li>
+        <li><a href="https://wa.me/" data-wa-link>WhatsApp</a></li>
+        <li id="footAddressRow" hidden><a href="#" id="footAddressLink"><span id="footAddressText"></span></a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Síguenos</h4>
+      <ul>
+        <li><a id="tplSocialInstagram" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+        <li><a id="tplSocialTiktok" target="_blank" rel="noopener noreferrer">TikTok</a></li>
+        <li><a id="tplSocialFacebook" target="_blank" rel="noopener noreferrer">Facebook</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span id="footBottomBrand">© 2026 · Tu boutique</span>
+    <span id="tpl-platform-branding">Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var p = new URLSearchParams(location.search);
+  if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
+  var s = document.createElement('script');
+  s.src = 'https://unpkg.com/leaflet@' + '1.9.4/dist/leaflet.js';
+  s.crossOrigin = '';
+  document.body.appendChild(s);
+})();
+</script>
+<script src="/templates/lw-contact-links.js?v=3"></script>
+<script>
+(function initGraphitePreviewModeClasses() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('embed') === '1' || window.self !== window.top) {
+    document.documentElement.classList.add('embed-preview-root');
+    document.body.classList.add('embed-preview');
+  }
+  if (params.get('preview') === '1' || params.get('thumb') === '1') {
+    document.body.classList.add('graphite-preview');
+  }
+})();
+
+(function initGraphiteUi() {
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var isEmbed = window.self !== window.top || new URLSearchParams(location.search).get('embed') === '1';
+  if (isEmbed) document.documentElement.classList.add('embed-preview-root');
+  (function initGraphiteNav() {
+    var nav = document.getElementById('nav');
+    var burger = document.getElementById('navBurger');
+    var panel = document.getElementById('navPanel');
+    if (!nav || !burger) return;
+
+    function setNavOpen(open) {
+      nav.classList.toggle('open', open);
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      burger.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+    }
+
+    burger.addEventListener('click', function () {
+      setNavOpen(!nav.classList.contains('open'));
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') setNavOpen(false);
+    });
+
+    function scrollToSection(hash) {
+      if (!hash || hash === '#') return;
+      var target = document.querySelector(hash);
+      if (!target) return;
+      var navH = nav.getBoundingClientRect().height || 88;
+      var y = target.getBoundingClientRect().top + window.scrollY - navH - 20;
+      window.scrollTo({
+        top: Math.max(0, y),
+        behavior: reduced || isEmbed ? 'auto' : 'smooth',
+      });
+    }
+
+    document.querySelectorAll('a.lk[href^="#"], a.brand[href^="#"], .foot a[href^="#"]').forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        var href = link.getAttribute('href');
+        if (!href || href.charAt(0) !== '#') return;
+        var target = document.querySelector(href);
+        if (!target) return;
+        e.preventDefault();
+        setNavOpen(false);
+        scrollToSection(href);
+      });
+    });
+  })();
+
+  requestAnimationFrame(function () {
+    var hero = document.querySelector('.hero');
+    if (hero) hero.classList.add('ready');
+  });
+
+  var io = new IntersectionObserver(
+    function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        e.target.classList.add('in');
+        var ws = e.target.querySelectorAll('.w i, .word i');
+        ws.forEach(function (w, i) {
+          w.style.transitionDelay = i * 80 + 'ms';
+        });
+        io.unobserve(e.target);
+      });
+    },
+    { threshold: 0.2 }
+  );
+  document.querySelectorAll('.split, .fade, .reveal-img').forEach(function (el) {
+    if (el.closest('.hero-photos')) return;
+    io.observe(el);
+  });
+  window.graphiteFadeObserver = io;
+
+  function graphiteGalleryUsesNative() {
+    return reduced || window.innerWidth <= 780;
+  }
+
+  function resetGraphiteGalleryPin(stick) {
+    if (!stick) return;
+    stick.classList.remove('is-pinned');
+    stick.style.transform = '';
+  }
+
+  function syncGraphiteGalleryLayout() {
+    var tr = document.getElementById('galleryTrack');
+    var gh = document.getElementById('galleryH');
+    var stick = gh ? gh.querySelector('.gallery-stick') : null;
+    if (!tr || !gh) return;
+    if (graphiteGalleryUsesNative()) {
+      gh.style.height = '';
+      gh.removeAttribute('data-scroll-len');
+      gh.removeAttribute('data-release-len');
+      gh.removeAttribute('data-pin-anchor');
+      tr.style.transform = '';
+      resetGraphiteGalleryPin(stick);
+      return;
+    }
+    var max = Math.max(0, tr.scrollWidth - window.innerWidth);
+    var vh = window.innerHeight;
+    var release = vh;
+    gh.style.height = max + release + 'px';
+    gh.setAttribute('data-scroll-len', String(max));
+    gh.setAttribute('data-release-len', String(release));
+    gh.removeAttribute('data-pin-anchor');
+  }
+
+  function applyGraphiteGalleryScroll() {
+    var tr = document.getElementById('galleryTrack');
+    var gh = document.getElementById('galleryH');
+    var stick = gh ? gh.querySelector('.gallery-stick') : null;
+    if (!tr || !gh || !stick) return;
+    if (graphiteGalleryUsesNative()) {
+      tr.style.transform = '';
+      resetGraphiteGalleryPin(stick);
+      return;
+    }
+    var scrollLen = parseFloat(gh.getAttribute('data-scroll-len') || '0');
+    var releaseLen = parseFloat(gh.getAttribute('data-release-len') || '0') || window.innerHeight;
+    var y = window.scrollY;
+    var livePinStart = y + gh.getBoundingClientRect().top;
+    var pinStart = livePinStart;
+
+    if (y >= livePinStart && !gh.getAttribute('data-pin-anchor')) {
+      gh.setAttribute('data-pin-anchor', String(Math.round(livePinStart)));
+    }
+    var anchored = gh.getAttribute('data-pin-anchor');
+    if (anchored) pinStart = parseFloat(anchored);
+
+    var pinEnd = pinStart + scrollLen;
+    var releaseEnd = pinEnd + releaseLen;
+    var tx = -scrollLen;
+
+    if (y < pinStart) {
+      gh.removeAttribute('data-pin-anchor');
+      resetGraphiteGalleryPin(stick);
+      tr.style.transform = 'translate3d(0, 0, 0)';
+      return;
+    }
+
+    if (y >= releaseEnd) {
+      gh.removeAttribute('data-pin-anchor');
+      resetGraphiteGalleryPin(stick);
+      tr.style.transform = 'translate3d(' + tx.toFixed(1) + 'px, 0, 0)';
+      return;
+    }
+
+    stick.classList.add('is-pinned');
+
+    if (y < pinEnd) {
+      stick.style.transform = '';
+      var p = scrollLen > 0 ? (y - pinStart) / scrollLen : 1;
+      tr.style.transform = 'translate3d(' + (tx * p).toFixed(1) + 'px, 0, 0)';
+      return;
+    }
+
+    var lift = y - pinEnd;
+    stick.style.transform = 'translate3d(0, ' + (-lift).toFixed(1) + 'px, 0)';
+    tr.style.transform = 'translate3d(' + tx.toFixed(1) + 'px, 0, 0)';
+  }
+
+  function refreshGraphiteGallery() {
+    syncGraphiteGalleryLayout();
+    applyGraphiteGalleryScroll();
+  }
+
+  if (!reduced) {
+    var pxEls = Array.prototype.slice.call(document.querySelectorAll('[data-parallax]'));
+    var ticking = false;
+    function applyParallax() {
+      if (isEmbed) return;
+      var vh = window.innerHeight;
+      pxEls.forEach(function (el) {
+        if (el.closest('.hero-photos')) return;
+        var r = el.getBoundingClientRect();
+        if (r.bottom < -200 || r.top > vh + 200) return;
+        var speed = parseFloat(el.getAttribute('data-parallax') || '0.5');
+        var off = (r.top + r.height / 2 - vh / 2) * (1 - speed) * -0.25;
+        var isBgImg = el.classList.contains('img') || el.classList.contains('bg');
+        if (isBgImg) {
+          el.style.transform = 'none';
+          el.style.backgroundPosition = 'center calc(50% + ' + off.toFixed(1) + 'px)';
+        } else {
+          el.style.transform = 'translate3d(0, ' + off.toFixed(1) + 'px, 0)';
+        }
+      });
+      var h1 = document.getElementById('heroTitle');
+      if (h1) {
+        h1.style.transform = 'translate3d(0, ' + (window.scrollY * 0.15).toFixed(1) + 'px, 0)';
+      }
+    }
+    function onScrollFrame() {
+      applyParallax();
+      applyGraphiteGalleryScroll();
+    }
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () {
+        onScrollFrame();
+        ticking = false;
+      });
+    }
+    window.graphiteRefreshParallax = function () {
+      requestAnimationFrame(function () {
+        requestAnimationFrame(onScrollFrame);
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', refreshGraphiteGallery, { passive: true });
+    window.addEventListener('load', refreshGraphiteGallery);
+    onScroll();
+  }
+  window.graphiteRefreshGalleryScroll = refreshGraphiteGallery;
+})();
+
+var GRAPHITE_SCHEDULE_DEFAULT = [
+  { name: 'Lunes', idx: 1, open: '10:00', close: '20:00', split: false },
+  { name: 'Martes', idx: 2, open: '10:00', close: '20:00', split: false },
+  { name: 'Miércoles', idx: 3, open: '10:00', close: '20:00', split: false },
+  { name: 'Jueves', idx: 4, open: '10:00', close: '20:00', split: false },
+  { name: 'Viernes', idx: 5, open: '10:00', close: '21:00', split: false },
+  { name: 'Sábado', idx: 6, open: '11:00', close: '21:00', split: false },
+  { name: 'Domingo', idx: 0, open: null, close: null, split: false },
+];
+var SCHEDULE = GRAPHITE_SCHEDULE_DEFAULT.map(function (d) {
+  return { name: d.name, idx: d.idx, open: d.open, close: d.close, split: d.split };
+});
+
+function syncGraphiteScheduleFromPreview(h) {
+  if (h == null || typeof h !== 'object') {
+    SCHEDULE = GRAPHITE_SCHEDULE_DEFAULT.map(function (d) {
+      return { name: d.name, idx: d.idx, open: d.open, close: d.close, split: d.split };
+    });
+    return;
+  }
+  var map = [
+    ['mon', 1, 'Lunes'],
+    ['tue', 2, 'Martes'],
+    ['wed', 3, 'Miércoles'],
+    ['thu', 4, 'Jueves'],
+    ['fri', 5, 'Viernes'],
+    ['sat', 6, 'Sábado'],
+    ['sun', 0, 'Domingo'],
+  ];
+  SCHEDULE = map.map(function (tuple) {
+    var key = tuple[0];
+    var idx = tuple[1];
+    var name = tuple[2];
+    var row = h[key];
+    if (!row || row.closed) {
+      return { name: name, idx: idx, open: null, close: null, split: false };
+    }
+    return {
+      name: name,
+      idx: idx,
+      open: row.open || '10:00',
+      close: row.close || '20:00',
+      split: false,
+    };
+  });
+}
+
+function renderSchedule() {
+  var now = new Date();
+  var today = now.getDay();
+  var wrap = document.getElementById('hoursList');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  var ordered = SCHEDULE.slice().sort(function (a, b) {
+    return ((a.idx + 6) % 7) - ((b.idx + 6) % 7);
+  });
+  ordered.forEach(function (d) {
+    var isToday = d.idx === today;
+    var openDay = Boolean(d.open);
+    var row = document.createElement('div');
+    row.className = 'row' + (isToday ? ' today' : '');
+    var hoursText = openDay ? d.open + ' — ' + d.close : 'Cerrado';
+    row.innerHTML =
+      '<span>' + escapeHtmlText(d.name) + '</span><span>' + escapeHtmlText(hoursText) + '</span>';
+    wrap.appendChild(row);
+  });
+  var todayD = SCHEDULE.find(function (d) {
+    return d.idx === today;
+  });
+  var openToday = Boolean(todayD && todayD.open);
+  var txt = document.getElementById('stateText');
+  var dot = document.getElementById('stateDot');
+  if (txt) txt.textContent = openToday ? 'Abierto hoy' : 'Cerrado hoy';
+  if (dot) {
+    if (openToday) dot.classList.remove('off');
+    else dot.classList.add('off');
+  }
+}
+
+var graphitePreviewMap = null;
+var graphitePreviewMarker = null;
+var GRAPHITE_MAP_ZOOM = 16;
+
+function destroyGraphitePreviewMap() {
+  if (graphitePreviewMap) {
+    try {
+      graphitePreviewMap.remove();
+    } catch (e) {}
+    graphitePreviewMap = null;
+    graphitePreviewMarker = null;
+  }
+}
+
+function graphiteMapIcon() {
+  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return null;
+  return L.divIcon({
+    html:
+      '<div style="width:14px;height:14px;border-radius:50%;background:#c47550;box-shadow:0 0 0 6px rgba(196,117,80,.3),0 0 0 1px #f0ebe1"></div>',
+    className: '',
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+  });
+}
+
+function lwWhenLeafletReady(cb) {
+  if (window.__LW_SKIP_LEAFLET) return;
+  var n = 0;
+  function tick() {
+    if (typeof L !== 'undefined') {
+      cb();
+      return;
+    }
+    if (++n < 80) setTimeout(tick, 50);
+  }
+  tick();
+}
+
+function updateGraphitePreviewMap(lat, lon) {
+  var sec = document.getElementById('mapaSection');
+  var el = document.getElementById('map');
+  if (!sec || !el) return;
+  var ok = typeof lat === 'number' && typeof lon === 'number' && isFinite(lat) && isFinite(lon);
+  if (!ok) {
+    destroyGraphitePreviewMap();
+    sec.classList.add('is-hidden');
+    return;
+  }
+  sec.classList.remove('is-hidden');
+  if (window.__LW_SKIP_LEAFLET) return;
+
+  function applyMap() {
+    if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
+    if (!graphitePreviewMap) {
+      graphitePreviewMap = L.map(el, {
+        zoomControl: true,
+        attributionControl: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false,
+      }).setView([lat, lon], GRAPHITE_MAP_ZOOM);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+      }).addTo(graphitePreviewMap);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+      }).addTo(graphitePreviewMap);
+    } else {
+      graphitePreviewMap.setView([lat, lon], GRAPHITE_MAP_ZOOM);
+    }
+    if (graphitePreviewMarker) graphitePreviewMap.removeLayer(graphitePreviewMarker);
+    graphitePreviewMarker = L.marker([lat, lon], { icon: graphiteMapIcon() }).addTo(graphitePreviewMap);
+    setTimeout(function () {
+      if (graphitePreviewMap) graphitePreviewMap.invalidateSize();
+    }, 80);
+    setTimeout(function () {
+      if (graphitePreviewMap) graphitePreviewMap.invalidateSize();
+    }, 320);
+  }
+
+  lwWhenLeafletReady(function () {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(applyMap);
+    });
+  });
+}
+
+function escapeHtmlText(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function escapeAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function formatGraphitePrice(p) {
+  if (p === null || p === undefined || p === '') return 'Consultar';
+  var n = typeof p === 'number' ? p : parseFloat(String(p).replace(',', '.'));
+  if (!Number.isFinite(n)) return 'Consultar';
+  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(n);
+}
+
+/** Tienda de ropa — imágenes de muestra en onboarding / preview (?embed=1, ?thumb=1). */
+var GRAPHITE_PREVIEW_SAMPLE = {
+  portada: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80',
+  portada_2: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1000&q=80',
+  portada_3: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1000&q=80',
+  foto_equipo: 'https://images.unsplash.com/photo-1445205170230-47b010092166?auto=format&fit=crop&w=1000&q=80',
+};
+
+var GRAPHITE_DEFAULT_GALLERY_URLS = [
+  'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=75',
+  'https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&w=900&q=75',
+  'https://images.unsplash.com/photo-1521577352947-9bb58764b69a?auto=format&fit=crop&w=900&q=75',
+  'https://images.unsplash.com/photo-1535868463750-c78d9543614f?auto=format&fit=crop&w=700&q=75',
+  'https://images.unsplash.com/photo-1605812860427-4024433a70fd?auto=format&fit=crop&w=700&q=75',
+  'https://images.unsplash.com/photo-1483986768654-2b1cf773a3e6?auto=format&fit=crop&w=700&q=75',
+];
+
+var GRAPHITE_PREVIEW_COPY = {
+  tagline: 'Moda contemporánea y piezas de autor seleccionadas con cuidado',
+  descripcion:
+    'Boutique de ropa en pleno centro: prendas de diseño, básicos atemporales y accesorios en un espacio íntimo pensado para descubrir con calma.',
+  ciudad: 'Madrid',
+};
+
+function shouldUseGraphiteSampleMedia() {
+  return (
+    document.body.classList.contains('embed-preview') ||
+    document.body.classList.contains('graphite-preview')
+  );
+}
+
+function graphiteResolvePreviewPhotoSrc(userSrc, sampleKey) {
+  var src = userSrc ? String(userSrc).trim() : '';
+  if (src) return src;
+  if (!shouldUseGraphiteSampleMedia()) return '';
+  return GRAPHITE_PREVIEW_SAMPLE[sampleKey] || '';
+}
+
+function renderGraphiteGallery(urls) {
+  var galTrack = document.getElementById('galleryTrack');
+  var galSec = document.getElementById('galeria');
+  var navGal = document.getElementById('tplNavGaleria');
+  var navGalLi = document.getElementById('tplNavGaleriaLi');
+  var footGal = document.getElementById('footNavGaleria');
+  if (!galTrack) return;
+  var list = Array.isArray(urls) ? urls.filter(Boolean) : [];
+  if (list.length === 0) {
+    galTrack.innerHTML = '';
+    if (galSec) galSec.classList.add('is-hidden');
+    if (navGal) navGal.style.display = 'none';
+    if (navGalLi) navGalLi.style.display = 'none';
+    if (footGal) footGal.style.display = 'none';
+    return;
+  }
+  if (galSec) galSec.classList.remove('is-hidden');
+  if (navGal) navGal.style.display = '';
+  if (navGalLi) navGalLi.style.display = '';
+  if (footGal) footGal.style.display = '';
+  galTrack.innerHTML = list
+    .map(function (src, i) {
+      var lg = i % 4 === 1 ? ' lg' : '';
+      return (
+        '<div class="gi' +
+        lg +
+        '"><div class="img" style="background-image:url(&quot;' +
+        escapeAttr(src) +
+        '&quot;)"></div></div>'
+      );
+    })
+    .join('');
+  if (typeof window.graphiteRefreshGalleryScroll === 'function') {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        window.graphiteRefreshGalleryScroll();
+      });
+    });
+  }
+}
+
+function updateGraphiteHeroPhotos(raw) {
+  raw = raw || {};
+  var hasP1 = Object.prototype.hasOwnProperty.call(raw, 'portada');
+  var hasP2 = Object.prototype.hasOwnProperty.call(raw, 'portada_2');
+  var hasP3 = Object.prototype.hasOwnProperty.call(raw, 'portada_3');
+  if (!hasP1 && !hasP2 && !hasP3 && !shouldUseGraphiteSampleMedia()) return;
+
+  var p1 = hasP1 || shouldUseGraphiteSampleMedia() ? graphiteResolvePreviewPhotoSrc(raw.portada, 'portada') : '';
+  var p2 = hasP2 || shouldUseGraphiteSampleMedia() ? graphiteResolvePreviewPhotoSrc(raw.portada_2, 'portada_2') : '';
+  var p3 = hasP3 || shouldUseGraphiteSampleMedia() ? graphiteResolvePreviewPhotoSrc(raw.portada_3, 'portada_3') : '';
+
+  setHeroSlot('hp1', 'hp1Img', p1);
+  setHeroSlot('hp2', 'hp2Img', p2);
+  setHeroSlot('hp3', 'hp3Img', p3);
+
+  var ctaBg = document.getElementById('ctaFinalBg');
+  if (ctaBg) {
+    if (p1) {
+      ctaBg.style.backgroundImage = 'url("' + escapeAttr(p1) + '")';
+      ctaBg.classList.remove('is-empty');
+    } else {
+      ctaBg.style.backgroundImage = '';
+      ctaBg.classList.add('is-empty');
+    }
+  }
+}
+
+/** Centra el iframe de onboarding en la sección del hash (#sobre-nosotros, #galeria, …). */
+function scrollEmbedPreviewToHash() {
+  if (new URLSearchParams(window.location.search).get('embed') !== '1') return;
+  var id = (window.location.hash || '').replace(/^#/, '');
+  if (!id) return;
+  function doScroll() {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var nav = document.getElementById('nav');
+    var offset = nav ? Math.round(nav.getBoundingClientRect().height) + 24 : 24;
+    var y = el.getBoundingClientRect().top + window.pageYOffset - offset;
+    window.scrollTo({ top: Math.max(0, y), behavior: 'auto' });
+  }
+  requestAnimationFrame(function () {
+    requestAnimationFrame(doScroll);
+  });
+  setTimeout(doScroll, 80);
+  setTimeout(doScroll, 280);
+}
+
+function buildDirectionsUrlFromRaw(raw) {
+  raw = raw || {};
+  var manual = (raw.google_maps_url || '').trim();
+  if (manual) return manual;
+  var mlat = raw.map_lat;
+  var mlon = raw.map_lon;
+  var la = typeof mlat === 'number' ? mlat : parseFloat(mlat);
+  var lo = typeof mlon === 'number' ? mlon : parseFloat(mlon);
+  if (Number.isFinite(la) && Number.isFinite(lo)) {
+    return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(la + ',' + lo);
+  }
+  var addr = (raw.direccion || '').trim();
+  if (addr) return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
+  return '';
+}
+
+function graphiteRevealRows(root) {
+  var scope = root || document;
+  var rows = scope.querySelectorAll ? scope.querySelectorAll('.svc-row.fade:not(.in)') : [];
+  rows.forEach(function (el) {
+    el.classList.add('in');
+    if (window.graphiteFadeObserver) {
+      try {
+        window.graphiteFadeObserver.observe(el);
+      } catch (e) {}
+    }
+  });
+}
+
+function setHeroSlot(slotId, imgId, src) {
+  var slot = document.getElementById(slotId);
+  var img = document.getElementById(imgId);
+  if (!slot || !img) return;
+  var s = src ? String(src).trim() : '';
+  if (s) {
+    img.style.backgroundImage = 'url("' + escapeAttr(s) + '")';
+    slot.classList.remove('is-hidden');
+    slot.classList.add('in');
+  } else {
+    img.style.backgroundImage = '';
+    slot.classList.remove('in');
+    slot.classList.add('is-hidden');
+  }
+}
+
+function syncGraphiteTemplateExtensions(raw) {
+  raw = raw || {};
+  var isPro = raw.is_pro === true || raw.is_pro === 'true' || raw.is_pro === 1;
+
+  var branding = document.getElementById('tpl-platform-branding');
+  if (branding) branding.style.display = isPro ? 'none' : '';
+
+  var services = Array.isArray(raw.services)
+    ? raw.services.filter(function (s) {
+        return s && String(s.name || '').trim();
+      })
+    : [];
+  var sec = document.getElementById('servicios');
+  var list = document.getElementById('tplServicesList');
+  var navSvc = document.getElementById('tplNavServicios');
+  var navSvcLi = document.getElementById('tplNavServiciosLi');
+  var footSvc = document.getElementById('footNavServicios');
+  if (sec && list) {
+    if (services.length === 0) {
+      sec.classList.add('is-hidden');
+      list.innerHTML = '';
+      if (navSvc) navSvc.style.display = 'none';
+      if (navSvcLi) navSvcLi.style.display = 'none';
+      if (footSvc) footSvc.style.display = 'none';
+    } else {
+      sec.classList.remove('is-hidden');
+      if (navSvc) navSvc.style.display = '';
+      if (navSvcLi) navSvcLi.style.display = '';
+      if (footSvc) footSvc.style.display = '';
+      list.innerHTML = services
+        .map(function (s, i) {
+          var num = String(i + 1).padStart(2, '0');
+          var nm = escapeHtmlText(String(s.name || ''));
+          var pr = formatGraphitePrice(s.price);
+          var dc = s.description && String(s.description).trim();
+          var desc = dc ? escapeHtmlText(String(s.description)) : '';
+          return (
+            '<div class="svc-row in">' +
+            '<span class="n">' +
+            num +
+            '</span>' +
+            '<span class="t serif">' +
+            nm +
+            '</span>' +
+            '<span class="d">' +
+            desc +
+            '</span>' +
+            '<span class="p">' +
+            escapeHtmlText(pr) +
+            '</span>' +
+            '</div>'
+          );
+        })
+        .join('');
+      list.querySelectorAll('.svc-row').forEach(function (el, i) {
+        el.style.transitionDelay = i * 80 + 'ms';
+      });
+      graphiteRevealRows(list);
+    }
+  }
+
+  var galeria = Array.isArray(raw.galeria) ? raw.galeria.filter(Boolean) : [];
+  if (galeria.length === 0 && shouldUseGraphiteSampleMedia()) {
+    galeria = GRAPHITE_DEFAULT_GALLERY_URLS.slice();
+  }
+  renderGraphiteGallery(galeria);
+
+  var gUrl = (raw.google_business_url || '').trim();
+  var gSec = document.getElementById('opiniones');
+  var gLink = document.getElementById('tplGbizLink');
+  var navOp = document.getElementById('tplNavOpiniones');
+  var navOpLi = document.getElementById('tplNavOpinionesLi');
+  var footOp = document.getElementById('footNavOpiniones');
+  if (gSec && gLink) {
+    if (gUrl) {
+      gSec.classList.remove('is-hidden');
+      gLink.href = gUrl;
+      if (navOp) navOp.style.display = '';
+      if (navOpLi) navOpLi.style.display = '';
+      if (footOp) footOp.style.display = '';
+    } else {
+      gSec.classList.add('is-hidden');
+      gLink.removeAttribute('href');
+      if (navOp) navOp.style.display = 'none';
+      if (navOpLi) navOpLi.style.display = 'none';
+      if (footOp) footOp.style.display = 'none';
+    }
+  }
+
+  var bookingUrl = (raw.booking_url || '').trim();
+  var booking = document.getElementById('tplBookingLink');
+  if (booking) {
+    if (bookingUrl) {
+      booking.href = bookingUrl;
+      booking.style.display = '';
+    } else {
+      var wa = (raw.whatsapp || raw.telefono || '').toString().replace(/\D/g, '');
+      if (wa) {
+        booking.href = 'https://wa.me/' + wa;
+        booking.style.display = '';
+      } else {
+        booking.style.display = 'none';
+      }
+    }
+  }
+
+  var vcEnabled = raw.vcard_enabled === true || raw.vcard_enabled === 'true' || raw.vcard_enabled === 1;
+  var vcUrl = (raw.vcard_download_url || '').trim();
+  var vcWrap = document.getElementById('tplVcardWrap');
+  var vcA = document.getElementById('tplVcardLink');
+  if (vcWrap && vcA) {
+    if (vcEnabled && vcUrl) {
+      vcWrap.classList.remove('is-hidden');
+      vcA.href = vcUrl;
+    } else {
+      vcWrap.classList.add('is-hidden');
+      vcA.removeAttribute('href');
+    }
+  }
+
+  var mapsUrl = buildDirectionsUrlFromRaw(raw);
+  var mapsA = document.getElementById('tplMapsDirectionsLink');
+  if (mapsA) {
+    if (mapsUrl) {
+      mapsA.href = mapsUrl;
+      mapsA.classList.remove('is-hidden');
+    } else {
+      mapsA.removeAttribute('href');
+      mapsA.classList.add('is-hidden');
+    }
+  }
+}
+
+function renderGraphiteHeroTitle(name) {
+  var h1 = document.getElementById('heroTitle');
+  if (!h1) return;
+  var text = (name || '').trim() || 'Tu boutique';
+  var words = text.split(/\s+/).filter(Boolean);
+  if (words.length === 0) words = ['Tu', 'boutique'];
+  h1.innerHTML = words
+    .map(function (w, i) {
+      var inner = escapeHtmlText(w);
+      if (words.length > 1 && i === words.length - 1) {
+        inner = '<em>' + inner + '</em>';
+      }
+      return '<span class="word"><i>' + inner + '</i></span>';
+    })
+    .join(' ');
+  var hero = document.querySelector('.hero');
+  if (hero) {
+    hero.classList.remove('ready');
+    requestAnimationFrame(function () {
+      hero.classList.add('ready');
+    });
+  }
+}
+
+function resolveGraphitePhoneDisplay(raw) {
+  raw = raw || {};
+  var phoneRaw = String(raw.telefono != null ? raw.telefono : '').trim();
+  var digits = phoneRaw.replace(/\D/g, '');
+  if (!digits && raw.whatsapp != null) {
+    digits = String(raw.whatsapp).replace(/\D/g, '');
+  }
+  var display = phoneRaw;
+  if (!display && digits) {
+    display = '+' + digits;
+  }
+  return { display: display, digits: digits, has: Boolean(display || digits) };
+}
+
+var LW_DEFAULT_SOCIAL_GRAPHITE = {
+  instagram: 'https://www.instagram.com/localweb.es',
+  tiktok: 'https://www.tiktok.com/@localweb',
+  facebook: 'https://www.facebook.com/localweb',
+};
+
+function graphiteResolveSocialHref(raw, key, fallback) {
+  var u = (raw[key] || '').trim();
+  return u || fallback || '#';
+}
+
+function applyGraphiteFooter(raw, name, tagline) {
+  name = (name || '').trim() || 'Tu boutique';
+  tagline = (tagline || '').trim();
+
+  var footBrand = document.getElementById('footBrand');
+  if (footBrand) {
+    var parts = name.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      footBrand.innerHTML =
+        escapeHtmlText(parts[0]) + '<br/><span class="accent">' + escapeHtmlText(parts.slice(1).join(' ')) + '</span>';
+    } else {
+      footBrand.innerHTML = '<span class="accent">' + escapeHtmlText(name) + '</span>';
+    }
+  }
+
+  var footTagline = document.getElementById('footTagline');
+  if (footTagline) {
+    footTagline.textContent = tagline;
+    footTagline.style.display = tagline ? '' : 'none';
+  }
+
+  var footBottomBrand = document.getElementById('footBottomBrand');
+  if (footBottomBrand) {
+    footBottomBrand.textContent = '© ' + new Date().getFullYear() + ' · ' + name;
+  }
+
+  var correo = String(raw.correo != null ? raw.correo : '').trim();
+  var footEmailRow = document.getElementById('footEmailRow');
+  var footEmailLink = document.getElementById('footEmailLink');
+  var footEmailDisplay = document.getElementById('footEmailDisplay');
+  if (footEmailRow && footEmailLink && footEmailDisplay) {
+    if (correo) {
+      footEmailLink.href = 'mailto:' + correo;
+      footEmailDisplay.textContent = correo;
+      footEmailRow.hidden = false;
+    } else {
+      footEmailDisplay.textContent = '';
+      footEmailRow.hidden = true;
+    }
+  }
+
+  var direccion = String(raw.direccion != null ? raw.direccion : '').trim();
+  var footAddressRow = document.getElementById('footAddressRow');
+  var footAddressLink = document.getElementById('footAddressLink');
+  var footAddressText = document.getElementById('footAddressText');
+  if (footAddressRow && footAddressLink && footAddressText) {
+    if (direccion) {
+      footAddressText.textContent = direccion;
+      footAddressRow.hidden = false;
+      var dirUrl = buildDirectionsUrlFromRaw(raw);
+      if (dirUrl) {
+        footAddressLink.href = dirUrl;
+        footAddressLink.target = '_blank';
+        footAddressLink.rel = 'noopener noreferrer';
+      } else {
+        footAddressLink.href = '#';
+        footAddressLink.removeAttribute('target');
+        footAddressLink.removeAttribute('rel');
+      }
+    } else {
+      footAddressText.textContent = '';
+      footAddressRow.hidden = true;
+    }
+  }
+
+  var igEl = document.getElementById('tplSocialInstagram');
+  var ttEl = document.getElementById('tplSocialTiktok');
+  var fbEl = document.getElementById('tplSocialFacebook');
+  if (igEl) igEl.href = graphiteResolveSocialHref(raw, 'instagram_url', LW_DEFAULT_SOCIAL_GRAPHITE.instagram);
+  if (ttEl) ttEl.href = graphiteResolveSocialHref(raw, 'tiktok_url', LW_DEFAULT_SOCIAL_GRAPHITE.tiktok);
+  if (fbEl) fbEl.href = graphiteResolveSocialHref(raw, 'facebook_url', LW_DEFAULT_SOCIAL_GRAPHITE.facebook);
+}
+
+function applyContactRows(raw) {
+  raw = raw || {};
+  var phoneInfo = resolveGraphitePhoneDisplay(raw);
+  var email = String(raw.correo != null ? raw.correo : '').trim();
+  var wa = (raw.whatsapp || '').toString().replace(/\D/g, '') || phoneInfo.digits;
+  var addr = (raw.direccion || '').trim();
+  var city = (raw.ciudad || '').trim();
+
+  var rowPhone = document.getElementById('tplContactPhone');
+  var phoneVal = document.getElementById('tplContactPhoneVal');
+  if (rowPhone) {
+    if (phoneInfo.has) {
+      if (phoneVal) phoneVal.textContent = phoneInfo.display;
+      if (phoneInfo.digits) rowPhone.href = 'tel:+' + phoneInfo.digits;
+      rowPhone.classList.remove('is-hidden');
+    } else {
+      if (phoneVal) phoneVal.textContent = '';
+      rowPhone.classList.add('is-hidden');
+    }
+  }
+  var rowEmail = document.getElementById('tplContactEmail');
+  var emailVal = document.getElementById('tplContactEmailVal');
+  if (rowEmail && emailVal) {
+    if (email) {
+      rowEmail.href = 'mailto:' + email;
+      emailVal.textContent = email;
+      rowEmail.classList.remove('is-hidden');
+    } else {
+      rowEmail.classList.add('is-hidden');
+    }
+  }
+  var rowWa = document.getElementById('tplContactWhatsapp');
+  if (rowWa) {
+    if (wa) rowWa.classList.remove('is-hidden');
+    else rowWa.classList.add('is-hidden');
+  }
+  var rowAddr = document.getElementById('tplContactAddress');
+  var addrVal = document.getElementById('tplContactAddressVal');
+  if (rowAddr && addrVal) {
+    if (addr || city) {
+      addrVal.textContent = addr || city;
+      rowAddr.classList.remove('is-hidden');
+    } else {
+      rowAddr.classList.add('is-hidden');
+    }
+  }
+}
+
+function applyAboutMeta(raw) {
+  raw = raw || {};
+  var resp = (raw.nombre_responsable || '').trim();
+  var year = (raw.anio_fundacion || '').trim();
+  var city = (raw.ciudad || '').trim();
+  var rowEq = document.getElementById('aboutMetaEquipo');
+  var valEq = document.getElementById('aboutMetaEquipoVal');
+  if (rowEq && valEq) {
+    if (resp) {
+      valEq.textContent = resp;
+      rowEq.classList.remove('is-hidden');
+    } else rowEq.classList.add('is-hidden');
+  }
+  var rowDe = document.getElementById('aboutMetaDesde');
+  var valDe = document.getElementById('aboutMetaDesdeVal');
+  if (rowDe && valDe) {
+    if (year) {
+      valDe.textContent = year;
+      rowDe.classList.remove('is-hidden');
+    } else rowDe.classList.add('is-hidden');
+  }
+  var rowUb = document.getElementById('aboutMetaUbicacion');
+  var valUb = document.getElementById('aboutMetaUbicacionVal');
+  if (rowUb && valUb) {
+    if (city) {
+      valUb.textContent = city;
+      rowUb.classList.remove('is-hidden');
+    } else rowUb.classList.add('is-hidden');
+  }
+}
+
+function applyLivePreviewData(raw, opts) {
+  opts = opts || {};
+  raw = raw || {};
+
+  var name = (raw.nombre || '').trim() || 'Tu boutique';
+  var tagline = (raw.tagline || '').trim();
+  var descripcion = (raw.descripcion || '').trim();
+  var ciudad = (raw.ciudad || '').trim();
+  if (shouldUseGraphiteSampleMedia()) {
+    if (!tagline) tagline = GRAPHITE_PREVIEW_COPY.tagline;
+    if (!descripcion) descripcion = GRAPHITE_PREVIEW_COPY.descripcion;
+    if (!ciudad) ciudad = GRAPHITE_PREVIEW_COPY.ciudad;
+  }
+  var logoUrl = (raw.logo_url || '').trim();
+
+  document.title = name + ' — ONEZ';
+
+  var navWrap = document.getElementById('navBrandWrap');
+  var navLogo = document.getElementById('navBrandLogo');
+  var navName = document.getElementById('navBrandName');
+  if (navWrap && navLogo && navName) {
+    if (logoUrl) {
+      navLogo.src = logoUrl;
+      navLogo.alt = name;
+      navLogo.hidden = false;
+      navLogo.style.display = 'block';
+      navName.style.display = 'none';
+      navWrap.classList.add('brand-has-img');
+    } else {
+      navLogo.removeAttribute('src');
+      navLogo.hidden = true;
+      navLogo.style.display = 'none';
+      navName.textContent = name;
+      navName.style.display = '';
+      navWrap.classList.remove('brand-has-img');
+    }
+  }
+
+  applyGraphiteFooter(raw, name, tagline);
+
+  renderGraphiteHeroTitle(name);
+
+  var eyebrow = document.getElementById('heroEyebrow');
+  if (eyebrow) {
+    eyebrow.textContent = ciudad ? 'Boutique · Conceptstore · ' + ciudad : '';
+    eyebrow.style.display = ciudad ? '' : 'none';
+  }
+
+  var heroTag = document.getElementById('heroTagline');
+  if (heroTag) heroTag.textContent = tagline;
+
+  var aboutDesc = document.getElementById('aboutDescripcion');
+  if (aboutDesc) aboutDesc.textContent = descripcion;
+
+  var aboutWrap = document.getElementById('aboutPhotoWrap');
+  var aboutImg = document.getElementById('aboutPhotoImg');
+  var hasFoto = Object.prototype.hasOwnProperty.call(raw, 'foto_equipo');
+  var foto =
+    hasFoto || shouldUseGraphiteSampleMedia()
+      ? graphiteResolvePreviewPhotoSrc(raw.foto_equipo, 'foto_equipo')
+      : '';
+  if (aboutWrap && aboutImg) {
+    if (foto) {
+      aboutImg.style.backgroundImage = 'url("' + escapeAttr(foto) + '")';
+      aboutWrap.classList.remove('is-hidden');
+      aboutWrap.classList.add('in');
+    } else {
+      aboutImg.style.backgroundImage = '';
+      aboutWrap.classList.add('is-hidden');
+    }
+  }
+
+  updateGraphiteHeroPhotos(raw);
+
+  applyAboutMeta(raw);
+  if (typeof lwApplyContactLinks === 'function') lwApplyContactLinks(raw);
+  applyContactRows(raw);
+
+  var mlat = raw.map_lat;
+  var mlon = raw.map_lon;
+  var latN = typeof mlat === 'number' ? mlat : parseFloat(mlat);
+  var lonN = typeof mlon === 'number' ? mlon : parseFloat(mlon);
+  if (Number.isFinite(latN) && Number.isFinite(lonN)) {
+    updateGraphitePreviewMap(latN, lonN);
+  } else {
+    updateGraphitePreviewMap(NaN, NaN);
+  }
+
+  syncGraphiteScheduleFromPreview(raw.horario);
+  renderSchedule();
+  syncGraphiteTemplateExtensions(raw);
+
+  if (typeof window.graphiteRefreshParallax === 'function') {
+    window.graphiteRefreshParallax();
+  }
+
+  if (opts.alignToHash) scrollEmbedPreviewToHash();
+}
+
+(function initGraphitePreviewSampleMedia() {
+  if (!shouldUseGraphiteSampleMedia()) return;
+  function boot() {
+    updateGraphiteHeroPhotos({ portada: '', portada_2: '', portada_3: '' });
+    var aboutWrap = document.getElementById('aboutPhotoWrap');
+    var aboutImg = document.getElementById('aboutPhotoImg');
+    var foto = graphiteResolvePreviewPhotoSrc('', 'foto_equipo');
+    if (aboutWrap && aboutImg && foto) {
+      aboutImg.style.backgroundImage = 'url("' + escapeAttr(foto) + '")';
+      aboutWrap.classList.remove('is-hidden');
+      aboutWrap.classList.add('in');
+    }
+    renderGraphiteGallery(GRAPHITE_DEFAULT_GALLERY_URLS);
+    syncGraphiteTemplateExtensions({});
+    var hero = document.querySelector('.hero');
+    if (hero) hero.classList.add('ready');
+    var heroTag = document.getElementById('heroTagline');
+    if (heroTag && !heroTag.textContent.trim()) heroTag.textContent = GRAPHITE_PREVIEW_COPY.tagline;
+    var aboutDesc = document.getElementById('aboutDescripcion');
+    if (aboutDesc && !aboutDesc.textContent.trim()) aboutDesc.textContent = GRAPHITE_PREVIEW_COPY.descripcion;
+    var eyebrow = document.getElementById('heroEyebrow');
+    if (eyebrow && !eyebrow.textContent.trim()) {
+      eyebrow.textContent = 'Boutique · Moda · ' + GRAPHITE_PREVIEW_COPY.ciudad;
+      eyebrow.style.display = '';
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+
+(function initLivePreviewFromQuery() {
+  var params = new URLSearchParams(window.location.search);
+  if (!params.has('preview')) {
+    syncGraphiteScheduleFromPreview(null);
+    renderSchedule();
+    if (shouldUseGraphiteSampleMedia()) {
+      updateGraphiteHeroPhotos({ portada: '', portada_2: '', portada_3: '' });
+      renderGraphiteGallery(GRAPHITE_DEFAULT_GALLERY_URLS);
+      syncGraphiteTemplateExtensions({});
+    }
+    if (window.location.hash) scrollEmbedPreviewToHash();
+    return;
+  }
+  applyLivePreviewData(
+    {
+      nombre: params.get('nombre') || '',
+      tagline: params.get('tagline') || '',
+      telefono: params.get('telefono') || '',
+      portada: params.get('portada') || '',
+      portada_2: params.get('portada_2') || '',
+      portada_3: params.get('portada_3') || '',
+      descripcion: params.get('descripcion') || '',
+      foto_equipo: params.get('foto_equipo') || '',
+      direccion: params.get('direccion') || '',
+      correo: params.get('correo') || '',
+      ciudad: params.get('ciudad') || '',
+    },
+    { alignToHash: !!window.location.hash.replace(/^#/, '') }
+  );
+})();
+
+(function initGraphiteEmbedHashScroll() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('embed') !== '1') return;
+  if (!window.location.hash) return;
+  function boot() {
+    scrollEmbedPreviewToHash();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+
+(function initSecureMessageListener() {
+  var queryOrigin = new URLSearchParams(location.search).get('parentOrigin') || '';
+  var DEV_ORIGINS = [
+    'http://localhost',
+    'http://localhost:5173',
+    'http://localhost:4173',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:4173',
+  ];
+  function isAllowedOrigin(origin) {
+    if (queryOrigin) return origin === queryOrigin;
+    return DEV_ORIGINS.indexOf(origin) !== -1;
+  }
+  window.addEventListener('message', function (event) {
+    if (!isAllowedOrigin(event.origin)) return;
+    var data = event.data;
+    if (!data || data.type !== 'lw:onboarding-preview') return;
+    applyLivePreviewData(data.payload || {}, { alignToHash: data.alignToHash === true });
+  });
+})();
+
+syncGraphiteScheduleFromPreview(null);
+renderSchedule();
+setInterval(renderSchedule, 60000);
+</script>
+
+</body>
+</html>

@@ -12,6 +12,7 @@
 export type TourStepId =
   | 'mi-pagina'
   | 'editor'
+  | 'diseno'
   | 'imagenes'
   | 'horarios'
   | 'servicios'
@@ -26,6 +27,7 @@ export type TourSide = 'right' | 'left' | 'top' | 'bottom' | 'center'
 export type TourIconName =
   | 'home'
   | 'edit'
+  | 'layout'
   | 'image'
   | 'clock'
   | 'list'

@@ -17,6 +17,8 @@ export type OnboardingStep1VariantPersist =
   | 'versa-studio'
   | 'mono-edito'
   | 'luxe-atelier'
+  | 'graphite-soft'
+  | 'wild-pet'
 
 export type OnboardingStep1SubStepPersist = 'logo' | 'template'
 

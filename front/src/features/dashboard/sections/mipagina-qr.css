@@ -177,6 +177,66 @@
   gap: 6px;
   padding: 10px 12px;
   border-radius: var(--lw-r-sm);
-  background: var(--lw-surface);
+  background: var(--lw-bg);
   border: 1px solid var(--lw-border);
+}
+
+.lw-mipagina-qr-presets {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.lw-mipagina-qr-preset {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.lw-mipagina-qr-preset:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.lw-mipagina-qr-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--lw-border);
+  border-radius: var(--lw-r);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.lw-mipagina-qr-switch-track {
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--lw-border-2);
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.lw-mipagina-qr-switch-track[data-on='true'] {
+  background: var(--lw-accent);
+}
+
+.lw-mipagina-qr-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left 0.15s ease;
+}
+
+.lw-mipagina-qr-switch-track[data-on='true'] .lw-mipagina-qr-switch-thumb {
+  left: 18px;
 }

@@ -198,6 +198,18 @@ export interface Template {
   suitable_sectors: string[]
   sort_order: number
   featured: boolean
+  locked?: boolean
+}
+
+export interface DashboardTemplatesResponse {
+  templates: Template[]
+  meta: {
+    can_change: boolean
+    current_template_id: number | null
+    cooldown_days: number
+    on_cooldown: boolean
+    available_at: string | null
+  }
 }
 
 export interface BusinessImage {

@@ -1,10 +1,26 @@
 import { apiClient } from './client'
-import type { ApiResponse, OnboardingStatus, Schedule, Step7Response, StepResponse, Template } from '../types/api'
+import type {
+  ApiResponse,
+  DashboardTemplatesResponse,
+  OnboardingStatus,
+  Schedule,
+  Step7Response,
+  StepResponse,
+  Template,
+} from '../types/api'
 import { compressImageForUpload, compressImagesForUpload } from '../utils/compressImageForUpload'
 
+function normalizeOnboardingTemplatesPayload(payload: unknown): Template[] {
+  if (Array.isArray(payload)) return payload
+  if (payload && typeof payload === 'object' && Array.isArray((payload as DashboardTemplatesResponse).templates)) {
+    return (payload as DashboardTemplatesResponse).templates
+  }
+  return []
+}
+
 export async function fetchOnboardingTemplates(): Promise<Template[]> {
-  const response = await apiClient.get<ApiResponse<Template[]>>('/onboarding/templates')
-  return response.data.data
+  const response = await apiClient.get<ApiResponse<Template[] | DashboardTemplatesResponse>>('/onboarding/templates')
+  return normalizeOnboardingTemplatesPayload(response.data.data)
 }
 
 export async function getStatus(): Promise<OnboardingStatus> {

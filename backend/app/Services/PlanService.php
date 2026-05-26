@@ -26,6 +26,11 @@ class PlanService
         return (bool) $this->planConfig($user)['can_choose_subdomain'];
     }
 
+    public function canChangeTemplate(User $user): bool
+    {
+        return (bool) $this->planConfig($user)['can_change_template'];
+    }
+
     public function canRemoveBranding(User $user): bool
     {
         return (bool) $this->planConfig($user)['remove_branding'];

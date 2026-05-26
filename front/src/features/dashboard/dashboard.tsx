@@ -97,6 +97,7 @@ function DashSidebar({
   const items = [
     { icon: 'home', t: 'Mi página', to: '/dashboard', end: true, dataTour: 'mi-pagina' },
     { icon: 'edit', t: 'Editar', to: '/dashboard/editor', dataTour: 'editor' },
+    { icon: 'layout', t: 'Diseño', to: '/dashboard/diseno', dataTour: 'diseno' },
     { icon: 'image', t: 'Imágenes', to: '/dashboard/images', dataTour: 'imagenes' },
     { icon: 'clock', t: 'Horarios', to: '/dashboard/schedule', dataTour: 'horarios' },
     { icon: 'list', t: 'Servicios', to: '/dashboard/services', dataTour: 'servicios' },

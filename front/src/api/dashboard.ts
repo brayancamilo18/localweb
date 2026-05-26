@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import type { ApiResponse, Business, BusinessImage, StatsData, Template } from '../types/api'
+import type { ApiResponse, Business, BusinessImage, DashboardTemplatesResponse, StatsData } from '../types/api'
 
 /** Google Business + vCard; se envían `null` en maps/reservas para limpiar enlaces manuales antiguos. */
 export type BusinessIntegrationsUpdate = {
@@ -22,7 +22,7 @@ export async function setBusinessSubdomain(subdomain: string): Promise<Business>
   return response.data.data
 }
 
-export async function updateBusiness(data: Partial<Business> & { template_id?: number }): Promise<Business> {
+export async function updateBusiness(data: Partial<Business>): Promise<Business> {
   const response = await apiClient.put<ApiResponse<Business>>('/dashboard/business', data)
   return response.data.data
 }
@@ -58,8 +58,13 @@ export async function getStats(params?: {
   return response.data.data
 }
 
-export async function getTemplates(): Promise<Template[]> {
-  const response = await apiClient.get<ApiResponse<Template[]>>('/dashboard/templates')
+export async function getDashboardTemplates(): Promise<DashboardTemplatesResponse> {
+  const response = await apiClient.get<ApiResponse<DashboardTemplatesResponse>>('/dashboard/templates')
+  return response.data.data
+}
+
+export async function changeBusinessTemplate(templateId: number): Promise<Business> {
+  const response = await apiClient.post<ApiResponse<Business>>('/dashboard/template', { template_id: templateId })
   return response.data.data
 }
 

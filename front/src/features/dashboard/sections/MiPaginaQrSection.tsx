@@ -209,17 +209,34 @@ export default function MiPaginaQrSection() {
     <Card padding={20} className="lw-mipagina-qr-card">
       <div className="lw-mipagina-qr-header">
         <div>
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '6px 12px',
+              borderRadius: 999,
+              background: 'var(--lw-accent-soft)',
+              color: 'var(--lw-accent)',
+              fontSize: 12,
+              fontWeight: 600,
+              marginBottom: 12,
+            }}
+          >
+            <Icon name="grid" size={14} /> Código QR
+          </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <h2 className="lw-h3">Código QR</h2>
-            {!isPro && (
+            <h2 className="lw-h3" style={{ margin: 0 }}>
+              Tu cartel listo para imprimir
+            </h2>
+            {!isPro ? (
               <Badge tone="pro" icon="sparkle">
                 Solo Pro
               </Badge>
-            )}
+            ) : null}
           </div>
-          <p className="lw-small" style={{ marginTop: 4, maxWidth: 540 }}>
-            Genera un código QR de tu página para imprimirlo y pegarlo en tu local. Los clientes
-            podrán escanearlo para ver tus servicios, horarios y contacto.
+          <p className="lw-small" style={{ marginTop: 6, maxWidth: 540 }}>
+            Genera un póster con QR para pegar en tu local. Los clientes lo escanean y acceden a tu página.
           </p>
         </div>
       </div>
@@ -325,6 +342,25 @@ export default function MiPaginaQrSection() {
                   </Btn>
                 )}
               </div>
+              <div className="lw-mipagina-qr-presets">
+                {['#0F6E56', '#0B1F1A', '#C2410C', '#1E3A8A', '#7C3AED', '#BE185D'].map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    aria-label={`Color ${c}`}
+                    disabled={!isPro}
+                    onClick={() => setColor(c)}
+                    className="lw-mipagina-qr-preset"
+                    style={{
+                      background: c,
+                      border:
+                        effectiveColor.toLowerCase() === c.toLowerCase()
+                          ? '2px solid var(--lw-text)'
+                          : '1px solid var(--lw-border)',
+                    }}
+                  />
+                ))}
+              </div>
             </Field>
 
             <Field
@@ -351,20 +387,29 @@ export default function MiPaginaQrSection() {
 
             {info.has_logo && (
               <Field label="Incluir logo en el póster">
-                <label className="lw-mipagina-qr-toggle-row">
-                  <input
-                    type="checkbox"
-                    checked={includeLogo}
-                    onChange={(e) => setIncludeLogo(e.target.checked)}
-                    disabled={!isPro}
-                  />
-                  <span className="lw-small">
+                <label
+                  className="lw-mipagina-qr-switch"
+                  style={{
+                    background: includeLogo ? 'var(--lw-accent-soft)' : 'var(--lw-bg-elev)',
+                  }}
+                >
+                  <span className="lw-mipagina-qr-switch-track" data-on={includeLogo ? 'true' : 'false'}>
+                    <span className="lw-mipagina-qr-switch-thumb" />
+                  </span>
+                  <span className="lw-small" style={{ flex: 1 }}>
                     {logoLoading
                       ? 'Cargando logo…'
                       : includeLogo
                         ? 'Sí, en la parte superior del póster'
                         : 'No incluir logo'}
                   </span>
+                  <input
+                    type="checkbox"
+                    checked={includeLogo}
+                    onChange={(e) => setIncludeLogo(e.target.checked)}
+                    disabled={!isPro}
+                    style={{ display: 'none' }}
+                  />
                 </label>
               </Field>
             )}

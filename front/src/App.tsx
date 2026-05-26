@@ -17,6 +17,7 @@ import VerifyEmailPage from './pages/VerifyEmailPage'
 import DashboardPage from './features/dashboard/DashboardPage'
 import MiPagina from './features/dashboard/sections/MiPagina'
 import Editor from './features/dashboard/sections/Editor'
+import Diseno from './features/dashboard/sections/Diseno'
 import Imagenes from './features/dashboard/sections/Imagenes'
 import Horarios from './features/dashboard/sections/Horarios'
 import Estadisticas from './features/dashboard/sections/Estadisticas'
@@ -42,7 +43,15 @@ import CookiesPage from './pages/legal/CookiesPage'
 import PrivacidadPage from './pages/legal/PrivacidadPage'
 import TerminosPage from './pages/legal/TerminosPage'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60_000,
+      gcTime: 30 * 60_000,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
 
 function RootRedirect() {
   const { isLoading, isAuthenticated } = useAuth()
@@ -108,6 +117,7 @@ function AppRoutes() {
         <Route path="/dashboard" element={<DashboardPage />}>
           <Route index element={<MiPagina />} />
           <Route path="editor" element={<Editor />} />
+          <Route path="diseno" element={<Diseno />} />
           <Route path="images" element={<Imagenes />} />
           <Route path="schedule" element={<Horarios />} />
           <Route path="services" element={<Servicios />} />

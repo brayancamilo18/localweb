@@ -16,12 +16,15 @@ class Business extends Tenant
 {
     use HasFactory, SoftDeletes;
 
+    public const TEMPLATE_CHANGE_COOLDOWN_DAYS = 30;
+
     protected $fillable = [
         'name',
         'subdomain',
         'subdomain_type',
         'sector',
         'template_id',
+        'template_changed_at',
         'logo_path',
         'favicon_path',
         'description',
@@ -53,6 +56,7 @@ class Business extends Tenant
     protected function casts(): array
     {
         return [
+            'template_changed_at' => 'datetime',
             'plan_activated_at' => 'datetime',
             'onboarding_completed_at' => 'datetime',
             'dashboard_tour_completed_at' => 'datetime',
@@ -90,6 +94,29 @@ class Business extends Tenant
     public function template(): BelongsTo
     {
         return $this->belongsTo(Template::class);
+    }
+
+    /**
+     * Fecha a partir de la cual el negocio puede volver a cambiar de plantilla.
+     * Devuelve null si nunca ha cambiado (puede cambiar ya).
+     */
+    public function templateChangeAvailableAt(): ?\Illuminate\Support\Carbon
+    {
+        if ($this->template_changed_at === null) {
+            return null;
+        }
+
+        return $this->template_changed_at->copy()->addDays(self::TEMPLATE_CHANGE_COOLDOWN_DAYS);
+    }
+
+    /**
+     * ¿Está el negocio dentro del periodo de enfriamiento (no puede cambiar todavía)?
+     */
+    public function isTemplateChangeOnCooldown(): bool
+    {
+        $availableAt = $this->templateChangeAvailableAt();
+
+        return $availableAt !== null && $availableAt->isFuture();
     }
 
     public function getWhatsAppUrlAttribute(): ?string

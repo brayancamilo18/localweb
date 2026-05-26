@@ -21,6 +21,7 @@ class TemplateResource extends JsonResource
             'suitable_sectors' => (array) ($this->suitable_sectors ?: []),
             'sort_order' => (int) $this->sort_order,
             'featured' => (bool) $this->featured,
+            'locked' => $this->when(isset($this->locked), fn () => (bool) $this->locked),
         ];
     }
 }

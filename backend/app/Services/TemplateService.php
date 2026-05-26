@@ -23,6 +23,24 @@ class TemplateService
         return $query->get();
     }
 
+    /**
+     * Catálogo completo para onboarding: incluye plantillas PRO visibles (upsell)
+     * y marca `locked` cuando el plan efectivo no las permite usar sin Pro.
+     */
+    public function getTemplatesForOnboarding(string $plan): Collection
+    {
+        $isPro = $plan === 'pro';
+
+        return Template::query()
+            ->active()
+            ->get()
+            ->map(function ($template) use ($isPro) {
+                $template->locked = ! $isPro && (bool) $template->requires_pro;
+
+                return $template;
+            });
+    }
+
     public function exists(int $id): bool
     {
         return Template::query()->whereKey($id)->exists();

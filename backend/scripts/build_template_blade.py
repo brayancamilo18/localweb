@@ -21,9 +21,11 @@ SLUGS_ORDER = [
     "versa-studio",
     "mono-edito",
     "luxe-atelier",
+    "graphite-soft",
+    "wild-pet",
 ]
 
-PRO_HERO_3 = {"tavola-warm", "versa-studio", "mono-edito", "luxe-atelier"}
+PRO_HERO_3 = {"tavola-warm", "versa-studio", "mono-edito", "luxe-atelier", "graphite-soft", "wild-pet"}
 
 # Static HTML placeholders → TenantViewPayload keys (or Blade expressions).
 PLACEHOLDER_MAP: dict[str, str] = {
@@ -134,7 +136,7 @@ def extract_parts(html: str) -> tuple[str, str, str, str]:
             style_start = i
         if "</head>" in line:
             head_end = i
-        if "<body>" in line:
+        if "<body" in line and body_start is None:
             body_start = i
         if "</body>" in line:
             body_end = i
@@ -199,6 +201,14 @@ def apply_common_body(body: str, slug: str) -> str:
     body = body.replace("{{tagline}}", "{{ $tagline }}")
     body = body.replace("{{descripcion}}", "{{ $descripcion }}")
     body = body.replace("{{telefono}}", "{{ $telefono }}")
+    body = body.replace(
+        'id="tplContactPhoneVal" data-phone-display></span>',
+        'id="tplContactPhoneVal" data-phone-display>{{ $telefono }}</span>',
+    )
+    body = body.replace(
+        'id="tplContactPhone" data-tel-link class="is-hidden"',
+        'id="tplContactPhone" data-tel-link class="{{ ($telefono || $whatsapp) ? \'\' : \'is-hidden\' }}"',
+    )
     body = body.replace("{{direccion}}", "{{ $direccion }}")
 
     # Social
@@ -256,7 +266,96 @@ def apply_pro_hero_three(body: str) -> str:
     return body
 
 
-def apply_urban_like_transforms(body: str) -> str:
+def apply_wild_hero_title(body: str, slug: str) -> str:
+    if slug != "wild-pet":
+        return body
+    return re.sub(
+        r'<h1 id="heroTitle" class="split">.*?</h1>',
+        '<h1 id="heroTitle" class="split"><span class="w w-1">{{ $nombre ?: \'Tu\' }}</span> '
+        '<span class="w w-2">mascota</span><br>'
+        '<span class="w w-3">lo va</span> <span class="w w-4">a</span> '
+        '<span class="w w-5">pasar</span> <span class="w w-6">genial.</span></h1>',
+        body,
+        count=1,
+        flags=re.DOTALL,
+    )
+
+
+def apply_graphite_hero_title(body: str, slug: str) -> str:
+    if slug != "graphite-soft":
+        return body
+    return re.sub(
+        r'<h1 class="serif h-display" id="heroTitle">.*?</h1>',
+        '<h1 class="serif h-display" id="heroTitle"><span class="word"><i>{{ $nombre ?: \'Tu boutique\' }}</i></span></h1>',
+        body,
+        count=1,
+        flags=re.DOTALL,
+    )
+
+
+def apply_graphite_footer(body: str, slug: str) -> str:
+    if slug != "graphite-soft":
+        return body
+    foot_brand = (
+        "@php\n"
+        "  $footParts = preg_split('/\\s+/', trim($nombre));\n"
+        "@endphp\n"
+        '      <div class="foot-brand" id="footBrand">@if(count($footParts) >= 2){{ $footParts[0] }}'
+        '<br/><span class="accent">{{ implode(\' \', array_slice($footParts, 1)) }}</span>'
+        "@else<span class=\"accent\">{{ $nombre ?: 'Tu boutique' }}</span>@endif</div>"
+    )
+    body = re.sub(
+        r'<div class="foot-brand" id="footBrand">.*?</div>',
+        lambda _m: foot_brand,
+        body,
+        count=1,
+        flags=re.DOTALL,
+    )
+    body = body.replace('<p id="footTagline"></p>', '<p id="footTagline">{{ $tagline }}</p>')
+    body = body.replace(
+        '<span id="footBottomBrand">© 2026 · Tu boutique</span>',
+        "<span id=\"footBottomBrand\">© {{ date('Y') }} · {{ $nombre }}</span>",
+    )
+    body = body.replace(
+        '<a href="#servicios" id="footNavServicios" style="display:none"',
+        '<a href="#servicios" id="footNavServicios"@if(count($services) === 0) style="display:none;"@endif',
+    )
+    body = body.replace(
+        '<a href="#galeria" id="footNavGaleria" style="display:none"',
+        '<a href="#galeria" id="footNavGaleria"@if(count($galeria ?? []) === 0) style="display:none;"@endif',
+    )
+    body = body.replace(
+        '<a href="#opiniones" id="footNavOpiniones" style="display:none"',
+        '<a href="#opiniones" id="footNavOpiniones"@if(!$google_business_url) style="display:none;"@endif',
+    )
+    body = body.replace(
+        '<li id="footEmailRow" hidden>',
+        '<li id="footEmailRow"@if(!$correo) hidden @endif>',
+    )
+    body = body.replace(
+        '<a id="footEmailLink" href="mailto:">',
+        '<a id="footEmailLink" href="mailto:{{ $correo }}">',
+    )
+    body = body.replace(
+        '<span id="footEmailDisplay"></span>',
+        '<span id="footEmailDisplay">{{ $correo }}</span>',
+    )
+    body = body.replace(
+        '<li id="footAddressRow" hidden>',
+        '<li id="footAddressRow"@if(!$direccion) hidden @endif>',
+    )
+    body = body.replace(
+        '<a href="#" id="footAddressLink"',
+        '<a href="{{ $google_maps_url ?: \'#\' }}" id="footAddressLink"@if($google_maps_url) target="_blank" rel="noopener noreferrer"@endif',
+    )
+    body = body.replace(
+        '<span id="footAddressText"></span>',
+        '<span id="footAddressText">{{ $direccion }}</span>',
+    )
+    return body
+
+
+def apply_urban_like_transforms(body: str, slug: str = "") -> str:
     """Transforms for JS-driven templates (urban-bold family)."""
     if 'id="heroTitle">Tu negocio' in body:
         body = body.replace('id="heroTitle">Tu negocio', 'id="heroTitle">{{ $nombre }}')
@@ -286,7 +385,9 @@ def apply_urban_like_transforms(body: str) -> str:
     if '<div class="gallery-grid" id="galleryLive"></div>' in body:
         body = body.replace('<div class="gallery-grid" id="galleryLive"></div>', GALLERY_GRID)
 
-    services_blade = SERVICES_URBAN
+    services_blade = SERVICES_GRAPHITE if slug == "graphite-soft" else SERVICES_URBAN
+    if slug == "wild-pet":
+        services_blade = SERVICES_WILD
     if 'id="tplServicesList"></div>' in body and "@foreach($services" not in body:
         body = re.sub(
             r'(<section id="servicios"[^>]*>.*?<div class="[^"]*" id="tplServicesList">)</div>',
@@ -295,6 +396,202 @@ def apply_urban_like_transforms(body: str) -> str:
             count=1,
             flags=re.DOTALL,
         )
+
+    if slug == "wild-pet":
+        body = apply_wild_blade_transforms(body)
+
+    return body
+
+
+def apply_wild_footer(body: str) -> str:
+    body = body.replace('<span id="footBrand">Tu negocio</span>', '<span id="footBrand">{{ $nombre }}</span>')
+    body = re.sub(
+        r'<p id="footTagline"[^>]*>.*?</p>',
+        '<p id="footTagline" style="margin-top: 1rem; color: rgba(255,248,236,.75); max-width: 36ch;">{{ $tagline ?: $descripcion }}</p>',
+        body,
+        count=1,
+        flags=re.DOTALL,
+    )
+    body = re.sub(
+        r'<span id="footBottomBrand">© <span id="year"></span> · Todos los derechos reservados</span>',
+        '<span id="footBottomBrand">© <span id="year"></span> · {{ $nombre }} · Todos los derechos reservados</span>',
+        body,
+        count=1,
+    )
+    foot_contact_old = """      <div>
+        <h4>Contacto</h4>
+        <ul>
+          <li id="footPhoneRow" hidden><a href="tel:" data-tel-link><span data-phone-display></span></a></li>
+          <li id="footEmailRow" hidden><a id="footEmailLink" href="#"><span id="footEmailDisplay"></span></a></li>
+          <li id="footAddressRow" hidden><a href="#" id="footAddressLink"><span id="footAddressText"></span></a></li>
+        </ul>
+      </div>"""
+    foot_contact_blade = """      <div>
+        <h4>Contacto</h4>
+        <ul>
+          <li id="footPhoneRow" @if(empty($telefono) && empty($whatsapp)) hidden @endif><a href="{{ $whatsapp ? 'tel:+'.$whatsapp : 'tel:' }}" data-tel-link><span data-phone-display>{{ $telefono }}</span></a></li>
+          <li id="footEmailRow" @if(empty($correo)) hidden @endif><a id="footEmailLink" href="{{ $correo ? 'mailto:'.$correo : '#' }}"><span id="footEmailDisplay">{{ $correo }}</span></a></li>
+          <li id="footAddressRow" @if(empty($direccion) && empty($ciudad)) hidden @endif><a href="#" id="footAddressLink"><span id="footAddressText">@if($direccion && $ciudad){{ $direccion }} · {{ $ciudad }}@elseif($direccion){{ $direccion }}@else{{ $ciudad }}@endif</span></a></li>
+        </ul>
+      </div>"""
+    if foot_contact_old in body:
+        body = body.replace(foot_contact_old, foot_contact_blade)
+
+    foot_social_old = """      <div>
+        <h4>Síguenos</h4>
+        <ul>
+          <li id="footSocialInstagramRow" hidden><a href="#" id="tplSocialInstagram" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+          <li id="footSocialTiktokRow" hidden><a href="#" id="tplSocialTiktok" target="_blank" rel="noopener noreferrer">TikTok</a></li>
+          <li id="footGbizRow" hidden><a href="#" id="footGbizLink" target="_blank" rel="noopener noreferrer">Google Business</a></li>
+        </ul>
+      </div>"""
+    foot_social_blade = """      <div>
+        <h4>Síguenos</h4>
+        <ul>
+          <li id="footSocialInstagramRow" @if(empty($instagram_url)) hidden @endif><a href="#" id="tplSocialInstagram" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+          <li id="footSocialTiktokRow" @if(empty($tiktok_url)) hidden @endif><a href="#" id="tplSocialTiktok" target="_blank" rel="noopener noreferrer">TikTok</a></li>
+          <li id="footGbizRow" @if(empty($google_business_url)) hidden @endif><a href="{{ $google_business_url ?: '#' }}" id="footGbizLink" target="_blank" rel="noopener noreferrer">Google Business</a></li>
+        </ul>
+      </div>"""
+    if foot_social_old in body:
+        body = body.replace(foot_social_old, foot_social_blade)
+
+    return body
+
+
+def apply_wild_blade_transforms(body: str) -> str:
+    if 'id="heroTagline">Tagline corto y divertido' in body:
+        body = body.replace(
+            "id=\"heroTagline\">Tagline corto y divertido que explique a quién cuidas y qué hace especial a tu negocio. Con energía y personalidad.",
+            "id=\"heroTagline\">{{ $tagline }}",
+        )
+    if "id=\"aboutDescripcion\">Descripción cercana" in body:
+        body = body.replace(
+            "id=\"aboutDescripcion\">Descripción cercana del equipo: por qué empezasteis, qué os mueve, cómo trabajáis. Con personalidad y buen rollo.",
+            "id=\"aboutDescripcion\">{{ $descripcion }}",
+        )
+
+    body = re.sub(
+        r'<div class="gallery" data-stagger id="galleryLive"></div>',
+        GALLERY_WILD,
+        body,
+        count=1,
+    )
+
+    body = re.sub(
+        r'<div class="schedule sr" id="schedule"[^>]*></div>',
+        SCHEDULE_WILD,
+        body,
+        count=1,
+    )
+
+    for var, slot, img in (
+        ("portada", "hp1", "hp1Img"),
+        ("portada_2", "hp2", "hp2Img"),
+        ("portada_3", "hp3", "hp3Img"),
+    ):
+        pat = (
+            rf'(<div class="hero-photo hp-{slot[-1]} sr" id="{slot}"[^>]*>)\s*'
+            rf'<div class="photo-fallback" id="{img}"[^>]*>.*?</div>\s*</div>'
+        )
+        blade_var = "{{ $" + var + " }}"
+        repl = (
+            rf'\1<div class="photo-fallback" id="{img}" role="img" '
+            + f"@if(${var}) style=\"background-image:url('{blade_var}')\" class=\"has-photo\" @endif></div></div>"
+        )
+        body = re.sub(pat, repl, body, count=1, flags=re.DOTALL)
+
+    body = re.sub(
+        r'<div class="about-photo sr" id="aboutPhotoWrap"([^>]*)>\s*'
+        r'<div class="photo-fallback" id="aboutPhotoImg"[^>]*>.*?</div>\s*</div>',
+        r'<div class="about-photo sr @if($foto_equipo) has-photo @endif" id="aboutPhotoWrap"\1>\n'
+        r'        <div class="photo-fallback" id="aboutPhotoImg" role="img" aria-label="Foto del equipo"'
+        + ' @if($foto_equipo) style="background-image:url(\'{{ $foto_equipo }}\')" class="has-photo" @endif>\n'
+        r'          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="9" r="3"/><circle cx="17" cy="11" r="2.4"/>'
+        r'<path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M14 20c0-2 2-4 4-4s3 1.5 3 3.5"/></svg>\n'
+        r'        </div>\n      </div>',
+        body,
+        count=1,
+        flags=re.DOTALL,
+    )
+
+    about_stats_html = """        <div class="about-stats num" data-stagger>
+          <a class="about-stat" href="#" id="aboutStatWhatsapp" hidden>
+            <div class="n num" id="aboutStatPhoneVal"></div>
+            <div class="l">WhatsApp</div>
+          </a>
+          <a class="about-stat" href="#" id="aboutStatEmail" hidden>
+            <div class="n" id="aboutStatEmailVal"></div>
+            <div class="l">Correo</div>
+          </a>
+        </div>"""
+    if about_stats_html in body:
+        body = body.replace(about_stats_html, ABOUT_STATS_WILD)
+
+    if '<div class="services-grid" data-stagger id="tplServicesList"></div>' in body:
+        body = body.replace(
+            '<div class="services-grid" data-stagger id="tplServicesList"></div>',
+            '<div class="services-grid" data-stagger id="tplServicesList">\n' + SERVICES_WILD + "\n    </div>",
+        )
+
+    body = body.replace(
+        'id="tplContactPhone" data-tel-link style="display:none"',
+        'id="tplContactPhone" data-tel-link @if(empty($telefono) && empty($whatsapp)) style="display:none" @endif',
+    )
+    body = body.replace(
+        'id="tplContactEmail" style="display:none"',
+        'id="tplContactEmail" @if(empty($correo)) style="display:none" @endif',
+    )
+    body = body.replace(
+        'id="tplContactAddress" style="display:none"',
+        'id="tplContactAddress" @if(empty($direccion)) style="display:none" @endif',
+    )
+    body = body.replace(
+        '<div class="value num" id="tplContactPhoneVal" data-phone-display></div>',
+        '<div class="value num" id="tplContactPhoneVal" data-phone-display>{{ $telefono }}</div>',
+    )
+    body = body.replace(
+        '<div class="value" id="tplContactEmailVal"></div>',
+        '<div class="value" id="tplContactEmailVal">{{ $correo }}</div>',
+    )
+    body = body.replace(
+        '<div class="value" id="tplContactAddressVal"></div>',
+        '<div class="value" id="tplContactAddressVal">{{ $direccion }}</div>',
+    )
+
+    map_dirs_simple = """    <div class="map-directions" id="mapDirectionsRow">
+      <a href="#" id="tplMapsExternalLink" class="btn btn-amar" target="_blank" rel="noopener noreferrer">Abrir en Google Maps →</a>
+    </div>"""
+    map_dirs_legacy = """    <div class="map-directions sr" id="mapDirectionsRow" hidden>
+      <a href="{{ $google_maps_url ?: '#' }}" id="tplMapsExternalLink" class="btn btn-amar" target="_blank" rel="noopener noreferrer">Abrir en Google Maps →</a>
+    </div>"""
+    map_dirs_blade_simple = """    <div class="map-directions" id="mapDirectionsRow">
+      <a href="{{ $google_maps_url ?: '#' }}" id="tplMapsExternalLink" class="btn btn-amar" target="_blank" rel="noopener noreferrer">Abrir en Google Maps →</a>
+    </div>"""
+    for old in (map_dirs_simple, map_dirs_legacy, map_dirs_blade_simple):
+        if old in body:
+            body = body.replace(old, MAP_DIRECTIONS_WILD.rstrip("\n"))
+            break
+
+    body = body.replace(
+        'id="map" class="sr" style="--sr-rot:-1.5deg;" role="application" aria-label="Mapa de ubicación"',
+        'id="map" role="application" aria-label="Mapa de ubicación"',
+    )
+
+    body = re.sub(
+        r'<div class="final-cta-photo" id="finalCtaPhotoWrap">\s*'
+        r'<div class="photo-fallback" id="finalCtaPhotoImg"[^>]*>.*?</div>\s*</div>',
+        '<div class="final-cta-photo @if($foto_equipo) has-photo @endif" id="finalCtaPhotoWrap">\n'
+        '        <div class="photo-fallback" id="finalCtaPhotoImg" role="img" aria-label="Foto del equipo"'
+        + ' @if($foto_equipo) style="background-image:url(\'{{ $foto_equipo }}\')" class="has-photo" @endif>\n'
+        '          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="9" r="3"/><circle cx="17" cy="11" r="2.4"/>'
+        '<path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M14 20c0-2 2-4 4-4s3 1.5 3 3.5"/></svg>\n'
+        '        </div>\n'
+        '      </div>',
+        body,
+        count=1,
+        flags=re.DOTALL,
+    )
 
     return body
 
@@ -364,9 +661,125 @@ SERVICES_URBAN = """
     </div>
 @endforeach"""
 
+MAP_DIRECTIONS_WILD = """    <div class="map-directions" id="mapDirectionsRow">
+      @php
+        $wildMapsUrl = $google_maps_url ?? null;
+        if (empty($wildMapsUrl) && is_numeric($map_lat) && is_numeric($map_lon)) {
+          $wildMapsUrl = 'https://www.google.com/maps/dir/?api=1&destination=' . $map_lat . ',' . $map_lon;
+        } elseif (empty($wildMapsUrl) && !empty($direccion)) {
+          $wildMapsUrl = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($direccion);
+        } else {
+          $wildMapsUrl = 'https://www.google.com/maps/dir/?api=1&destination=40.4168,-3.7038';
+        }
+      @endphp
+      <a href="{{ $wildMapsUrl }}" id="tplMapsExternalLink" class="btn btn-amar" target="_blank" rel="noopener noreferrer">Abrir en Google Maps →</a>
+    </div>
+"""
+
+ABOUT_STATS_WILD = """        <div class="about-stats num" data-stagger>
+          <a class="about-stat" href="#" id="aboutStatWhatsapp" @if(empty($whatsapp) && empty($telefono)) hidden @endif>
+            <div class="n num" id="aboutStatPhoneVal">{{ $whatsapp ?: $telefono }}</div>
+            <div class="l">WhatsApp</div>
+          </a>
+          <a class="about-stat" href="@if($correo)mailto:{{ $correo }}@else#@endif" id="aboutStatEmail" @if(empty($correo)) hidden @endif>
+            <div class="n" id="aboutStatEmailVal">{{ $correo }}</div>
+            <div class="l">Correo</div>
+          </a>
+        </div>"""
+
+SERVICES_WILD = """
+@foreach($services as $service)
+    <article class="service">
+      <div class="service-icon" aria-hidden="true">🐾</div>
+      <h3>{{ $service['name'] }}</h3>
+      @if(!empty($service['description']))<p>{{ $service['description'] }}</p>@endif
+      <div class="price">
+        <small>Desde</small>
+        <strong class="num">
+        @if($service['price'] !== null)
+        {{ number_format($service['price'], 2, ',', '.') }} €
+        @else
+        Consultar
+        @endif
+        </strong>
+      </div>
+    </article>
+@endforeach"""
+
+SCHEDULE_WILD = """<div class="schedule sr" id="schedule" style="--sr-rot:-1deg;" aria-label="Horario semanal">
+@php
+  $scheduleDays = [
+    ['mon', 'Lunes'],
+    ['tue', 'Martes'],
+    ['wed', 'Miércoles'],
+    ['thu', 'Jueves'],
+    ['fri', 'Viernes'],
+    ['sat', 'Sábado'],
+    ['sun', 'Domingo'],
+  ];
+  $todayIdx = ((int) now()->dayOfWeek + 6) % 7;
+@endphp
+@foreach($scheduleDays as $i => [$key, $full])
+@php
+  $row = is_array($horario) ? ($horario[$key] ?? null) : null;
+  $closed = !$row || !empty($row['closed']);
+  $open = !$closed && !empty($row['open']);
+@endphp
+        <div class="schedule-row{{ $i === $todayIdx ? ' is-today' : '' }}{{ $closed ? ' is-closed' : '' }}">
+          <span class="day">{{ $full }}</span>
+          <span class="hours num">@if($open){{ $row['open'] }} – {{ $row['close'] }}@else Cerrado @endif</span>
+        </div>
+@endforeach
+      </div>"""
+
+GALLERY_WILD = """    <div class="gallery" data-stagger id="galleryLive">
+@php
+  $wildDemoGallery = [
+    'https://images.unsplash.com/photo-1450778869180-41d0601e046e?auto=format&fit=crop&w=900&q=75',
+    'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=900&q=75',
+    'https://images.unsplash.com/photo-1561037404-61cd46aa615b?auto=format&fit=crop&w=900&q=75',
+    'https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=700&q=75',
+    'https://images.unsplash.com/photo-1546527868-ccb7ee7dfa6a?auto=format&fit=crop&w=700&q=75',
+    'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=700&q=75',
+    'https://images.unsplash.com/photo-1526336024174-e58f5cdd8e13?auto=format&fit=crop&w=700&q=75',
+  ];
+@endphp
+@forelse(($galeria ?? []) as $imgUrl)
+    <div class="g-item has-photo"><img class="g-photo" src="{{ $imgUrl }}" alt="" loading="lazy" decoding="async"></div>
+@empty
+@foreach($wildDemoGallery as $imgUrl)
+    <div class="g-item has-photo"><img class="g-photo" src="{{ $imgUrl }}" alt="" loading="lazy" decoding="async"></div>
+@endforeach
+@endforelse
+    </div>"""
+
+SERVICES_GRAPHITE = """
+@foreach($services as $service)
+    <div class="svc-row in">
+      <span class="n">{{ sprintf('%02d', $loop->iteration) }}</span>
+      <span class="t serif">{{ $service['name'] }}</span>
+      <span class="d">{{ $service['description'] ?? '' }}</span>
+      <span class="p">
+        @if($service['price'] !== null)
+        {{ number_format($service['price'], 2, ',', '.') }} €
+        @else
+        Consultar
+        @endif
+      </span>
+    </div>
+@endforeach"""
+
 
 def patch_scripts(scripts: str, slug: str) -> str:
-    scripts = scripts.replace('<script src="/templates/lw-contact-links.js?v=2"></script>\n', "")
+    contact_path = FRONT_TPL / "lw-contact-links.js"
+    contact_tag = re.compile(r'<script src="/templates/lw-contact-links\.js\?v=\d+"></script>\s*\n')
+    contact_match = contact_tag.search(scripts)
+    if contact_match and contact_path.exists():
+        contact_inline = "<script>\n" + contact_path.read_text(encoding="utf-8") + "\n</script>\n"
+        scripts = scripts[: contact_match.start()] + contact_inline + scripts[contact_match.end() :]
+    else:
+        scripts = scripts.replace('<script src="/templates/lw-contact-links.js?v=2"></script>\n', "")
+        scripts = scripts.replace('<script src="/templates/lw-contact-links.js?v=3"></script>\n', "")
     scripts = re.sub(
         r"/\*\*\s*\n \* Mensajería SPA → template\..*?\}\)\(\);\s*\n",
         "",
@@ -390,7 +803,7 @@ def patch_scripts(scripts: str, slug: str) -> str:
     )
     scripts = scripts.replace("  document.title = name + ' — LocalWeb';\n\n", "")
     scripts = scripts.replace("  document.title = name + ' — ';\n\n", "")
-    scripts = scripts.replace("leaflet@1.9.4", "leaflet@@1.9.4")
+    # Scripts van dentro de @verbatim: no escapar @ (leaflet@@ rompe la URL en el navegador).
     scripts = convert_placeholders(scripts)
 
     # Inject map lat fallback in update*PreviewMap if present
@@ -407,7 +820,70 @@ def patch_scripts(scripts: str, slug: str) -> str:
     return scripts, boot
 
 
+WILD_APPLY_BOOT = """    if (typeof applyLivePreviewData === 'function') {
+      applyLivePreviewData({
+        logo_url: @json($logo_url),
+        nombre: @json($nombre),
+        tagline: @json($tagline),
+        telefono: @json($telefono),
+        whatsapp: @json($whatsapp),
+        portada: @json($portada),
+        portada_2: @json($portada_2),
+        portada_3: @json($portada_3),
+        descripcion: @json($descripcion),
+        foto_equipo: @json($foto_equipo),
+        direccion: @json($direccion),
+        correo: @json($correo),
+        ciudad: @json($ciudad),
+        galeria: @json($galeria),
+        horario: @json($horario),
+        map_lat: @json($map_lat),
+        map_lon: @json($map_lon),
+        services: @json($services),
+        google_maps_url: @json($google_maps_url),
+        google_business_url: @json($google_business_url),
+        booking_url: @json($booking_url),
+        vcard_enabled: @json($vcard_enabled),
+        is_pro: @json($is_pro),
+        subdomain: @json($subdomain),
+        api_base_url: @json($api_base_url),
+        vcard_download_url: @json($vcard_download_url),
+        instagram_url: @json($instagram_url),
+        tiktok_url: @json($tiktok_url),
+        facebook_url: @json($facebook_url)
+      });
+    }
+"""
+
+WILD_SCHEDULE_BOOT = """    if (typeof syncWildScheduleFromPreview === 'function') syncWildScheduleFromPreview(@json($horario));
+    if (typeof renderWildSchedule === 'function') renderWildSchedule();
+"""
+
+WILD_MAP_BOOT = """    if (typeof updateWildPreviewMap === 'function') {
+      updateWildPreviewMap(@json(is_numeric($map_lat) ? $map_lat : null), @json(is_numeric($map_lon) ? $map_lon : null), @json($nombre));
+    }
+"""
+
+
 def detect_boot_script(scripts: str, slug: str) -> str:
+    if slug == "wild-pet":
+        return f"""
+<script>
+(function bootWildPetTenantPage() {{
+  function run() {{
+{WILD_APPLY_BOOT}{WILD_SCHEDULE_BOOT}{WILD_MAP_BOOT}    if (typeof window.tvAnimationsRefresh === 'function') {{
+      requestAnimationFrame(function () {{ window.tvAnimationsRefresh(); }});
+    }}
+  }}
+  if (document.readyState === 'loading') {{
+    document.addEventListener('DOMContentLoaded', run);
+  }} else {{
+    run();
+  }}
+}})();
+</script>
+"""
+
     ticker_call = ""
     if "updateBoldTicker" in scripts:
         ticker_call = """    if (typeof updateBoldTicker === 'function') updateBoldTicker({
@@ -440,6 +916,8 @@ def detect_boot_script(scripts: str, slug: str) -> str:
       else if (typeof updateNoirPreviewMap === 'function') updateNoirPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateSleekPreviewMap === 'function') updateSleekPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateBloomPreviewMap === 'function') updateBloomPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateGraphitePreviewMap === 'function') updateGraphitePreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateWildPreviewMap === 'function') updateWildPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
     }
 """
 
@@ -507,11 +985,28 @@ def convert_slug(slug: str) -> Path:
 
     inline_style = inline_style.replace("<style>\n", "@verbatim\n<style>\n", 1)
     inline_style = inline_style.replace("</style>\n", "</style>\n@endverbatim\n", 1)
-    head_links = head_links.replace("leaflet@1.9.4", "leaflet@@1.9.4")
+    head_links = head_links.replace(
+        "https://unpkg.com/leaflet@1.9.4/",
+        "https://unpkg.com/leaflet@' + '1.9.4/",
+    )
 
+    if slug == "wild-pet":
+        body_main = apply_wild_footer(body_main)
     body_main = apply_common_body(body_main, slug)
+    if slug == "wild-pet":
+        body_main = body_main.replace(
+            'href="#" href="{{ $instagram_url }}"',
+            'href="{{ $instagram_url ?: \'#\' }}"',
+        )
+        body_main = body_main.replace(
+            'href="#" href="{{ $tiktok_url }}"',
+            'href="{{ $tiktok_url ?: \'#\' }}"',
+        )
+    body_main = apply_graphite_hero_title(body_main, slug)
+    body_main = apply_wild_hero_title(body_main, slug)
+    body_main = apply_graphite_footer(body_main, slug)
     if slug not in {"versa-studio", "mono-edito", "luxe-atelier"}:
-        body_main = apply_urban_like_transforms(body_main)
+        body_main = apply_urban_like_transforms(body_main, slug)
 
     inicial_php = ""
     if "{{ $inicial }}" in body_main or "navBrandInitial" in body_main:
@@ -521,6 +1016,23 @@ def convert_slug(slug: str) -> Path:
 """
 
     scripts_part, boot_script = patch_scripts(scripts_part, slug)
+
+    if slug == "wild-pet":
+        onez_path = FRONT_TPL / "wild-pet-onez.js"
+        if onez_path.exists():
+            onez_inline = onez_path.read_text(encoding="utf-8")
+            onez_tag = re.search(
+                r'<script src="/templates/wild-pet-onez\.js\?v=\d+"></script>\s*\n',
+                scripts_part,
+            )
+            if onez_tag:
+                scripts_part = (
+                    scripts_part[: onez_tag.start()]
+                    + "<script>\n"
+                    + onez_inline
+                    + "\n</script>\n"
+                    + scripts_part[onez_tag.end() :]
+                )
 
     out = f"""@extends('public.layouts.tenant')
 

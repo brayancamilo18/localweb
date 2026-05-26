@@ -2,37 +2,25 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { trackClick } from '../../api/public'
 import { hasConsent } from '../../lib/cookieConsent'
 import type { PublicBusiness } from '../../types/api'
+import { htmlTemplateSrc } from './htmlTemplateRegistry'
 import { publicBusinessToTemplatePayload } from './publicTemplatePayload'
-
-const TEMPLATE_SRC: Record<string, string> = {
-  'noir-elite': '/templates/noir-elite.html',
-  'bloom-studio': '/templates/bloom-studio.html',
-  'urban-bold': '/templates/urban-bold.html',
-  'coastal-calm': '/templates/coastal-calm.html',
-  'craft-pro': '/templates/craft-pro.html',
-  'tavola-warm': '/templates/tavola-warm.html',
-  'tech-sleek': '/templates/tech-sleek.html',
-  'trust-clinic': '/templates/trust-clinic.html',
-  'versa-studio': '/templates/versa-studio.html',
-  'mono-edito': '/templates/mono-edito.html',
-  'luxe-atelier': '/templates/luxe-atelier.html',
-}
 
 type Props = {
   templateSlug: string
   business: PublicBusiness
+  zIndex?: number
 }
 
-export default function PublicHtmlTemplateFrame({ templateSlug, business }: Props) {
+export default function PublicHtmlTemplateFrame({ templateSlug, business, zIndex }: Props) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   /**
    * Pasamos `parentOrigin` al template como query param para que su listener `message`
    * solo acepte mensajes de este origen (defensa contra postMessage spoofing en el iframe).
    */
   const src = useMemo(() => {
-    const base = TEMPLATE_SRC[templateSlug] ?? TEMPLATE_SRC['urban-bold']
+    const base = htmlTemplateSrc(templateSlug)
     const params = new URLSearchParams({
-      v: '2',
+      v: '3',
       parentOrigin: window.location.origin,
     })
     return `${base}?${params.toString()}`
@@ -83,6 +71,7 @@ export default function PublicHtmlTemplateFrame({ templateSlug, business }: Prop
         padding: 0,
         overflow: 'hidden',
         background: '#0a0a0a',
+        zIndex,
       }}
     >
       <iframe

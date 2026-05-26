@@ -1,10 +1,10 @@
 import type { TourStep } from './types'
 
 /**
- * Contenido final del tour: 9 secciones del dashboard.
+ * Contenido final del tour: 10 secciones del dashboard.
  *
  * Rutas: coinciden con las definidas en `src/App.tsx`
- *   /dashboard, /dashboard/editor, /dashboard/images, /dashboard/schedule,
+ *   /dashboard, /dashboard/editor, /dashboard/diseno, /dashboard/images, /dashboard/schedule,
  *   /dashboard/services, /dashboard/enlaces, /dashboard/stats,
  *   /dashboard/account, /dashboard/security
  *
@@ -39,6 +39,18 @@ export const TOUR_STEPS: readonly TourStep[] = [
     title: 'Editar',
     description: 'Cambia el nombre, la descripción, el teléfono y la plantilla visual de tu página.',
     side: 'right',
+  },
+  {
+    id: 'diseno',
+    route: '/dashboard/diseno',
+    anchorSelector: '[data-tour="diseno"]',
+    anchorSelectorMobile: '[data-tour="diseno-main"]',
+    icon: 'layout',
+    title: 'Diseño',
+    description: 'Elige entre más de 10 plantillas y previsualiza tu web con tus propios datos antes de aplicar.',
+    descriptionFree: 'Con Pro puedes cambiar el diseño de tu web cuando quieras.',
+    side: 'right',
+    proOnly: true,
   },
   {
     id: 'imagenes',

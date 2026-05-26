@@ -20,9 +20,11 @@ use App\Http\Controllers\Api\Dashboard\ImagesController;
 use App\Http\Controllers\Api\Dashboard\ServicesController;
 use App\Http\Controllers\Api\Dashboard\StatsController;
 use App\Http\Controllers\Api\Dashboard\TemplatesController;
+use App\Http\Controllers\Api\Dashboard\TemplateChangeController;
 use App\Http\Controllers\Api\Onboarding\DraftGalleryController;
 use App\Http\Controllers\Api\Onboarding\DraftLogoController;
 use App\Http\Controllers\Api\Onboarding\StatusController;
+use App\Http\Controllers\Api\Onboarding\TemplatesController as OnboardingTemplatesController;
 use App\Http\Controllers\Api\Onboarding\StepController;
 use App\Http\Controllers\Api\Public\BusinessController as PublicBusinessController;
 use App\Http\Controllers\Api\Public\StorageMediaController;
@@ -90,7 +92,7 @@ Route::prefix('v1')->group(function (): void {
                 ->whereNumber('index')
                 ->middleware('throttle:60,1');
             Route::get('/draft-logo', DraftLogoController::class)->middleware('throttle:60,1');
-            Route::get('/templates', TemplatesController::class)->middleware('throttle:60,1');
+            Route::get('/templates', OnboardingTemplatesController::class)->middleware('throttle:60,1');
             Route::post('/step/1', [StepController::class, 'step1'])->middleware('throttle:60,1');
             Route::post('/step/2', [StepController::class, 'step2'])->middleware('throttle:30,1');
             Route::post('/step/3', [StepController::class, 'step3'])->middleware('throttle:60,1');
@@ -113,6 +115,7 @@ Route::prefix('v1')->group(function (): void {
             Route::post('/subdomain', [DashboardBusinessController::class, 'setSubdomain']);
             Route::get('/stats', StatsController::class);
             Route::get('/templates', TemplatesController::class);
+            Route::post('/template', TemplateChangeController::class);
             Route::post('/images', [ImagesController::class, 'store']);
             Route::delete('/images/{image}', [ImagesController::class, 'destroy']);
             Route::put('/images/reorder', [ImagesController::class, 'reorder']);

@@ -65,6 +65,8 @@ export type Step1PreviewVariant =
   | 'versa-studio'
   | 'mono-edito'
   | 'luxe-atelier'
+  | 'graphite-soft'
+  | 'wild-pet'
 
 export const STEP1_PREVIEW_VARIANTS: Step1PreviewVariant[] = [
   'noir-elite',
@@ -78,6 +80,8 @@ export const STEP1_PREVIEW_VARIANTS: Step1PreviewVariant[] = [
   'versa-studio',
   'mono-edito',
   'luxe-atelier',
+  'graphite-soft',
+  'wild-pet',
 ]
 
 function isStep1PreviewVariant(value: unknown): value is Step1PreviewVariant {
@@ -194,6 +198,8 @@ const TEMPLATE_URL_BY_VARIANT: Record<Step1PreviewVariant, string> = {
   'versa-studio': '/templates/versa-studio.html',
   'mono-edito': '/templates/mono-edito.html',
   'luxe-atelier': '/templates/luxe-atelier.html',
+  'graphite-soft': '/templates/graphite-soft.html',
+  'wild-pet': '/templates/wild-pet.html',
 }
 
 /** Texto de ejemplo para miniaturas y vista previa del paso 1 (sin portada, galería ni foto «Sobre nosotros»). */
@@ -275,6 +281,20 @@ const STEP1_TEMPLATE_PREVIEW_DEMO_BY_VARIANT: Record<Step1PreviewVariant, Templa
       'Una maison donde cada visita es una experiencia. Materiales escogidos, oficio impecable y el tiempo necesario para que cada pieza pueda firmarse.',
     phone: '+34 914 88 77 66',
   },
+  'graphite-soft': {
+    businessName: 'Nómada Store',
+    tagline: 'Moda contemporánea y piezas de autor seleccionadas con cuidado',
+    description:
+      'Boutique de ropa en pleno centro: prendas de diseño, básicos atemporales y accesorios en un espacio íntimo pensado para descubrir con calma.',
+    phone: '+34 910 55 44 33',
+  },
+  'wild-pet': {
+    businessName: 'Patitas Felices',
+    tagline: 'Cuidamos a tu mascota con energía, cariño y mucha diversión',
+    description:
+      'Peluquería canina, guardería y paseos con un equipo apasionado por los animales y trato cercano en cada visita.',
+    phone: '+34 915 88 77 66',
+  },
 }
 
 /** URL ficticia en la barra del navegador simulado del preview (solo cosmética). */
@@ -326,6 +346,10 @@ function previewDemoHostForVariant(variant: Step1PreviewVariant): string {
       return 'taller-linea.localweb.es'
     case 'luxe-atelier':
       return 'maison-eclat.localweb.es'
+    case 'graphite-soft':
+      return 'nomada-store.localweb.es'
+    case 'wild-pet':
+      return 'patitas-felices.localweb.es'
     default:
       return 'studio-barber.localweb.es'
   }
@@ -348,6 +372,8 @@ const TEMPLATE_THUMB_PLACEHOLDER_COLOR: Record<Step1PreviewVariant, string> = {
   'versa-studio': '#FAF7F2',
   'mono-edito': '#FAFAF7',
   'luxe-atelier': '#1C1814',
+  'graphite-soft': '#1F1D1A',
+  'wild-pet': '#8B5CF6',
 }
 
 function resolveStep1PreviewVariant(template: Pick<Template, 'slug' | 'name'>): Step1PreviewVariant {
@@ -360,7 +386,7 @@ function resolveStep1PreviewVariant(template: Pick<Template, 'slug' | 'name'>): 
   if (slug.includes('tech') || name.includes('tech') || slug.includes('digital')) return 'tech-sleek'
   if (slug.includes('trust') || name.includes('trust') || slug.includes('clinic')) return 'trust-clinic'
   if (slug.includes('urban') || slug.includes('bold') || name.includes('urban')) return 'urban-bold'
-  if (slug.includes('noir') || name.includes('noir') || slug.includes('soft')) return 'noir-elite'
+  if (slug.includes('noir') || name.includes('noir')) return 'noir-elite'
   if (slug.includes('bloom') || name.includes('bloom') || slug.includes('aurora')) return 'bloom-studio'
   if (slug.includes('versa') || name.includes('versa')) return 'versa-studio'
   if (slug.includes('mono') || slug.includes('edito') || name.includes('edito') || name.includes('editorial')) return 'mono-edito'
@@ -437,7 +463,7 @@ function TemplateIframe({
 
   const src = useMemo(() => {
     const params = new URLSearchParams()
-    params.set('v', '2')
+    params.set('v', '4')
     if (embed) params.set('embed', '1')
     if (mode === 'thumb') params.set('thumb', '1')
     if (previewData) {

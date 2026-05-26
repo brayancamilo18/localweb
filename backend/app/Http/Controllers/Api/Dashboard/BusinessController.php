@@ -64,7 +64,6 @@ class BusinessController extends BaseApiController
              * sesión con su correo personal. */
             'email' => ['nullable', 'email', 'max:191'],
             'address' => ['nullable', 'string'],
-            'template_id' => ['nullable', 'integer'],
             'schedule' => ['nullable', 'array'],
             'google_maps_url' => ['nullable', 'string', 'max:2048', 'regex:#^https?://.+#i'],
             'google_business_url' => ['nullable', 'string', 'max:2048', 'regex:#^https?://.+#i'],
