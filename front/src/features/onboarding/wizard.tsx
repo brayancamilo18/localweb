@@ -24,7 +24,6 @@ import {
   Logo,
   Placeholder,
   Segmented,
-  Switch,
   MiniMap,
   BrowserChrome,
 } from '../../components/primitives/primitives'

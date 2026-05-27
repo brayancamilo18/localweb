@@ -30,7 +30,6 @@ import {
   HorariosPreview,
   PlanPreview,
   PortadaPreview,
-  ServiciosPreview,
   SobrePreview,
   Step1Plantilla,
   Step2Portada,

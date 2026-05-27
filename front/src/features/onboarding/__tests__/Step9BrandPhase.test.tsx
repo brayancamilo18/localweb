@@ -113,6 +113,7 @@ describe('Step9 brand phase', () => {
         default: '#d4ff3a',
         template_slug: 'wild-pet',
         template_meta: null,
+        contrast_warning: null,
         is_pro: true,
         is_supported: false,
       },
