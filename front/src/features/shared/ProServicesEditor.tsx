@@ -13,7 +13,7 @@ import {
 } from '../../api/services'
 import { keys } from '../../api/queryKeys'
 import { useApiError } from '../../hooks/useApiError'
-import type { BusinessService } from '../../types/api'
+import type { Business, BusinessService } from '../../types/api'
 
 const FREE_MAX = 3
 const PRO_MAX = 15
@@ -89,6 +89,11 @@ export default function ProServicesEditor({
   const patchServicesCache = useCallback(
     (updater: (prev: BusinessService[] | undefined) => BusinessService[]) => {
       qc.setQueryData(keys.dashboard.services, updater)
+      qc.setQueryData<Business | undefined>(keys.dashboard.business, (prev) => {
+        if (!prev) return prev
+        const nextServices = updater(prev.services)
+        return { ...prev, services: nextServices }
+      })
       onAfterMutate?.()
     },
     [qc, onAfterMutate],

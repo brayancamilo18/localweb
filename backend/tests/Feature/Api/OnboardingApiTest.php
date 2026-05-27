@@ -2,6 +2,7 @@
 
 use App\Enums\Plan;
 use App\Models\Business;
+use App\Models\BusinessImage;
 use App\Models\Template;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -105,6 +106,56 @@ it('step7 free creates business and returns public url', function () {
     expect(Business::count())->toBe(1);
 });
 
+it('step7 pro succeeds when gallery_paths are synced markers from step4 replace', function () {
+    Storage::fake('local');
+    Storage::fake('r2');
+    $template = Template::create([
+        'name' => 'Noir Elite',
+        'slug' => 'noir-elite',
+        'primary_color' => '#C9A84C',
+        'is_active' => true,
+        'requires_pro' => false,
+    ]);
+    $business = Business::create([
+        'name' => 'Synced Gallery Pro',
+        'subdomain' => 'sync-gal-'.substr(sha1((string) random_int(0, PHP_INT_MAX)), 0, 10),
+        'subdomain_type' => 'random',
+        'sector' => 'otros',
+        'template_id' => $template->id,
+        'is_published' => false,
+    ]);
+    $user = User::factory()->create(['business_id' => $business->id]);
+    $photos = [UploadedFile::fake()->image('g1.jpg', 200, 200)];
+
+    test()->actingAs($user)
+        ->post('/api/v1/onboarding/step/4', [
+            'replace_gallery' => '1',
+            'photos' => $photos,
+        ])
+        ->assertStatus(200);
+
+    Cache::put("onboarding:{$user->id}", array_merge(Cache::get("onboarding:{$user->id}", []), [
+        'template_id' => $template->id,
+        'sector' => 'otros',
+        'business_name' => 'Synced Gallery Pro',
+        'cover_path' => '__synced__',
+        'gallery_paths' => ['__synced__'],
+        'step' => 6,
+        'email' => 'sync@test.example',
+        'phone' => '+34900000000',
+    ]), now()->addHours(4));
+
+    test()->actingAs($user)
+        ->postJson('/api/v1/onboarding/step/7', [
+            'plan' => 'pro',
+            'subdomain' => 'my-synced-'.substr(bin2hex(random_bytes(3)), 0, 6),
+        ])
+        ->assertStatus(200)
+        ->assertJsonPath('data.checkout_url', 'https://checkout.stripe.test/session_onboarding_pro');
+
+    expect(BusinessImage::query()->where('business_id', $business->id)->where('section', 'gallery')->count())->toBe(1);
+});
+
 it('step7 pro creates pending business and returns stripe checkout url in testing', function () {
     $template = Template::create([
         'name' => 'Noir Elite',
@@ -163,6 +214,65 @@ it('step4 rejects more than 3 photos when user has no pro business', function ()
     test()->actingAs($user)
         ->post('/api/v1/onboarding/step/4', ['photos' => $photos])
         ->assertStatus(422);
+});
+
+it('step4 with existing gallery accepts empty photos when revisiting the step', function () {
+    Storage::fake('local');
+    Storage::fake('r2');
+    $business = Business::create([
+        'name' => 'Gallery Revisit',
+        'subdomain' => 'gal-revisit-'.substr(sha1((string) random_int(0, PHP_INT_MAX)), 0, 10),
+        'subdomain_type' => 'random',
+        'sector' => 'otros',
+        'is_published' => false,
+    ]);
+    $user = User::factory()->create(['business_id' => $business->id]);
+    $photos = collect(range(1, 2))->map(fn ($i) => UploadedFile::fake()->image("g{$i}.jpg", 200, 200))->all();
+
+    test()->actingAs($user)
+        ->post('/api/v1/onboarding/step/4', ['photos' => $photos])
+        ->assertStatus(200)
+        ->assertJsonPath('data.count', 2);
+
+    test()->actingAs($user)
+        ->post('/api/v1/onboarding/step/4', [])
+        ->assertStatus(200)
+        ->assertJsonPath('data.count', 2)
+        ->assertJsonPath('data.unchanged', true);
+});
+
+it('step4 replace_gallery replaces existing photos instead of appending', function () {
+    Storage::fake('local');
+    Storage::fake('r2');
+    $business = Business::create([
+        'name' => 'Gallery Replace',
+        'subdomain' => 'gal-replace-'.substr(sha1((string) random_int(0, PHP_INT_MAX)), 0, 10),
+        'subdomain_type' => 'random',
+        'sector' => 'otros',
+        'is_published' => false,
+    ]);
+    $user = User::factory()->create(['business_id' => $business->id]);
+    $initial = collect(range(1, 2))->map(fn ($i) => UploadedFile::fake()->image("a{$i}.jpg", 200, 200))->all();
+
+    test()->actingAs($user)
+        ->post('/api/v1/onboarding/step/4', ['photos' => $initial])
+        ->assertStatus(200)
+        ->assertJsonPath('data.count', 2);
+
+    expect(BusinessImage::query()->where('business_id', $business->id)->where('section', 'gallery')->count())->toBe(2);
+
+    $replacement = collect(range(1, 2))->map(fn ($i) => UploadedFile::fake()->image("b{$i}.jpg", 200, 200))->all();
+
+    test()->actingAs($user)
+        ->post('/api/v1/onboarding/step/4', [
+            'replace_gallery' => '1',
+            'photos' => $replacement,
+        ])
+        ->assertStatus(200)
+        ->assertJsonPath('data.count', 2)
+        ->assertJsonPath('data.mode', 'replace');
+
+    expect(BusinessImage::query()->where('business_id', $business->id)->where('section', 'gallery')->count())->toBe(2);
 });
 
 it('step4 allows four photos when business plan is pending pro', function () {

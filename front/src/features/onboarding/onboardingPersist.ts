@@ -208,3 +208,15 @@ export function isDraftGallerySyncedFromBusiness(draft: Record<string, unknown> 
   }
   return paths.every((p) => p === '__synced__')
 }
+
+/** Hay galería ya guardada (servidor o negocio), no reenviar todas las fotos al avanzar. */
+export function hasPersistedGalleryInDraft(draft: Record<string, unknown> | undefined): boolean {
+  if (isDraftGallerySyncedFromBusiness(draft)) {
+    return true
+  }
+  const paths = draft?.gallery_paths
+  if (Array.isArray(paths) && paths.some((p) => typeof p === 'string' && p.length > 0)) {
+    return true
+  }
+  return galleryPreviewUrlsFromDraft(draft).length > 0
+}

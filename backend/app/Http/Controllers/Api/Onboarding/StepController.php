@@ -15,6 +15,7 @@ use App\Services\ImageService;
 use App\Services\PublicPageUrlService;
 use App\Services\ReferralCheckoutService;
 use App\Services\TemplateService;
+use App\Support\OnboardingDraftMediaPath;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -71,20 +72,30 @@ class StepController extends BaseApiController
      */
     private function finalizeOnboardingDraftMedia(User $user, Business $business, array $draft, ImageService $imageService): void
     {
-        if (! empty($draft['cover_path'])) {
-            $imageService->uploadImage(Storage::disk('local')->path($draft['cover_path']), $business, ImageSection::Cover, 0);
+        $userId = (int) $user->id;
+
+        $coverPath = OnboardingDraftMediaPath::resolve($userId, $draft['cover_path'] ?? null);
+        if ($coverPath !== null) {
+            $imageService->uploadImage($coverPath, $business, ImageSection::Cover, 0);
         }
-        if (! empty($draft['cover_path_2'])) {
-            $imageService->uploadImage(Storage::disk('local')->path($draft['cover_path_2']), $business, ImageSection::Cover, 1);
+        $coverPath2 = OnboardingDraftMediaPath::resolve($userId, $draft['cover_path_2'] ?? null);
+        if ($coverPath2 !== null) {
+            $imageService->uploadImage($coverPath2, $business, ImageSection::Cover, 1);
         }
-        if (! empty($draft['cover_path_3'])) {
-            $imageService->uploadImage(Storage::disk('local')->path($draft['cover_path_3']), $business, ImageSection::Cover, 2);
+        $coverPath3 = OnboardingDraftMediaPath::resolve($userId, $draft['cover_path_3'] ?? null);
+        if ($coverPath3 !== null) {
+            $imageService->uploadImage($coverPath3, $business, ImageSection::Cover, 2);
         }
-        if (! empty($draft['about_photo_path'])) {
-            $imageService->uploadImage(Storage::disk('local')->path($draft['about_photo_path']), $business, ImageSection::About, 0);
+        $aboutPath = OnboardingDraftMediaPath::resolve($userId, $draft['about_photo_path'] ?? null);
+        if ($aboutPath !== null) {
+            $imageService->uploadImage($aboutPath, $business, ImageSection::About, 0);
         }
         foreach (($draft['gallery_paths'] ?? []) as $index => $path) {
-            $imageService->uploadImage(Storage::disk('local')->path($path), $business, ImageSection::Gallery, (int) $index);
+            $galleryPath = OnboardingDraftMediaPath::resolve($userId, $path);
+            if ($galleryPath === null) {
+                continue;
+            }
+            $imageService->uploadImage($galleryPath, $business, ImageSection::Gallery, (int) $index);
         }
 
         if (! empty($draft['logo_path'])) {
@@ -243,6 +254,35 @@ class StepController extends BaseApiController
         $newPhotos = is_array($uploaded) ? array_values(array_filter($uploaded)) : [];
 
         if ($business) {
+            if ($request->boolean('replace_gallery')) {
+                $request->validate([
+                    'photos' => ['required', 'array', 'min:1', 'max:'.$maxPhotos],
+                    'photos.*' => ['required', 'image', 'max:10240', 'mimes:jpg,jpeg,png,webp'],
+                ]);
+
+                $business->images()
+                    ->where('section', ImageSection::Gallery->value)
+                    ->get()
+                    ->each(fn ($image) => $imageService->deleteImage($image));
+
+                foreach ($newPhotos as $i => $photo) {
+                    $imageService->uploadImage($photo, $business, ImageSection::Gallery, $i);
+                }
+
+                $count = count($newPhotos);
+                $draft = Cache::get($this->cacheKey($userId), []);
+                $draft['gallery_paths'] = array_fill(0, $count, '__synced__');
+                $draft['step'] = 4;
+                Cache::put($this->cacheKey($userId), $draft, now()->addHours(4));
+
+                return $this->success([
+                    'ok' => true,
+                    'count' => $count,
+                    'next_step' => 5,
+                    'mode' => 'replace',
+                ]);
+            }
+
             $request->validate([
                 'photos' => ['nullable', 'array', 'max:'.$maxPhotos],
                 'photos.*' => ['required', 'image', 'max:10240', 'mimes:jpg,jpeg,png,webp'],
@@ -251,6 +291,17 @@ class StepController extends BaseApiController
             $existingCount = $business->images()
                 ->where('section', ImageSection::Gallery->value)
                 ->count();
+
+            if ($newPhotos === [] && $existingCount > 0) {
+                return $this->success([
+                    'ok' => true,
+                    'count' => $existingCount,
+                    'next_step' => 5,
+                    'mode' => 'append',
+                    'unchanged' => true,
+                ]);
+            }
+
             $totalAfter = $existingCount + count($newPhotos);
             if ($totalAfter > $maxPhotos) {
                 return $this->error(
@@ -263,6 +314,11 @@ class StepController extends BaseApiController
             foreach ($newPhotos as $i => $photo) {
                 $imageService->uploadImage($photo, $business, ImageSection::Gallery, $existingCount + $i);
             }
+
+            $draft = Cache::get($this->cacheKey($userId), []);
+            $draft['gallery_paths'] = array_fill(0, $totalAfter, '__synced__');
+            $draft['step'] = 4;
+            Cache::put($this->cacheKey($userId), $draft, now()->addHours(4));
 
             return $this->success([
                 'ok' => true,

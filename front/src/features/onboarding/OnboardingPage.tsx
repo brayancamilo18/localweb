@@ -1,19 +1,20 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Btn } from '../../components/primitives'
 import { apiClient } from '../../api/client'
 import { getBusiness } from '../../api/dashboard'
 import { getServices } from '../../api/services'
 import { fetchOnboardingTemplates, hydrateGalleryFromServerUrls } from '../../api/onboarding'
 import { keys } from '../../api/queryKeys'
-import type { Schedule, Template } from '../../types/api'
+import type { BusinessService, Schedule, Template } from '../../types/api'
+import { mapServicesForTemplatePreview } from '../public-page/publicTemplatePayload'
+import type { TemplateServicePayload } from '../public-page/publicTemplatePayload'
 import { useOnboarding } from './useOnboarding'
 import Step9ProSetup, { type Step9SetupPhase } from './steps/Step9ProSetup'
 import { useBrandColor } from '../shared/useBrandColor'
 import {
   dataUrlToFile,
   galleryPreviewUrlsFromDraft,
-  isDraftGallerySyncedFromBusiness,
   isPersistableSchedule,
   loadOnboardingPersist,
   mergeGalleryFiles,
@@ -30,6 +31,7 @@ import {
   HorariosPreview,
   PlanPreview,
   PortadaPreview,
+  ServiciosPreview,
   SobrePreview,
   Step1Plantilla,
   Step2Portada,
@@ -108,10 +110,6 @@ export default function OnboardingPage() {
   const [galleryPreviewUrls, setGalleryPreviewUrls] = useState<string[]>([])
   /** Modo borrador: todas las fotos del paso 4 en un solo array. */
   const [galleryPhotoFiles, setGalleryPhotoFiles] = useState<File[]>([])
-  /** Modo append (negocio ya en BD): URLs R2 ya guardadas — solo vista. */
-  const [existingGalleryUrls, setExistingGalleryUrls] = useState<string[]>([])
-  /** Modo append: solo estas se envían en step4. */
-  const [newGalleryFiles, setNewGalleryFiles] = useState<File[]>([])
   const [schedulePreview, setSchedulePreview] = useState<Schedule>(DEFAULT_SCHEDULE)
   const [step1PreviewVariant, setStep1PreviewVariant] = useState<Step1PreviewVariant>('urban-bold')
   const [step1LogoPreviewUrl, setStep1LogoPreviewUrl] = useState<string | undefined>(undefined)
@@ -147,6 +145,9 @@ export default function OnboardingPage() {
   const [previewMapLng, setPreviewMapLng] = useState<number | undefined>(undefined)
   const [proSetupPhase, setProSetupPhase] = useState<Step9SetupPhase>('services')
   const [proOffersServices, setProOffersServices] = useState(true)
+  /** Servicios para el iframe; se actualiza al mutar la API y al cambiar la caché de React Query. */
+  const [previewServices, setPreviewServices] = useState<TemplateServicePayload[]>([])
+  const queryClient = useQueryClient()
   /** Hex enviado al iframe de vista previa (incluye default de paleta y cambios locales inmediatos). */
   const [brandColorLiveHex, setBrandColorLiveHex] = useState<string | null>(null)
 
@@ -160,16 +161,13 @@ export default function OnboardingPage() {
   const businessIsPro = useAuthStore((s) => s.business?.is_pro ?? false)
   const businessPlan = useAuthStore((s) => s.business?.plan)
   const galleryProExperience = businessIsPro || businessPlan === 'pending' || postCheckoutProGallery
-
-  /** Paso 4 con negocio ya creado: galería en R2; no mezclar con `File[]` del borrador. */
-  const galleryAppendMode = useMemo(() => {
-    if (currentStep !== 4) return false
-    return (
-      postCheckoutProGallery ||
-      isDraftGallerySyncedFromBusiness(serverDraft as Record<string, unknown> | undefined)
-    )
-  }, [currentStep, postCheckoutProGallery, serverDraft])
-
+  const step8OrLater = currentStep >= 8
+  const needsBusinessGallery = currentStep >= 4 && currentStep <= 8
+  const businessSnapQuery = useQuery({
+    queryKey: keys.dashboard.business,
+    queryFn: getBusiness,
+    enabled: needsBusinessGallery || step8OrLater,
+  })
   const step9Active = currentStep === 9
   const brandColorQuery = useBrandColor({
     enabled: step9Active && (businessIsPro || businessPlan === 'pending'),
@@ -195,17 +193,31 @@ export default function OnboardingPage() {
     if (!brandColorQuery.data?.is_supported) return null
     return brandColorQuery.data.current ?? brandColorQuery.data.effective ?? null
   }, [step9Active, brandColorLiveHex, brandColorQuery.data])
-  const step8OrLater = currentStep >= 8
-  const businessSnapQuery = useQuery({
-    queryKey: keys.dashboard.business,
-    queryFn: getBusiness,
-    enabled: step8OrLater,
-  })
   const servicesSnapQuery = useQuery({
     queryKey: keys.dashboard.services,
     queryFn: getServices,
     enabled: step9Active,
   })
+
+  const syncPreviewServicesFromCache = useCallback(() => {
+    const fromQuery =
+      servicesSnapQuery.data ??
+      queryClient.getQueryData<BusinessService[]>(keys.dashboard.services) ??
+      businessSnapQuery.data?.services
+    setPreviewServices(mapServicesForTemplatePreview(fromQuery))
+  }, [servicesSnapQuery.data, queryClient, businessSnapQuery.data?.services])
+
+  useEffect(() => {
+    if (!step9Active) {
+      setPreviewServices([])
+      return
+    }
+    syncPreviewServicesFromCache()
+  }, [step9Active, syncPreviewServicesFromCache])
+
+  const handleServicesPreviewMutate = useCallback(() => {
+    syncPreviewServicesFromCache()
+  }, [syncPreviewServicesFromCache])
 
   const reservedSubdomain = useMemo(() => {
     const fromBiz = businessSubdomain?.trim() ?? ''
@@ -354,13 +366,6 @@ export default function OnboardingPage() {
   }, [aboutTeamFile])
 
   useEffect(() => {
-    if (galleryAppendMode) {
-      const blobUrls = newGalleryFiles.map((f) => URL.createObjectURL(f))
-      setGalleryLiveObjectUrls([...existingGalleryUrls, ...blobUrls])
-      return () => {
-        blobUrls.forEach((u) => URL.revokeObjectURL(u))
-      }
-    }
     if (galleryPhotoFiles.length > 0) {
       const urls = galleryPhotoFiles.map((f) => URL.createObjectURL(f))
       setGalleryLiveObjectUrls(urls)
@@ -368,12 +373,8 @@ export default function OnboardingPage() {
         urls.forEach((u) => URL.revokeObjectURL(u))
       }
     }
-    if (existingGalleryUrls.length > 0) {
-      setGalleryLiveObjectUrls(existingGalleryUrls)
-      return
-    }
     setGalleryLiveObjectUrls([])
-  }, [galleryAppendMode, galleryPhotoFiles, newGalleryFiles, existingGalleryUrls])
+  }, [galleryPhotoFiles])
 
   useEffect(() => {
     wizardHydratedRef.current = false
@@ -396,8 +397,6 @@ export default function OnboardingPage() {
     setAboutPersistDataUrl(undefined)
     setAboutLiveObjectUrl(undefined)
     setGalleryLiveObjectUrls([])
-    setExistingGalleryUrls([])
-    setNewGalleryFiles([])
     setPreviewAddress('')
     setPreviewEmail('')
     setPreviewMapLat(undefined)
@@ -503,14 +502,7 @@ export default function OnboardingPage() {
     }
 
     const serverGalleryUrls = galleryPreviewUrlsFromDraft(d as Record<string, unknown>)
-    const syncedGallery = isDraftGallerySyncedFromBusiness(d as Record<string, unknown>)
-
-    if (syncedGallery) {
-      setExistingGalleryUrls(serverGalleryUrls)
-      setGalleryPhotoFiles([])
-      setNewGalleryFiles([])
-      setGalleryPreviewUrls([])
-    } else if (p?.galleryDataUrls?.length) {
+    if (p?.galleryDataUrls?.length) {
       setGalleryPreviewUrls(p.galleryDataUrls)
       void Promise.all(p.galleryDataUrls.map((url, i) => dataUrlToFile(url, `gallery-${i}.jpg`))).then(
         (files) => {
@@ -548,18 +540,47 @@ export default function OnboardingPage() {
     authBusinessCountryCode,
   ])
 
-  /**
-   * Solo borrador sintético `draftFromBusiness` (`gallery_paths` = `__synced__`): tras Stripe,
-   * `getStatus` sustituye `serverDraft` pero el wizard ya está hidratado; hay que volver a
-   * poblar URLs sin tocar el flujo borrador (rutas reales bajo onboarding/...).
-   */
+  /** Al entrar en el paso 4, cargar la galería guardada en un solo listado editable. */
+  const galleryHydratedForStepRef = useRef(false)
   useEffect(() => {
-    if (isPendingStatus || serverDraft === undefined) return
-    if (!isDraftGallerySyncedFromBusiness(serverDraft as Record<string, unknown>)) return
-    const urls = galleryPreviewUrlsFromDraft(serverDraft as Record<string, unknown>)
-    setExistingGalleryUrls(urls)
-    setGalleryPhotoFiles([])
-  }, [isPendingStatus, serverDraft])
+    if (currentStep !== 4) {
+      galleryHydratedForStepRef.current = false
+      return
+    }
+    if (isPendingStatus || galleryHydratedForStepRef.current) return
+    if (galleryPhotoFiles.length > 0) {
+      galleryHydratedForStepRef.current = true
+      return
+    }
+
+    const fromBusiness =
+      businessSnapQuery.data?.images?.gallery
+        ?.map((g) => g.url)
+        .filter((u): u is string => typeof u === 'string' && u.trim().length > 0) ?? []
+    const fromDraft = galleryPreviewUrlsFromDraft(serverDraft as Record<string, unknown> | undefined)
+    const urls = fromBusiness.length > 0 ? fromBusiness : fromDraft
+
+    if (urls.length === 0) return
+
+    galleryHydratedForStepRef.current = true
+    void hydrateGalleryFromServerUrls(urls)
+      .then((files) => {
+        if (files.length > 0) {
+          const cap = galleryProExperience ? 20 : 3
+          setGalleryPhotoFiles(files.slice(0, cap))
+        }
+      })
+      .catch(() => {
+        galleryHydratedForStepRef.current = false
+      })
+  }, [
+    currentStep,
+    isPendingStatus,
+    galleryPhotoFiles.length,
+    businessSnapQuery.data?.images?.gallery,
+    serverDraft,
+    galleryProExperience,
+  ])
 
   useEffect(() => {
     if (isPendingStatus) return
@@ -591,9 +612,6 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     if (isPendingStatus || !wizardHydratedRef.current || persistUserId == null) return
-    const persistGalleryAsDataUrls =
-      !galleryAppendMode &&
-      !isDraftGallerySyncedFromBusiness(serverDraft as Record<string, unknown> | undefined)
     scheduleSaveOnboardingPersist(persistUserId, {
       step: currentStep,
       previewName,
@@ -610,9 +628,8 @@ export default function OnboardingPage() {
       step1LogoScale,
       coverDataUrl: coverPersistDataUrl,
       aboutDataUrl: aboutPersistDataUrl,
-      galleryDataUrls: !persistGalleryAsDataUrls
-        ? []
-        : galleryPhotoFiles.length === 0
+      galleryDataUrls:
+        galleryPhotoFiles.length === 0
           ? []
           : galleryPreviewUrls.length > 0
             ? galleryPreviewUrls
@@ -636,7 +653,6 @@ export default function OnboardingPage() {
     aboutPersistDataUrl,
     galleryPreviewUrls,
     galleryPhotoFiles.length,
-    galleryAppendMode,
     serverDraft,
   ])
 
@@ -667,18 +683,11 @@ export default function OnboardingPage() {
         ? serverDraft.business_name.trim()
         : ''
     const name = (previewName.trim() || draftName || b?.name || authBusinessName).trim() || undefined
-    let templateServices: TemplatePreviewData['templateServices'] = undefined
-    if (step9Active) {
-      templateServices = !proOffersServices
-        ? []
-        : servicesSnapQuery.data
-          ? servicesSnapQuery.data.map((s) => ({
-              name: s.name,
-              price: s.price,
-              description: s.description ?? null,
-            }))
-          : undefined
-    }
+    const templateServices: TemplatePreviewData['templateServices'] = step9Active
+      ? proOffersServices
+        ? previewServices
+        : []
+      : undefined
 
     return {
       logoUrl: step1LogoPreviewUrl ?? (useServer ? b?.logo_url ?? undefined : undefined),
@@ -734,8 +743,8 @@ export default function OnboardingPage() {
     previewMapLat,
     previewMapLng,
     proOffersServices,
+    previewServices,
     schedulePreview,
-    servicesSnapQuery.data,
     step8OrLater,
     step9Active,
     brandPreviewHex,
@@ -891,12 +900,12 @@ export default function OnboardingPage() {
       case 8:
         return <PlanPreview variant={step1PreviewVariant} previewData={templatePreviewData} />
       case 9: {
-        const step9PreviewHash =
-          proSetupPhase === 'services'
-            ? '#servicios'
-            : proSetupPhase === 'extras'
-              ? '#contacto'
-              : ''
+        if (proSetupPhase === 'services') {
+          return (
+            <ServiciosPreview variant={step1PreviewVariant} previewData={templatePreviewData} />
+          )
+        }
+        const step9PreviewHash = proSetupPhase === 'extras' ? '#contacto' : ''
         return (
           <PlanPreview
             variant={step1PreviewVariant}
@@ -969,10 +978,6 @@ export default function OnboardingPage() {
             {...common}
             pro={galleryProExperience}
             postCheckoutProBanner={postCheckoutProGallery}
-            galleryAppendMode={galleryAppendMode}
-            existingPhotoUrls={existingGalleryUrls}
-            newPhotos={newGalleryFiles}
-            onNewPhotosChange={setNewGalleryFiles}
             photos={galleryPhotoFiles}
             onPhotosChange={setGalleryPhotoFiles}
             onGalleryPreviewUrlsChange={setGalleryPreviewUrls}
@@ -1018,6 +1023,7 @@ export default function OnboardingPage() {
             onSetupPhaseChange={setProSetupPhase}
             offersServices={proOffersServices}
             onOffersServicesChange={setProOffersServices}
+            onServicesPreviewMutate={handleServicesPreviewMutate}
             brandColorDefault={brandColorQuery.data?.default ?? '#000000'}
             brandColorPickerValue={brandColorLiveHex}
             onBrandColorLiveChange={setBrandColorLiveHex}
@@ -1038,9 +1044,6 @@ export default function OnboardingPage() {
     previewDescription,
     aboutTeamFile,
     galleryPhotoFiles,
-    galleryAppendMode,
-    existingGalleryUrls,
-    newGalleryFiles,
     schedulePreview,
     previewAddress,
     previewEmail,
@@ -1054,6 +1057,7 @@ export default function OnboardingPage() {
     galleryProExperience,
     postCheckoutProGallery,
     proOffersServices,
+    handleServicesPreviewMutate,
     proSetupPhase,
     resetProExtrasFlow,
     step1LogoFile,

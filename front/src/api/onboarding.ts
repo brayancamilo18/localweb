@@ -107,8 +107,14 @@ export async function step3(data: {
   return response.data.data
 }
 
-export async function step4(photos: File[]): Promise<StepResponse> {
+export async function step4(
+  photos: File[],
+  options?: { replace?: boolean },
+): Promise<StepResponse> {
   const formData = new FormData()
+  if (options?.replace) {
+    formData.append('replace_gallery', '1')
+  }
   if (photos.length > 0) {
     const ready = await compressImagesForUpload(photos, { maxSide: 2200, quality: 0.86 })
     ready.forEach((photo) => formData.append('photos[]', photo))

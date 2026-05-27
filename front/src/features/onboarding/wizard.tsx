@@ -584,6 +584,20 @@ function TemplateIframe({
     syncPreview({ alignToHash: false })
   }, [previewData, syncPreview])
 
+  const previewServicesKey = useMemo(() => {
+    const list = previewData?.templateServices
+    if (!list?.length) return ''
+    return list.map((s) => `${s.name}\0${s.price}\0${s.description ?? ''}`).join('\n')
+  }, [previewData?.templateServices])
+
+  useEffect(() => {
+    if (!loadedRef.current) return
+    const count = previewData?.templateServices?.length ?? 0
+    const hash = initialHash.replace(/^#/, '').toLowerCase()
+    const alignToHash = count > 0 && (hash === 'servicios' || hash === 'services')
+    syncPreview({ alignToHash })
+  }, [previewServicesKey, syncPreview, initialHash, previewData?.templateServices?.length])
+
   useLayoutEffect(() => {
     if (!loadedRef.current) return
     applyBrandToFrame()
@@ -2698,17 +2712,10 @@ function Step3Sobre({
   )
 }
 
-/** Resultado del paso 4 para `goNext`: borrador (todas las fotos) o solo nuevas tras Pro (append en BD). */
-export type Step4ContinueResult = File[] | { __step4Append: true; newPhotos: File[] }
-
 // ─── Step 4 · Galería (con upsell Free → Pro) ────────────────
 function Step4Galeria({
   pro = false,
   postCheckoutProBanner,
-  galleryAppendMode = false,
-  existingPhotoUrls = [],
-  newPhotos = [],
-  onNewPhotosChange,
   errors,
   isLoading: busy,
   photos,
@@ -2718,15 +2725,6 @@ function Step4Galeria({
   pro?: boolean
   /** Tras volver de Stripe Pro: mensaje de celebración y límite ampliado. */
   postCheckoutProBanner?: boolean
-  /**
-   * Modo append: la galería ya está en R2/`business_images`. `existingPhotoUrls` son solo vista;
-   * solo `newPhotos` se envían en step4.
-   */
-  galleryAppendMode?: boolean
-  existingPhotoUrls?: string[]
-  newPhotos?: File[]
-  onNewPhotosChange?: (files: File[]) => void
-  /** Modo borrador (pre-business): todas las fotos en un solo array. */
   photos: File[]
   onPhotosChange: (files: File[]) => void
   onGalleryPreviewUrlsChange?: (urls: string[]) => void
@@ -2737,61 +2735,39 @@ function Step4Galeria({
   const [thumbUrls, setThumbUrls] = useState<string[]>([])
   const [qualities, setQualities] = useState<GalleryImageQuality[]>([])
 
-  const existingCount = galleryAppendMode ? existingPhotoUrls.length : 0
-  const localFiles = galleryAppendMode ? (newPhotos ?? []) : photos
-  const totalCount = existingCount + localFiles.length
+  const totalCount = photos.length
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      if (galleryAppendMode) {
-        const newThumbs = await filesToDataUrls(newPhotos ?? [])
-        if (!cancelled) {
-          setThumbUrls([...(existingPhotoUrls ?? []), ...newThumbs])
-          onGalleryPreviewUrlsChange?.([])
-        }
-      } else {
-        const urls = await filesToDataUrls(photos)
-        if (!cancelled) {
-          setThumbUrls(urls)
-          onGalleryPreviewUrlsChange?.(urls)
-        }
+      const urls = await filesToDataUrls(photos)
+      if (!cancelled) {
+        setThumbUrls(urls)
+        onGalleryPreviewUrlsChange?.(urls)
       }
     })()
     return () => {
       cancelled = true
     }
-  }, [galleryAppendMode, existingPhotoUrls, newPhotos, photos, onGalleryPreviewUrlsChange])
+  }, [photos, onGalleryPreviewUrlsChange])
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const scores = await Promise.all(localFiles.map((f) => evaluateGalleryImageQuality(f)))
+      const scores = await Promise.all(photos.map((f) => evaluateGalleryImageQuality(f)))
       if (!cancelled) setQualities(scores.map((s) => s.quality))
     })()
     return () => {
       cancelled = true
     }
-  }, [localFiles])
+  }, [photos])
 
   useLayoutEffect(() => {
-    if (galleryAppendMode) {
-      nav?.registerContinueHandler?.(
-        () => ({ __step4Append: true as const, newPhotos: newPhotos ?? [] }) satisfies Step4ContinueResult,
-      )
-      return () => nav?.registerContinueHandler?.(null)
-    }
     nav?.registerContinueHandler?.(() => photos)
     return () => nav?.registerContinueHandler?.(null)
-  }, [nav, galleryAppendMode, newPhotos, photos])
+  }, [nav, photos])
 
   const removeAt = (idx: number) => {
-    if (galleryAppendMode) {
-      if (idx < existingCount) return
-      const j = idx - existingCount
-      onNewPhotosChange?.((newPhotos ?? []).filter((_, i) => i !== j))
-      return
-    }
     onPhotosChange(photos.filter((_, i) => i !== idx))
   }
 
@@ -2856,12 +2832,6 @@ function Step4Galeria({
         </div>
       </div>
 
-      {galleryAppendMode ? (
-        <p className="lw-small" style={{ marginTop: -8, color: 'var(--lw-text-3)' }}>
-          Las fotos que ya estaban en tu web se muestran arriba; solo las nuevas se suben al continuar.
-        </p>
-      ) : null}
-
       {!pro && (
         <div
           style={{
@@ -2893,13 +2863,8 @@ function Step4Galeria({
         style={{ display: 'none' }}
         onChange={(e) => {
           const picked = Array.from(e.target.files ?? []) as File[]
-          const room = Math.max(0, slots - existingCount)
-          const nextLocal = [...localFiles, ...picked].slice(0, room)
-          if (galleryAppendMode) {
-            onNewPhotosChange?.(nextLocal)
-          } else {
-            onPhotosChange(nextLocal)
-          }
+          const next = [...photos, ...picked].slice(0, slots)
+          onPhotosChange(next)
           e.target.value = ''
         }}
       />
@@ -2916,49 +2881,8 @@ function Step4Galeria({
       </Field>
 
       <div className="lw-wizard-gallery-grid">
-        {galleryAppendMode
-          ? (existingPhotoUrls ?? []).map((url, i) => (
-              <div key={`gal-existing-${i}-${url.slice(-24)}`} style={{ position: 'relative' }}>
-                <div
-                  style={{
-                    aspectRatio: '1/1',
-                    borderRadius: 'var(--lw-r-sm)',
-                    overflow: 'hidden',
-                    border: `1px solid var(--lw-border)`,
-                    background: 'var(--lw-bg-elev)',
-                  }}
-                >
-                  <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                </div>
-                <button
-                  type="button"
-                  title="Ya publicadas · gestiona la galería desde el panel cuando termines"
-                  disabled
-                  aria-label="Foto ya en tu web"
-                  style={{
-                    position: 'absolute',
-                    top: 6,
-                    right: 6,
-                    width: 28,
-                    height: 28,
-                    borderRadius: 999,
-                    background: 'rgba(15,23,42,.45)',
-                    color: '#fff',
-                    border: 'none',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'not-allowed',
-                    opacity: 0.85,
-                  }}
-                >
-                  <Icon name="lock" size={12} />
-                </button>
-              </div>
-            ))
-          : null}
-        {localFiles.map((file, i) => {
-          const gridIndex = existingCount + i
+        {photos.map((file, i) => {
+          const gridIndex = i
           return (
             <div key={`gal-${gridIndex}-${file.lastModified}-${file.name}`} style={{ position: 'relative' }}>
               <div

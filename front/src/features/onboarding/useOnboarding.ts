@@ -242,16 +242,19 @@ export function useOnboarding(): UseOnboardingResult {
           }
           case 4: {
             const raw = data
-            const photosToUpload =
-              raw &&
-              typeof raw === 'object' &&
-              !Array.isArray(raw) &&
-              (raw as { __step4Append?: boolean }).__step4Append === true
-                ? ((raw as { newPhotos?: File[] }).newPhotos ?? [])
-                : Array.isArray(raw)
-                  ? raw
-                  : []
-            await step4(photosToUpload)
+            const photosToUpload = Array.isArray(raw) ? raw : []
+            if (photosToUpload.length === 0) {
+              setErrors({ photos: 'Añade al menos una foto a la galería' })
+              return
+            }
+            await step4(photosToUpload, { replace: true })
+            try {
+              const status = await getStatus()
+              setServerDraft((status.draft as Record<string, unknown> | undefined) ?? {})
+            } catch {
+              /* el paso ya guardó; el borrador se refrescará al recargar */
+            }
+            await queryClient.invalidateQueries({ queryKey: keys.dashboard.business })
             if (postCheckoutProGallery) {
               setPostCheckoutProGallery(false)
               setProExtrasSource('gallery')

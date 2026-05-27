@@ -114,10 +114,18 @@ export function buildPublicVcardUrl(apiBase: string, subdomain: string): string 
 function servicesPayload(business: PublicBusiness): TemplateServicePayload[] {
   const list = business.services
   if (!Array.isArray(list)) return []
+  return mapServicesForTemplatePreview(list)
+}
+
+/** Servicios para postMessage del wizard / iframe de plantillas HTML. */
+export function mapServicesForTemplatePreview(
+  list: Array<{ name: string; price: number | null; description?: string | null }> | undefined,
+): TemplateServicePayload[] {
+  if (!Array.isArray(list) || list.length === 0) return []
   return list.map((s) => ({
     name: s.name,
     price: s.price,
-    description: s.description,
+    description: s.description ?? null,
   }))
 }
 

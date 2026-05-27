@@ -23,6 +23,8 @@ export type Step9ProSetupProps = WizardStepProps & {
   onSetupPhaseChange: (phase: Step9SetupPhase) => void
   offersServices: boolean
   onOffersServicesChange: (v: boolean) => void
+  /** Tras crear/editar/borrar servicios: refrescar la vista previa del iframe. */
+  onServicesPreviewMutate?: () => void
   brandColorDefault: string
   brandColorPickerValue?: string | null
   onBrandColorLiveChange: (hex: string) => void
@@ -34,6 +36,7 @@ export default function Step9ProSetup({
   onSetupPhaseChange,
   offersServices,
   onOffersServicesChange,
+  onServicesPreviewMutate,
   brandColorDefault,
   brandColorPickerValue = null,
   onBrandColorLiveChange,
@@ -147,7 +150,7 @@ export default function Step9ProSetup({
                   Añade tus servicios y precios
                 </h2>
               </div>
-              <ProServicesEditor isPro onboarding />
+              <ProServicesEditor isPro onboarding onAfterMutate={onServicesPreviewMutate} />
             </Card>
           ) : null}
 
