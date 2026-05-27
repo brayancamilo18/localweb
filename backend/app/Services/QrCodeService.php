@@ -13,19 +13,31 @@ use Endroid\QrCode\Writer\Result\ResultInterface;
 
 class QrCodeService
 {
+    public function __construct(
+        private readonly TemplatePalette $palette,
+    ) {}
+
     /**
      * Devuelve el color hex efectivo para el QR de un Business.
      *
      * Prioridad:
      *  1. $override (si el usuario lo pasa explícitamente desde la UI)
-     *  2. $business->template->primary_color (heredado del template)
-     *  3. '#000000' como último fallback (no debería llegar nunca aquí en datos sanos)
+     *  2. Color de marca del negocio (brand_color o default de la paleta de la plantilla)
+     *  3. primary_color del registro de plantilla
+     *  4. '#000000'
      */
     public function colorForBusiness(Business $business, ?string $override = null): string
     {
-        $candidate = $override
-            ?? $business->template?->primary_color
-            ?? '#000000';
+        if ($override !== null) {
+            return $this->normalizeHex($override);
+        }
+
+        $fromBrand = $this->palette->resolveColor($business);
+        if (preg_match('/^#[0-9a-fA-F]{6}$/', $fromBrand) === 1) {
+            return $this->normalizeHex($fromBrand);
+        }
+
+        $candidate = $business->template?->primary_color ?? '#000000';
 
         return $this->normalizeHex($candidate);
     }

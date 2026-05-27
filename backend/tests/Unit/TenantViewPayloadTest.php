@@ -1,11 +1,27 @@
 <?php
 
 use App\Models\Business;
+use App\Models\Template;
 use App\Services\TenantViewPayload;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
+
+function tenantPayloadTemplate(string $slug): Template
+{
+    return Template::query()->firstOrCreate(
+        ['slug' => $slug],
+        [
+            'name' => 'Template '.$slug,
+            'primary_color' => '#000000',
+            'is_active' => true,
+            'requires_pro' => false,
+            'hero_photo_slots' => 1,
+            'sort_order' => 10,
+        ],
+    );
+}
 
 it('builds payload with all required keys', function () {
     $business = Business::factory()->create();
@@ -40,6 +56,8 @@ it('builds payload with all required keys', function () {
         'booking_url',
         'vcard_enabled',
         'is_pro',
+        'brand_color',
+        'brand_variable',
         'subdomain',
         'api_base_url',
         'vcard_download_url',
@@ -103,4 +121,31 @@ it('builds vcard_download_url correctly', function () {
     $payload = app(TenantViewPayload::class)->build($business);
 
     expect($payload['vcard_download_url'])->toContain('/api/v1/public/test-biz/vcard');
+});
+
+it('includes custom brand_color in payload when not in curated palette', function () {
+    $template = tenantPayloadTemplate('urban-bold');
+    $business = Business::factory()->create([
+        'template_id' => $template->id,
+        'brand_color' => '#19b3f5',
+    ]);
+    $business->load('template');
+
+    $payload = app(TenantViewPayload::class)->build($business);
+
+    expect($payload['brand_color'])->toBe('#19b3f5')
+        ->and($payload['brand_variable'])->toBe('--lime');
+});
+
+it('omits brand_color when stored hex is invalid', function () {
+    $template = tenantPayloadTemplate('urban-bold');
+    $business = Business::factory()->create([
+        'template_id' => $template->id,
+        'brand_color' => 'not-a-hex',
+    ]);
+    $business->load('template');
+
+    $payload = app(TenantViewPayload::class)->build($business);
+
+    expect($payload['brand_color'])->toBeNull();
 });

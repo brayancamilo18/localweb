@@ -40,7 +40,10 @@ import { LocationPicker } from '../../components/location/LocationPicker'
 import type { LocationValue } from '../../lib/location/locationTypes'
 import { readSignupPrefill } from '../../lib/signupPrefill'
 import { useAuthStore } from '../../store/authStore'
+import { applyBrandColorToDocument, isValidBrandColorHex } from '../../lib/brandOverrideHtml'
 import { WizardNavContext, type WizardStepProps } from './wizardNavContext'
+import ScheduleEditor from '../shared/ScheduleEditor'
+import { OnboardingLogoutButton } from './OnboardingLogoutButton'
 
 // ONEZ — Onboarding wizard (8 pasos)
 // Each step is a self-contained component returning a desktop split (form + preview).
@@ -126,6 +129,9 @@ type TemplatePreviewData = {
   instagramUrl?: string
   tiktokUrl?: string
   facebookUrl?: string
+  /** Hex personalizado (#rrggbb) para sustituir el placeholder BRAND_OVERRIDE en el HTML estático. */
+  brandColorOverride?: string | null
+  brandVariable?: string | null
 }
 
 /** Calidad orientativa para fotos de galería web (resolución). */
@@ -461,12 +467,13 @@ function TemplateIframe({
 
   const [hasLoaded, setHasLoaded] = useState(false)
 
+  const hasPreviewPayload = Boolean(previewData)
   const src = useMemo(() => {
     const params = new URLSearchParams()
     params.set('v', '4')
     if (embed) params.set('embed', '1')
     if (mode === 'thumb') params.set('thumb', '1')
-    if (previewData) {
+    if (hasPreviewPayload) {
       params.set('preview', '1')
     }
     if (typeof window !== 'undefined') params.set('parentOrigin', window.location.origin)
@@ -477,11 +484,30 @@ function TemplateIframe({
         : `#${initialHash}`
       : ''
     return `${templatePath}${qs}${hash}`
-  }, [templatePath, embed, variant, initialHash, mode])
+  }, [templatePath, embed, hasPreviewPayload, initialHash, mode])
+
+  const brandColorOverride = previewData?.brandColorOverride ?? null
+  const brandVariable = previewData?.brandVariable ?? null
+  const previewDataRef = useRef(previewData)
+  previewDataRef.current = previewData
+
+  useEffect(() => {
+    loadedRef.current = false
+  }, [src])
+
+  const applyBrandToFrame = useCallback(() => {
+    const frame = iframeRef.current
+    if (!frame?.contentDocument || !brandVariable) return
+    const hex = brandColorOverride
+    if (hex && isValidBrandColorHex(hex)) {
+      applyBrandColorToDocument(frame.contentDocument, brandVariable, hex)
+    }
+  }, [brandColorOverride, brandVariable])
 
   const syncPreview = useCallback(
     (options?: { alignToHash?: boolean }) => {
       const frame = iframeRef.current
+      const previewData = previewDataRef.current
       if (!frame?.contentWindow || !previewData) return
       const apiBase = resolvePublicApiBaseUrl()
       const sub = (previewData.customerSubdomain ?? '').trim()
@@ -498,6 +524,7 @@ function TemplateIframe({
       const logoScale =
         Number.isFinite(rawScale) ? Math.min(1.5, Math.max(0.45, rawScale)) : 1
       const socialDef = defaultSocialUrls()
+      applyBrandToFrame()
       frame.contentWindow.postMessage(
         {
           type: 'lw:onboarding-preview',
@@ -536,6 +563,11 @@ function TemplateIframe({
             instagram_url: (previewData.instagramUrl ?? '').trim() || socialDef.instagram,
             tiktok_url: (previewData.tiktokUrl ?? '').trim() || socialDef.tiktok,
             facebook_url: (previewData.facebookUrl ?? '').trim() || socialDef.facebook,
+            brand_color:
+              previewData.brandColorOverride && isValidBrandColorHex(previewData.brandColorOverride)
+                ? previewData.brandColorOverride.toLowerCase()
+                : null,
+            brand_variable: previewData.brandVariable ?? null,
           },
         },
         // targetOrigin: el iframe se sirve desde la misma carpeta `/templates/` del SPA,
@@ -545,12 +577,18 @@ function TemplateIframe({
         window.location.origin,
       )
     },
-    [previewData],
+    [applyBrandToFrame],
   )
 
   useEffect(() => {
-    if (loadedRef.current) syncPreview({ alignToHash: false })
-  }, [syncPreview])
+    if (!loadedRef.current) return
+    syncPreview({ alignToHash: false })
+  }, [previewData, syncPreview])
+
+  useLayoutEffect(() => {
+    if (!loadedRef.current) return
+    applyBrandToFrame()
+  }, [applyBrandToFrame])
 
   if (mode === 'thumb') {
     const placeholderColor = TEMPLATE_THUMB_PLACEHOLDER_COLOR[variant] ?? '#FAFAFA'
@@ -673,15 +711,18 @@ function WizardHeader({ step }: { step: number }) {
         padding: "clamp(12px, 2vw, 16px) clamp(16px, 4vw, 32px)",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+      <div className="lw-wizard-header__top" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
         <Logo size={140}/>
-        <span style={{ fontSize: 12, color: "var(--lw-text-3)", fontWeight: 500 }}>
-          {isExtras ? (
-            <>Paso extra · <span style={{ color: "var(--lw-text)" }}>Configura tu Pro</span></>
-          ) : (
-            <>Paso <span style={{ color: "var(--lw-text)", fontVariantNumeric: "tabular-nums" }}>{step}</span> de 8</>
-          )}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+          <OnboardingLogoutButton />
+          <span style={{ fontSize: 12, color: "var(--lw-text-3)", fontWeight: 500, whiteSpace: "nowrap" }}>
+            {isExtras ? (
+              <>Paso extra · <span style={{ color: "var(--lw-text)" }}>Configura tu Pro</span></>
+            ) : (
+              <>Paso <span style={{ color: "var(--lw-text)", fontVariantNumeric: "tabular-nums" }}>{step}</span> de 8</>
+            )}
+          </span>
+        </div>
       </div>
       {/* progress bar */}
       <div style={{ height: 3, background: "var(--lw-surface)", borderRadius: 2, overflow: "hidden", marginBottom: 14 }}>
@@ -3023,60 +3064,11 @@ function ServiciosPreview({
   )
 }
 
-type HorarioDay = { d: string; o?: string; c?: string; closed?: boolean }
-
-export const DEFAULT_SCHEDULE: Schedule = {
-  mon: { open: '10:00', close: '20:00', closed: false },
-  tue: { open: '10:00', close: '20:00', closed: false },
-  wed: { open: '10:00', close: '20:00', closed: false },
-  thu: { open: '10:00', close: '20:00', closed: false },
-  fri: { open: '10:00', close: '21:00', closed: false },
-  sat: { open: '10:00', close: '14:00', closed: false },
-  sun: { open: '10:00', close: '14:00', closed: true },
-}
-
-const DAY_KEYS: (keyof Schedule)[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
-const DAY_LABEL_ES: Record<keyof Schedule, string> = {
-  mon: 'Lunes',
-  tue: 'Martes',
-  wed: 'Miércoles',
-  thu: 'Jueves',
-  fri: 'Viernes',
-  sat: 'Sábado',
-  sun: 'Domingo',
-}
-
-export function scheduleToPreviewRows(s: Schedule): HorarioDay[] {
-  return DAY_KEYS.map((k) => ({
-    d: DAY_LABEL_ES[k],
-    o: s[k].open,
-    c: s[k].close,
-    closed: s[k].closed,
-  }))
-}
-
-export function applyScheduleTemplate(s: Schedule, kind: 'lv' | 'ls' | 'all'): Schedule {
-  const next: Schedule = JSON.parse(JSON.stringify(s))
-  if (kind === 'lv') {
-    ;(['mon', 'tue', 'wed', 'thu', 'fri'] as const).forEach((d) => {
-      next[d] = { open: '09:00', close: '20:00', closed: false }
-    })
-    next.sat = { ...next.sat, closed: true }
-    next.sun = { ...next.sun, closed: true }
-  }
-  if (kind === 'ls') {
-    ;(['mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const).forEach((d) => {
-      next[d] = { open: '10:00', close: '21:00', closed: false }
-    })
-    next.sun = { ...next.sun, closed: true }
-  }
-  if (kind === 'all') {
-    DAY_KEYS.forEach((d) => {
-      next[d] = { open: '10:00', close: '20:00', closed: false }
-    })
-  }
-  return next
-}
+export {
+  DEFAULT_SCHEDULE,
+  applyScheduleTemplate,
+  scheduleToPreviewRows,
+} from '../../lib/schedule/scheduleDefaults'
 
 // ─── Step 5 · Horarios ───────────────────────────────────────
 function Step5Horarios({
@@ -3095,128 +3087,16 @@ function Step5Horarios({
     return () => nav?.registerContinueHandler?.(null)
   }, [nav, schedule])
 
-  const presets: { label: string; kind: 'lv' | 'ls' | 'all' }[] = [
-    { label: 'Lun – Vie', kind: 'lv' },
-    { label: 'Lun – Sáb', kind: 'ls' },
-    { label: 'Todos los días', kind: 'all' },
-  ]
-
   return (
     <>
-      <div>
-        <h1 className="lw-h2">Vuestros horarios</h1>
-        <p className="lw-body" style={{ marginTop: 4, fontSize: 14, color: 'var(--lw-text-2)' }}>
-          Plantilla rápida y ajusta horas. <strong>Pulsa el reloj</strong> para editar; el interruptor abre o cierra el día.
-        </p>
-      </div>
-
-      <div>
-        <div className="lw-small" style={{ marginBottom: 6, color: 'var(--lw-text-3)', fontWeight: 500 }}>
-          Plantillas
-        </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {presets.map((p) => (
-            <Btn
-              key={p.label}
-              type="button"
-              size="sm"
-              kind="outline"
-              disabled={busy}
-              onClick={() => onScheduleChange(applyScheduleTemplate(schedule, p.kind))}
-            >
-              {p.label}
-            </Btn>
-          ))}
-        </div>
-      </div>
-
-      <Field error={errors?.schedule} hint="Horas en una fila; el interruptor marca si abre ese día.">
-        <Card padding={0}>
-          <div className="lw-schedule-table-header">
-            <span className="lw-small" style={{ fontWeight: 600, color: 'var(--lw-text-3)', fontSize: 11 }}>
-              Día
-            </span>
-            <span className="lw-small" style={{ fontWeight: 600, color: 'var(--lw-text-3)', fontSize: 11 }}>
-              Apertura · cierre
-            </span>
-            <span
-              className="lw-small"
-              style={{ fontWeight: 600, color: 'var(--lw-text-3)', fontSize: 11, textAlign: 'right', whiteSpace: 'nowrap' }}
-              title="Abre ese día"
-            >
-              Abierto
-            </span>
-          </div>
-          {DAY_KEYS.map((key) => {
-            const row = schedule[key]
-            const label = DAY_LABEL_ES[key]
-            const timeInputStyle = {
-              width: 142,
-              minWidth: 142,
-              height: 34,
-              minHeight: 34,
-              cursor: 'pointer' as const,
-            }
-            return (
-              <div key={key} className="lw-schedule-day-row">
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--lw-text)' }}>{label}</div>
-                {row.closed ? (
-                  <div className="lw-small" style={{ color: 'var(--lw-text-4)', fontSize: 12 }}>
-                    Cerrado
-                  </div>
-                ) : (
-                  <div className="lw-schedule-times-row">
-                    <Input
-                      type="time"
-                      value={row.open}
-                      disabled={busy}
-                      fullWidth={false}
-                      prefix={<Icon name="clock" size={14} />}
-                      aria-label={`${label}: apertura`}
-                      title="Hora de apertura"
-                      onChange={(e) =>
-                        onScheduleChange({ ...schedule, [key]: { ...schedule[key], open: e.target.value } })
-                      }
-                      className="lw-schedule-time-field"
-                      style={timeInputStyle}
-                    />
-                    <span className="lw-schedule-times-sep" aria-hidden>
-                      –
-                    </span>
-                    <Input
-                      type="time"
-                      value={row.close}
-                      disabled={busy}
-                      fullWidth={false}
-                      prefix={<Icon name="clock" size={14} />}
-                      aria-label={`${label}: cierre`}
-                      title="Hora de cierre"
-                      onChange={(e) =>
-                        onScheduleChange({ ...schedule, [key]: { ...schedule[key], close: e.target.value } })
-                      }
-                      className="lw-schedule-time-field"
-                      style={timeInputStyle}
-                    />
-                  </div>
-                )}
-                <div
-                  style={{ display: 'flex', justifyContent: 'flex-end' }}
-                  title={row.closed ? 'Abrir este día' : 'Cerrar este día'}
-                >
-                  <Switch
-                    checked={!row.closed}
-                    size="sm"
-                    disabled={busy}
-                    onChange={(open) =>
-                      onScheduleChange({ ...schedule, [key]: { ...schedule[key], closed: !open } })
-                    }
-                  />
-                </div>
-              </div>
-            )
-          })}
-        </Card>
-      </Field>
+      <ScheduleEditor
+        schedule={schedule}
+        onChange={onScheduleChange}
+        disabled={busy}
+        title="Vuestros horarios"
+        subtitle="Plantilla rápida y ajusta horas. El interruptor abre o cierra cada día."
+        error={errors?.schedule}
+      />
       {errors?.message ? (
         <div className="lw-small" style={{ color: 'var(--lw-danger)' }}>
           {errors.message}
@@ -3507,15 +3387,17 @@ function UbicacionPreview({
 function PlanPreview({
   variant = 'urban-bold',
   previewData,
+  initialHash = '',
 }: {
   variant?: Step1PreviewVariant
   previewData?: TemplatePreviewData
+  initialHash?: string
 }) {
   const previewUrl = previewDemoHostForVariant(variant)
 
   return (
     <PreviewBrowser url={previewUrl}>
-      <TemplateIframe variant={variant} mode="full" embed previewData={previewData} initialHash="" />
+      <TemplateIframe variant={variant} mode="full" embed previewData={previewData} initialHash={initialHash} />
     </PreviewBrowser>
   )
 }

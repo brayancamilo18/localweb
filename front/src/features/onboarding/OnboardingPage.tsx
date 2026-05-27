@@ -8,7 +8,8 @@ import { fetchOnboardingTemplates, hydrateGalleryFromServerUrls } from '../../ap
 import { keys } from '../../api/queryKeys'
 import type { Schedule, Template } from '../../types/api'
 import { useOnboarding } from './useOnboarding'
-import Step9ProSetup from './steps/Step9ProSetup'
+import Step9ProSetup, { type Step9SetupPhase } from './steps/Step9ProSetup'
+import { useBrandColor } from '../shared/useBrandColor'
 import {
   dataUrlToFile,
   galleryPreviewUrlsFromDraft,
@@ -48,6 +49,24 @@ import {
   type Step1PreviewVariant,
   type TemplatePreviewData,
 } from './wizard'
+
+/** Espejo de `TemplatePalette::cssVariableFor` del backend. Sin el prefijo
+ * "var(" ni "--": solo el identificador. Si añades una plantilla nueva con
+ * paleta brand, actualiza también este mapping. */
+const TEMPLATE_BRAND_VARIABLE: Record<string, string> = {
+  'bloom-studio': 'coral',
+  'coastal-calm': 'terracotta',
+  'craft-pro': 'orange',
+  'graphite-soft': 'accent',
+  'luxe-atelier': 'champagne',
+  'mono-edito': 'accent',
+  'noir-elite': 'gold',
+  'tavola-warm': 'wine',
+  'tech-sleek': 'cyan',
+  'trust-clinic': 'accent',
+  'urban-bold': 'lime',
+  'versa-studio': 'warm',
+}
 
 const EMPTY_TEMPLATES: Template[] = []
 
@@ -127,8 +146,10 @@ export default function OnboardingPage() {
   const [previewEmail, setPreviewEmail] = useState('')
   const [previewMapLat, setPreviewMapLat] = useState<number | undefined>(undefined)
   const [previewMapLng, setPreviewMapLng] = useState<number | undefined>(undefined)
-  const [proSetupPhase, setProSetupPhase] = useState<'services' | 'extras'>('services')
+  const [proSetupPhase, setProSetupPhase] = useState<Step9SetupPhase>('services')
   const [proOffersServices, setProOffersServices] = useState(true)
+  /** Hex enviado al iframe de vista previa (incluye default de paleta y cambios locales inmediatos). */
+  const [brandColorLiveHex, setBrandColorLiveHex] = useState<string | null>(null)
 
   const { data } = useQuery<Template[]>({
     queryKey: keys.onboarding.templates,
@@ -151,6 +172,30 @@ export default function OnboardingPage() {
   }, [currentStep, postCheckoutProGallery, serverDraft])
 
   const step9Active = currentStep === 9
+  const brandColorQuery = useBrandColor({
+    enabled: step9Active && (businessIsPro || businessPlan === 'pending'),
+  })
+
+  useEffect(() => {
+    if (!step9Active) {
+      setBrandColorLiveHex(null)
+      return
+    }
+    if (!brandColorQuery.data?.is_supported) {
+      return
+    }
+    const hex = brandColorQuery.data.current ?? brandColorQuery.data.effective
+    if (hex) {
+      setBrandColorLiveHex(hex.toLowerCase())
+    }
+  }, [step9Active, brandColorQuery.data])
+
+  const brandPreviewHex = useMemo(() => {
+    if (!step9Active) return null
+    if (brandColorLiveHex) return brandColorLiveHex
+    if (!brandColorQuery.data?.is_supported) return null
+    return brandColorQuery.data.current ?? brandColorQuery.data.effective ?? null
+  }, [step9Active, brandColorLiveHex, brandColorQuery.data])
   const step8OrLater = currentStep >= 8
   const businessSnapQuery = useQuery({
     queryKey: keys.dashboard.business,
@@ -664,6 +709,10 @@ export default function OnboardingPage() {
       instagramUrl: step9Active ? (b?.instagram_url ?? '') : undefined,
       tiktokUrl: step9Active ? (b?.tiktok_url ?? '') : undefined,
       facebookUrl: step9Active ? (b?.facebook_url ?? '') : undefined,
+      brandColorOverride: brandPreviewHex ?? undefined,
+      brandVariable: step9Active
+        ? (TEMPLATE_BRAND_VARIABLE[step1PreviewVariant] ?? null)
+        : undefined,
     }
   }, [
     step1LogoPreviewUrl,
@@ -690,6 +739,8 @@ export default function OnboardingPage() {
     servicesSnapQuery.data,
     step8OrLater,
     step9Active,
+    brandPreviewHex,
+    step1PreviewVariant,
   ])
 
   const navValue = useMemo(
@@ -810,9 +861,13 @@ export default function OnboardingPage() {
       case 8:
         return 'Última revisión visual antes de publicar.'
       case 9:
-        return proSetupPhase === 'services'
-          ? 'Enfocamos la sección de servicios de tu plantilla.'
-          : 'Enfocamos enlaces y datos de contacto (Google Business, vCard…).'
+        if (proSetupPhase === 'services') {
+          return 'Enfocamos la sección de servicios de tu plantilla.'
+        }
+        if (proSetupPhase === 'brand') {
+          return 'Ves tu web con el color de marca que elijas.'
+        }
+        return 'Enfocamos enlaces y datos de contacto (Google Business, vCard…).'
       default:
         return ''
     }
@@ -836,12 +891,21 @@ export default function OnboardingPage() {
         return <PlanPreview variant={step1PreviewVariant} previewData={templatePreviewData} />
       case 8:
         return <PlanPreview variant={step1PreviewVariant} previewData={templatePreviewData} />
-      case 9:
-        return proSetupPhase === 'services' ? (
-          <ServiciosPreview variant={step1PreviewVariant} previewData={templatePreviewData} />
-        ) : (
-          <UbicacionPreview variant={step1PreviewVariant} previewData={templatePreviewData} />
+      case 9: {
+        const step9PreviewHash =
+          proSetupPhase === 'services'
+            ? '#servicios'
+            : proSetupPhase === 'extras'
+              ? '#contacto'
+              : ''
+        return (
+          <PlanPreview
+            variant={step1PreviewVariant}
+            previewData={templatePreviewData}
+            initialHash={step9PreviewHash}
+          />
         )
+      }
       default:
         return null
     }
@@ -955,6 +1019,9 @@ export default function OnboardingPage() {
             onSetupPhaseChange={setProSetupPhase}
             offersServices={proOffersServices}
             onOffersServicesChange={setProOffersServices}
+            brandColorDefault={brandColorQuery.data?.default ?? '#000000'}
+            brandColorPickerValue={brandColorLiveHex}
+            onBrandColorLiveChange={setBrandColorLiveHex}
           />
         )
       default:

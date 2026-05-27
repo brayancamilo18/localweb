@@ -403,7 +403,6 @@ boot_script = """
 inline_style = inline_style.replace("<style>\n", "@verbatim\n<style>\n", 1)
 inline_style = inline_style.replace("</style>\n", "</style>\n@endverbatim\n", 1)
 head_links = head_links.replace("leaflet@1.9.4", "leaflet@@1.9.4")
-body_main = body_main.replace('<span class="icon">@</span>', '<span class="icon">@@</span>')
 
 scripts = scripts.replace("leaflet@1.9.4", "leaflet@@1.9.4")
 

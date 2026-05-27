@@ -18,6 +18,7 @@ export const keys = {
     images: ['dashboard', 'images'] as const,
     services: ['dashboard', 'services'] as const,
     templates: ['dashboard', 'templates'] as const,
+    brandColor: ['dashboard', 'brand-color'] as const,
   },
   public: (subdomain: string) => ['public', subdomain] as const,
   account: {

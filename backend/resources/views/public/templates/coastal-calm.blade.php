@@ -27,7 +27,7 @@
     --sage:#7C9079;
     --sage-deep:#536052;
     --terracotta:#C76E4A;
-    --terracotta-soft:#E8B89E;
+    --terracotta-soft:color-mix(in srgb, var(--terracotta) 45%, #ffffff);
     --line:rgba(42,42,38,.12);
   }
   *{margin:0;padding:0;box-sizing:border-box}
@@ -80,7 +80,7 @@
   .hero-tag{font-size:18px;line-height:1.65;color:var(--ink-soft);max-width:440px;margin-bottom:36px}
   .hero-cta{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
   .btn-primary{display:inline-flex;align-items:center;gap:10px;padding:16px 28px;background:var(--terracotta);color:#fff;border-radius:999px;font-size:14px;font-weight:500;letter-spacing:.01em;transition:background .15s,transform .15s,box-shadow .2s}
-  .btn-primary:hover{background:#A85A39;transform:translateY(-2px);box-shadow:0 12px 24px -8px rgba(199,110,74,.45)}
+  .btn-primary:hover{background:var(--terracotta-hover);transform:translateY(-2px);box-shadow:0 12px 24px -8px color-mix(in srgb, var(--terracotta) 45%, transparent)}
   .btn-ghost{display:inline-flex;align-items:center;gap:10px;padding:16px 24px;color:var(--ink);font-size:14px;font-weight:500}
   .btn-ghost .arrow{width:28px;height:28px;border-radius:50%;background:var(--sand);display:grid;place-items:center;font-size:13px;transition:transform .2s,background .15s}
   .btn-ghost:hover .arrow{transform:translateX(3px);background:var(--terracotta-soft)}
@@ -198,7 +198,7 @@
   .map-shell{position:relative;background:var(--sand)}
   .map-leaflet{height:min(340px,50vh);min-height:220px;width:100%;background:var(--sand)}
   .map-shell .leaflet-container{font-family:"DM Sans";background:var(--sand)}
-  .map-shell .leaflet-control-zoom a{background:var(--paper);color:var(--sage-deep);border:1px solid var(--line);border-radius:8px!important;font-weight:600}
+  .map-shell .leaflet-control-zoom a{display:flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;line-height:1;font-size:22px;text-align:center;text-decoration:none;background:var(--paper);color:var(--sage-deep);border:1px solid var(--line);border-radius:8px!important;font-weight:600}
   .map-shell .leaflet-control-zoom a:hover{background:var(--sage);color:#fff}
   .map-shell .leaflet-bar{border:none;box-shadow:none}
   .map-shell .leaflet-control-attribution{background:var(--paper)!important;color:var(--ink-mute)!important;font-size:10px!important}
@@ -293,6 +293,8 @@
   @media (max-width:640px){.lw-gallery-lightbox-close{top:8px;right:8px}}
 </style>
 @endverbatim
+
+@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
 
 @endpush
 

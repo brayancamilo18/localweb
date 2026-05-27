@@ -63,9 +63,70 @@ export async function getDashboardTemplates(): Promise<DashboardTemplatesRespons
   return response.data.data
 }
 
-export async function changeBusinessTemplate(templateId: number): Promise<Business> {
-  const response = await apiClient.post<ApiResponse<Business>>('/dashboard/template', { template_id: templateId })
+export type TemplateChangePreview = {
+  same_template: boolean
+  template?: { id: number; name: string; slug: string }
+  brand_color?: {
+    has_current: boolean
+    current_color: string
+    current_in_new: boolean
+    suggested_color: string
+    new_palette: string[]
+    new_default: string
+    new_template_supported: boolean
+  }
+}
+
+export async function previewTemplateChange(templateId: number): Promise<TemplateChangePreview> {
+  const response = await apiClient.get<TemplateChangePreview>(`/dashboard/template/${templateId}/preview`)
+  return response.data
+}
+
+export type ChangeBusinessTemplatePayload = {
+  template_id: number
+  brand_color?: string | null
+  keep_current_brand_color?: boolean
+}
+
+export async function changeBusinessTemplate(payload: ChangeBusinessTemplatePayload): Promise<Business> {
+  const response = await apiClient.post<ApiResponse<Business>>('/dashboard/template', payload)
   return response.data.data
+}
+
+export type BrandColorTemplateMeta = {
+  usage: 'text' | 'bg' | 'mixed' | 'text_on_dark'
+  bg: string
+  ink: string
+}
+
+export type BrandColorState = {
+  palette: string[]
+  current: string | null
+  effective: string
+  default: string
+  template_slug: string | null
+  template_meta: BrandColorTemplateMeta | null
+  contrast_warning: string | null
+  is_pro: boolean
+  is_supported: boolean
+}
+
+export async function getBrandColor(): Promise<BrandColorState> {
+  const response = await apiClient.get<BrandColorState>('/dashboard/brand-color')
+  return response.data
+}
+
+export async function updateBrandColor(brandColor: string | null): Promise<{
+  brand_color: string | null
+  effective_color: string
+  contrast_warning: string | null
+}> {
+  const response = await apiClient.put<{
+    brand_color: string | null
+    effective_color: string
+    contrast_warning: string | null
+  }>('/dashboard/brand-color', { brand_color: brandColor })
+  return response.data
 }
 
 export async function uploadImage(

@@ -46,17 +46,29 @@ export default function MiPaginaQrSection() {
   const [logoLoading, setLogoLoading] = useState(false)
   const [posterQrDataUri, setPosterQrDataUri] = useState('')
   const [didInit, setDidInit] = useState(false)
+  const lastServerDefaultColor = useRef<string | null>(null)
   const posterQrCanvasRef = useRef<HTMLDivElement>(null)
 
-  // Inicializa el estado cuando llega la info del backend
+  // Color y mensaje iniciales; si el color de marca cambia y el usuario no personalizó el QR, sincronizar.
   useEffect(() => {
-    if (!infoQ.data || didInit) return
-    setColor(infoQ.data.default_color)
-    setIncludeLogo(infoQ.data.has_logo)
-    if (infoQ.data.tagline) {
-      setMessage(infoQ.data.tagline.slice(0, MAX_MESSAGE_LEN))
+    if (!infoQ.data) return
+    const serverDefault = infoQ.data.default_color
+    setColor((current) => {
+      if (!didInit) return serverDefault
+      const prev = lastServerDefaultColor.current
+      if (prev !== null && current.toLowerCase() === prev.toLowerCase()) {
+        return serverDefault
+      }
+      return current
+    })
+    lastServerDefaultColor.current = serverDefault
+    if (!didInit) {
+      setIncludeLogo(infoQ.data.has_logo)
+      if (infoQ.data.tagline) {
+        setMessage(infoQ.data.tagline.slice(0, MAX_MESSAGE_LEN))
+      }
+      setDidInit(true)
     }
-    setDidInit(true)
   }, [infoQ.data, didInit])
 
   // Descarga y convierte el logo a base64 para enviar al backend en el PDF
@@ -312,7 +324,7 @@ export default function MiPaginaQrSection() {
         {/* Panel de personalización */}
         <div className="lw-mipagina-qr-options-col">
           <div className="lw-mipagina-qr-options">
-            <Field label="Color del QR" hint="Por defecto, el color de tu plantilla">
+            <Field label="Color del QR" hint="Por defecto, el color de marca de tu página">
               <div className="lw-mipagina-qr-color-row">
                 <input
                   type="color"

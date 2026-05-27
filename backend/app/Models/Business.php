@@ -25,6 +25,7 @@ class Business extends Tenant
         'sector',
         'template_id',
         'template_changed_at',
+        'brand_color',
         'logo_path',
         'favicon_path',
         'description',

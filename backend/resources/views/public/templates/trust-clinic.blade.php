@@ -27,8 +27,8 @@
     --line:#E5E2D9;
     --line-2:#D4D0C4;
     --accent:#1A4F3F;
-    --accent-2:#2D6855;
-    --accent-soft:#E8F0EC;
+    --accent-2:color-mix(in srgb, var(--accent) 82%, #000000);
+    --accent-soft:color-mix(in srgb, var(--accent) 8%, #ffffff);
     --gold:#A88B4A;
     --warn:#B85C39;
   }
@@ -164,7 +164,7 @@
   .map-shell{position:relative;background:var(--line)}
   .map-leaflet{height:min(340px,50vh);min-height:220px;width:100%;background:var(--line)}
   .map-shell .leaflet-container{font-family:"Inter";background:var(--line)}
-  .map-shell .leaflet-control-zoom a{background:var(--paper);color:var(--accent);border:1px solid var(--line);font-weight:600}
+  .map-shell .leaflet-control-zoom a{display:flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;line-height:1;font-size:22px;text-align:center;text-decoration:none;background:var(--paper);color:var(--accent);border:1px solid var(--line);font-weight:600}
   .map-shell .leaflet-control-zoom a:hover{background:var(--accent);color:#fff}
   .map-shell .leaflet-bar{border:none;box-shadow:none}
   .map-shell .leaflet-control-attribution{background:var(--paper)!important;color:var(--ink-3)!important;font-size:10px!important}
@@ -341,6 +341,8 @@
 </style>
 @endverbatim
 
+@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
+
 @endpush
 
 @section('content')
@@ -484,7 +486,7 @@
         <h3 class="serif">Habla con nosotros</h3>
         <div class="contact-list">
           <a href="{{ $whatsapp ? 'tel:+'.$whatsapp : 'tel:' }}" data-tel-link><span class="icon">☏</span><span data-phone-display>{{ $telefono ?: 'Tu teléfono' }}</span></a>
-          <a href="mailto:" id="contactEmailLink" hidden><span class="icon">@@</span><span id="contactEmailDisplay"></span></a>
+          <a href="mailto:" id="contactEmailLink" hidden><span class="icon">@</span><span id="contactEmailDisplay"></span></a>
           <a href="https://wa.me/{{ $whatsapp }}" data-wa-link><span class="icon">W</span>WhatsApp</a>
           <a href="#" id="contactAddressRow" hidden><span class="icon">◉</span><span id="contactAddressText"></span></a>
       </div>

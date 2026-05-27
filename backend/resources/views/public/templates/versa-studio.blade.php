@@ -30,7 +30,7 @@
     --line-2:#C2BFB1;
     --accent:#2B2D31;
     --warm:#C7634D;
-    --warm-soft:#F5DDD3;
+    --warm-soft:color-mix(in srgb, var(--warm) 35%, #ffffff);
     --moss:#7A8260;
   }
   *{margin:0;padding:0;box-sizing:border-box}
@@ -110,7 +110,7 @@
   .btn-p::before{content:"";position:absolute;inset:0;border-radius:999px;background:var(--warm);transform:scaleX(0);transform-origin:left;transition:transform .5s cubic-bezier(.65,0,.35,1);z-index:0}
   .btn-p > *{position:relative;z-index:1}
   .btn-p:hover::before{transform:scaleX(1)}
-  .btn-p:hover{box-shadow:0 12px 28px -10px rgba(199,99,77,.4)}
+  .btn-p:hover{box-shadow:0 12px 28px -10px color-mix(in srgb, var(--warm) 40%, transparent)}
   .btn-p::after{content:"→";transition:transform .25s}
   .btn-p:hover::after{transform:translateX(4px)}
   .btn-g{display:inline-flex;align-items:center;gap:10px;padding:16px 26px;color:var(--ink);font-family:"Plus Jakarta Sans";font-size:14.5px;font-weight:600;border:1.5px solid var(--ink);border-radius:999px;background:transparent;transition:background .25s,color .25s}
@@ -135,7 +135,7 @@
   .ppic.fallback.p2 .pimg{background:linear-gradient(135deg,var(--bg-2),var(--ink-4))}
   .ppic.fallback.p3 .pimg{background:linear-gradient(135deg,var(--moss),var(--bg-2))}
   .ppic:hover{transform:scale(1.04) rotate(0deg);z-index:10;box-shadow:0 32px 64px -16px rgba(21,23,26,.32)}
-  .hero-tape{position:absolute;width:80px;height:24px;background:rgba(199,99,77,.4);top:-12px;left:50%;transform:translateX(-50%) rotate(-2deg);border:1px dashed rgba(199,99,77,.2)}
+  .hero-tape{position:absolute;width:80px;height:24px;background:color-mix(in srgb, var(--warm) 40%, transparent);top:-12px;left:50%;transform:translateX(-50%) rotate(-2deg);border:1px dashed color-mix(in srgb, var(--warm) 20%, transparent)}
 
   /* ─── TICKER ─── */
   .ticker{padding:24px 0;background:var(--ink);color:var(--bg);overflow:hidden;margin-top:40px}
@@ -156,8 +156,8 @@
   .svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
   .svc-card{padding:32px 28px;background:var(--paper);border:1px solid var(--line);border-radius:24px;position:relative;transition:border-color .3s,transform .3s,box-shadow .3s;cursor:pointer;display:flex;flex-direction:column;gap:18px;overflow:hidden}
   .svc-card::before{content:"";position:absolute;top:-50%;right:-50%;width:300px;height:300px;background:radial-gradient(circle,var(--warm-soft),transparent 70%);opacity:0;transition:opacity .5s;pointer-events:none}
-  .svc-card:hover{border-color:var(--warm);transform:translateY(-6px);box-shadow:0 24px 48px -20px rgba(21,23,26,.15)}
-  .svc-card:hover::before{opacity:.8}
+  .svc-card:hover{border-color:var(--ink);transform:translateY(-6px);box-shadow:0 24px 48px -20px rgba(21,23,26,.15)}
+  .svc-card:hover::before{opacity:.35}
   .svc-card > *{position:relative}
   .svc-num{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--ink-3);letter-spacing:.06em}
   .svc-card h3{font-family:"Bricolage Grotesque";font-size:24px;font-weight:600;letter-spacing:-.02em;line-height:1.15;color:var(--ink)}
@@ -220,9 +220,9 @@
   .schedule-row .closed{color:var(--ink-3);font-style:italic;font-family:"Plus Jakarta Sans";font-weight:400;font-size:13.5px;letter-spacing:0}
   .schedule-row.today{background:var(--warm-soft);margin:0 -16px;padding:14px 16px;border-radius:12px;border-bottom:1px solid transparent}
   .schedule-row.today .day{color:var(--warm);font-weight:600}
-  .schedule-row.today .day::after{content:" — hoy";color:rgba(199,99,77,.7);font-weight:400}
+  .schedule-row.today .day::after{content:" — hoy";color:color-mix(in srgb, var(--warm) 70%, transparent);font-weight:400}
   .schedule-row.today .time{color:var(--warm)}
-  .schedule-row.today .dots{border-color:rgba(199,99,77,.3)}
+  .schedule-row.today .dots{border-color:color-mix(in srgb, var(--warm) 30%, transparent)}
 
   .contact-list{display:flex;flex-direction:column;gap:8px}
   .contact-link{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--bg-2);border-radius:16px;transition:background .25s,transform .15s}
@@ -239,7 +239,7 @@
   /* ─── REVIEWS ─── */
   .reviews-cta{padding:120px 0;text-align:center;background:var(--bg)}
   .reviews-card{max-width:760px;margin:0 auto;background:var(--ink);color:var(--bg);border-radius:32px;padding:64px 48px;position:relative;overflow:hidden}
-  .reviews-card::before{content:"";position:absolute;top:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(199,99,77,.25),transparent 70%);pointer-events:none}
+  .reviews-card::before{content:"";position:absolute;top:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,color-mix(in srgb, var(--warm) 25%, transparent),transparent 70%);pointer-events:none}
   .reviews-card > *{position:relative}
   .reviews-card .eyebrow{color:var(--warm-soft)}
   .gstars{font-size:28px;color:var(--warm);letter-spacing:8px;margin:14px 0 8px}
@@ -258,7 +258,7 @@
   .vcard h3 em{font-style:italic;color:var(--warm);font-weight:500}
   .vcard h3 small{display:block;font-family:"Plus Jakarta Sans";font-size:15px;font-weight:400;color:var(--ink-2);margin-top:8px;letter-spacing:0;font-style:normal}
   .vcard-btn{display:inline-flex;align-items:center;gap:10px;padding:18px 28px;background:var(--ink);color:var(--bg);font-family:"Plus Jakarta Sans";font-size:14.5px;font-weight:600;border-radius:999px;transition:background .25s,transform .15s,box-shadow .3s}
-  .vcard-btn:hover{background:var(--warm);transform:translateY(-2px);box-shadow:0 16px 32px -12px rgba(199,99,77,.4)}
+  .vcard-btn:hover{background:var(--warm);transform:translateY(-2px);box-shadow:0 16px 32px -12px color-mix(in srgb, var(--warm) 40%, transparent)}
 
   /* ─── CTA FINAL · full-bleed con foto ─── */
   .cta-final{padding:0;position:relative;overflow:hidden;min-height:560px;display:grid;place-items:center}
@@ -359,6 +359,8 @@
   @media (max-width:640px){ .lw-gallery-lightbox-close{top:8px;right:8px} }
 </style>
 @endverbatim
+
+@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
 
 @endpush
 

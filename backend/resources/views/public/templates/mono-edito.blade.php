@@ -120,7 +120,7 @@
   .sphoto.s3{top:36%;right:0;width:34%;height:62%;background-image:var(--img-3,url('https://images.unsplash.com/photo-1630595632518-8217c0bceb8f?auto=format&fit=crop&w=700&q=75'))}
   .sphoto.fallback{background:linear-gradient(180deg,var(--ink),var(--ink-2));filter:none}
   .sphoto.fallback.s2{background:linear-gradient(180deg,var(--bg-2),var(--bg-3))}
-  .sphoto.fallback.s3{background:linear-gradient(180deg,var(--accent),#A8351E)}
+  .sphoto.fallback.s3{background:linear-gradient(180deg,var(--accent),var(--accent-hover))}
   .sphoto-num{position:absolute;left:14px;top:14px;font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--bg);background:var(--ink);padding:6px 10px;letter-spacing:.16em;text-transform:uppercase;z-index:3}
   .sphoto-cap{position:absolute;left:14px;bottom:14px;font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--bg);letter-spacing:.16em;text-transform:uppercase;background:rgba(10,10,10,.7);backdrop-filter:blur(6px);padding:7px 11px;z-index:3}
 
@@ -352,6 +352,8 @@
   }
 </style>
 @endverbatim
+
+@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
 
 @endpush
 

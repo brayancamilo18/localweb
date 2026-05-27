@@ -21,7 +21,9 @@
     --bg:#FFFFFF; --bg-2:#F4F4F2; --bg-3:#E8E8E5;
     --ink:#0F1114; --ink-2:#3A3D43; --ink-3:#7A7D84;
     --line:#D8D8D4; --line-2:#BFBFBA;
-    --orange:#FF5C00; --orange-2:#E04E00; --orange-soft:#FFE8D8;
+    --orange:#FF5C00;
+    --orange-2:color-mix(in srgb, var(--orange) 88%, #000000);
+    --orange-soft:color-mix(in srgb, var(--orange) 10%, #ffffff);
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html{scroll-behavior:smooth}
@@ -56,7 +58,7 @@
   .nav ul a.is-active{color:var(--orange)}
   .nav ul a.is-active::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:2px;background:var(--orange)}
   .nav-cta{display:inline-flex;align-items:center;gap:10px;padding:11px 22px;background:var(--orange);color:#fff;font-family:"Inter";font-size:14px;font-weight:700;letter-spacing:.005em;transition:background .15s}
-  .nav-cta:hover{background:var(--orange-2)}
+  .nav-cta:hover{background:var(--orange-hover, var(--orange-2))}
   .nav-actions{display:flex;align-items:center;gap:14px}
   .menu-toggle{display:none;width:44px;height:44px;background:transparent;border:1.5px solid #fff;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0}
   .menu-toggle span{display:block;width:20px;height:2px;background:#fff;transition:.25s}
@@ -79,12 +81,12 @@
   .hero-tag{font-size:18px;line-height:1.6;color:var(--ink-2);max-width:520px;margin-bottom:36px;font-weight:400}
   .hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:48px}
   .btn-p{display:inline-flex;align-items:center;gap:12px;padding:18px 32px;background:var(--orange);color:#fff;font-family:"Barlow Condensed";font-size:17px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;transition:background .15s;border:2px solid var(--orange)}
-  .btn-p:hover{background:var(--orange-2);border-color:var(--orange-2)}
+  .btn-p:hover{background:var(--orange-hover, var(--orange-2));border-color:var(--orange-hover, var(--orange-2))}
   .btn-g{display:inline-flex;align-items:center;gap:10px;padding:18px 28px;background:transparent;color:var(--ink);font-family:"Barlow Condensed";font-size:17px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;border:2px solid var(--ink);transition:background .15s,color .15s}
   .btn-g:hover{background:var(--ink);color:#fff}
   .hero-photo{position:relative;background:var(--ink);min-height:560px;overflow:hidden}
   .hero-photo img{width:100%;height:100%;object-fit:cover}
-  .hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(15,17,20,.4) 0%,transparent 50%,rgba(255,92,0,.15) 100%);pointer-events:none}
+  .hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(15,17,20,.4) 0%,transparent 50%,color-mix(in srgb, var(--orange) 15%, transparent) 100%);pointer-events:none}
 
   /* TICKER */
   .ticker{background:var(--ink);color:#fff;overflow:hidden;border-bottom:1px solid rgba(255,255,255,.08);padding:18px 0}
@@ -156,7 +158,7 @@
   .schedule-status.open .dot{animation:statusPulse 2.4s infinite}
   .schedule-status.closed{background:var(--ink-3);color:#fff}
   .schedule-status.closed .dot{background:#fff;animation:none}
-  @keyframes statusPulse{0%{box-shadow:0 0 0 0 rgba(255,92,0,.6)}70%{box-shadow:0 0 0 8px rgba(255,92,0,0)}100%{box-shadow:0 0 0 0 rgba(255,92,0,0)}}
+  @keyframes statusPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--orange) 60%, transparent)}70%{box-shadow:0 0 0 8px color-mix(in srgb, var(--orange) 0%, transparent)}100%{box-shadow:0 0 0 0 color-mix(in srgb, var(--orange) 0%, transparent)}}
   .contact-list{display:flex;flex-direction:column;gap:0}
   .contact-list a{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);font-size:15px;font-weight:500;transition:padding .15s}
   .contact-list a:last-child{border-bottom:none}
@@ -169,7 +171,7 @@
   .map-shell{position:relative;background:var(--ink)}
   .map-leaflet{height:min(340px,50vh);min-height:220px;width:100%;background:var(--ink)}
   .map-shell .leaflet-container{font-family:"Inter";background:var(--ink)}
-  .map-shell .leaflet-control-zoom a{background:var(--ink);color:var(--orange);border:2px solid var(--orange);border-radius:0!important;font-weight:700}
+  .map-shell .leaflet-control-zoom a{display:flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;line-height:1;font-size:22px;text-align:center;text-decoration:none;background:var(--ink);color:var(--orange);border:2px solid var(--orange);border-radius:0!important;font-weight:700}
   .map-shell .leaflet-control-zoom a:hover{background:var(--orange);color:#fff}
   .map-shell .leaflet-bar{border:none;box-shadow:none}
   .map-shell .leaflet-control-attribution{background:var(--ink)!important;color:#666!important;font-size:10px!important}
@@ -177,7 +179,7 @@
   .bold-leaflet-divicon{background:transparent!important;border:none!important}
   .bold-map-pin-wrap{position:relative;width:48px;height:48px;display:flex;align-items:center;justify-content:center;pointer-events:none}
   .bold-map-core{width:12px;height:12px;background:var(--orange);border:3px solid var(--ink);box-shadow:0 0 0 1px var(--orange),0 4px 12px rgba(0,0,0,.5);position:relative;z-index:2}
-  .bold-map-radar-ring{position:absolute;left:50%;top:50%;width:40px;height:40px;margin:-20px 0 0 -20px;border:2px solid var(--orange);box-shadow:0 0 10px rgba(255,92,0,.25);animation:boldMapRadar 2.5s cubic-bezier(.2,.7,.2,1) infinite;pointer-events:none}
+  .bold-map-radar-ring{position:absolute;left:50%;top:50%;width:40px;height:40px;margin:-20px 0 0 -20px;border:2px solid var(--orange);box-shadow:0 0 10px color-mix(in srgb, var(--orange) 25%, transparent);animation:boldMapRadar 2.5s cubic-bezier(.2,.7,.2,1) infinite;pointer-events:none}
   .bold-map-radar-ring.d2{animation-delay:1.25s}
   @keyframes boldMapRadar{0%{transform:scale(0.4);opacity:.95}65%{opacity:.2}100%{transform:scale(2.15);opacity:0}}
   .map-directions-row{display:none;justify-content:flex-start;align-items:center;padding:20px 32px;border-top:2px solid var(--ink);background:var(--bg)}
@@ -340,6 +342,8 @@
 </style>
 @endverbatim
 
+@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
+
 @endpush
 
 @section('content')
@@ -491,7 +495,7 @@
         <h3 class="cond">Habla con nosotros</h3>
         <div class="contact-list">
           <a href="{{ $whatsapp ? 'tel:+'.$whatsapp : 'tel:' }}" data-tel-link><span class="icon">☏</span><span data-phone-display>{{ $telefono ?: 'Tu teléfono' }}</span></a>
-          <a href="mailto:" id="contactEmailLink" hidden><span class="icon">@@</span><span id="contactEmailDisplay"></span></a>
+          <a href="mailto:" id="contactEmailLink" hidden><span class="icon">@</span><span id="contactEmailDisplay"></span></a>
           <a href="https://wa.me/{{ $whatsapp }}" data-wa-link><span class="icon">W</span>WhatsApp · respondemos rápido</a>
           <a href="#" id="contactAddressRow" hidden><span class="icon">◉</span><span id="contactAddressText"></span></a>
         </div>

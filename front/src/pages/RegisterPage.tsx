@@ -9,6 +9,7 @@ import { LocationPicker } from '../components/location/LocationPicker'
 import { PasswordVisibilityToggle } from '../components/auth/PasswordVisibilityToggle'
 import { SocialAuthButtons } from '../components/auth/SocialAuthButtons'
 import { Btn, Field, Icon, Input } from '../components/primitives/primitives'
+import { SectorIcon } from '../components/primitives/SectorIcon'
 import { emptyLocation, isValidLocation } from '../lib/location/locationData'
 import {
   RegisterFormFooterNotice,
@@ -23,23 +24,24 @@ import { useAuthStore } from '../store/authStore'
 
 const SECTORS_PAGE_SIZE = 8
 
+/** Mismos ids y etiquetas que el filtro de sector del onboarding (SectorIcon). */
 const SECTORS = [
-  { id: 'peluqueria', label: 'Peluquería', icon: 'scissors' as const },
-  { id: 'barberia', label: 'Barbería', icon: 'scissors' as const },
-  { id: 'estetica', label: 'Estética', icon: 'sparkle' as const },
-  { id: 'spa', label: 'Spa', icon: 'clock' as const },
-  { id: 'restaurante', label: 'Restaurante', icon: 'list' as const },
-  { id: 'cafeteria', label: 'Cafetería', icon: 'list' as const },
-  { id: 'bar', label: 'Bar', icon: 'star' as const },
-  { id: 'panaderia', label: 'Panadería', icon: 'palette' as const },
-  { id: 'tienda_ropa', label: 'Tienda de ropa', icon: 'creditCard' as const },
-  { id: 'tienda_calzado', label: 'Calzado', icon: 'layout' as const },
-  { id: 'floristeria', label: 'Floristería', icon: 'image' as const },
-  { id: 'farmacia', label: 'Farmacia', icon: 'shield' as const },
-  { id: 'clinica_dental', label: 'Clínica dental', icon: 'users' as const },
-  { id: 'fisioterapia', label: 'Fisioterapia', icon: 'bolt' as const },
-  { id: 'gimnasio', label: 'Gimnasio', icon: 'trending' as const },
-  { id: 'otros', label: 'Otros', icon: 'grid' as const },
+  { id: 'peluqueria', label: 'Peluquería' },
+  { id: 'barberia', label: 'Barbería' },
+  { id: 'estetica', label: 'Estética' },
+  { id: 'spa', label: 'Spa' },
+  { id: 'restaurante', label: 'Restaurante' },
+  { id: 'cafeteria', label: 'Cafetería' },
+  { id: 'bar', label: 'Bar' },
+  { id: 'panaderia', label: 'Panadería' },
+  { id: 'tienda_ropa', label: 'Tienda de ropa' },
+  { id: 'tienda_calzado', label: 'Calzado' },
+  { id: 'floristeria', label: 'Floristería' },
+  { id: 'farmacia', label: 'Farmacia' },
+  { id: 'clinica_dental', label: 'Clínica dental' },
+  { id: 'fisioterapia', label: 'Fisioterapia' },
+  { id: 'gimnasio', label: 'Gimnasio' },
+  { id: 'otros', label: 'Otros' },
 ]
 
 function StepDot({ n, active, done, label }: { n: number; active: boolean; done: boolean; label: string }) {
@@ -424,7 +426,7 @@ export default function RegisterPage() {
                               transition: 'all .12s',
                             }}
                           >
-                            <Icon name={s.icon} size={18} />
+                            <SectorIcon id={s.id} size={18} />
                             {s.label}
                           </button>
                         )

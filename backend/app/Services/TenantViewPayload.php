@@ -9,6 +9,9 @@ class TenantViewPayload
 {
     public function build(Business $business): array
     {
+        $palette = app(\App\Services\TemplatePalette::class);
+        $brandVariable = $palette->cssVariableFor($business->template);
+        $brandColor = $palette->brandColorForPublicView($business);
         $subdomain = (string) $business->subdomain;
         $apiBaseUrl = rtrim((string) config('app.url'), '/');
 
@@ -41,6 +44,8 @@ class TenantViewPayload
             'booking_url' => $business->booking_url ?? '',
             'vcard_enabled' => (bool) $business->vcard_enabled,
             'is_pro' => $business->is_pro,
+            'brand_color' => $brandColor,
+            'brand_variable' => $brandVariable,
             'subdomain' => $subdomain,
             'api_base_url' => $apiBaseUrl,
             'vcard_download_url' => $apiBaseUrl.'/api/v1/public/'.$subdomain.'/vcard',

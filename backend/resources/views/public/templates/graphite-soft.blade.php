@@ -27,7 +27,7 @@
   --muted:#9a9489;
   --line:rgba(240,235,225,.16);
   --accent:#c47550;          /* terracota apagada */
-  --accent-soft:rgba(196,117,80,.18);
+  --accent-soft:color-mix(in srgb, var(--accent) 18%, transparent);
   --ease:cubic-bezier(.22,1,.36,1);
   --ease-out:cubic-bezier(.16,1,.3,1);
   --ease-std:cubic-bezier(.4,0,.2,1);
@@ -318,6 +318,8 @@ footer{background:var(--bg);color:var(--muted);padding:clamp(56px,8vh,80px) clam
 }
 </style>
 @endverbatim
+
+@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
 
 @endpush
 
@@ -1000,7 +1002,7 @@ function graphiteMapIcon() {
   if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return null;
   return L.divIcon({
     html:
-      '<div style="width:14px;height:14px;border-radius:50%;background:#c47550;box-shadow:0 0 0 6px rgba(196,117,80,.3),0 0 0 1px #f0ebe1"></div>',
+      '<div style="width:14px;height:14px;border-radius:50%;background:#c47550;box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 30%, transparent),0 0 0 1px #f0ebe1"></div>',
     className: '',
     iconSize: [14, 14],
     iconAnchor: [7, 7],

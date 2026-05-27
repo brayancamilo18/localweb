@@ -20,8 +20,8 @@
   /* ───── TOKENS ──────────────────────────────────────── */
   :root{
     --bg:#0A0A0A; --bg-2:#111111; --bg-3:#050505;
-    --gold:#C9A84C; --gold-soft:rgba(201,168,76,.15);
-    --gold-line:rgba(201,168,76,.3);
+    --gold:#C9A84C; --gold-soft:color-mix(in srgb, var(--gold) 15%, transparent);
+    --gold-line:color-mix(in srgb, var(--gold) 30%, transparent);
     --text:#F0ECE4; --muted:#8A8680;
     --hairline:rgba(255,255,255,.06);
     --serif:"Cormorant Garamond", serif;
@@ -35,7 +35,7 @@
     overflow-x:hidden;
     -webkit-font-smoothing:antialiased;
   }
-  ::selection{ background:var(--gold); color:#000; }
+  ::selection{ background:var(--gold); color:var(--gold-on,#000); }
   a{ color:inherit; text-decoration:none; }
   img{ display:block; max-width:100%; }
 
@@ -65,12 +65,12 @@
   /* ───── CURSOR ──────────────────────────────────────── */
   .cursor{
     position:fixed; top:0; left:0; width:18px; height:18px;
-    border:1px solid rgba(201,168,76,.7); border-radius:999px;
+    border:1px solid color-mix(in srgb, var(--gold) 70%, transparent); border-radius:999px;
     transform:translate(-50%,-50%); pointer-events:none; z-index:1000;
     transition:transform .18s ease-out, width .25s ease, height .25s ease, border-color .25s ease, background .25s ease;
     mix-blend-mode:difference;
   }
-  .cursor.large{ width:48px; height:48px; background:rgba(201,168,76,.1); border-color:var(--gold); }
+  .cursor.large{ width:48px; height:48px; background:color-mix(in srgb, var(--gold) 10%, transparent); border-color:var(--gold); }
   @media (hover:none),(pointer:coarse){ .cursor{ display:none; } }
 
   /* ───── NAV ─────────────────────────────────────────── */
@@ -131,13 +131,13 @@
   }
   .btn::before{
     content:""; position:absolute; inset:0;
-    background:linear-gradient(120deg, transparent 30%, rgba(201,168,76,.55) 50%, transparent 70%);
+    background:linear-gradient(120deg, transparent 30%, color-mix(in srgb, var(--gold) 55%, transparent) 50%, transparent 70%);
     transform:translateX(-120%); transition:transform .9s cubic-bezier(.2,.7,.2,1);
     z-index:-1;
   }
   .btn:hover::before{ transform:translateX(120%); }
-  .btn.primary{ background:var(--gold); color:#000; }
-  .btn.primary:hover{ background:#d8b85b; }
+  .btn.primary{ background:var(--gold); color:var(--gold-on,#000); }
+  .btn.primary:hover{ background:var(--gold-hover); }
   .btn.outline:hover{ background:var(--gold-soft); color:var(--text); }
   .btn.sm{ padding:10px 18px; font-size:10px; }
   .btn svg{ width:13px; height:13px; }
@@ -358,7 +358,7 @@
     font-size:14px; letter-spacing:.04em;
     transition:background .35s ease, color .35s ease;
   }
-  .schedule .row.today{ background:rgba(201,168,76,.1); color:var(--gold); }
+  .schedule .row.today{ background:color-mix(in srgb, var(--gold) 10%, transparent); color:var(--gold); }
   .schedule .row .day{ text-transform:uppercase; letter-spacing:.18em; font-size:12px; }
   .schedule .row .hours{ font-family:var(--serif); font-size:22px; font-weight:300; font-variant-numeric:tabular-nums; text-align:right; letter-spacing:.06em; }
   .schedule .row .label{ text-align:right; color:var(--muted); font-size:11px; letter-spacing:.22em; text-transform:uppercase; }
@@ -391,7 +391,7 @@
     display:inline-flex; align-items:center; justify-content:center;
     color:var(--gold); transition:background .3s ease, color .3s ease;
   }
-  .social a:hover{ background:var(--gold); color:#000; }
+  .social a:hover{ background:var(--gold); color:var(--gold-on,#000); }
   .foot-bottom{
     display:flex; justify-content:space-between; align-items:center;
     padding-top:28px; font-size:11px; color:rgba(255,255,255,.25);
@@ -435,6 +435,16 @@
     border-radius:12px;
   }
   .foot-map-shell .leaflet-control-zoom a{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:36px;
+    height:36px;
+    padding:0;
+    line-height:1;
+    font-size:22px;
+    text-align:center;
+    text-decoration:none;
     background:rgba(17,17,17,.92);
     color:var(--gold);
     border-color:var(--gold-line);
@@ -465,7 +475,7 @@
     width:14px;height:14px;border-radius:50%;
     background:var(--gold);
     border:2px solid #fff;
-    box-shadow:0 0 0 1px rgba(201,168,76,.45), 0 4px 16px rgba(0,0,0,.55);
+    box-shadow:0 0 0 1px color-mix(in srgb, var(--gold) 45%, transparent), 0 4px 16px rgba(0,0,0,.55);
     position:relative;z-index:2;
   }
   .noir-map-radar-ring{
@@ -473,8 +483,8 @@
     left:50%;top:50%;
     width:46px;height:46px;margin:-23px 0 0 -23px;
     border-radius:50%;
-    border:1px solid rgba(201,168,76,.5);
-    box-shadow:0 0 14px rgba(201,168,76,.12);
+    border:1px solid color-mix(in srgb, var(--gold) 50%, transparent);
+    box-shadow:0 0 14px color-mix(in srgb, var(--gold) 12%, transparent);
     animation:noirMapRadar 2.5s cubic-bezier(.2,.7,.2,1) infinite;
     pointer-events:none;
   }
@@ -493,7 +503,7 @@
   /* Easter egg: small constellation that appears at the very bottom */
   .easter{
     position:absolute; right:32px; top:24px; font-size:10px;
-    color:rgba(201,168,76,.4); letter-spacing:.3em; text-transform:uppercase;
+    color:color-mix(in srgb, var(--gold) 40%, transparent); letter-spacing:.3em; text-transform:uppercase;
     cursor:default; user-select:none;
   }
   .easter:hover{ color:var(--gold); }
@@ -513,7 +523,7 @@
     border:1px solid var(--gold-line); padding:24px 22px; background:rgba(255,255,255,.02);
     transition:border-color .3s ease, background .3s ease;
   }
-  .noir-svc-card:hover{ border-color:rgba(201,168,76,.55); background:rgba(201,168,76,.06); }
+  .noir-svc-card:hover{ border-color:var(--gold-line); background:color-mix(in srgb, var(--text) 8%, transparent); }
   .noir-svc-name{
     font-family:var(--serif); font-size:22px; letter-spacing:.06em; text-transform:uppercase;
     font-weight:300; margin:0 0 10px;
@@ -607,6 +617,8 @@
   @media (max-width:640px){ .lw-gallery-lightbox-close{top:8px;right:8px} }
 </style>
 @endverbatim
+
+@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
 
 @endpush
 

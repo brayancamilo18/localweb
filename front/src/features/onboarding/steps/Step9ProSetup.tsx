@@ -11,14 +11,21 @@ import { clearOnboardingPersistForUser } from '../onboardingPersist'
 import ProServicesEditor from '../../shared/ProServicesEditor'
 import ProIntegrationsForm from '../../shared/ProIntegrationsForm'
 import FaviconUploader from '../../shared/FaviconUploader'
+import BrandColorPicker from '../../shared/BrandColorPicker'
+import { useBrandColor } from '../../shared/useBrandColor'
 import type { WizardStepProps } from '../wizardNavContext'
+
+export type Step9SetupPhase = 'services' | 'brand' | 'extras'
 
 export type Step9ProSetupProps = WizardStepProps & {
   onFinishToDashboard?: () => void
-  setupPhase: 'services' | 'extras'
-  onSetupPhaseChange: (phase: 'services' | 'extras') => void
+  setupPhase: Step9SetupPhase
+  onSetupPhaseChange: (phase: Step9SetupPhase) => void
   offersServices: boolean
   onOffersServicesChange: (v: boolean) => void
+  brandColorDefault: string
+  brandColorPickerValue?: string | null
+  onBrandColorLiveChange: (hex: string) => void
 }
 
 export default function Step9ProSetup({
@@ -27,6 +34,9 @@ export default function Step9ProSetup({
   onSetupPhaseChange,
   offersServices,
   onOffersServicesChange,
+  brandColorDefault,
+  brandColorPickerValue = null,
+  onBrandColorLiveChange,
 }: Step9ProSetupProps) {
   const navigate = useNavigate()
   const qc = useQueryClient()
@@ -34,10 +44,9 @@ export default function Step9ProSetup({
   const userId = useAuthStore((s) => s.user?.id)
   const setAuth = useAuthStore((s) => s.setAuth)
   const [finishing, setFinishing] = useState(false)
+  const { data: brandState, isLoading: brandLoading, mutate: saveBrandColor, isPending: brandSaving } =
+    useBrandColor()
 
-  // Tras los extras Pro: cerramos el onboarding en backend (set onboarding_completed_at),
-  // sincronizamos /auth/me en cache + store y navegamos. Sin la sincronización de la cache,
-  // ProtectedRoute en /dashboard rehidrata con el business previo y reaparece el bucle.
   const onDashboard = useCallback(async () => {
     if (finishing) return
     setFinishing(true)
@@ -65,16 +74,54 @@ export default function Step9ProSetup({
     }
   }, [finishing, qc, setAuth, userId, navigate, onFinishToDashboard])
 
+  const handleBrandChange = useCallback(
+    (color: string | null) => {
+      const previewHex = (color ?? brandColorDefault).toLowerCase()
+      onBrandColorLiveChange(previewHex)
+      saveBrandColor(color, {
+        onSuccess: (result) => {
+          if (result?.contrast_warning) {
+            showToast({
+              type: 'info',
+              title: 'Aviso de contraste',
+              description: result.contrast_warning,
+            })
+          }
+        },
+        onError: () => {
+          showToast({
+            type: 'error',
+            title: 'No se pudo guardar el color',
+            description: 'Inténtalo de nuevo en unos segundos.',
+          })
+        },
+      })
+    },
+    [brandColorDefault, onBrandColorLiveChange, saveBrandColor, showToast],
+  )
+
+  const phaseTitle =
+    setupPhase === 'services'
+      ? 'Servicios en tu web'
+      : setupPhase === 'brand'
+        ? 'Color de tu marca'
+        : 'Enlaces y contacto'
+
+  const phaseSubtitle =
+    setupPhase === 'services'
+      ? 'Indica si publicas servicios con precios. La vista previa muestra la sección Servicios de tu plantilla.'
+      : setupPhase === 'brand'
+        ? 'Elige el color que mejor representa a tu negocio. Lo puedes cambiar en cualquier momento desde el dashboard.'
+        : 'Google Business, redes sociales en el pie y vCard. «Cómo llegar» usa la dirección y el mapa que ya configuraste.'
+
   return (
     <div style={{ maxWidth: 640 }}>
       <div style={{ marginBottom: 24 }}>
         <h1 className="lw-h2" style={{ marginBottom: 10 }}>
-          {setupPhase === 'services' ? 'Servicios en tu web' : 'Enlaces y contacto'}
+          {phaseTitle}
         </h1>
         <p className="lw-body" style={{ margin: 0, fontSize: 14, color: 'var(--lw-text-2)' }}>
-          {setupPhase === 'services'
-            ? 'Indica si publicas servicios con precios. La vista previa muestra la sección Servicios de tu plantilla.'
-            : 'Google Business, redes sociales en el pie y vCard. «Cómo llegar» usa la dirección y el mapa que ya configuraste.'}
+          {phaseSubtitle}
         </p>
       </div>
 
@@ -104,9 +151,58 @@ export default function Step9ProSetup({
             </Card>
           ) : null}
 
-          <Btn type="button" kind="primary" size="lg" iconRight="arrowRight" onClick={() => onSetupPhaseChange('extras')}>
-            Continuar a enlaces
+          <Btn type="button" kind="primary" size="lg" iconRight="arrowRight" onClick={() => onSetupPhaseChange('brand')}>
+            Continuar a marca
           </Btn>
+        </>
+      ) : setupPhase === 'brand' ? (
+        <>
+          {brandLoading || !brandState ? (
+            <p className="lw-body" style={{ color: 'var(--lw-text-2)' }}>
+              Cargando paleta de colores…
+            </p>
+          ) : !brandState.is_supported ? (
+            <>
+              <Card padding={20} style={{ marginBottom: 20 }}>
+                <p className="lw-body" style={{ margin: 0, color: 'var(--lw-text-2)' }}>
+                  Tu plantilla actual no permite cambiar el color de marca. Puedes saltar este paso o cambiar de plantilla
+                  más tarde.
+                </p>
+              </Card>
+              <Btn type="button" kind="primary" size="lg" iconRight="arrowRight" onClick={() => onSetupPhaseChange('extras')}>
+                Continuar a enlaces
+              </Btn>
+            </>
+          ) : (
+            <>
+              <Card padding={20} style={{ marginBottom: 20 }}>
+                <BrandColorPicker
+                  palette={brandState.palette}
+                  templateMeta={brandState.template_meta}
+                  value={brandState.current ?? brandColorPickerValue}
+                  defaultColor={brandState.default}
+                  effective={brandState.effective}
+                  saving={brandSaving}
+                  onChange={handleBrandChange}
+                />
+              </Card>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                <Btn type="button" kind="outline" size="md" icon="chevronLeft" onClick={() => onSetupPhaseChange('services')}>
+                  Volver a servicios
+                </Btn>
+                <Btn
+                  type="button"
+                  kind="primary"
+                  size="lg"
+                  iconRight="arrowRight"
+                  disabled={brandSaving}
+                  onClick={() => onSetupPhaseChange('extras')}
+                >
+                  Continuar a enlaces
+                </Btn>
+              </div>
+            </>
+          )}
         </>
       ) : (
         <>
@@ -153,8 +249,8 @@ export default function Step9ProSetup({
           </Card>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-            <Btn type="button" kind="outline" size="md" icon="chevronLeft" onClick={() => onSetupPhaseChange('services')}>
-              Volver a servicios
+            <Btn type="button" kind="outline" size="md" icon="chevronLeft" onClick={() => onSetupPhaseChange('brand')}>
+              Volver a marca
             </Btn>
             <Btn
               type="button"

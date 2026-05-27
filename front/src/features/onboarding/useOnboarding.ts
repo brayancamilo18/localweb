@@ -116,7 +116,10 @@ export function useOnboarding(): UseOnboardingResult {
         const fromServer = Math.min(9, Math.max(resolved, serverStep))
         const persisted = loadOnboardingPersist(persistUserId)
         const pStep = typeof persisted?.step === 'number' ? persisted.step : 0
-        setCurrentStep(Math.min(9, Math.max(fromServer, pStep)))
+        // Sin plantilla elegida → siempre paso 1 (p. ej. tras cerrar sesión y volver a entrar).
+        const step =
+          fromServer <= 1 ? 1 : Math.min(9, Math.max(fromServer, pStep))
+        setCurrentStep(step)
       })
       .catch(() => {
         if (!mounted) return

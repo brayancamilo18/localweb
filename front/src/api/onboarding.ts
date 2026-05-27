@@ -28,6 +28,12 @@ export async function getStatus(): Promise<OnboardingStatus> {
   return response.data.data
 }
 
+/** Borra el progreso del onboarding (vuelve al paso 1). Se usa al cerrar sesión en el wizard. */
+export async function resetOnboarding(): Promise<{ ok: boolean; step: number }> {
+  const response = await apiClient.post<ApiResponse<{ ok: boolean; step: number }>>('/onboarding/reset')
+  return response.data.data
+}
+
 export async function step1(data: {
   template_id: number
   sector: string

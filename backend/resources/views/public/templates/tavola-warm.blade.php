@@ -23,10 +23,10 @@
     --cream-2:#EDE0CB;
     --paper:#FAF3E5;
     --wine:#5A1F1F;
-    --wine-2:#7A2A2A;
+    --wine-2:color-mix(in srgb, var(--wine) 82%, #000000);
     --bottle:#2D3A28;
     --terracotta:#C2643E;
-    --terracotta-soft:#E8B996;
+    --terracotta-soft:color-mix(in srgb, var(--terracotta) 45%, #ffffff);
     --tan:#8B6840;
     --ink:#2A1F18;
     --ink-2:#5A4A3D;
@@ -135,7 +135,7 @@
   .menu-section{background:var(--paper);border-top:1px solid var(--line);border-bottom:1px solid var(--line);position:relative}
   .menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px 80px}
   .dish{display:flex;flex-direction:column;padding-bottom:18px;border-bottom:1px dashed var(--line-2);position:relative}
-  .dish:hover .dish-name{color:var(--wine)}
+  .dish:hover .dish-name{color:var(--ink)}
   .dish-head{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
   .dish-name{font-family:"DM Serif Display",serif;font-size:24px;color:var(--ink);transition:color .2s;flex-shrink:0;line-height:1.15;font-weight:400}
   .dish-dots{flex:1;border-bottom:1.5px dotted var(--line-2);transform:translateY(-6px);min-width:24px;height:1px}
@@ -199,7 +199,7 @@
   .map-shell{position:relative;background:#1a0f0b}
   .map-leaflet{height:min(340px,50vh);min-height:220px;width:100%;background:#1a0f0b}
   .map-shell .leaflet-container{font-family:"Lora";background:#1a0f0b}
-  .map-shell .leaflet-control-zoom a{background:var(--paper);color:var(--wine);border:1px solid var(--line);border-radius:4px!important;font-weight:600}
+  .map-shell .leaflet-control-zoom a{display:flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;line-height:1;font-size:22px;text-align:center;text-decoration:none;background:var(--paper);color:var(--wine);border:1px solid var(--line);border-radius:4px!important;font-weight:600}
   .map-shell .leaflet-control-zoom a:hover{background:var(--wine);color:var(--cream)}
   .map-shell .leaflet-bar{border:none;box-shadow:none}
   .map-shell .leaflet-control-attribution{background:var(--paper)!important;color:var(--ink-3)!important;font-size:10px!important}
@@ -458,6 +458,8 @@
   }
 </style>
 @endverbatim
+
+@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
 
 @endpush
 

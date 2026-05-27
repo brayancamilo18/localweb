@@ -1,5 +1,5 @@
 import type { Schedule } from '../../types/api'
-import { DEFAULT_SCHEDULE } from './wizard'
+import { DEFAULT_SCHEDULE } from '../../lib/schedule/scheduleDefaults'
 
 /** Clave histórica sin usuario: provocaba mezclar borradores entre cuentas en el mismo navegador. */
 const LEGACY_STORAGE_KEY = 'lw.onboarding.wizard.v1'

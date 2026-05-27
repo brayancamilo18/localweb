@@ -28,8 +28,8 @@
     --line:#E5DFD0;
     --line-2:#CFC6B1;
     --champagne:#B68A50;
-    --champagne-2:#8E6A35;
-    --champagne-soft:#EFE1C8;
+    --champagne-2:color-mix(in srgb, var(--champagne) 80%, #000000);
+    --champagne-soft:color-mix(in srgb, var(--champagne) 22%, #ffffff);
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html{scroll-behavior:smooth}
@@ -147,7 +147,7 @@
   .svc-row::before{content:"";position:absolute;left:0;top:0;height:1px;background:var(--champagne);width:0;transition:width .6s cubic-bezier(.7,0,.3,1);z-index:1}
   .svc-row:hover::before{width:100%}
   .svc-row:hover{padding-left:24px}
-  .svc-row:hover .svc-name{color:var(--champagne-2)}
+  .svc-row:hover .svc-name{font-weight:500}
   .svc-num{font-family:"Cormorant Garamond",serif;font-size:14px;color:var(--ink-3);letter-spacing:.2em;font-style:italic;padding-top:8px}
   .svc-name{font-family:"Cormorant Garamond",serif;font-size:clamp(28px,3.5vw,44px);font-weight:400;line-height:1.05;letter-spacing:-.01em;color:var(--ink);transition:color .4s}
   .svc-name small{display:block;font-family:"Inter";font-size:15px;font-weight:300;color:var(--ink-2);letter-spacing:0;margin-top:14px;max-width:60ch;line-height:1.6}
@@ -349,6 +349,8 @@
   }
 </style>
 @endverbatim
+
+@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
 
 @endpush
 

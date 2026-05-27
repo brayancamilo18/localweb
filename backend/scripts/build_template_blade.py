@@ -186,8 +186,6 @@ def apply_common_body(body: str, slug: str) -> str:
         "<span data-phone-display>Tu teléfono</span>",
         "<span data-phone-display>{{ $telefono ?: 'Tu teléfono' }}</span>",
     )
-    body = body.replace('<span class="icon">@</span>', '<span class="icon">@@</span>')
-
     # Logo / nav brand (generic patterns)
     body = re.sub(
         r"<img id=\"navBrandLogo\"[^>]*/>",

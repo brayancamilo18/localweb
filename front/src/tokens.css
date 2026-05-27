@@ -804,6 +804,14 @@ textarea::placeholder {
     padding-top: max(12px, env(safe-area-inset-top)) !important;
   }
 
+  .lw-wizard-header__top {
+    flex-wrap: wrap;
+  }
+
+  .lw-onboarding-logout__label {
+    display: none;
+  }
+
   .lw-schedule-table-header {
     display: none;
   }

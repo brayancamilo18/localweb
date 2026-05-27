@@ -20,7 +20,7 @@
   /* ─── TOKENS ──────────────────────────────────────── */
   :root{
     --bg:#FAFAF8; --dark:#1A1A2E; --dark-2:#13132a;
-    --coral:#E8572A; --peach:#F4A261; --blush:#FFDDD2;
+    --coral:#E8572A; --peach:color-mix(in srgb, var(--coral) 35%, #ffffff); --blush:color-mix(in srgb, var(--coral) 75%, #ffffff);
     --ink:#1C1C1C; --light:#F5F0E8;
     --serif:"Playfair Display", serif;
     --sans:"DM Sans", ui-sans-serif, system-ui, sans-serif;
@@ -231,7 +231,7 @@
     position:absolute; left:-22px; bottom:30px;
     background:var(--coral); color:#fff;
     padding:14px 22px; border-radius:99px;
-    font-weight:500; font-size:14px; box-shadow:0 14px 40px rgba(232,87,42,.35);
+    font-weight:500; font-size:14px; box-shadow:0 14px 40px color-mix(in srgb, var(--coral) 35%, transparent);
     display:flex; align-items:center; gap:10px;
   }
   .about-photo .badge .star{ color:#FFCD66; }
@@ -246,10 +246,10 @@
   .pill-tel{
     display:inline-flex; align-items:center; gap:10px;
     padding:14px 22px; border-radius:99px; background:var(--coral); color:#fff;
-    font-weight:500; font-size:15px; box-shadow:0 12px 30px rgba(232,87,42,.25);
+    font-weight:500; font-size:15px; box-shadow:0 12px 30px color-mix(in srgb, var(--coral) 25%, transparent);
     transition:transform .25s ease, box-shadow .3s ease;
   }
-  .pill-tel:hover{ transform:translateY(-2px); box-shadow:0 18px 40px rgba(232,87,42,.35); }
+  .pill-tel:hover{ transform:translateY(-2px); box-shadow:0 18px 40px color-mix(in srgb, var(--coral) 35%, transparent); }
   .pill-tel svg{ width:16px; height:16px; }
 
   /* Services strip (replaces nothing — adds personality, optional) */
@@ -276,7 +276,7 @@
   }
   .reveal .grid .photo{ opacity:1; transform:translateY(0); }
   .grid .photo img{ width:100%; height:100%; object-fit:cover; transition:transform .55s cubic-bezier(.2,.7,.2,1); }
-  .grid .photo:hover{ box-shadow:0 24px 60px rgba(232,87,42,.35); }
+  .grid .photo:hover{ box-shadow:0 24px 60px color-mix(in srgb, var(--coral) 35%, transparent); }
   .grid .photo:hover img{ transform:scale(1.05); }
   .grid .photo.tall{ grid-row:span 2; aspect-ratio:auto; }
   .grid .photo .tag{
@@ -360,7 +360,7 @@
   .days .card .dlabel{ font-size:11px; color:rgba(28,28,28,.5); margin-top:auto; }
   .days .card.today{
     background:var(--coral); color:#fff; border-color:var(--coral);
-    box-shadow:0 18px 40px rgba(232,87,42,.3);
+    box-shadow:0 18px 40px color-mix(in srgb, var(--coral) 30%, transparent);
     animation:todayPulse 2.6s ease-in-out infinite;
   }
   .days .card.today .dname,
@@ -429,12 +429,22 @@
     border-radius:14px;
   }
   .bloom-map-shell .leaflet-control-zoom a{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:36px;
+    height:36px;
+    padding:0;
+    line-height:1;
+    font-size:22px;
+    text-align:center;
+    text-decoration:none;
     background:rgba(26,26,46,.95);
     color:var(--peach);
     border-color:rgba(245,240,232,.2);
   }
   .bloom-map-shell .leaflet-control-zoom a:hover{
-    background:rgba(232,87,42,.25);
+    background:color-mix(in srgb, var(--coral) 25%, transparent);
     color:var(--light);
   }
   .bloom-map-shell .leaflet-bar{ border-color:rgba(245,240,232,.2); }
@@ -459,7 +469,7 @@
     width:14px;height:14px;border-radius:50%;
     background:var(--coral);
     border:2px solid #fff;
-    box-shadow:0 0 0 1px rgba(232,87,42,.4), 0 4px 16px rgba(0,0,0,.45);
+    box-shadow:0 0 0 1px color-mix(in srgb, var(--coral) 40%, transparent), 0 4px 16px rgba(0,0,0,.45);
     position:relative;z-index:2;
   }
   .bloom-map-radar-ring{
@@ -468,7 +478,7 @@
     width:46px;height:46px;margin:-23px 0 0 -23px;
     border-radius:50%;
     border:1px solid rgba(244,162,97,.55);
-    box-shadow:0 0 14px rgba(232,87,42,.15);
+    box-shadow:0 0 14px color-mix(in srgb, var(--coral) 15%, transparent);
     animation:bloomMapRadar 2.5s cubic-bezier(.2,.7,.2,1) infinite;
     pointer-events:none;
   }
@@ -493,7 +503,7 @@
     box-shadow:0 8px 24px rgba(28,28,28,.04);
     transition:transform .3s ease, box-shadow .3s ease;
   }
-  .bloom-svc-card:hover{ transform:translateY(-3px); box-shadow:0 16px 36px rgba(232,87,42,.12); }
+  .bloom-svc-card:hover{ transform:translateY(-3px); box-shadow:0 16px 36px color-mix(in srgb, var(--coral) 12%, transparent); }
   .bloom-svc-name{ font-family:var(--serif); font-size:22px; font-weight:600; letter-spacing:-.02em; margin:0 0 8px; color:var(--ink); }
   .bloom-svc-price{ color:var(--coral); font-size:18px; font-weight:700; font-variant-numeric:tabular-nums; margin-bottom:8px; }
   .bloom-svc-desc{ color:rgba(28,28,28,.72); font-size:15px; line-height:1.75; margin:0; }
@@ -549,6 +559,8 @@
   @media (max-width:640px){ .lw-gallery-lightbox-close{top:8px;right:8px} }
 </style>
 @endverbatim
+
+@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
 
 @endpush
 

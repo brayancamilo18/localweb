@@ -8,20 +8,20 @@ use Tests\TestCase;
 
 uses(RefreshDatabase::class);
 
-function makeTemplate(string $color = '#2563EB'): Template
+function makeTemplate(string $color = '#2563EB', string $slug = 'urban-bold'): Template
 {
     return Template::create([
         'name' => 'Test Template',
-        'slug' => 'test-'.uniqid(),
+        'slug' => $slug,
         'primary_color' => $color,
         'is_active' => true,
         'requires_pro' => false,
     ]);
 }
 
-function makeProUserWithTemplate(string $color = '#2563EB'): User
+function makeProUserWithTemplate(string $color = '#2563EB', string $slug = 'urban-bold'): User
 {
-    $template = makeTemplate($color);
+    $template = makeTemplate($color, $slug);
     $business = Business::create([
         'name' => 'Cafetería Luna',
         'subdomain' => 'cafeluna'.uniqid(),
@@ -34,9 +34,9 @@ function makeProUserWithTemplate(string $color = '#2563EB'): User
     return User::factory()->create(['business_id' => $business->id]);
 }
 
-function makeFreeUserWithTemplate(string $color = '#FF6B00'): User
+function makeFreeUserWithTemplate(string $color = '#FF6B00', string $slug = 'urban-bold'): User
 {
-    $template = makeTemplate($color);
+    $template = makeTemplate($color, $slug);
     $business = Business::create([
         'name' => 'Panadería Pepe',
         'subdomain' => 'pepe'.uniqid(),
@@ -51,7 +51,7 @@ function makeFreeUserWithTemplate(string $color = '#FF6B00'): User
 
 // ─── info ───────────────────────────────────────────────────────
 
-it('devuelve info de QR para usuario Pro con default_color del template', function () {
+it('devuelve info de QR para usuario Pro con default_color de la paleta de la plantilla', function () {
     /** @var TestCase $this */
     $user = makeProUserWithTemplate('#2563EB');
 
@@ -60,7 +60,7 @@ it('devuelve info de QR para usuario Pro con default_color del template', functi
     $response->assertOk()
         ->assertJsonPath('data.is_pro', true)
         ->assertJsonPath('data.business_name', 'Cafetería Luna')
-        ->assertJsonPath('data.default_color', '#2563EB')
+        ->assertJsonPath('data.default_color', '#D4FF3A')
         ->assertJsonPath('data.template_color', '#2563EB');
 });
 
@@ -72,7 +72,34 @@ it('devuelve info de QR para usuario Free con is_pro=false pero también incluye
 
     $response->assertOk()
         ->assertJsonPath('data.is_pro', false)
-        ->assertJsonPath('data.default_color', '#FF6B00');
+        ->assertJsonPath('data.default_color', '#D4FF3A');
+});
+
+it('devuelve default_color desde brand_color del negocio aunque difiera del primary_color', function () {
+    /** @var TestCase $this */
+    $template = Template::create([
+        'name' => 'Urban Bold',
+        'slug' => 'urban-bold',
+        'primary_color' => '#D4FF3A',
+        'is_active' => true,
+        'requires_pro' => false,
+    ]);
+    $business = Business::create([
+        'name' => 'Ojolokm',
+        'subdomain' => 'ojolokm'.uniqid(),
+        'subdomain_type' => 'custom',
+        'sector' => 'cafe',
+        'plan' => 'pro',
+        'template_id' => $template->id,
+        'brand_color' => '#19b3f5',
+    ]);
+    $user = User::factory()->create(['business_id' => $business->id]);
+
+    $this->actingAs($user)
+        ->getJson('/api/v1/qr/info')
+        ->assertOk()
+        ->assertJsonPath('data.default_color', '#19B3F5')
+        ->assertJsonPath('data.template_color', '#D4FF3A');
 });
 
 it('rechaza info si no hay negocio o subdominio', function () {

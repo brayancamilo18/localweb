@@ -80,7 +80,7 @@ class QrController extends BaseApiController
 
     /**
      * POST /v1/qr/poster
-     * PDF imprimible. SOLO PRO. Si no se pasa `color`, hereda del template del negocio.
+     * PDF imprimible. SOLO PRO. Si no se pasa `color`, hereda del color de marca del negocio.
      */
     public function poster(QrPosterRequest $request): Response
     {

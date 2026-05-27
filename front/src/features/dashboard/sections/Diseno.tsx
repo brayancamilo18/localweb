@@ -13,7 +13,16 @@ import axios from 'axios'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Badge, Btn, Card, Icon } from '../../../components/primitives/primitives'
 import { useToast } from '../../../components/ui/Toast'
-import { changeBusinessTemplate, getDashboardTemplates } from '../../../api/dashboard'
+import {
+  changeBusinessTemplate,
+  getDashboardTemplates,
+  previewTemplateChange,
+  type ChangeBusinessTemplatePayload,
+  type TemplateChangePreview,
+} from '../../../api/dashboard'
+import TemplateChangeConfirmModal, {
+  type BrandColorChoice,
+} from '../templates/TemplateChangeConfirmModal'
 import { keys } from '../../../api/queryKeys'
 import type { ApiError, Business, Template } from '../../../types/api'
 import PublicHtmlTemplateFrame from '../../public-page/PublicHtmlTemplateFrame'
@@ -44,6 +53,17 @@ function getApiErrorMessage(err: unknown): string | undefined {
     return data?.message
   }
   return undefined
+}
+
+export function buildTemplateChangePayload(
+  templateId: number,
+  choice: BrandColorChoice,
+): ChangeBusinessTemplatePayload {
+  const payload: ChangeBusinessTemplatePayload = { template_id: templateId }
+  if (choice !== 'omit') {
+    payload.brand_color = choice
+  }
+  return payload
 }
 
 function businessWithTemplate(business: Business, template: Template): Business {
@@ -318,6 +338,9 @@ export default function Diseno() {
   const { showToast } = useToast()
   const qc = useQueryClient()
   const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null)
+  const [changePreview, setChangePreview] = useState<TemplateChangePreview | null>(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [previewLoading, setPreviewLoading] = useState(false)
   const [page, setPage] = useState(1)
   const pageRef = useRef<HTMLDivElement | null>(null)
   const gridRef = useRef<HTMLDivElement | null>(null)
@@ -328,12 +351,15 @@ export default function Diseno() {
   })
 
   const applyMutation = useMutation({
-    mutationFn: (templateId: number) => changeBusinessTemplate(templateId),
+    mutationFn: (payload: ChangeBusinessTemplatePayload) => changeBusinessTemplate(payload),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: keys.dashboard.business })
       await qc.invalidateQueries({ queryKey: keys.dashboard.templates })
+      await qc.invalidateQueries({ queryKey: keys.dashboard.brandColor })
       refetch()
       setPreviewTemplate(null)
+      setConfirmOpen(false)
+      setChangePreview(null)
       showToast({
         type: 'success',
         title: 'Plantilla actualizada',
@@ -415,6 +441,81 @@ export default function Diseno() {
     // Permitimos previsualizar siempre (escaparate); aplicar se controla dentro del modal según el plan.
     setPreviewTemplate(template)
   }, [])
+
+  const showTemplateChangeError = useCallback(
+    (err: unknown) => {
+      const status = axios.isAxiosError(err) ? err.response?.status : undefined
+      const message = getApiErrorMessage(err)
+      if (status === 403) {
+        showToast({
+          type: 'error',
+          title: message ?? 'Cambiar plantilla requiere plan Pro',
+        })
+        return
+      }
+      if (status === 429) {
+        showToast({
+          type: 'error',
+          title: message ?? 'Solo puedes cambiar de plantilla cada 30 días',
+        })
+        return
+      }
+      if (status === 422) {
+        showToast({
+          type: 'error',
+          title: message ?? 'No se pudo cambiar la plantilla',
+        })
+        return
+      }
+      showToast({
+        type: 'error',
+        title: 'No se pudo cambiar la plantilla',
+      })
+    },
+    [showToast],
+  )
+
+  const handleApplyTemplate = useCallback(
+    async (templateId: number) => {
+      if (previewLoading || applyMutation.isPending) return
+      setPreviewLoading(true)
+      try {
+        const preview = await previewTemplateChange(templateId)
+        if (preview.same_template) {
+          showToast({
+            type: 'info',
+            title: 'Ya estás en esta plantilla',
+          })
+          return
+        }
+        if (!preview.brand_color?.has_current) {
+          applyMutation.mutate({ template_id: templateId })
+          return
+        }
+        setChangePreview(preview)
+        setConfirmOpen(true)
+      } catch (err) {
+        showTemplateChangeError(err)
+      } finally {
+        setPreviewLoading(false)
+      }
+    },
+    [previewLoading, applyMutation, showToast, showTemplateChangeError],
+  )
+
+  const handleConfirmTemplateChange = useCallback(
+    (choice: BrandColorChoice) => {
+      if (!previewTemplate) return
+      applyMutation.mutate(buildTemplateChangePayload(previewTemplate.id, choice))
+    },
+    [previewTemplate, applyMutation],
+  )
+
+  const handleCloseConfirm = useCallback(() => {
+    if (applyMutation.isPending) return
+    setConfirmOpen(false)
+    setChangePreview(null)
+  }, [applyMutation.isPending])
 
   const gridStyle: CSSProperties = {
     display: 'grid',
@@ -539,11 +640,19 @@ export default function Diseno() {
           template={previewTemplate}
           business={business}
           meta={meta}
-          applying={applyMutation.isPending}
+          applying={previewLoading || applyMutation.isPending}
           onClose={() => setPreviewTemplate(null)}
-          onApply={() => applyMutation.mutate(previewTemplate.id)}
+          onApply={() => void handleApplyTemplate(previewTemplate.id)}
         />
       ) : null}
+
+      <TemplateChangeConfirmModal
+        open={confirmOpen}
+        onClose={handleCloseConfirm}
+        preview={changePreview}
+        onConfirm={handleConfirmTemplateChange}
+        isPending={applyMutation.isPending}
+      />
     </div>
   )
 }

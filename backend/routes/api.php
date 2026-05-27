@@ -20,9 +20,12 @@ use App\Http\Controllers\Api\Dashboard\ImagesController;
 use App\Http\Controllers\Api\Dashboard\ServicesController;
 use App\Http\Controllers\Api\Dashboard\StatsController;
 use App\Http\Controllers\Api\Dashboard\TemplatesController;
+use App\Http\Controllers\Api\Dashboard\BrandColorController;
 use App\Http\Controllers\Api\Dashboard\TemplateChangeController;
+use App\Http\Controllers\Api\Dashboard\TemplateChangePreviewController;
 use App\Http\Controllers\Api\Onboarding\DraftGalleryController;
 use App\Http\Controllers\Api\Onboarding\DraftLogoController;
+use App\Http\Controllers\Api\Onboarding\ResetController;
 use App\Http\Controllers\Api\Onboarding\StatusController;
 use App\Http\Controllers\Api\Onboarding\TemplatesController as OnboardingTemplatesController;
 use App\Http\Controllers\Api\Onboarding\StepController;
@@ -88,6 +91,7 @@ Route::prefix('v1')->group(function (): void {
 
         Route::prefix('onboarding')->middleware('verified.api')->group(function (): void {
             Route::get('/status', StatusController::class)->middleware('throttle:60,1');
+            Route::post('/reset', ResetController::class)->middleware('throttle:30,1');
             Route::get('/draft-gallery/{index}', DraftGalleryController::class)
                 ->whereNumber('index')
                 ->middleware('throttle:60,1');
@@ -115,7 +119,10 @@ Route::prefix('v1')->group(function (): void {
             Route::post('/subdomain', [DashboardBusinessController::class, 'setSubdomain']);
             Route::get('/stats', StatsController::class);
             Route::get('/templates', TemplatesController::class);
+            Route::get('/template/{template}/preview', TemplateChangePreviewController::class);
             Route::post('/template', TemplateChangeController::class);
+            Route::get('/brand-color', [BrandColorController::class, 'show']);
+            Route::put('/brand-color', [BrandColorController::class, 'update']);
             Route::post('/images', [ImagesController::class, 'store']);
             Route::delete('/images/{image}', [ImagesController::class, 'destroy']);
             Route::put('/images/reorder', [ImagesController::class, 'reorder']);

@@ -53,6 +53,19 @@ export const TOUR_STEPS: readonly TourStep[] = [
     proOnly: true,
   },
   {
+    id: 'brand-color',
+    route: '/dashboard/brand-color',
+    anchorSelector: '[data-tour="brand-color"]',
+    anchorSelectorMobile: '[data-tour="brand-color-main"]',
+    icon: 'palette',
+    title: 'Color de marca',
+    description:
+      'Cambia el color principal de tu web. Los colores dependen de la plantilla activa; si cambias de diseño, la paleta cambia.',
+    descriptionFree: 'Con Pro puedes personalizar el color principal de tu web.',
+    side: 'right',
+    proOnly: true,
+  },
+  {
     id: 'imagenes',
     route: '/dashboard/images',
     anchorSelector: '[data-tour="imagenes"]',

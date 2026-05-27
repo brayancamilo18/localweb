@@ -18,6 +18,7 @@ import DashboardPage from './features/dashboard/DashboardPage'
 import MiPagina from './features/dashboard/sections/MiPagina'
 import Editor from './features/dashboard/sections/Editor'
 import Diseno from './features/dashboard/sections/Diseno'
+import BrandColor from './features/dashboard/sections/BrandColor'
 import Imagenes from './features/dashboard/sections/Imagenes'
 import Horarios from './features/dashboard/sections/Horarios'
 import Estadisticas from './features/dashboard/sections/Estadisticas'
@@ -118,6 +119,7 @@ function AppRoutes() {
           <Route index element={<MiPagina />} />
           <Route path="editor" element={<Editor />} />
           <Route path="diseno" element={<Diseno />} />
+          <Route path="brand-color" element={<BrandColor />} />
           <Route path="images" element={<Imagenes />} />
           <Route path="schedule" element={<Horarios />} />
           <Route path="services" element={<Servicios />} />

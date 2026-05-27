@@ -7,6 +7,8 @@ use App\Http\Resources\BusinessResource;
 use App\Models\Template;
 use App\Services\BusinessService;
 use App\Services\PlanService;
+use App\Services\TemplateContrast;
+use App\Services\TemplatePalette;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -16,12 +18,16 @@ class TemplateChangeController extends BaseApiController
         Request $request,
         PlanService $plans,
         BusinessService $service,
+        TemplatePalette $palette,
+        TemplateContrast $contrast,
     ): JsonResponse {
         $user = $request->user();
         $business = $user->business;
 
         $data = $request->validate([
             'template_id' => ['required', 'integer', 'exists:templates,id'],
+            'brand_color' => ['sometimes', 'nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'keep_current_brand_color' => ['sometimes', 'boolean'],
         ]);
 
         $template = Template::query()->active()->find($data['template_id']);
@@ -30,14 +36,12 @@ class TemplateChangeController extends BaseApiController
             return $this->error('La plantilla seleccionada no está disponible.', [], 422);
         }
 
-        // Si no cambia nada (misma plantilla), devolvemos el negocio sin consumir cooldown.
         if ((int) $business->template_id === (int) $template->id) {
             $business->load(['template', 'services', 'images' => fn ($q) => $q->ordered()]);
 
             return $this->success(new BusinessResource($business));
         }
 
-        // 1) ¿El plan permite cambiar de plantilla?
         if (! $plans->canChangeTemplate($user)) {
             return $this->error(
                 'Cambiar de plantilla es una función PRO. Mejora tu plan para personalizar tu diseño.',
@@ -46,12 +50,10 @@ class TemplateChangeController extends BaseApiController
             );
         }
 
-        // 2) ¿La plantilla destino requiere PRO? (defensa extra; un PRO siempre pasa)
         if ($template->requires_pro && ! $plans->canChangeTemplate($user)) {
             return $this->error('Esta plantilla solo está disponible para usuarios PRO.', ['plan' => 'upgrade_required'], 403);
         }
 
-        // 3) Cooldown
         if ($business->isTemplateChangeOnCooldown()) {
             $availableAt = $business->templateChangeAvailableAt();
 
@@ -65,12 +67,38 @@ class TemplateChangeController extends BaseApiController
             );
         }
 
-        // Cambio efectivo: actualiza plantilla y sella el cooldown.
-        // BusinessObserver invalida la caché pública en saved().
-        $service->update($business, [
+        $brandColorPayload = null;
+        $brandColorTouched = false;
+
+        if ($request->has('brand_color')) {
+            $brandColorTouched = true;
+            $proposed = $data['brand_color'] ?? null;
+
+            if ($proposed !== null) {
+                $brandColorPayload = strtolower($proposed);
+            } else {
+                $brandColorPayload = null;
+            }
+        }
+
+        if (! $brandColorTouched && ($data['keep_current_brand_color'] ?? false)) {
+            $currentColor = $business->brand_color;
+
+            if ($currentColor !== null && $palette->isValidForTemplate($currentColor, $template)) {
+                // No hace falta tocar brand_color; queda como está.
+            }
+        }
+
+        $updatePayload = [
             'template_id' => $template->id,
             'template_changed_at' => now(),
-        ]);
+        ];
+
+        if ($brandColorTouched) {
+            $updatePayload['brand_color'] = $brandColorPayload;
+        }
+
+        $service->update($business, $updatePayload);
 
         $business->load(['template', 'services', 'images' => fn ($q) => $q->ordered()]);
 
