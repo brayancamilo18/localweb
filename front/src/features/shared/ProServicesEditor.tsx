@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Btn, Card, Field, Icon, Input, Textarea } from '../../components/primitives/primitives'
+import DashboardSectionHeader from '../dashboard/components/DashboardSectionHeader'
 import { Modal } from '../../components/ui/Modal'
 import {
   createService,
@@ -51,6 +52,8 @@ export type ProServicesEditorProps = {
   /** Cabecera del bloque (dashboard). Si se omite y onboarding, solo se muestra la barra de acciones. */
   title?: string
   subtitle?: string
+  /** Cabecera unificada del dashboard (badge + título como Imágenes). */
+  dashboardHeader?: { badgeIcon: string; badgeLabel: string }
 }
 
 export default function ProServicesEditor({
@@ -59,6 +62,7 @@ export default function ProServicesEditor({
   onboarding,
   title,
   subtitle,
+  dashboardHeader,
 }: ProServicesEditorProps) {
   const qc = useQueryClient()
 
@@ -206,58 +210,73 @@ export default function ProServicesEditor({
 
   const planMax = isPro ? PRO_MAX : FREE_MAX
 
+  const headerAside = (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+      <span
+        className="lw-small"
+        style={{
+          fontVariantNumeric: 'tabular-nums',
+          color: atLimit ? 'var(--lw-dash-ink)' : 'var(--lw-dash-muted)',
+          fontWeight: 600,
+          fontSize: '0.71875rem',
+        }}
+        aria-live="polite"
+      >
+        {services.length} <span style={{ fontWeight: 500 }}>de {planMax} servicios</span>
+      </span>
+      {!proAtLimit ? (
+        <Btn
+          type="button"
+          kind="primary"
+          icon="plus"
+          size={onboarding ? 'sm' : 'md'}
+          disabled={freeAtLimit || servicesQuery.isLoading}
+          onClick={openCreate}
+        >
+          Añadir servicio
+        </Btn>
+      ) : null}
+    </div>
+  )
+
   return (
     <>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          marginBottom: onboarding ? 16 : 20,
-          gap: 16,
-          flexWrap: 'wrap',
-        }}
-      >
-        {title ? (
-          <div>
-            <h1 className="lw-h2" style={{ margin: 0 }}>
-              {title}
-            </h1>
-            {subtitle ? (
-              <p className="lw-small" style={{ marginTop: 4, fontSize: 13, color: 'var(--lw-text-2)' }}>
-                {subtitle}
-              </p>
-            ) : null}
-          </div>
-        ) : (
-          <span />
-        )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <span
-            className="lw-small"
-            style={{
-              fontVariantNumeric: 'tabular-nums',
-              color: atLimit ? 'var(--lw-text)' : 'var(--lw-text-2)',
-              fontWeight: 600,
-            }}
-            aria-live="polite"
-          >
-            {services.length} <span style={{ fontWeight: 500 }}>de {planMax} servicios</span>
-          </span>
-          {!proAtLimit ? (
-            <Btn
-              type="button"
-              kind="primary"
-              icon="plus"
-              size={onboarding ? 'sm' : 'md'}
-              disabled={freeAtLimit || servicesQuery.isLoading}
-              onClick={openCreate}
-            >
-              Añadir servicio
-            </Btn>
-          ) : null}
+      {dashboardHeader && title ? (
+        <DashboardSectionHeader
+          badgeIcon={dashboardHeader.badgeIcon}
+          badgeLabel={dashboardHeader.badgeLabel}
+          title={title}
+          subtitle={subtitle}
+          aside={headerAside}
+        />
+      ) : (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            marginBottom: onboarding ? 16 : 20,
+            gap: 16,
+            flexWrap: 'wrap',
+          }}
+        >
+          {title ? (
+            <div>
+              <h1 className="lw-h2" style={{ margin: 0 }}>
+                {title}
+              </h1>
+              {subtitle ? (
+                <p className="lw-small" style={{ marginTop: 4, fontSize: 13, color: 'var(--lw-text-2)' }}>
+                  {subtitle}
+                </p>
+              ) : null}
+            </div>
+          ) : (
+            <span />
+          )}
+          {headerAside}
         </div>
-      </div>
+      )}
 
       {onboarding && isPro ? (
         <Card

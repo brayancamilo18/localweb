@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
+import Icon from '../../../components/primitives/Icon'
 import type { Schedule } from '../../../types/api'
 import { DEFAULT_SCHEDULE } from '../../../lib/schedule/scheduleDefaults'
 import ScheduleEditor from '../../shared/ScheduleEditor'
 import { updateBusiness } from '../../../api/dashboard'
 import { useDashboard } from '../context/DashboardContext'
+import DashboardSectionHeader from '../components/DashboardSectionHeader'
+import '../components/dashboardSectionHeader.css'
+import '../../shared/scheduleEditor.css'
 
 export default function Horarios() {
   const { business, refetch } = useDashboard()
@@ -36,13 +40,44 @@ export default function Horarios() {
     return () => window.clearTimeout(t)
   }, [schedule, refetch])
 
+  const displaySavedAt = savedAt ?? new Date()
+  const savedLabel = saving ? 'Guardando…' : 'Guardado'
+
   return (
-    <ScheduleEditor
-      schedule={schedule}
-      onChange={setSchedule}
-      showSavedStatus
-      saving={saving}
-      savedAt={savedAt}
-    />
+    <div className="lw-dash-section-page lw-dash-section-page--wide" data-tour="horarios-main">
+      <DashboardSectionHeader
+        badgeIcon="clock"
+        badgeLabel="Disponibilidad"
+        title="Horarios"
+        subtitle="Define cuándo está abierto tu negocio. Se guarda automáticamente al dejar de editar durante un segundo."
+        aside={
+          <div className="lw-schedule-editor__saved" aria-live="polite">
+            {!saving ? (
+              <span className="lw-schedule-editor__saved-dot" aria-hidden />
+            ) : (
+              <Icon name="refresh" size={14} color="var(--lw-dash-accent)" />
+            )}
+            <span style={{ fontWeight: 600 }}>{savedLabel}</span>
+            {!saving ? (
+              <span style={{ color: 'var(--lw-dash-muted)' }}>
+                ·{' '}
+                {displaySavedAt.toLocaleTimeString('es-ES', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </span>
+            ) : null}
+          </div>
+        }
+      />
+      <ScheduleEditor
+        hideHeader
+        schedule={schedule}
+        onChange={setSchedule}
+        showSavedStatus={false}
+        saving={saving}
+        savedAt={savedAt}
+      />
+    </div>
   )
 }

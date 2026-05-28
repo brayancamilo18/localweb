@@ -4,6 +4,8 @@ import { Btn, Icon } from '../../../components/primitives/primitives'
 import { useDashboard } from '../context/DashboardContext'
 import { buildPublicBusinessUrl } from '../../../lib/tenant'
 import MiPaginaQrSection from './MiPaginaQrSection'
+import DashboardSectionHeader from '../components/DashboardSectionHeader'
+import '../components/dashboardSectionHeader.css'
 
 /** Valores fijos de ejemplo para el resumen Free (no son métricas reales del negocio). */
 const DEMO_SUMMARY = {
@@ -136,40 +138,20 @@ export default function MiPagina() {
 
   return (
     <>
-      <div className="lw-mipagina-header">
-        <div>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '4px 10px',
-              borderRadius: 999,
-              background: 'var(--lw-accent-soft)',
-              color: 'var(--lw-accent)',
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              marginBottom: 10,
-            }}
-          >
-            <Icon name="sparkle" size={12} /> Mi página
-          </span>
-          <h1 className="lw-h2" style={{ margin: 0 }}>
-            Resumen y enlace público
-          </h1>
-          <p className="lw-small" style={{ marginTop: 6, fontSize: 14, color: 'var(--lw-text-2)', maxWidth: 560 }}>
-            Comparte tu página, mira cómo va y descarga tu cartel con QR listo para imprimir.
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Btn kind="outline" icon="bell" size="md" style={{ width: 38, padding: 0 }} />
-          <Btn kind="outline" icon="user" size="md" type="button" onClick={() => navigate('/dashboard/account')}>
-            Cuenta
-          </Btn>
-        </div>
-      </div>
+      <DashboardSectionHeader
+        badgeIcon="sparkle"
+        badgeLabel="Mi página"
+        title="Resumen y enlace público"
+        subtitle="Comparte tu página, mira cómo va y descarga tu cartel con QR listo para imprimir."
+        aside={
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Btn kind="outline" icon="bell" size="md" style={{ width: 38, padding: 0 }} />
+            <Btn kind="outline" icon="user" size="md" type="button" onClick={() => navigate('/dashboard/account')}>
+              Cuenta
+            </Btn>
+          </div>
+        }
+      />
 
       <section
         className="lw-mipagina-hero"

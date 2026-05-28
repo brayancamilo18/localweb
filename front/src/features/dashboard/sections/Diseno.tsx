@@ -29,6 +29,8 @@ import PublicHtmlTemplateFrame from '../../public-page/PublicHtmlTemplateFrame'
 import { publicBusinessToTemplatePayload } from '../../public-page/publicTemplatePayload'
 import { useDashboard } from '../context/DashboardContext'
 import DisenoPagination from './DisenoPagination'
+import DashboardSectionHeader from '../components/DashboardSectionHeader'
+import '../components/dashboardSectionHeader.css'
 
 const TEMPLATE_THUMB_DOC_W = 1280
 const TEMPLATE_THUMB_DOC_H = 760
@@ -524,13 +526,13 @@ export default function Diseno() {
   }
 
   return (
-    <div ref={pageRef} style={{ maxWidth: 960 }} data-tour="diseno-main">
-      <h1 className="lw-h2" style={{ marginBottom: 8 }}>
-        Diseño
-      </h1>
-      <p className="lw-small" style={{ marginBottom: 24, fontSize: 13 }}>
-        Elige una plantilla para tu página pública. Los cambios usan tus datos actuales.
-      </p>
+    <div ref={pageRef} className="lw-dash-section-page lw-dash-section-page--wide" data-tour="diseno-main">
+      <DashboardSectionHeader
+        badgeIcon="layout"
+        badgeLabel="Plantilla"
+        title="Diseño"
+        subtitle="Elige una plantilla para tu página pública. Los cambios usan tus datos actuales."
+      />
 
       {meta && !meta.can_change ? (
         <Card

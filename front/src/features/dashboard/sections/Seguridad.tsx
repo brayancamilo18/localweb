@@ -1,12 +1,15 @@
+import DashboardSectionHeader from '../components/DashboardSectionHeader'
+import '../components/dashboardSectionHeader.css'
+
 export default function Seguridad() {
   return (
-    <div data-tour="seguridad-main">
-      <h1 className="lw-h2" style={{ marginBottom: 8 }}>
-        Seguridad
-      </h1>
-      <p className="lw-body" style={{ color: 'var(--lw-text-2)' }}>
-        Seguridad — próximamente
-      </p>
+    <div className="lw-dash-section-page" data-tour="seguridad-main">
+      <DashboardSectionHeader
+        badgeIcon="shield"
+        badgeLabel="Protección"
+        title="Seguridad"
+        subtitle="Seguridad — próximamente"
+      />
     </div>
   )
 }

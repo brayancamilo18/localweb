@@ -22,6 +22,8 @@ export type ScheduleEditorProps = {
   disabled?: boolean
   title?: string
   subtitle?: string
+  /** Si true, no renderiza cabecera (el padre usa `DashboardSectionHeader`). */
+  hideHeader?: boolean
   showSavedStatus?: boolean
   saving?: boolean
   savedAt?: Date | null
@@ -34,6 +36,7 @@ export default function ScheduleEditor({
   disabled = false,
   title = 'Horarios',
   subtitle = 'Define cuándo está abierto tu negocio. Se guarda automáticamente al dejar de editar durante un segundo.',
+  hideHeader = false,
   showSavedStatus = false,
   saving = false,
   savedAt = null,
@@ -63,37 +66,41 @@ export default function ScheduleEditor({
   const displaySavedAt = savedAt ?? new Date()
   const savedLabel = saving ? 'Guardando…' : 'Guardado'
 
+  const savedStatus = showSavedStatus ? (
+    <div className="lw-schedule-editor__saved" aria-live="polite">
+      {!saving ? (
+        <span className="lw-schedule-editor__saved-dot" aria-hidden />
+      ) : (
+        <Icon name="refresh" size={14} color="var(--lw-schedule-accent)" />
+      )}
+      <span style={{ fontWeight: 600 }}>{savedLabel}</span>
+      {!saving ? (
+        <span style={{ color: 'var(--lw-schedule-muted)' }}>
+          ·{' '}
+          {displaySavedAt.toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
+        </span>
+      ) : null}
+    </div>
+  ) : null
+
   return (
-    <div className="lw-schedule-editor" data-tour="horarios-main">
-      <header className="lw-schedule-editor__header">
-        <div>
-          <div className="lw-schedule-editor__badge">
-            <Icon name="calendar" size={12} color="var(--lw-schedule-accent)" />
-            Disponibilidad
+    <div className="lw-schedule-editor" data-tour={hideHeader ? undefined : 'horarios-main'}>
+      {!hideHeader ? (
+        <header className="lw-schedule-editor__header">
+          <div>
+            <div className="lw-schedule-editor__badge">
+              <Icon name="calendar" size={12} color="var(--lw-schedule-accent)" />
+              Disponibilidad
+            </div>
+            <h1 className="lw-schedule-editor__title">{title}</h1>
+            <p className="lw-schedule-editor__subtitle">{subtitle}</p>
           </div>
-          <h1 className="lw-schedule-editor__title">{title}</h1>
-          <p className="lw-schedule-editor__subtitle">{subtitle}</p>
-        </div>
-        {showSavedStatus ? (
-          <div className="lw-schedule-editor__saved" aria-live="polite">
-            {!saving ? (
-              <span className="lw-schedule-editor__saved-dot" aria-hidden />
-            ) : (
-              <Icon name="refresh" size={14} color="var(--lw-schedule-accent)" />
-            )}
-            <span style={{ fontWeight: 600 }}>{savedLabel}</span>
-            {!saving ? (
-              <span style={{ color: 'var(--lw-schedule-muted)' }}>
-                ·{' '}
-                {displaySavedAt.toLocaleTimeString('es-ES', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </span>
-            ) : null}
-          </div>
-        ) : null}
-      </header>
+          {savedStatus}
+        </header>
+      ) : null}
 
       <div className="lw-schedule-editor__stats">
         <StatCard icon="sun" label="Días abiertos" value={`${summary.openDays}/7`} />

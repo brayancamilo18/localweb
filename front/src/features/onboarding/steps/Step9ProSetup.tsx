@@ -9,7 +9,8 @@ import { keys } from '../../../api/queryKeys'
 import { useAuthStore } from '../../../store/authStore'
 import { clearOnboardingPersistForUser } from '../onboardingPersist'
 import ProServicesEditor from '../../shared/ProServicesEditor'
-import ProIntegrationsForm, { EnlacesSectionHeader } from '../../shared/ProIntegrationsForm'
+import ProIntegrationsForm from '../../shared/ProIntegrationsForm'
+import DashboardSectionHeader from '../../dashboard/components/DashboardSectionHeader'
 import FaviconUploader from '../../shared/FaviconUploader'
 import BrandColorPicker from '../../shared/BrandColorPicker'
 import { useBrandColor } from '../../shared/useBrandColor'
@@ -111,7 +112,12 @@ export default function Step9ProSetup({
   return (
     <div className={setupPhase === 'extras' ? 'lw-enlaces-page' : undefined} style={{ maxWidth: 640 }}>
       {setupPhase === 'extras' ? (
-        <EnlacesSectionHeader title={phaseTitle} subtitle={phaseSubtitle} />
+        <DashboardSectionHeader
+          badgeIcon="arrowUpRight"
+          badgeLabel="Contacto y redes"
+          title={phaseTitle}
+          subtitle={phaseSubtitle}
+        />
       ) : (
         <div style={{ marginBottom: 24 }}>
           <h1 className="lw-h2" style={{ marginBottom: 10 }}>

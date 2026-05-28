@@ -20,6 +20,8 @@ import { getStats } from '../../../api/dashboard'
 import { keys } from '../../../api/queryKeys'
 import type { StatsBucket } from '../../../types/api'
 import { useDashboard } from '../context/DashboardContext'
+import DashboardSectionHeader from '../components/DashboardSectionHeader'
+import '../components/dashboardSectionHeader.css'
 
 function toYmd(d: Date): string {
   const y = d.getFullYear()
@@ -359,13 +361,13 @@ function StatsLockedPreview() {
           outline: none !important;
         }
       `}</style>
-      <div style={{ maxWidth: 1100 }} data-tour="estadisticas-main">
-        <h1 className="lw-h2" style={{ marginBottom: 8 }}>
-          Estadísticas
-        </h1>
-        <p className="lw-small" style={{ marginBottom: 18 }}>
-          Las gráficas reflejan el rango de fechas seleccionado. Los totales mostrados son acumulados desde el inicio.
-        </p>
+      <div className="lw-dash-section-page lw-dash-section-page--full" data-tour="estadisticas-main">
+        <DashboardSectionHeader
+          badgeIcon="barChart"
+          badgeLabel="Rendimiento"
+          title="Estadísticas"
+          subtitle="Las gráficas reflejan el rango de fechas seleccionado. Los totales mostrados son acumulados desde el inicio."
+        />
 
         <div style={{ position: 'relative' }}>
           <div aria-hidden="true" style={{ pointerEvents: 'none', display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -558,14 +560,18 @@ export default function Estadisticas() {
           outline: none !important;
         }
       `}</style>
-      <div style={{ maxWidth: 1100 }} data-tour="estadisticas-main">
-        <h1 className="lw-h2" style={{ marginBottom: 8 }}>
-          Estadísticas
-        </h1>
-        <p className="lw-small" style={{ marginBottom: 18 }}>
-          Las gráficas reflejan el rango de fechas seleccionado. Los totales mostrados son acumulados desde el inicio.
-          Periodo máximo según tu plan: {q.data?.days_limit ?? '—'} días.
-        </p>
+      <div className="lw-dash-section-page lw-dash-section-page--full" data-tour="estadisticas-main">
+        <DashboardSectionHeader
+          badgeIcon="barChart"
+          badgeLabel="Rendimiento"
+          title="Estadísticas"
+          subtitle={
+            <>
+              Las gráficas reflejan el rango de fechas seleccionado. Los totales mostrados son acumulados desde el
+              inicio. Periodo máximo según tu plan: {q.data?.days_limit ?? '—'} días.
+            </>
+          }
+        />
 
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', flexWrap: 'wrap', marginBottom: 8 }}>
           <SingleDatePopover

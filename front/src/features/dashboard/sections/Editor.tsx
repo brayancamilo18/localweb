@@ -6,7 +6,9 @@ import { useToast } from '../../../components/ui/Toast'
 import { updateBusiness } from '../../../api/dashboard'
 import { keys } from '../../../api/queryKeys'
 import { useDashboard } from '../context/DashboardContext'
+import DashboardSectionHeader from '../components/DashboardSectionHeader'
 import './editorContent.css'
+import '../components/dashboardSectionHeader.css'
 
 /** Límites duros del backend (`StepController`/`BusinessController` validan con
  * `max:120` y `max:500`). Si cambian allí, deben cambiar aquí para que el
@@ -174,24 +176,21 @@ export default function Editor() {
   const formId = useId()
 
   return (
-    <div className="lw-content-editor" data-tour="editor-main">
-      <header className="lw-content-editor__header">
-        <div className="lw-content-editor__header-glow" aria-hidden />
-        <div className="lw-content-editor__header-inner">
-          <div>
-            <div className="lw-content-editor__badge">
-              <Icon name="eye" size={12} color="var(--lw-editor-accent-dark)" />
-              Página pública
-            </div>
-            <h1 className="lw-content-editor__title">Editar contenido</h1>
-            <p className="lw-content-editor__subtitle">
-              Nombre, tagline, descripción y datos de contacto de tu página pública.{' '}
-              <Link to="/dashboard/diseno" className="lw-content-editor__design-link">
-                <Icon name="palette" size={12} />
-                ¿Quieres cambiar el diseño?
-              </Link>
-            </p>
-          </div>
+    <div className="lw-content-editor lw-dash-section-page" data-tour="editor-main">
+      <DashboardSectionHeader
+        badgeIcon="eye"
+        badgeLabel="Página pública"
+        title="Editar contenido"
+        subtitle={
+          <>
+            Nombre, tagline, descripción y datos de contacto de tu página pública.{' '}
+            <Link to="/dashboard/diseno" className="lw-content-editor__design-link">
+              <Icon name="palette" size={12} />
+              ¿Quieres cambiar el diseño?
+            </Link>
+          </>
+        }
+        aside={
           <div className="lw-content-editor__completion" aria-label={`Perfil completado al ${completion}%`}>
             <svg className="lw-content-editor__completion-ring" width="56" height="56" viewBox="0 0 56 56" aria-hidden>
               <circle cx="28" cy="28" r={COMPLETION_RING_R} fill="none" stroke="var(--lw-editor-soft)" strokeWidth="5" />
@@ -215,8 +214,8 @@ export default function Editor() {
               Perfil <strong>completado</strong>
             </div>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <div className="lw-content-editor__grid">
         <ContentField

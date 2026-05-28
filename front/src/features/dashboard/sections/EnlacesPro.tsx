@@ -5,7 +5,9 @@ import { useToast } from '../../../components/ui/Toast'
 import { getBusiness } from '../../../api/dashboard'
 import { keys } from '../../../api/queryKeys'
 import { useDashboard } from '../context/DashboardContext'
-import ProIntegrationsForm, { EnlacesSectionHeader } from '../../shared/ProIntegrationsForm'
+import ProIntegrationsForm from '../../shared/ProIntegrationsForm'
+import DashboardSectionHeader from '../components/DashboardSectionHeader'
+import '../components/dashboardSectionHeader.css'
 
 export default function EnlacesPro() {
   const { refetch: refetchDashboard } = useDashboard()
@@ -21,7 +23,7 @@ export default function EnlacesPro() {
 
   if (businessQuery.isLoading || !business) {
     return (
-      <div className="lw-enlaces-page" data-tour="enlaces-pro-main">
+      <div className="lw-enlaces-page lw-dash-section-page" data-tour="enlaces-pro-main">
         <div className="lw-shimmer" style={{ height: 32, borderRadius: 8, maxWidth: 280, marginBottom: 16 }} />
         <div className="lw-shimmer" style={{ height: 120, borderRadius: 12 }} />
       </div>
@@ -29,8 +31,10 @@ export default function EnlacesPro() {
   }
 
   return (
-    <div className="lw-enlaces-page" data-tour="enlaces-pro-main">
-      <EnlacesSectionHeader
+    <div className="lw-enlaces-page lw-dash-section-page" data-tour="enlaces-pro-main">
+      <DashboardSectionHeader
+        badgeIcon="arrowUpRight"
+        badgeLabel="Contacto y redes"
         title="Enlaces y contacto"
         subtitle="Google Business, redes del pie (Instagram, TikTok, Facebook) y vCard. «Cómo llegar» usa la dirección y el mapa que ya configuraste."
       />

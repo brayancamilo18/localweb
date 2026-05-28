@@ -155,25 +155,6 @@ function SocialField({
   )
 }
 
-export function EnlacesSectionHeader({
-  title = 'Enlaces y contacto',
-  subtitle = 'Google Business, redes del pie de página y descarga vCard. «Cómo llegar» usa la dirección y el mapa que ya configuraste.',
-}: {
-  title?: string
-  subtitle?: string
-}) {
-  return (
-    <header className="lw-enlaces-page__header">
-      <div className="lw-enlaces-page__badge">
-        <Icon name="arrowUpRight" size={12} color="var(--lw-enlaces-accent-dark)" />
-        Contacto y redes
-      </div>
-      <h1 className="lw-enlaces-page__title">{title}</h1>
-      <p className="lw-enlaces-page__subtitle">{subtitle}</p>
-    </header>
-  )
-}
-
 export default function ProIntegrationsForm({
   enabled,
   onSaved,

@@ -8,6 +8,8 @@ import AccountTabFacturas from './AccountTabFacturas'
 import AccountTabPago from './AccountTabPago'
 import AccountTabPrivacidad from './AccountTabPrivacidad'
 import AccountTabReferidos from './AccountTabReferidos'
+import DashboardSectionHeader from '../../components/DashboardSectionHeader'
+import '../../components/dashboardSectionHeader.css'
 import './account.css'
 
 /**
@@ -59,32 +61,27 @@ export default function AccountPage() {
   }
 
   return (
-    <div data-tour="cuenta-main">
-      <div className="lw-account-header">
-        <div>
-          <h1 className="lw-h2">Mi cuenta</h1>
-          <p className="lw-small" style={{ marginTop: 4, fontSize: 13 }}>
-            Datos personales, plan, facturas y método de pago
-          </p>
-        </div>
-        <Btn
-          kind="outline"
-          icon="arrowRight"
-          size="md"
-          type="button"
-          // Espejo del icono para que apunte hacia atrás (el set de iconos
-          // del sistema solo trae `arrowRight`; lo invertimos con CSS).
-          style={{ flexDirection: 'row-reverse' }}
-          onClick={() => {
-            // Navegación dura a la home del dashboard. Mantiene el flujo
-            // simétrico con el botón «Cuenta» de MiPagina (que sí usa
-            // useNavigate, pero allí no hace falta forzar reload).
-            window.location.href = '/dashboard'
-          }}
-        >
-          Volver
-        </Btn>
-      </div>
+    <div className="lw-dash-section-page" data-tour="cuenta-main">
+      <DashboardSectionHeader
+        badgeIcon="user"
+        badgeLabel="Tu cuenta"
+        title="Mi cuenta"
+        subtitle="Datos personales, plan, facturas y método de pago"
+        aside={
+          <Btn
+            kind="outline"
+            icon="arrowRight"
+            size="md"
+            type="button"
+            style={{ flexDirection: 'row-reverse' }}
+            onClick={() => {
+              window.location.href = '/dashboard'
+            }}
+          >
+            Volver
+          </Btn>
+        }
+      />
 
       <Card padding={16} className="lw-account-summary-card">
         <div className="lw-account-summary-info">

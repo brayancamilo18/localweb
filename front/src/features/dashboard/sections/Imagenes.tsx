@@ -8,7 +8,9 @@ import FaviconUploader from '../../shared/FaviconUploader'
 import { keys } from '../../../api/queryKeys'
 import { useDashboard } from '../context/DashboardContext'
 import type { BusinessImage } from '../../../types/api'
+import DashboardSectionHeader from '../components/DashboardSectionHeader'
 import './imagenesContent.css'
+import '../components/dashboardSectionHeader.css'
 
 type Section = 'cover' | 'about' | 'gallery'
 
@@ -465,19 +467,13 @@ export default function Imagenes() {
   const coverTitle = heroPhotoSlots > 1 ? `Portada (${cover.length}/${heroPhotoSlots} fotos)` : 'Portada'
 
   return (
-    <div className="lw-images-page" data-tour="imagenes-main">
-      <header className="lw-images-page__header">
-        <div className="lw-images-page__badge">
-          <Icon name="sparkle" size={12} color="var(--lw-images-accent-dark)" />
-          Imágenes de tu web
-        </div>
-        <div className="lw-images-page__header-row">
-          <div>
-            <h1 className="lw-images-page__title">Imágenes</h1>
-            <p className="lw-images-page__subtitle">
-              Logo, favicon, portada, sección «Sobre nosotros» y galería.
-            </p>
-          </div>
+    <div className="lw-images-page lw-dash-section-page lw-dash-section-page--wide" data-tour="imagenes-main">
+      <DashboardSectionHeader
+        badgeIcon="sparkle"
+        badgeLabel="Imágenes de tu web"
+        title="Imágenes"
+        subtitle="Logo, favicon, portada, sección «Sobre nosotros» y galería."
+        aside={
           <div className="lw-images-page__pills">
             <Pill tone="ok">
               <Icon name="check" size={12} />
@@ -487,8 +483,8 @@ export default function Imagenes() {
               {cover.length} portada · {about.length} sobre nosotros · {gallery.length} galería
             </Pill>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <div className="lw-images-page__two-col">
         <SectionCard
