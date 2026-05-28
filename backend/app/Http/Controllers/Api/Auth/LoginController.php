@@ -7,6 +7,7 @@ use App\Exceptions\Auth\TooManyLoginAttemptsException;
 use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Resources\BusinessResource;
 use App\Http\Resources\UserResource;
+use App\Models\SecurityEvent;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -38,6 +39,8 @@ class LoginController extends BaseApiController
         // Regeneramos el ID de sesión para mitigar session-fixation tras login.
         Auth::guard('web')->login($user);
         $request->session()->regenerate();
+
+        SecurityEvent::record($user, SecurityEvent::TYPE_LOGIN, $request);
 
         $user->load(['business.template', 'business.images']);
 

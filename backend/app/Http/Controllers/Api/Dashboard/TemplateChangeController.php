@@ -4,13 +4,16 @@ namespace App\Http\Controllers\Api\Dashboard;
 
 use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Resources\BusinessResource;
+use App\Enums\ImageSection;
 use App\Models\Template;
 use App\Services\BusinessService;
+use App\Services\ImageService;
 use App\Services\PlanService;
 use App\Services\TemplateContrast;
 use App\Services\TemplatePalette;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TemplateChangeController extends BaseApiController
 {
@@ -20,6 +23,7 @@ class TemplateChangeController extends BaseApiController
         BusinessService $service,
         TemplatePalette $palette,
         TemplateContrast $contrast,
+        ImageService $imageService,
     ): JsonResponse {
         $user = $request->user();
         $business = $user->business;
@@ -98,9 +102,23 @@ class TemplateChangeController extends BaseApiController
             $updatePayload['brand_color'] = $brandColorPayload;
         }
 
-        $service->update($business, $updatePayload);
+        DB::transaction(function () use ($business, $service, $updatePayload, $template, $imageService) {
+            $service->update($business, $updatePayload);
 
-        $business->load(['template', 'services', 'images' => fn ($q) => $q->ordered()]);
+            $newSlots = (int) ($template->hero_photo_slots ?? 1);
+            $excessCovers = $business->images()
+                ->where('section', ImageSection::Cover->value)
+                ->ordered()
+                ->skip($newSlots)
+                ->take(100)
+                ->get();
+
+            foreach ($excessCovers as $cover) {
+                $imageService->deleteImage($cover);
+            }
+
+            $business->load(['template', 'services', 'images' => fn ($q) => $q->ordered()]);
+        });
 
         return $this->success(new BusinessResource($business));
     }

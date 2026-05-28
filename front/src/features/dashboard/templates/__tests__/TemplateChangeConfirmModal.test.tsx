@@ -119,3 +119,39 @@ describe('TemplateChangeConfirmModal', () => {
     expect(onConfirm).not.toHaveBeenCalled()
   })
 })
+
+describe('cover trim notice', () => {
+  it('renders cover trim notice when preview.covers.will_trim is true', () => {
+    renderModal({
+      preview: {
+        ...previewStateC,
+        covers: {
+          current_count: 3,
+          new_slots: 1,
+          excess: 2,
+          will_trim: true,
+        },
+      },
+    })
+
+    const alert = screen.getByRole('alert')
+    expect(alert).toHaveTextContent(/solo admite 1 foto en la portada/i)
+    expect(alert).toHaveTextContent(/eliminarán las últimas 2/i)
+  })
+
+  it('does NOT render cover trim notice when will_trim is false', () => {
+    renderModal({
+      preview: {
+        ...previewStateC,
+        covers: {
+          current_count: 1,
+          new_slots: 3,
+          excess: 0,
+          will_trim: false,
+        },
+      },
+    })
+
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+})

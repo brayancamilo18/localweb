@@ -121,6 +121,7 @@ function DropZone({
   sectionIcon,
   meta,
   galleryLimit,
+  heroPhotoSlots = 1,
 }: {
   title: string
   section: Section
@@ -136,9 +137,14 @@ function DropZone({
   sectionIcon: string
   meta?: ReactNode
   galleryLimit: number
+  /** Slots de portada del template (>1 = collage; layout en fila). */
+  heroPhotoSlots?: number
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [drag, setDrag] = useState(false)
+
+  const isMultiCover = section === 'cover' && heroPhotoSlots > 1
+  const uploadBlocked = busy || (isMultiCover ? atLimit : false)
 
   const pickFiles = (list: File[]) => {
     if (busy || atLimit) return
@@ -148,71 +154,93 @@ function DropZone({
   const dropHint =
     section === 'gallery'
       ? 'Arrastra imágenes aquí o elige archivos. Se añadirán a la galería.'
-      : section === 'cover' && !atLimit && images.length > 0
+      : isMultiCover && images.length > 0
         ? 'Arrastra una imagen aquí o elige archivo. Se añadirá al collage.'
-        : 'Arrastra una imagen aquí o elige archivo. Reemplaza la actual.'
+        : section === 'cover' && !atLimit && images.length > 0
+          ? 'Arrastra una imagen aquí o elige archivo. Se añadirá al collage.'
+          : 'Arrastra una imagen aquí o elige archivo. Reemplaza la actual.'
 
   const buttonLabel =
-    section === 'gallery' ? 'Añadir fotos' : images.length > 0 ? 'Cambiar foto' : 'Elegir archivo'
+    section === 'gallery'
+      ? 'Añadir fotos'
+      : isMultiCover
+        ? images.length === 0
+          ? 'Elegir archivo'
+          : 'Añadir foto'
+        : images.length > 0
+          ? 'Cambiar foto'
+          : 'Elegir archivo'
 
-  const dropzone = !atLimit ? (
-    <div
-      className={`lw-images-dropzone${drag ? ' lw-images-dropzone--drag' : ''}${busy ? ' lw-images-dropzone--busy' : ''}`}
-      onDragOver={(e: DragEvent) => {
-        e.preventDefault()
-        setDrag(true)
-      }}
-      onDragLeave={() => setDrag(false)}
-      onDrop={(e: DragEvent) => {
-        e.preventDefault()
-        setDrag(false)
-        const dropped = e.dataTransfer.files
-        pickFiles(dropped ? Array.from(dropped) : [])
-      }}
-      onClick={() => inputRef.current?.click()}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
+  const renderUploadArea = (options?: { alwaysShow?: boolean }) => {
+    if (!options?.alwaysShow && !isMultiCover && atLimit) return null
+
+    return (
+      <div
+        className={`lw-images-dropzone${drag ? ' lw-images-dropzone--drag' : ''}${uploadBlocked ? ' lw-images-dropzone--disabled' : ''}${busy ? ' lw-images-dropzone--busy' : ''}`}
+        onDragOver={(e: DragEvent) => {
+          if (uploadBlocked) return
           e.preventDefault()
-          inputRef.current?.click()
-        }
-      }}
-    >
-      <div className="lw-images-dropzone__icon-box">
-        <Icon name="upload" size={18} stroke={2.2} />
-      </div>
-      <div className="lw-images-dropzone__text">
-        <div className="lw-images-dropzone__title">{title}</div>
-        <div className="lw-images-dropzone__hint">{dropHint}</div>
-      </div>
-      <button
-        type="button"
-        className="lw-images-dropzone__btn"
-        disabled={busy}
-        onClick={(e) => {
-          e.stopPropagation()
-          inputRef.current?.click()
+          setDrag(true)
+        }}
+        onDragLeave={() => setDrag(false)}
+        onDrop={(e: DragEvent) => {
+          if (uploadBlocked) return
+          e.preventDefault()
+          setDrag(false)
+          const dropped = e.dataTransfer.files
+          pickFiles(dropped ? Array.from(dropped) : [])
+        }}
+        onClick={() => {
+          if (!uploadBlocked) inputRef.current?.click()
+        }}
+        role="button"
+        tabIndex={uploadBlocked ? -1 : 0}
+        aria-disabled={uploadBlocked}
+        onKeyDown={(e) => {
+          if (uploadBlocked) return
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            inputRef.current?.click()
+          }
         }}
       >
-        {busy ? 'Subiendo…' : buttonLabel}
-      </button>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        multiple={section === 'gallery'}
-        style={{ display: 'none' }}
-        onChange={(e) => {
-          const list = e.target.files ? Array.from(e.target.files) : []
-          e.target.value = ''
-          pickFiles(list)
-        }}
-      />
-    </div>
-  ) : null
+        <div className="lw-images-dropzone__icon-box">
+          <Icon name="upload" size={18} stroke={2.2} />
+        </div>
+        <div className="lw-images-dropzone__text">
+          <div className="lw-images-dropzone__title">{title}</div>
+          <div className="lw-images-dropzone__hint">{dropHint}</div>
+        </div>
+        <button
+          type="button"
+          className="lw-images-dropzone__btn"
+          disabled={uploadBlocked}
+          onClick={(e) => {
+            e.stopPropagation()
+            if (!uploadBlocked) inputRef.current?.click()
+          }}
+        >
+          {busy ? 'Subiendo…' : buttonLabel}
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          multiple={section === 'gallery'}
+          style={{ display: 'none' }}
+          disabled={uploadBlocked}
+          onChange={(e) => {
+            const list = e.target.files ? Array.from(e.target.files) : []
+            e.target.value = ''
+            pickFiles(list)
+          }}
+        />
+      </div>
+    )
+  }
 
   if (section === 'gallery') {
+    const galleryUpload = renderUploadArea()
     return (
       <SectionCard icon={sectionIcon} title={sectionTitle} subtitle={sectionSubtitle} meta={meta}>
         <div className="lw-images-gallery-grid">
@@ -269,7 +297,7 @@ function DropZone({
             </div>
           ) : null}
         </div>
-        {dropzone ? <div style={{ marginTop: 12 }}>{dropzone}</div> : null}
+        {galleryUpload ? <div style={{ marginTop: 12 }}>{galleryUpload}</div> : null}
         {progress != null && progress >= 0 ? <UploadProgress progress={progress} /> : null}
         <div className="lw-images-info-bar">
           <Icon name="info" size={14} color="var(--lw-images-accent-dark)" />
@@ -281,7 +309,30 @@ function DropZone({
     )
   }
 
+  if (isMultiCover) {
+    return (
+      <SectionCard icon={sectionIcon} title={sectionTitle} subtitle={sectionSubtitle} meta={meta}>
+        <div className="lw-images-cover-row">
+          {images.map((img, idx) => (
+            <ImageThumb
+              key={img.id}
+              src={img.url}
+              alt={`${title} ${idx + 1}`}
+              primary={idx === 0}
+              onDelete={() => onDeleteImage(img.id)}
+              deleteBusy={deletingImageId === img.id}
+              deleteDisabled={busy || deletingImageId != null}
+            />
+          ))}
+          {renderUploadArea({ alwaysShow: true })}
+        </div>
+        {progress != null && progress >= 0 ? <UploadProgress progress={progress} /> : null}
+      </SectionCard>
+    )
+  }
+
   const multi = images.length > 1
+  const uploadArea = renderUploadArea()
 
   return (
     <SectionCard icon={sectionIcon} title={sectionTitle} subtitle={sectionSubtitle} meta={meta}>
@@ -308,7 +359,7 @@ function DropZone({
           )}
         </div>
         <div>
-          {dropzone}
+          {uploadArea}
           {images.length === 0 && !atLimit ? (
             <p className="lw-images-empty">No hay imágenes todavía.</p>
           ) : null}
@@ -622,12 +673,23 @@ export default function Imagenes() {
         </div>
       ) : null}
 
-      <div className="lw-images-page__two-col">
+      <div
+        className={`lw-images-page__two-col${heroPhotoSlots > 1 ? ' lw-images-page__two-col--stacked' : ''}`}
+      >
         <DropZone
-          title={cover.length > 0 ? 'Cambiar portada' : 'Subir portada'}
+          title={
+            heroPhotoSlots > 1
+              ? cover.length > 0
+                ? 'Añadir foto'
+                : 'Subir portada'
+              : cover.length > 0
+                ? 'Cambiar portada'
+                : 'Subir portada'
+          }
           sectionTitle={coverTitle}
           sectionSubtitle="Imagen principal del hero. Arrastra una imagen o elige archivo."
           sectionIcon="star"
+          heroPhotoSlots={heroPhotoSlots}
           meta={
             cover.length > 0 ? (
               <Pill tone="ok">

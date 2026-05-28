@@ -161,3 +161,46 @@ it('template id ignored by business update', function () {
     expect($fresh->name)->toBe('Nombre actualizado')
         ->and($fresh->template_id)->toBe($current->id);
 });
+
+it('changing template trims excess cover images keeping only the first one by display_order', function () {
+    \Illuminate\Support\Facades\Storage::fake('r2');
+
+    $multi = activeTemplate(['slug' => 'tpl-trim-multi', 'hero_photo_slots' => 3]);
+    $single = activeTemplate(['slug' => 'tpl-trim-single', 'hero_photo_slots' => 1]);
+
+    $business = proBusinessWithTemplate($multi, ['template_changed_at' => null]);
+
+    foreach ([1, 2, 3] as $order) {
+        $path = "businesses/{$business->id}/cover/cover-{$order}.webp";
+        \Illuminate\Support\Facades\Storage::disk('r2')->put($path, 'fake-content-'.$order);
+        \App\Models\BusinessImage::create([
+            'business_id' => $business->id,
+            'section' => \App\Enums\ImageSection::Cover->value,
+            'path' => $path,
+            'display_order' => $order,
+        ]);
+    }
+
+    $user = verifiedDashboardUser($business);
+
+    test()->actingAs($user)
+        ->postJson('/api/v1/dashboard/template', ['template_id' => $single->id])
+        ->assertOk();
+
+    $fresh = $business->fresh();
+    expect($fresh->template_id)->toBe($single->id);
+
+    $remainingCovers = \App\Models\BusinessImage::query()
+        ->where('business_id', $business->id)
+        ->where('section', \App\Enums\ImageSection::Cover->value)
+        ->orderBy('display_order')
+        ->get();
+
+    expect($remainingCovers)->toHaveCount(1)
+        ->and($remainingCovers->first()->display_order)->toBe(1)
+        ->and($remainingCovers->first()->path)->toBe("businesses/{$business->id}/cover/cover-1.webp");
+
+    expect(\Illuminate\Support\Facades\Storage::disk('r2')->exists("businesses/{$business->id}/cover/cover-2.webp"))->toBeFalse()
+        ->and(\Illuminate\Support\Facades\Storage::disk('r2')->exists("businesses/{$business->id}/cover/cover-3.webp"))->toBeFalse()
+        ->and(\Illuminate\Support\Facades\Storage::disk('r2')->exists("businesses/{$business->id}/cover/cover-1.webp"))->toBeTrue();
+});

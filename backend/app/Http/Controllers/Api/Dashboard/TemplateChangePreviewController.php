@@ -56,6 +56,12 @@ class TemplateChangePreviewController extends BaseApiController
         $preview = $palette->previewChange($business, $template);
         $hasCurrent = $business->brand_color !== null;
 
+        $newSlots = (int) ($template->hero_photo_slots ?? 1);
+        $currentCovers = $business->images()
+            ->where('section', \App\Enums\ImageSection::Cover->value)
+            ->count();
+        $excess = max(0, $currentCovers - $newSlots);
+
         return response()->json([
             'same_template' => false,
             'template' => [
@@ -71,6 +77,12 @@ class TemplateChangePreviewController extends BaseApiController
                 'new_palette' => $preview['new_palette'],
                 'new_default' => $preview['new_default'],
                 'new_template_supported' => $preview['new_template_supported'],
+            ],
+            'covers' => [
+                'current_count' => $currentCovers,
+                'new_slots' => $newSlots,
+                'excess' => $excess,
+                'will_trim' => $excess > 0,
             ],
         ]);
     }

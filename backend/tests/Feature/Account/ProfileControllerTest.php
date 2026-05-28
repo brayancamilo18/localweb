@@ -1,12 +1,20 @@
 <?php
 
 use App\Enums\Plan;
+use App\Http\Controllers\Api\Account\ProfileController;
+use App\Http\Requests\Account\UpdatePasswordRequest;
+use App\Http\Requests\Account\UpdateProfileRequest;
 use App\Models\Business;
 use App\Models\User;
+use App\Notifications\EmailChangedEs;
+use App\Notifications\PasswordChangedEs;
 use App\Notifications\VerifyEmailEs;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Testing\Fakes\NotificationFake;
 use Tests\TestCase;
 
 uses(RefreshDatabase::class);
@@ -33,6 +41,48 @@ function createBusinessForUser(User $user, string $name): Business
     $user->forceFill(['business_id' => $business->id])->save();
 
     return $business;
+}
+
+/**
+ * Fake de notificaciones que lanza excepción solo para la clase indicada.
+ */
+function notificationFakeThatThrowsFor(string $notificationClass): NotificationFake
+{
+    return new class($notificationClass) extends NotificationFake
+    {
+        public function __construct(private readonly string $notificationClass) {}
+
+        public function send($notifiables, $notification, ?array $channels = null)
+        {
+            if ($notification instanceof $this->notificationClass) {
+                throw new RuntimeException('smtp down');
+            }
+
+            parent::send($notifiables, $notification, $channels);
+        }
+    };
+}
+
+function profilePasswordRequest(User $user, array $payload): UpdatePasswordRequest
+{
+    $request = UpdatePasswordRequest::create('/api/v1/account/password', 'POST', $payload);
+    $request->setContainer(app());
+    $request->setRedirector(app('redirect'));
+    $request->setUserResolver(fn () => $user);
+    $request->validateResolved();
+
+    return $request;
+}
+
+function profileUpdateRequest(User $user, array $payload): UpdateProfileRequest
+{
+    $request = UpdateProfileRequest::create('/api/v1/account/profile', 'PATCH', $payload);
+    $request->setContainer(app());
+    $request->setRedirector(app('redirect'));
+    $request->setUserResolver(fn () => $user);
+    $request->validateResolved();
+
+    return $request;
 }
 
 /**
@@ -108,10 +158,14 @@ it('actualiza email y resetea email_verified_at', function () {
     $user = User::factory()->create([
         'email' => 'viejo@example.com',
         'email_verified_at' => now()->subDay(),
+        'password' => Hash::make('miPassword1'),
     ]);
 
     $response = $this->actingAs($user)
-        ->patchJson('/api/v1/account/profile', ['email' => 'nuevo@example.com']);
+        ->patchJson('/api/v1/account/profile', [
+            'email' => 'nuevo@example.com',
+            'current_password' => 'miPassword1',
+        ]);
 
     $response->assertOk()
         ->assertJsonPath('data.user.email', 'nuevo@example.com')
@@ -119,7 +173,51 @@ it('actualiza email y resetea email_verified_at', function () {
         ->assertJsonPath('data.email_changed', true);
 
     expect($user->fresh()->email_verified_at)->toBeNull();
+    Notification::assertSentOnDemand(
+        EmailChangedEs::class,
+        fn (EmailChangedEs $notification, array $channels, AnonymousNotifiable $notifiable) => $notifiable->routes['mail'] === 'viejo@example.com'
+            && $notification->newEmailMasked === 'n***@example.com',
+    );
     Notification::assertSentTo($user->fresh(), VerifyEmailEs::class);
+});
+
+it('rechaza cambio de email sin current_password', function () {
+    /** @var TestCase $this */
+    Notification::fake();
+    $user = User::factory()->create([
+        'email' => 'viejo@example.com',
+        'email_verified_at' => now()->subDay(),
+        'password' => Hash::make('miPassword1'),
+    ]);
+
+    $response = $this->actingAs($user)
+        ->patchJson('/api/v1/account/profile', ['email' => 'nuevo@example.com']);
+
+    $response->assertStatus(422)->assertJsonValidationErrors('current_password');
+
+    expect($user->fresh()->email)->toBe('viejo@example.com');
+    Notification::assertNothingSent();
+});
+
+it('rechaza cambio de email con current_password incorrecta', function () {
+    /** @var TestCase $this */
+    Notification::fake();
+    $user = User::factory()->create([
+        'email' => 'viejo@example.com',
+        'email_verified_at' => now()->subDay(),
+        'password' => Hash::make('miPassword1'),
+    ]);
+
+    $response = $this->actingAs($user)
+        ->patchJson('/api/v1/account/profile', [
+            'email' => 'nuevo@example.com',
+            'current_password' => 'passwordIncorrecta',
+        ]);
+
+    $response->assertStatus(422)->assertJsonValidationErrors('current_password');
+
+    expect($user->fresh()->email)->toBe('viejo@example.com');
+    Notification::assertNothingSent();
 });
 
 it('no envía notificación de verificación cuando solo cambia el nombre', function () {
@@ -156,6 +254,7 @@ it('permite enviar el mismo email del usuario sin error', function () {
 
 it('cambia contraseña con current_password correcta', function () {
     /** @var TestCase $this */
+    Notification::fake();
     $user = User::factory()->create(['password' => Hash::make('viejaPassword1')]);
 
     $response = $this->actingAs($user)->postJson('/api/v1/account/password', [
@@ -166,6 +265,47 @@ it('cambia contraseña con current_password correcta', function () {
 
     $response->assertOk()->assertJsonPath('data.message', 'Contraseña actualizada');
     expect(Hash::check('nuevaPassword2', $user->fresh()->password))->toBeTrue();
+    Notification::assertSentTo($user, PasswordChangedEs::class);
+});
+
+it('persiste cambio de contraseña aunque falle el aviso por email', function () {
+    /** @var TestCase $this */
+    Log::spy();
+    Notification::swap(notificationFakeThatThrowsFor(PasswordChangedEs::class));
+
+    $user = User::factory()->create(['password' => Hash::make('viejaPassword1')]);
+
+    $response = app(ProfileController::class)->password(profilePasswordRequest($user, [
+        'current_password' => 'viejaPassword1',
+        'password' => 'nuevaPassword2',
+        'password_confirmation' => 'nuevaPassword2',
+    ]));
+
+    expect($response->getStatusCode())->toBe(200);
+    expect(Hash::check('nuevaPassword2', $user->fresh()->password))->toBeTrue();
+    Log::shouldHaveReceived('error')->once();
+});
+
+it('persiste cambio de email aunque falle el aviso al email anterior', function () {
+    /** @var TestCase $this */
+    Log::spy();
+    Notification::swap(notificationFakeThatThrowsFor(EmailChangedEs::class));
+
+    $user = User::factory()->create([
+        'email' => 'viejo@example.com',
+        'email_verified_at' => now()->subDay(),
+        'password' => Hash::make('miPassword1'),
+    ]);
+
+    $response = app(ProfileController::class)->update(profileUpdateRequest($user, [
+        'email' => 'nuevo@example.com',
+        'current_password' => 'miPassword1',
+    ]));
+
+    expect($response->getStatusCode())->toBe(200);
+    expect($response->getData(true)['data']['user']['email'])->toBe('nuevo@example.com');
+    expect($user->fresh()->email)->toBe('nuevo@example.com');
+    Log::shouldHaveReceived('error')->once();
 });
 
 it('rechaza cambio de contraseña con current_password incorrecta', function () {

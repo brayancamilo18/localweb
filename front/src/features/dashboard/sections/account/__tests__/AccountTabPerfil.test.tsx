@@ -119,6 +119,15 @@ describe('AccountTabPerfil', () => {
     await waitFor(() => expect(updateSpy).toHaveBeenCalledWith({ name: 'Ana López' }))
   })
 
+  it('muestra campo de contraseña al cambiar el email y mantiene Guardar deshabilitado sin ella', async () => {
+    vi.spyOn(accountApi, 'getAccountProfile').mockResolvedValue(profileFixture as never)
+    renderTab()
+    const emailInput = await screen.findByDisplayValue('ana@example.com')
+    fireEvent.change(emailInput, { target: { value: 'nuevo@example.com' } })
+    expect(screen.getByText(/Necesaria para confirmar el cambio de email/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Guardar cambios' })).toBeDisabled()
+  })
+
   it('muestra error de validación 422 en el campo email', async () => {
     vi.spyOn(accountApi, 'getAccountProfile').mockResolvedValue(profileFixture as never)
     vi.spyOn(accountApi, 'updateAccountProfile').mockRejectedValue({
@@ -131,6 +140,7 @@ describe('AccountTabPerfil', () => {
     renderTab()
     const emailInput = await screen.findByDisplayValue('ana@example.com')
     fireEvent.change(emailInput, { target: { value: 'tomado@example.com' } })
+    fireEvent.change(screen.getByPlaceholderText('Tu contraseña'), { target: { value: 'miPassword1' } })
     fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
     expect(await screen.findByText('Ese email ya está en uso')).toBeInTheDocument()
   })

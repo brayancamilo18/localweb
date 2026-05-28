@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\Api\Account\AccountController;
 use App\Http\Controllers\Api\Account\ProfileController;
 use App\Http\Controllers\Api\Account\ReferralsController;
+use App\Http\Controllers\Api\Account\SecurityEventsController;
+use App\Http\Controllers\Api\Account\SessionsController;
 use App\Http\Controllers\Api\Admin\BusinessesController as AdminBusinessesController;
 use App\Http\Controllers\Api\Admin\TemplatesController as AdminTemplatesController;
 use App\Http\Controllers\Api\Admin\UsersController as AdminUsersController;
@@ -81,6 +84,10 @@ Route::prefix('v1')->group(function (): void {
             Route::patch('/profile', [ProfileController::class, 'update'])->middleware('throttle:30,1');
             Route::post('/password', [ProfileController::class, 'password'])->middleware('throttle:6,1');
             Route::get('/referrals', [ReferralsController::class, 'index'])->middleware('throttle:60,1');
+            Route::get('/sessions', [SessionsController::class, 'index'])->middleware('throttle:30,1');
+            Route::post('/sessions/revoke-others', [SessionsController::class, 'destroyOthers'])->middleware('throttle:6,1');
+            Route::get('/security-events', [SecurityEventsController::class, 'index'])->middleware('throttle:30,1');
+            Route::delete('/', [AccountController::class, 'destroy'])->middleware('throttle:3,1');
         });
 
         Route::prefix('qr')->group(function (): void {

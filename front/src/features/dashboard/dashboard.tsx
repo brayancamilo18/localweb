@@ -105,7 +105,6 @@ function DashSidebar({
     { icon: 'arrowUpRight', t: 'Enlaces Pro', to: '/dashboard/enlaces', dataTour: 'enlaces-pro' },
     { icon: 'barChart', t: 'Estadísticas', to: '/dashboard/stats', dataTour: 'estadisticas' },
     { icon: 'user', t: 'Cuenta', to: '/dashboard/account', dataTour: 'cuenta' },
-    { icon: 'shield', t: 'Seguridad', to: '/dashboard/security', dataTour: 'seguridad' },
   ] as const
   return (
     <aside

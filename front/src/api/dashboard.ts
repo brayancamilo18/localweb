@@ -75,6 +75,12 @@ export type TemplateChangePreview = {
     new_default: string
     new_template_supported: boolean
   }
+  covers?: {
+    current_count: number
+    new_slots: number
+    excess: number
+    will_trim: boolean
+  }
 }
 
 export async function previewTemplateChange(templateId: number): Promise<TemplateChangePreview> {

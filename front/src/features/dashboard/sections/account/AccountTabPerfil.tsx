@@ -42,6 +42,7 @@ export default function AccountTabPerfil() {
   // ── Datos personales ──────────────────────────────────────────
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [emailConfirmPassword, setEmailConfirmPassword] = useState('')
   const [profileErrors, setProfileErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
@@ -55,16 +56,22 @@ export default function AccountTabPerfil() {
   const initialEmail = profileQ.data?.user.email ?? ''
   const profileDirty = name.trim() !== initialName || email.trim() !== initialEmail
   const emailWillChange = email.trim() !== '' && email.trim() !== initialEmail
+  const profileCanSave =
+    profileDirty && (!emailWillChange || emailConfirmPassword.length > 0)
 
   const profileM = useMutation({
     mutationFn: () => {
-      const payload: { name?: string; email?: string } = {}
+      const payload: { name?: string; email?: string; current_password?: string } = {}
       if (name.trim() !== initialName) payload.name = name.trim()
-      if (email.trim() !== initialEmail) payload.email = email.trim()
+      if (email.trim() !== initialEmail) {
+        payload.email = email.trim()
+        payload.current_password = emailConfirmPassword
+      }
       return updateAccountProfile(payload)
     },
     onSuccess: async (res) => {
       setProfileErrors({})
+      setEmailConfirmPassword('')
       await qc.invalidateQueries({ queryKey: keys.account.profile })
       await qc.invalidateQueries({ queryKey: keys.auth.me })
       // Mantener authStore sincronizado para que el resto del dashboard (header,
@@ -233,13 +240,38 @@ export default function AccountTabPerfil() {
               }
             />
           </Field>
+
+          {emailWillChange ? (
+            <Field
+              label="Contraseña actual"
+              error={profileErrors.current_password}
+              hint="Necesaria para confirmar el cambio de email."
+            >
+              <Input
+                type="password"
+                value={emailConfirmPassword}
+                onChange={(e) => {
+                  setEmailConfirmPassword(e.target.value)
+                  if (profileErrors.current_password) {
+                    setProfileErrors((prev) => {
+                      const next = { ...prev }
+                      delete next.current_password
+                      return next
+                    })
+                  }
+                }}
+                autoComplete="current-password"
+                placeholder="Tu contraseña"
+              />
+            </Field>
+          ) : null}
         </div>
 
         <div className="lw-account-actions-row">
           <Btn
             kind="primary"
             type="button"
-            disabled={!profileDirty || profileM.isPending}
+            disabled={!profileCanSave || profileM.isPending}
             loading={profileM.isPending}
             onClick={() => profileM.mutate()}
           >
@@ -252,6 +284,7 @@ export default function AccountTabPerfil() {
               onClick={() => {
                 setName(initialName)
                 setEmail(initialEmail)
+                setEmailConfirmPassword('')
                 setProfileErrors({})
               }}
             >

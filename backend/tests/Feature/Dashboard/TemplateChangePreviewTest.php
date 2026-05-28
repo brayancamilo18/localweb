@@ -147,3 +147,51 @@ it('unauthenticated returns 401', function () {
     test()->getJson('/api/v1/dashboard/template/'.$template->id.'/preview')
         ->assertUnauthorized();
 });
+
+it('preview returns covers info with will_trim=true when current covers exceed new slots', function () {
+    $multi = previewActiveTemplate(['slug' => 'tpl-cov-multi', 'hero_photo_slots' => 3]);
+    $single = previewActiveTemplate(['slug' => 'tpl-cov-single', 'hero_photo_slots' => 1]);
+
+    $business = previewProBusiness($multi, ['template_changed_at' => null]);
+    foreach ([1, 2, 3] as $order) {
+        \App\Models\BusinessImage::create([
+            'business_id' => $business->id,
+            'section' => \App\Enums\ImageSection::Cover->value,
+            'path' => "businesses/{$business->id}/cover/test-{$order}.webp",
+            'display_order' => $order,
+        ]);
+    }
+
+    $user = previewDashboardUser($business);
+
+    test()->actingAs($user)
+        ->getJson("/api/v1/dashboard/template/{$single->id}/preview")
+        ->assertOk()
+        ->assertJsonPath('covers.current_count', 3)
+        ->assertJsonPath('covers.new_slots', 1)
+        ->assertJsonPath('covers.excess', 2)
+        ->assertJsonPath('covers.will_trim', true);
+});
+
+it('preview returns will_trim=false when current covers fit in new slots', function () {
+    $single = previewActiveTemplate(['slug' => 'tpl-cov-fit-cur', 'hero_photo_slots' => 1]);
+    $multi = previewActiveTemplate(['slug' => 'tpl-cov-fit-new', 'hero_photo_slots' => 3]);
+
+    $business = previewProBusiness($single, ['template_changed_at' => null]);
+    \App\Models\BusinessImage::create([
+        'business_id' => $business->id,
+        'section' => \App\Enums\ImageSection::Cover->value,
+        'path' => "businesses/{$business->id}/cover/only.webp",
+        'display_order' => 1,
+    ]);
+
+    $user = previewDashboardUser($business);
+
+    test()->actingAs($user)
+        ->getJson("/api/v1/dashboard/template/{$multi->id}/preview")
+        ->assertOk()
+        ->assertJsonPath('covers.current_count', 1)
+        ->assertJsonPath('covers.new_slots', 3)
+        ->assertJsonPath('covers.excess', 0)
+        ->assertJsonPath('covers.will_trim', false);
+});

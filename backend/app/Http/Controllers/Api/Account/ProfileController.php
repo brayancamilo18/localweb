@@ -5,9 +5,15 @@ namespace App\Http\Controllers\Api\Account;
 use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Requests\Account\UpdatePasswordRequest;
 use App\Http\Requests\Account\UpdateProfileRequest;
+use App\Models\SecurityEvent;
+use App\Notifications\EmailChangedEs;
+use App\Notifications\PasswordChangedEs;
+use App\Support\MaskEmail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * Endpoints de cuenta del usuario autenticado (datos personales + cambio de
@@ -41,10 +47,42 @@ class ProfileController extends BaseApiController
     {
         $user = $request->user();
         $data = $request->validated();
+        unset($data['current_password']);
+
         $emailChanged = isset($data['email']) && $data['email'] !== $user->email;
 
         if ($emailChanged) {
+            if (! Hash::check($request->input('current_password'), $user->password)) {
+                return $this->error(
+                    'La contraseña actual es incorrecta',
+                    ['current_password' => ['La contraseña actual es incorrecta']],
+                    422,
+                );
+            }
+
+            $previousEmail = $user->email;
+            $changedAt = now();
+
+            try {
+                Notification::route('mail', $previousEmail)
+                    ->notify(new EmailChangedEs(
+                        accountName: $user->name ?: '',
+                        previousEmail: $previousEmail,
+                        newEmailMasked: MaskEmail::partial($data['email']),
+                        requestIp: $request->ip() ?? 'No disponible',
+                        changedAt: $changedAt,
+                    ));
+            } catch (\Throwable $e) {
+                Log::error('Email changed security notification failed', [
+                    'user_id' => $user->id,
+                    'previous_email' => $previousEmail,
+                    'exception' => $e->getMessage(),
+                ]);
+            }
+
             $user->email_verified_at = null;
+
+            SecurityEvent::record($user, SecurityEvent::TYPE_EMAIL_CHANGED, $request);
         }
         $user->fill($data)->save();
 
@@ -87,6 +125,20 @@ class ProfileController extends BaseApiController
 
         $user->password = Hash::make($request->input('password'));
         $user->save();
+
+        try {
+            $user->notify(new PasswordChangedEs(
+                requestIp: $request->ip() ?? 'No disponible',
+                changedAt: now(),
+            ));
+        } catch (\Throwable $e) {
+            Log::error('Password changed security email failed', [
+                'user_id' => $user->id,
+                'exception' => $e->getMessage(),
+            ]);
+        }
+
+        SecurityEvent::record($user, SecurityEvent::TYPE_PASSWORD_CHANGED, $request);
 
         return $this->success(['message' => 'Contraseña actualizada']);
     }

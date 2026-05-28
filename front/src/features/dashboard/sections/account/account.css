@@ -312,6 +312,11 @@
   border: 1px solid var(--lw-border);
 }
 
+.lw-account-danger-zone {
+  border: 1px solid color-mix(in srgb, var(--lw-danger) 35%, var(--lw-border));
+  background: color-mix(in srgb, var(--lw-danger) 4%, var(--lw-surface));
+}
+
 @media (max-width: 640px) {
   .lw-account-payment-card-row {
     padding: 12px;

@@ -11,6 +11,7 @@ import {
   BrandColorPanelShell,
 } from '../../shared/BrandColorPanel'
 import { brandColorTokens } from '../../shared/brandColorTokens'
+import './templateChangeConfirmModal.css'
 
 export type BrandColorChoice = string | null | 'omit'
 
@@ -26,28 +27,36 @@ type ChoiceMode = 'suggested' | 'palette' | 'default'
 
 const T = brandColorTokens
 
-function ColorCompareRow({ current, suggested }: { current: string; suggested: string }) {
+function ColorCompareRow({
+  current,
+  suggested,
+  compact = false,
+}: {
+  current: string
+  suggested: string
+  compact?: boolean
+}) {
   return (
     <div
       style={{
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: 16,
-        marginBottom: 20,
+        justifyContent: compact ? 'flex-start' : 'center',
+        gap: compact ? 12 : 16,
+        marginBottom: compact ? 0 : 20,
         flexWrap: 'wrap',
       }}
     >
-      <ColorCompareTile label="Color actual" hex={current} />
-      <Icon name="arrowRight" size={20} color={T.ink60} />
-      <ColorCompareTile label="Sugerido" hex={suggested} />
+      <ColorCompareTile label="Color actual" hex={current} compact={compact} />
+      <Icon name="arrowRight" size={compact ? 16 : 20} color={T.ink60} />
+      <ColorCompareTile label="Sugerido" hex={suggested} compact={compact} />
     </div>
   )
 }
 
-function ColorCompareTile({ label, hex }: { label: string; hex: string }) {
+function ColorCompareTile({ label, hex, compact = false }: { label: string; hex: string; compact?: boolean }) {
   return (
-    <div style={{ textAlign: 'center', flex: '1 1 120px', minWidth: 120 }}>
+    <div style={{ textAlign: 'center', flex: compact ? '0 0 auto' : '1 1 120px', minWidth: compact ? 88 : 120 }}>
       <div
         style={{
           fontSize: 10,
@@ -63,8 +72,8 @@ function ColorCompareTile({ label, hex }: { label: string; hex: string }) {
       <div
         aria-hidden
         style={{
-          width: 56,
-          height: 56,
+          width: compact ? 44 : 56,
+          height: compact ? 44 : 56,
           borderRadius: '50%',
           margin: '0 auto 8px',
           background: hex,
@@ -84,6 +93,7 @@ function ChoiceOption({
   title,
   detail,
   children,
+  compact = false,
 }: {
   id: string
   name: string
@@ -92,12 +102,13 @@ function ChoiceOption({
   title: string
   detail: string
   children?: ReactNode
+  compact?: boolean
 }) {
   return (
     <div
       style={{
-        borderRadius: 16,
-        padding: 16,
+        borderRadius: compact ? 14 : 16,
+        padding: compact ? '12px 14px' : 16,
         background: checked ? '#fff' : 'transparent',
         boxShadow: checked ? `inset 0 0 0 1.5px ${T.verde}` : `inset 0 0 0 1px var(--lw-border)`,
       }}
@@ -130,6 +141,38 @@ function ChoiceOption({
   )
 }
 
+function CoverTrimNotice({ excess, newSlots, currentCount }: { excess: number; newSlots: number; currentCount: number }) {
+  const slotsLabel = newSlots === 1 ? '1 foto en la portada' : `${newSlots} fotos en la portada`
+  const photosWord = excess === 1 ? 'foto' : 'fotos'
+  return (
+    <div
+      role="alert"
+      style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 12,
+        padding: '12px 14px',
+        marginBottom: 16,
+        borderRadius: 12,
+        background: '#FFF7ED',
+        border: '1px solid #FDBA74',
+      }}
+    >
+      <div style={{ flexShrink: 0, marginTop: 2 }}>
+        <Icon name="info" size={18} color="#9A3412" />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: '#7C2D12', marginBottom: 4 }}>
+          Esta plantilla solo admite {slotsLabel}
+        </div>
+        <div style={{ fontSize: 12.5, lineHeight: 1.5, color: '#9A3412' }}>
+          Tienes {currentCount} fotos de portada. Si confirmas el cambio, se eliminarán las últimas {excess} {photosWord} y se mantendrá solo la primera. Esta acción no se puede deshacer.
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function TemplateChangeConfirmModal({
   open,
   onClose,
@@ -147,6 +190,9 @@ export default function TemplateChangeConfirmModal({
   const brand = preview?.brand_color
   const templateName = preview?.template?.name ?? 'nueva plantilla'
   const palette = brand?.new_palette ?? []
+
+  const covers = preview?.covers
+  const showCoverTrimNotice = Boolean(covers?.will_trim)
 
   useEffect(() => {
     if (!open || !brand) return
@@ -253,63 +299,71 @@ export default function TemplateChangeConfirmModal({
     )
   } else {
     body = (
-      <div style={{ padding: '8px 0' }}>
-        <h2 id={titleId} style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 600, color: T.ink }}>
+      <div style={{ padding: '4px 0' }}>
+        <h2 id={titleId} style={{ margin: '0 0 6px', fontSize: 20, fontWeight: 600, color: T.ink }}>
           {title}
         </h2>
-        <p style={{ margin: '0 0 20px', fontSize: 14, lineHeight: 1.5, color: T.ink99 }}>
+        <p style={{ margin: '0 0 16px', fontSize: 14, lineHeight: 1.45, color: T.ink99 }}>
           Tu color de marca actual no está disponible en esta plantilla. Elige cómo continuar:
         </p>
 
-        <ColorCompareRow current={brand.current_color} suggested={brand.suggested_color} />
+        <div className="lw-tpl-change-modal__rich-grid">
+          <div className="lw-tpl-change-modal__rich-visual">
+            <ColorCompareRow current={brand.current_color} suggested={brand.suggested_color} compact />
+            <BrandColorLivePreview hex={selectedHex} isDefault={selectedIsDefault} showActions={false} compact />
+          </div>
 
-        <BrandColorLivePreview hex={selectedHex} isDefault={selectedIsDefault} showActions={false} />
+          <div className="lw-tpl-change-modal__rich-choices">
+            <div style={{ display: 'grid', gap: 10 }}>
+              <ChoiceOption
+                id={suggestedId}
+                name="brand-choice"
+                checked={choiceMode === 'suggested'}
+                onSelect={() => setChoiceMode('suggested')}
+                title="Usar el color sugerido"
+                detail={getColorDisplayName(brand.suggested_color)}
+                compact
+              />
 
-        <div style={{ display: 'grid', gap: 12, marginBottom: 16 }}>
-          <ChoiceOption
-            id={suggestedId}
-            name="brand-choice"
-            checked={choiceMode === 'suggested'}
-            onSelect={() => setChoiceMode('suggested')}
-            title="Usar el color sugerido"
-            detail={getColorDisplayName(brand.suggested_color)}
-          />
+              <ChoiceOption
+                id={paletteId}
+                name="brand-choice"
+                checked={choiceMode === 'palette'}
+                onSelect={() => setChoiceMode('palette')}
+                title="Elegir otro color de la nueva paleta"
+                detail={
+                  choiceMode === 'palette'
+                    ? getColorDisplayName(paletteChoice ?? brand.suggested_color)
+                    : `${palette.length} colores disponibles`
+                }
+                compact
+              >
+                {choiceMode === 'palette' ? (
+                  <div style={{ marginTop: 12, paddingLeft: 4 }}>
+                    <BrandColorPaletteGrid
+                      palette={palette}
+                      value={paletteChoice ?? brand.suggested_color}
+                      defaultColor={brand.new_default}
+                      onChange={setPaletteChoice}
+                    />
+                  </div>
+                ) : null}
+              </ChoiceOption>
 
-          <ChoiceOption
-            id={paletteId}
-            name="brand-choice"
-            checked={choiceMode === 'palette'}
-            onSelect={() => setChoiceMode('palette')}
-            title="Elegir otro color de la nueva paleta"
-            detail={
-              choiceMode === 'palette'
-                ? getColorDisplayName(paletteChoice ?? brand.suggested_color)
-                : `${palette.length} colores disponibles`
-            }
-          >
-            {choiceMode === 'palette' ? (
-              <div style={{ marginTop: 16, paddingLeft: 4 }}>
-                <BrandColorPaletteGrid
-                  palette={palette}
-                  value={paletteChoice ?? brand.suggested_color}
-                  defaultColor={brand.new_default}
-                  onChange={setPaletteChoice}
-                />
-              </div>
-            ) : null}
-          </ChoiceOption>
-
-          <ChoiceOption
-            id={defaultId}
-            name="brand-choice"
-            checked={choiceMode === 'default'}
-            onSelect={() => setChoiceMode('default')}
-            title="Usar el color por defecto de la plantilla"
-            detail={getColorDisplayName(brand.new_default)}
-          />
+              <ChoiceOption
+                id={defaultId}
+                name="brand-choice"
+                checked={choiceMode === 'default'}
+                onSelect={() => setChoiceMode('default')}
+                title="Usar el color por defecto de la plantilla"
+                detail={getColorDisplayName(brand.new_default)}
+                compact
+              />
+            </div>
+          </div>
         </div>
 
-        <p style={{ margin: 0, fontSize: 12, color: T.ink60, lineHeight: 1.5 }}>
+        <p style={{ margin: '14px 0 0', fontSize: 12, color: T.ink60, lineHeight: 1.5 }}>
           Tu color <strong style={{ color: T.ink }}>{getColorDisplayName(brand.current_color)}</strong> quedará
           guardado por si vuelves a la plantilla anterior.
         </p>
@@ -340,12 +394,21 @@ export default function TemplateChangeConfirmModal({
         <Icon name="x" size={20} />
       </button>
 
-      <div style={{ paddingRight: 36 }}>{body}</div>
+      <div style={{ paddingRight: 36 }}>
+        {showCoverTrimNotice && covers ? (
+          <CoverTrimNotice
+            excess={covers.excess}
+            newSlots={covers.new_slots}
+            currentCount={covers.current_count}
+          />
+        ) : null}
+        {body}
+      </div>
 
       {showRichPicker ? (
         <BrandColorFooterHint />
       ) : (
-        <div style={{ height: 8 }} />
+        <div style={{ height: 4 }} />
       )}
 
       <div
@@ -354,8 +417,8 @@ export default function TemplateChangeConfirmModal({
           alignItems: 'center',
           justifyContent: 'flex-end',
           gap: 8,
-          marginTop: 8,
-          paddingTop: 20,
+          marginTop: showRichPicker ? 4 : 8,
+          paddingTop: 16,
           borderTop: `1px solid var(--lw-border)`,
         }}
       >
@@ -404,14 +467,9 @@ export default function TemplateChangeConfirmModal({
       }}
     >
       <div
-        style={{
-          width: 'min(576px, calc(100vw - 32px))',
-          maxHeight: 'calc(100vh - 32px)',
-          overflow: 'auto',
-          position: 'relative',
-        }}
+        className={`lw-tpl-change-modal${showRichPicker ? ' lw-tpl-change-modal--wide' : ''}`}
       >
-        <BrandColorPanelShell style={{ marginBottom: 0 }}>
+        <BrandColorPanelShell style={{ marginBottom: 0, padding: showRichPicker ? '22px 24px' : undefined }}>
           {panelInner}
         </BrandColorPanelShell>
       </div>

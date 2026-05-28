@@ -32,10 +32,12 @@ export function BrandColorLivePreview({
   hex,
   isDefault = false,
   showActions = true,
+  compact = false,
 }: {
   hex: string
   isDefault?: boolean
   showActions?: boolean
+  compact?: boolean
 }) {
   const name = getColorDisplayName(hex)
   const btnTextColor = isLightHex(hex) ? T.ink : '#fff'
@@ -44,11 +46,11 @@ export function BrandColorLivePreview({
     <div
       style={{
         borderRadius: 16,
-        padding: '22px 24px',
-        marginBottom: 24,
+        padding: compact ? '14px 16px' : '22px 24px',
+        marginBottom: compact ? 0 : 24,
         display: 'flex',
         alignItems: 'center',
-        gap: 20,
+        gap: compact ? 14 : 20,
         background: T.ink08,
         boxShadow: `inset 0 0 0 1px ${T.ink0D}`,
       }}
@@ -56,8 +58,8 @@ export function BrandColorLivePreview({
       <div
         aria-hidden
         style={{
-          width: 64,
-          height: 64,
+          width: compact ? 52 : 64,
+          height: compact ? 52 : 64,
           borderRadius: 16,
           flexShrink: 0,
           background: hex,

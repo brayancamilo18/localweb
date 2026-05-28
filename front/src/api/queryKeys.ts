@@ -28,6 +28,8 @@ export const keys = {
     upcoming: ['account', 'upcoming'] as const,
     billingStatus: ['account', 'billing-status'] as const,
     referrals: ['account', 'referrals'] as const,
+    sessions: ['account', 'sessions'] as const,
+    securityEvents: ['account', 'security-events'] as const,
   },
   qr: {
     info: ['qr', 'info'] as const,
