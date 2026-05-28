@@ -18,6 +18,16 @@
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  width: 100%;
+}
+
+@media (max-width: 767px) {
+  .lw-images-page__pills .lw-images-pill {
+    font-size: 0.6875rem;
+    line-height: 1.35;
+    white-space: normal;
+    text-align: left;
+  }
 }
 
 .lw-images-pill {
@@ -464,6 +474,26 @@
   align-items: center;
   gap: 0.875rem;
   flex-wrap: wrap;
+}
+
+.lw-images-upload-error {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(181, 52, 31, 0.35);
+  background: rgba(181, 52, 31, 0.08);
+}
+
+.lw-images-upload-error p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--lw-images-danger);
+  font-weight: 600;
+}
+
+.lw-images-upload-area {
+  width: 100%;
 }
 
 .lw-images-banner--error {

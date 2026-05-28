@@ -4,22 +4,21 @@ namespace App\Http\Controllers\Api\Dashboard;
 
 use App\Enums\ImageSection;
 use App\Http\Controllers\Api\BaseApiController;
+use App\Http\Requests\Dashboard\StoreDashboardImageRequest;
 use App\Http\Resources\BusinessImageResource;
 use App\Http\Resources\BusinessResource;
 use App\Models\BusinessImage;
 use App\Services\ImageService;
 use App\Services\PlanService;
+use App\Support\DashboardUploadGuard;
 use App\Support\PublicPageCache;
 use Illuminate\Http\Request;
 
 class ImagesController extends BaseApiController
 {
-    public function store(Request $request, ImageService $images, PlanService $plans)
+    public function store(StoreDashboardImageRequest $request, ImageService $images, PlanService $plans)
     {
-        $data = $request->validate([
-            'file' => ['required', 'image', 'max:10240'],
-            'section' => ['required', 'in:cover,gallery,about'],
-        ]);
+        $data = $request->validated();
 
         $business = $request->user()->business;
 
@@ -89,8 +88,14 @@ class ImagesController extends BaseApiController
 
     public function storeLogo(Request $request, ImageService $images)
     {
+        $maxKb = 2048;
+        DashboardUploadGuard::ensureFileReceived($request, $maxKb);
+
         $request->validate([
-            'file' => ['required', 'image', 'max:2048', 'mimes:jpg,jpeg,png,webp'],
+            'file' => ['required', 'image', 'max:'.$maxKb, 'mimes:jpg,jpeg,png,webp'],
+        ], [
+            'file.max' => DashboardUploadGuard::maxSizeMessage($maxKb),
+            'file.uploaded' => 'No se pudo recibir el logo. Comprueba el tamaño (máx. 2 MB) o tu conexión.',
         ]);
 
         $business = $request->user()->business;
@@ -135,8 +140,14 @@ class ImagesController extends BaseApiController
             ], 422);
         }
 
+        $maxKb = 1024;
+        DashboardUploadGuard::ensureFileReceived($request, $maxKb);
+
         $request->validate([
-            'file' => ['required', 'file', 'max:1024', 'mimetypes:image/png,image/svg+xml,image/x-icon,image/vnd.microsoft.icon,image/webp'],
+            'file' => ['required', 'file', 'max:'.$maxKb, 'mimetypes:image/png,image/svg+xml,image/x-icon,image/vnd.microsoft.icon,image/webp'],
+        ], [
+            'file.max' => DashboardUploadGuard::maxSizeMessage($maxKb),
+            'file.uploaded' => 'No se pudo recibir el favicon. Comprueba el tamaño (máx. 1 MB) o tu conexión.',
         ]);
 
         // BusinessObserver invalida public_page:{subdomain} en saved.

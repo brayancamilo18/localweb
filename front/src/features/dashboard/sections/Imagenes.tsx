@@ -1,9 +1,20 @@
-import { useCallback, useRef, useState, type DragEvent, type ReactNode } from 'react'
+import { useCallback, useRef, useState, type DragEvent, type ReactNode, type RefObject } from 'react'
 import axios from 'axios'
 import { useQueryClient } from '@tanstack/react-query'
 import { Btn, Icon } from '../../../components/primitives/primitives'
 import { deleteBusinessLogo, deleteImage, uploadBusinessLogo, uploadImage } from '../../../api/dashboard'
-import { compressImageForUpload } from '../../../utils/compressImageForUpload'
+import {
+  prepareImageForUpload,
+  prepareImagesForUpload,
+  UPLOAD_MAX_BYTES,
+} from '../../../lib/imageUpload'
+import {
+  clearImageUploadError,
+  reportImageUploadError,
+  resolveImageUploadError,
+  type ImageUploadArea,
+} from '../../../lib/uploadErrorFeedback'
+import { useToast } from '../../../components/ui/Toast'
 import FaviconUploader from '../../shared/FaviconUploader'
 import { keys } from '../../../api/queryKeys'
 import { useDashboard } from '../context/DashboardContext'
@@ -16,6 +27,18 @@ type Section = 'cover' | 'about' | 'gallery'
 
 function isAxiosStatus(err: unknown, status: number): boolean {
   return axios.isAxiosError(err) && err.response?.status === status
+}
+
+function UploadInlineError({ message }: { message?: string | null }) {
+  if (!message) {
+    return null
+  }
+
+  return (
+    <div className="lw-images-upload-error" role="alert" aria-live="assertive">
+      <p>{message}</p>
+    </div>
+  )
 }
 
 function Pill({ children, tone = 'neutral' }: { children: ReactNode; tone?: 'neutral' | 'ok' }) {
@@ -122,6 +145,8 @@ function DropZone({
   meta,
   galleryLimit,
   heroPhotoSlots = 1,
+  uploadAreaRef,
+  inlineError,
 }: {
   title: string
   section: Section
@@ -139,6 +164,8 @@ function DropZone({
   galleryLimit: number
   /** Slots de portada del template (>1 = collage; layout en fila). */
   heroPhotoSlots?: number
+  uploadAreaRef: RefObject<HTMLDivElement | null>
+  inlineError?: string | null
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [drag, setDrag] = useState(false)
@@ -243,6 +270,8 @@ function DropZone({
     const galleryUpload = renderUploadArea()
     return (
       <SectionCard icon={sectionIcon} title={sectionTitle} subtitle={sectionSubtitle} meta={meta}>
+        <div ref={uploadAreaRef} className="lw-images-upload-area">
+          <UploadInlineError message={inlineError} />
         <div className="lw-images-gallery-grid">
           {images.map((img, idx) => (
             <ImageThumb
@@ -305,6 +334,7 @@ function DropZone({
             Hasta {galleryLimit} imágenes en galería. Se optimizan automáticamente para web.
           </span>
         </div>
+        </div>
       </SectionCard>
     )
   }
@@ -312,6 +342,8 @@ function DropZone({
   if (isMultiCover) {
     return (
       <SectionCard icon={sectionIcon} title={sectionTitle} subtitle={sectionSubtitle} meta={meta}>
+        <div ref={uploadAreaRef} className="lw-images-upload-area">
+          <UploadInlineError message={inlineError} />
         <div className="lw-images-cover-row">
           {images.map((img, idx) => (
             <ImageThumb
@@ -327,6 +359,7 @@ function DropZone({
           {renderUploadArea({ alwaysShow: true })}
         </div>
         {progress != null && progress >= 0 ? <UploadProgress progress={progress} /> : null}
+        </div>
       </SectionCard>
     )
   }
@@ -336,6 +369,8 @@ function DropZone({
 
   return (
     <SectionCard icon={sectionIcon} title={sectionTitle} subtitle={sectionSubtitle} meta={meta}>
+      <div ref={uploadAreaRef} className="lw-images-upload-area">
+        <UploadInlineError message={inlineError} />
       <div className={`lw-images-split${multi ? ' lw-images-split--multi' : ''}`}>
         <div className={`lw-images-thumbs${multi ? ' lw-images-thumbs--row' : ''}`}>
           {images.length > 0 ? (
@@ -366,11 +401,25 @@ function DropZone({
           {progress != null && progress >= 0 ? <UploadProgress progress={progress} /> : null}
         </div>
       </div>
+      </div>
     </SectionCard>
   )
 }
 
+async function prepareFilesWithToast(
+  files: File[],
+  opts: { maxBytes: number; maxDimension: number; quality: number },
+  showToast: (msg: string, type: 'info') => void,
+): Promise<File[]> {
+  const needsCompress = files.some((f) => f.size > opts.maxBytes * 0.5)
+  if (needsCompress) {
+    showToast('Comprimiendo imagen…', 'info')
+  }
+  return prepareImagesForUpload(files, opts)
+}
+
 export default function Imagenes() {
+  const { showToast } = useToast()
   const { business, refetch } = useDashboard()
   const qc = useQueryClient()
 
@@ -382,8 +431,33 @@ export default function Imagenes() {
   const [logoDrag, setLogoDrag] = useState(false)
   const [deletingImageId, setDeletingImageId] = useState<number | null>(null)
   const [upgradeBanner, setUpgradeBanner] = useState(false)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [inlineErrors, setInlineErrors] = useState<Partial<Record<ImageUploadArea, string>>>({})
   const logoInputRef = useRef<HTMLInputElement>(null)
+  const logoUploadRef = useRef<HTMLDivElement>(null)
+  const galleryUploadRef = useRef<HTMLDivElement>(null)
+  const coverUploadRef = useRef<HTMLDivElement>(null)
+  const aboutUploadRef = useRef<HTMLDivElement>(null)
+  const faviconUploadRef = useRef<HTMLDivElement>(null)
+  const lastUploadAttempt = useRef<{ section: Section; files: File[] } | null>(null)
+
+  const setAreaError = useCallback((area: ImageUploadArea, message: string | null) => {
+    setInlineErrors((prev) => {
+      if (message == null) {
+        const next = { ...prev }
+        delete next[area]
+        return next
+      }
+      return { ...prev, [area]: message }
+    })
+  }, [])
+
+  const uploadRefForArea = useCallback((area: ImageUploadArea): RefObject<HTMLDivElement | null> => {
+    if (area === 'logo') return logoUploadRef
+    if (area === 'favicon') return faviconUploadRef
+    if (area === 'gallery') return galleryUploadRef
+    if (area === 'cover') return coverUploadRef
+    return aboutUploadRef
+  }, [])
 
   const cover = Array.isArray(business.images?.cover) ? business.images.cover : []
   const about = Array.isArray(business.images?.about) ? business.images.about : []
@@ -393,6 +467,34 @@ export default function Imagenes() {
   const galleryLimit = isPro ? 20 : 3
   const galleryFull = gallery.length >= galleryLimit
   const heroPhotoSlots = (business as { template?: { hero_photo_slots?: number } })?.template?.hero_photo_slots ?? 1
+
+  const reportUploadFailure = useCallback(
+    (area: ImageUploadArea, err: unknown, retry?: () => void) => {
+      const resolved = resolveImageUploadError(err)
+
+      if (axios.isAxiosError(err) && err.response?.data) {
+        const data = err.response.data as { upgrade_required?: boolean }
+        if (data.upgrade_required) {
+          setUpgradeBanner(true)
+          if (area === 'gallery') {
+            resolved.message = isPro
+              ? 'Has alcanzado el límite de 20 fotos de galería.'
+              : 'Has alcanzado el límite de fotos para tu plan.'
+          }
+        }
+      }
+
+      reportImageUploadError({
+        area,
+        message: resolved.message,
+        uploadRef: uploadRefForArea(area),
+        showToast,
+        setInlineError: setAreaError,
+        retry: resolved.retryable ? retry : undefined,
+      })
+    },
+    [isPro, setAreaError, showToast, uploadRefForArea],
+  )
 
   const totalImages =
     (business.logo_url ? 1 : 0) + (business.favicon_url ? 1 : 0) + cover.length + about.length + gallery.length
@@ -410,33 +512,30 @@ export default function Imagenes() {
     }
   }, [])
 
-  const describeError = (err: unknown): string => {
-    if (isAxiosStatus(err, 429)) {
-      return 'Has hecho demasiadas operaciones seguidas. Espera unos segundos e inténtalo de nuevo.'
-    }
-    if (axios.isAxiosError(err) && err.response?.status === 422) {
-      const data = err.response.data as { upgrade_required?: boolean; message?: string }
-      if (data?.upgrade_required) {
-        setUpgradeBanner(true)
-        return isPro
-          ? 'Has alcanzado el límite de 20 fotos de galería.'
-          : 'Has alcanzado el límite de fotos para tu plan.'
-      }
-      return data?.message ?? 'No se pudo procesar la imagen.'
-    }
-    return 'Se produjo un error al guardar la imagen. Inténtalo otra vez.'
-  }
-
   const handleFiles = useCallback(
     async (section: Section, files: File[]) => {
       if (!files.length) return
       if (busySection != null) return
       setBusySection(section)
-      setErrorMsg(null)
+      clearImageUploadError(setAreaError, section)
       setUpgradeBanner(false)
       setProgress(0)
+      const rawFiles = section === 'gallery' ? files : [files[0]]
+      lastUploadAttempt.current = { section, files: rawFiles }
+
+      const retry = () => {
+        const attempt = lastUploadAttempt.current
+        if (attempt) {
+          void handleFiles(attempt.section, attempt.files)
+        }
+      }
+
       try {
-        const toUpload = section === 'gallery' ? files : [files[0]]
+        const toUpload = await prepareFilesWithToast(
+          rawFiles,
+          { maxBytes: UPLOAD_MAX_BYTES.gallery, maxDimension: 2200, quality: 0.85 },
+          showToast,
+        )
 
         if (section === 'about') {
           for (const img of about) {
@@ -453,31 +552,41 @@ export default function Imagenes() {
         }
 
         await invalidate()
+        clearImageUploadError(setAreaError, section)
       } catch (err) {
-        setErrorMsg(describeError(err))
+        if (isAxiosStatus(err, 429)) {
+          reportImageUploadError({
+            area: section,
+            message: 'Has hecho demasiadas operaciones seguidas. Espera unos segundos e inténtalo de nuevo.',
+            uploadRef: uploadRefForArea(section),
+            showToast,
+            setInlineError: setAreaError,
+          })
+        } else {
+          reportUploadFailure(section, err, retry)
+        }
       } finally {
         setProgress(null)
         setBusySection(null)
       }
     },
-    [about, busySection, cover, heroPhotoSlots, invalidate, safeDelete],
+    [about, busySection, cover, heroPhotoSlots, invalidate, reportUploadFailure, safeDelete, setAreaError, showToast, uploadRefForArea],
   )
 
   const handleDeleteImage = useCallback(
     async (id: number) => {
       if (busySection != null || deletingImageId != null) return
       setDeletingImageId(id)
-      setErrorMsg(null)
       try {
         await safeDelete(id)
         await invalidate()
       } catch (err) {
-        setErrorMsg(describeError(err))
+        reportUploadFailure('gallery', err)
       } finally {
         setDeletingImageId(null)
       }
     },
-    [busySection, deletingImageId, invalidate, safeDelete],
+    [busySection, deletingImageId, invalidate, reportUploadFailure, safeDelete],
   )
 
   const handleLogoChange = useCallback(
@@ -485,35 +594,51 @@ export default function Imagenes() {
       if (logoBusy) return
       setLogoBusy(true)
       setLogoProgress(0)
-      setErrorMsg(null)
+      clearImageUploadError(setAreaError, 'logo')
+      let lastLogoFile: File | null = file
+
+      const retry = () => {
+        if (lastLogoFile) {
+          void handleLogoChange(lastLogoFile)
+        }
+      }
+
       try {
-        const ready = await compressImageForUpload(file, { maxSide: 2000, quality: 0.88 })
+        if (file.size > UPLOAD_MAX_BYTES.logo * 0.5) {
+          showToast('Comprimiendo imagen…', 'info')
+        }
+        const ready = await prepareImageForUpload(file, {
+          maxBytes: UPLOAD_MAX_BYTES.logo,
+          maxDimension: 2000,
+          quality: 0.85,
+        })
+        lastLogoFile = ready
         await uploadBusinessLogo(ready, (pct) => setLogoProgress(pct))
         await invalidate()
+        clearImageUploadError(setAreaError, 'logo')
       } catch (err) {
-        setErrorMsg(describeError(err))
+        reportUploadFailure('logo', err, retry)
       } finally {
         setLogoProgress(null)
         setLogoBusy(false)
       }
     },
-    [invalidate, logoBusy],
+    [invalidate, logoBusy, reportUploadFailure, setAreaError, showToast],
   )
 
   const handleLogoDelete = useCallback(async () => {
     if (logoDeleteBusy) return
     if (!window.confirm('¿Eliminar el logo? En la barra superior volverá a mostrarse el nombre.')) return
     setLogoDeleteBusy(true)
-    setErrorMsg(null)
     try {
       await deleteBusinessLogo()
       await invalidate()
     } catch (err) {
-      setErrorMsg(describeError(err))
+      reportUploadFailure('logo', err)
     } finally {
       setLogoDeleteBusy(false)
     }
-  }, [invalidate, logoDeleteBusy])
+  }, [invalidate, logoDeleteBusy, reportUploadFailure])
 
   const coverTitle = heroPhotoSlots > 1 ? `Portada (${cover.length}/${heroPhotoSlots} fotos)` : 'Portada'
 
@@ -551,7 +676,8 @@ export default function Imagenes() {
                 <Icon name="image" size={28} />
               )}
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
+            <div ref={logoUploadRef} className="lw-images-upload-area" style={{ flex: 1, minWidth: 0 }}>
+              <UploadInlineError message={inlineErrors.logo} />
               <div
                 className={`lw-images-dropzone${logoDrag ? ' lw-images-dropzone--drag' : ''}${logoBusy || logoDeleteBusy ? ' lw-images-dropzone--busy' : ''}`}
                 onDragOver={(e: DragEvent) => {
@@ -631,7 +757,14 @@ export default function Imagenes() {
           title="Favicon"
           subtitle="Icono cuadrado de pestaña. Usa tu símbolo, no el logo completo. PNG transparente, mín. 64×64 px."
         >
-          <FaviconUploader enabled={isPro} embedded />
+          <FaviconUploader
+            enabled={isPro}
+            embedded
+            uploadAreaRef={faviconUploadRef}
+            inlineError={inlineErrors.favicon}
+            onUploadError={(err, retry) => reportUploadFailure('favicon', err, retry)}
+            onUploadSuccess={() => clearImageUploadError(setAreaError, 'favicon')}
+          />
         </SectionCard>
       </div>
 
@@ -664,12 +797,6 @@ export default function Imagenes() {
           <p style={{ margin: 0, fontSize: 13, color: 'var(--lw-images-muted)' }}>
             Has alcanzado el límite de 20 fotos de galería de tu plan Pro.
           </p>
-        </div>
-      ) : null}
-
-      {errorMsg ? (
-        <div className="lw-images-banner lw-images-banner--error">
-          <p>{errorMsg}</p>
         </div>
       ) : null}
 
@@ -707,6 +834,8 @@ export default function Imagenes() {
           deletingImageId={deletingImageId}
           atLimit={heroPhotoSlots > 1 && cover.length >= heroPhotoSlots}
           galleryLimit={galleryLimit}
+          uploadAreaRef={coverUploadRef}
+          inlineError={inlineErrors.cover}
         />
         <DropZone
           title={about.length > 0 ? 'Cambiar imagen' : 'Subir imagen'}
@@ -729,6 +858,8 @@ export default function Imagenes() {
           onDeleteImage={handleDeleteImage}
           deletingImageId={deletingImageId}
           galleryLimit={galleryLimit}
+          uploadAreaRef={aboutUploadRef}
+          inlineError={inlineErrors.about}
         />
       </div>
 
@@ -751,6 +882,8 @@ export default function Imagenes() {
         deletingImageId={deletingImageId}
         atLimit={galleryFull}
         galleryLimit={galleryLimit}
+        uploadAreaRef={galleryUploadRef}
+        inlineError={inlineErrors.gallery}
       />
     </div>
   )

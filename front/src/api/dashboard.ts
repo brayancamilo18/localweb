@@ -145,7 +145,6 @@ export async function uploadImage(
   formData.append('section', section)
 
   const response = await apiClient.post<ApiResponse<BusinessImage>>('/dashboard/images', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
     onUploadProgress(progressEvent) {
       if (!onProgress || !progressEvent.total) return
       onProgress(Math.round((progressEvent.loaded * 100) / progressEvent.total))

@@ -32,6 +32,14 @@
   align-items: center;
   gap: 0.75rem;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+@media (max-width: 767px) {
+  .lw-content-editor__completion-label {
+    max-width: none;
+  }
 }
 
 .lw-content-editor__completion-ring {

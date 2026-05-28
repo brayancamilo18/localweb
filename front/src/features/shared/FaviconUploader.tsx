@@ -1,9 +1,11 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useRef, useState, type RefObject } from 'react'
 import { Link } from 'react-router-dom'
-import axios from 'axios'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Btn, Card, Icon } from '../../components/primitives/primitives'
 import { deleteBusinessFavicon, getBusiness, uploadBusinessFavicon } from '../../api/dashboard'
+import { prepareImageForUpload, UPLOAD_MAX_BYTES } from '../../lib/imageUpload'
+import { resolveImageUploadError } from '../../lib/uploadErrorFeedback'
+import { useToast } from '../../components/ui/Toast'
 import { keys } from '../../api/queryKeys'
 
 export type FaviconUploaderProps = {
@@ -14,14 +16,30 @@ export type FaviconUploaderProps = {
   onSaveError?: () => void
   /** Sin Card ni título: el padre aporta la cabecera de sección (p. ej. página Imágenes). */
   embedded?: boolean
+  /** Contenedor de subida para scroll en errores (p. ej. desde Imágenes). */
+  uploadAreaRef?: RefObject<HTMLDivElement | null>
+  /** Mensaje inline bajo el área de subida (controlado por el padre). */
+  inlineError?: string | null
+  /** Toast + scroll + inline vía el padre (Imágenes). */
+  onUploadError?: (err: unknown, retry?: () => void) => void
+  onUploadSuccess?: () => void
 }
 
-function mutationErrorMessage(err: unknown): string {
-  if (axios.isAxiosError(err)) {
-    const data = err.response?.data as { message?: string } | undefined
-    return data?.message ?? 'No se pudo guardar el favicon. Inténtalo de nuevo.'
+function FaviconUploadInlineError({ message }: { message?: string | null }) {
+  if (!message) {
+    return null
   }
-  return 'No se pudo guardar el favicon. Inténtalo de nuevo.'
+
+  return (
+    <div
+      className="lw-images-upload-error"
+      role="alert"
+      aria-live="assertive"
+      style={{ marginBottom: 10 }}
+    >
+      <p>{message}</p>
+    </div>
+  )
 }
 
 function businessInitials(name: string): string {
@@ -125,11 +143,25 @@ function BrowserTabPreview({ faviconUrl, businessName }: { faviconUrl: string | 
   )
 }
 
-export default function FaviconUploader({ enabled, onSaved, onSaveError, embedded = false }: FaviconUploaderProps) {
+export default function FaviconUploader({
+  enabled,
+  onSaved,
+  onSaveError,
+  embedded = false,
+  uploadAreaRef: uploadAreaRefProp,
+  inlineError,
+  onUploadError,
+  onUploadSuccess,
+}: FaviconUploaderProps) {
   const qc = useQueryClient()
+  const { showToast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const localUploadAreaRef = useRef<HTMLDivElement>(null)
+  const uploadAreaRef = uploadAreaRefProp ?? localUploadAreaRef
+  const lastFileRef = useRef<File | null>(null)
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [localError, setLocalError] = useState<string | null>(null)
+  const displayError = inlineError ?? localError
 
   const businessQuery = useQuery({
     queryKey: keys.dashboard.business,
@@ -140,36 +172,81 @@ export default function FaviconUploader({ enabled, onSaved, onSaveError, embedde
   const controlsDisabled =
     !enabled || businessQuery.isLoading || uploadProgress != null
 
+  const retryUploadRef = useRef<(file: File) => void>(() => {})
+
   const uploadMut = useMutation({
     mutationFn: async (file: File) => {
       setUploadProgress(0)
-      setErrorMsg(null)
-      return uploadBusinessFavicon(file, (pct) => setUploadProgress(pct))
+      setLocalError(null)
+      lastFileRef.current = file
+      if (file.size > UPLOAD_MAX_BYTES.favicon * 0.5 && !file.type.includes('svg')) {
+        showToast('Comprimiendo imagen…', 'info')
+      }
+      const ready = await prepareImageForUpload(file, {
+        maxBytes: UPLOAD_MAX_BYTES.favicon,
+        maxDimension: 512,
+        quality: 0.85,
+      })
+      lastFileRef.current = ready
+      return uploadBusinessFavicon(ready, (pct) => setUploadProgress(pct))
     },
     onSuccess: async () => {
       setUploadProgress(null)
+      setLocalError(null)
+      onUploadSuccess?.()
       await qc.invalidateQueries({ queryKey: keys.dashboard.business })
       onSaved?.()
     },
     onError: (err) => {
       setUploadProgress(null)
-      setErrorMsg(mutationErrorMessage(err))
-      onSaveError?.()
+      reportUploadError(err)
     },
   })
+
+  retryUploadRef.current = (file: File) => {
+    if (!controlsDisabled && !uploadMut.isPending) {
+      uploadMut.mutate(file)
+    }
+  }
+
+  const reportUploadError = useCallback(
+    (err: unknown) => {
+      const resolved = resolveImageUploadError(err)
+      const retry = () => {
+        const f = lastFileRef.current
+        if (f) {
+          retryUploadRef.current(f)
+        }
+      }
+      if (onUploadError) {
+        onUploadError(err, retry)
+      } else {
+        setLocalError(resolved.message)
+        showToast({
+          type: 'error',
+          title: 'Error al subir la imagen',
+          description: resolved.message,
+          duration: 6000,
+          action: resolved.retryable ? { label: 'Reintentar', onClick: retry } : undefined,
+        })
+        uploadAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+      onSaveError?.()
+    },
+    [onSaveError, onUploadError, showToast, uploadAreaRef],
+  )
 
   const deleteMut = useMutation({
     mutationFn: deleteBusinessFavicon,
     onMutate: () => {
-      setErrorMsg(null)
+      setLocalError(null)
     },
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: keys.dashboard.business })
       onSaved?.()
     },
     onError: (err) => {
-      setErrorMsg(mutationErrorMessage(err))
-      onSaveError?.()
+      reportUploadError(err)
     },
   })
 
@@ -269,7 +346,8 @@ export default function FaviconUploader({ enabled, onSaved, onSaveError, embedde
           )}
         </div>
 
-        <div className="lw-images-favicon__actions">
+        <div ref={uploadAreaRef} className="lw-images-favicon__actions lw-images-upload-area">
+          <FaviconUploadInlineError message={displayError} />
           {!embedded ? (
             <div
               style={{
@@ -384,20 +462,6 @@ export default function FaviconUploader({ enabled, onSaved, onSaveError, embedde
         </div>
       ) : null}
 
-      {errorMsg ? (
-        <div
-          style={{
-            padding: '10px 12px',
-            borderRadius: 'var(--lw-r-sm)',
-            border: '1px solid var(--lw-danger)',
-            background: 'var(--lw-bg-elev)',
-          }}
-        >
-          <p className="lw-small" style={{ margin: 0, color: 'var(--lw-danger)' }}>
-            {errorMsg}
-          </p>
-        </div>
-      ) : null}
     </>
   )
 
