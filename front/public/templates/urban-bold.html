@@ -333,6 +333,25 @@
   /* ─── EMBED PREVIEW ─── */
   html.embed-preview-root{ scroll-behavior:auto !important; }
   body.embed-preview .info-grid{ scroll-margin-top:88px; }
+  /* Onboarding: el hover inline de brand-apply no debe oscurecer el acento en el iframe */
+  html.embed-preview-root{
+    --lime-hover:var(--lime) !important;
+  }
+  body.embed-preview{ --lime-hover:var(--lime); }
+  body.embed-preview .hero-cta .btn-primary,
+  body.embed-preview .hero-cta .btn-primary:hover,
+  body.embed-preview .nav-cta,
+  body.embed-preview .nav-cta:hover{
+    background:var(--lime);
+    color:var(--lime-on,var(--ink));
+    border-color:var(--lime);
+  }
+  body.embed-preview .hero-cta .btn-ghost:hover{
+    background:var(--lime);
+    color:var(--lime-on,var(--ink));
+    border-color:var(--lime);
+    box-shadow:6px 6px 0 var(--lime);
+  }
 
   /* ─── RESPONSIVE ─── */
   @media (max-width:880px){
@@ -499,7 +518,7 @@
   }
 </style>
 <!-- BRAND_OVERRIDE_PLACEHOLDER:lime -->
-<script src="/templates/brand-apply.js?v=1"></script>
+<script src="/templates/brand-apply.js?v=2"></script>
 
 </head>
 <body>
@@ -1271,6 +1290,28 @@ function scrollEmbedPreviewToHash() {
   setTimeout(doScroll, 280);
 }
 
+function isUrbanEmbedPreview() {
+  return (
+    document.body.classList.contains('embed-preview') ||
+    document.documentElement.classList.contains('embed-preview-root')
+  );
+}
+
+/** Vista previa onboarding: acento a color pleno (sin hoverBrandHex que oscurece). */
+function pinUrbanEmbedBrandAccent(varName, hex) {
+  if (!isUrbanEmbedPreview() || !varName || !hex) return;
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex) || !/^[a-zA-Z_][a-zA-Z0-9_-]*$/.test(varName)) return;
+  var h = hex.toLowerCase();
+  var root = document.documentElement;
+  root.style.setProperty('--' + varName, h);
+  root.style.setProperty('--' + varName + '-hover', h);
+}
+
+function applyUrbanBrandColor(varName, hex) {
+  if (typeof lwApplyBrandColor === 'function') lwApplyBrandColor(varName, hex);
+  pinUrbanEmbedBrandAccent(varName, hex);
+}
+
 /* ───── APPLY LIVE PREVIEW DATA ──────────────────────── */
 function applyLivePreviewData(raw, opts) {
   opts = opts || {};
@@ -1462,8 +1503,13 @@ function applyLivePreviewData(raw, opts) {
 
   if (opts.alignToHash) scrollEmbedPreviewToHash();
 
-  if (typeof window.tvAnimationsRefresh === 'function') {
-    requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
+  if (!opts.skipTvRefresh && typeof window.tvAnimationsRefresh === 'function') {
+    var embedBooted = isUrbanEmbedPreview() && document.body.dataset.lwTvBoot === '1';
+    if (embedBooted && typeof window.tvEmbedPreviewRefresh === 'function') {
+      requestAnimationFrame(function () { window.tvEmbedPreviewRefresh(); });
+    } else {
+      requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
+    }
   }
 }
 
@@ -1533,16 +1579,30 @@ function applyLivePreviewData(raw, opts) {
     if (!isAllowedOrigin(event.origin)) return;
     var data = event.data;
     if (!data || data.type !== 'lw:onboarding-preview') return;
+    var brandToReapply = null;
     if (data.payload && typeof data.payload.brand_color === 'string' && typeof data.payload.brand_variable === 'string') {
       var lwBrandHex = data.payload.brand_color.trim();
       var lwBrandVar = data.payload.brand_variable.trim();
       if (/^#[0-9a-fA-F]{6}$/.test(lwBrandHex) && /^[a-zA-Z_][a-zA-Z0-9_-]*$/.test(lwBrandVar)) {
-        if (typeof lwApplyBrandColor === 'function') lwApplyBrandColor(lwBrandVar, lwBrandHex);
+        brandToReapply = { varName: lwBrandVar, hex: lwBrandHex };
       } else if (lwBrandHex === '' && /^[a-zA-Z_][a-zA-Z0-9_-]*$/.test(lwBrandVar)) {
-        typeof lwClearBrandColor === 'function' ? lwClearBrandColor(lwBrandVar) : document.documentElement.style.removeProperty('--' + lwBrandVar);
+        if (!isUrbanEmbedPreview()) {
+          typeof lwClearBrandColor === 'function'
+            ? lwClearBrandColor(lwBrandVar)
+            : document.documentElement.style.removeProperty('--' + lwBrandVar);
+        }
       }
     }
-    applyLivePreviewData(data.payload || {}, { alignToHash: data.alignToHash === true });
+    applyLivePreviewData(data.payload || {}, {
+      alignToHash: data.alignToHash === true,
+      skipTvRefresh: !!brandToReapply,
+    });
+    if (brandToReapply) {
+      applyUrbanBrandColor(brandToReapply.varName, brandToReapply.hex);
+      requestAnimationFrame(function () {
+        applyUrbanBrandColor(brandToReapply.varName, brandToReapply.hex);
+      });
+    }
   });
 })();
 
@@ -1751,6 +1811,7 @@ setInterval(renderBoldSchedule, 60000);
 
   function tagImgReveal(wrap, anim) {
     if (!wrap || isHidden(wrap)) return;
+    if (document.body.classList.contains('embed-preview') && wrap.classList.contains('tv-in')) return;
     var img = wrap.querySelector('img');
     if (!img || img.hidden || !img.getAttribute('src')) {
       markReveal(wrap, anim === 'clipR' ? 'right' : 'up');
@@ -1949,9 +2010,33 @@ setInterval(renderBoldSchedule, 60000);
     requestAnimationFrame(runRevealPass);
   };
 
+  /** Vista previa embebida: actualizar galería/servicios sin reiniciar wipes del hero. */
+  window.tvEmbedPreviewRefresh = function () {
+    if (reduced) return;
+    refreshHeroTitleSplit();
+    document.querySelectorAll('#tplServicesList .service').forEach(function (el, i) {
+      if (!el.classList.contains('tv-reveal')) {
+        markReveal(el, 'snap');
+        el.classList.add('tv-hover-lift');
+        el.setAttribute('data-delay', String(Math.min(i + 1, 6)));
+      }
+    });
+    document.querySelectorAll('#galleryLive .gallery-item').forEach(function (el, i) {
+      if (!el.classList.contains('tv-reveal')) {
+        markReveal(el, 'zoom');
+        el.classList.add('tv-hover-zoom');
+        el.setAttribute('data-delay', String(Math.min(i + 1, 6)));
+      }
+    });
+    runRevealPass();
+  };
+
   function boot() {
     if (booted) return;
     booted = true;
+    if (document.body.classList.contains('embed-preview')) {
+      document.body.dataset.lwTvBoot = '1';
+    }
     document.body.classList.add('tv-loaded');
     if (reduced) {
       document.querySelectorAll('.tv-reveal, .tv-split').forEach(function (el) {

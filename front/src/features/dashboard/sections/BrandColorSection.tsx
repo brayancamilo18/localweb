@@ -43,19 +43,12 @@ export default function BrandColorSection() {
   const handleConfirm = useCallback(() => {
     if (!hasPendingChanges || isPending) return
     mutate(pendingColor, {
-      onSuccess: (result) => {
+      onSuccess: () => {
         showToast({
           type: 'success',
           title: 'Color actualizado',
           description: 'Tu web se actualizará en breve.',
         })
-        if (result?.contrast_warning) {
-          showToast({
-            type: 'info',
-            title: 'Aviso de contraste',
-            description: result.contrast_warning,
-          })
-        }
       },
       onError: () => {
         setDraftColor(savedColor)

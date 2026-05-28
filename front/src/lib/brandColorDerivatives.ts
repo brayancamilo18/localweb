@@ -96,7 +96,11 @@ function valueForSyncedVar(name: string, hex: string): string {
 /**
  * Propiedades CSS custom (--nombre sin prefijo) derivadas del color de marca.
  */
-export function brandDerivativeProperties(mainVar: string, hex: string): Record<string, string> {
+export function brandDerivativeProperties(
+  mainVar: string,
+  hex: string,
+  embedPreview = false,
+): Record<string, string> {
   if (!isValidBrandHex(hex)) return {}
 
   const h = hex.toLowerCase()
@@ -108,15 +112,15 @@ export function brandDerivativeProperties(mainVar: string, hex: string): Record<
   }
 
   if (names.includes(mainVar)) {
-    out[`${mainVar}-hover`] = hoverBrandHex(h)
+    out[`${mainVar}-hover`] = embedPreview ? h : hoverBrandHex(h)
     out[`${mainVar}-on`] = contrastTextOn(h)
   }
 
   return out
 }
 
-export function brandDerivativeRootCss(mainVar: string, hex: string): string {
-  const props = brandDerivativeProperties(mainVar, hex)
+export function brandDerivativeRootCss(mainVar: string, hex: string, embedPreview = false): string {
+  const props = brandDerivativeProperties(mainVar, hex, embedPreview)
   const decl = Object.entries(props)
     .map(([k, v]) => `--${k}:${v}`)
     .join(';')

@@ -320,6 +320,21 @@
   /* ─── EMBED PREVIEW ─── */
   html.embed-preview-root{ scroll-behavior:auto !important; }
   body.embed-preview .info-grid{ scroll-margin-top:88px; }
+  body.embed-preview{ --lime-hover:var(--lime); }
+  body.embed-preview .hero-cta .btn-primary,
+  body.embed-preview .hero-cta .btn-primary:hover,
+  body.embed-preview .nav-cta,
+  body.embed-preview .nav-cta:hover{
+    background:var(--lime);
+    color:var(--lime-on,var(--ink));
+    border-color:var(--lime);
+  }
+  body.embed-preview .hero-cta .btn-ghost:hover{
+    background:var(--lime);
+    color:var(--lime-on,var(--ink));
+    border-color:var(--lime);
+    box-shadow:6px 6px 0 var(--lime);
+  }
 
   /* ─── RESPONSIVE ─── */
   @media (max-width:880px){
@@ -1589,7 +1604,13 @@ function applyLivePreviewData(raw, opts) {
   if (opts.alignToHash) scrollEmbedPreviewToHash();
 
   if (typeof window.tvAnimationsRefresh === 'function') {
-    requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
+    var embedBooted =
+      document.body.classList.contains('embed-preview') && document.body.dataset.lwTvBoot === '1';
+    if (embedBooted && typeof window.tvEmbedPreviewRefresh === 'function') {
+      requestAnimationFrame(function () { window.tvEmbedPreviewRefresh(); });
+    } else {
+      requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
+    }
   }
 }
 
@@ -1837,6 +1858,7 @@ setInterval(renderBoldSchedule, 60000);
 
   function tagImgReveal(wrap, anim) {
     if (!wrap || isHidden(wrap)) return;
+    if (document.body.classList.contains('embed-preview') && wrap.classList.contains('tv-in')) return;
     var img = wrap.querySelector('img');
     if (!img || img.hidden || !img.getAttribute('src')) {
       markReveal(wrap, anim === 'clipR' ? 'right' : 'up');
@@ -2035,9 +2057,32 @@ setInterval(renderBoldSchedule, 60000);
     requestAnimationFrame(runRevealPass);
   };
 
+  window.tvEmbedPreviewRefresh = function () {
+    if (reduced) return;
+    refreshHeroTitleSplit();
+    document.querySelectorAll('#tplServicesList .service').forEach(function (el, i) {
+      if (!el.classList.contains('tv-reveal')) {
+        markReveal(el, 'snap');
+        el.classList.add('tv-hover-lift');
+        el.setAttribute('data-delay', String(Math.min(i + 1, 6)));
+      }
+    });
+    document.querySelectorAll('#galleryLive .gallery-item').forEach(function (el, i) {
+      if (!el.classList.contains('tv-reveal')) {
+        markReveal(el, 'zoom');
+        el.classList.add('tv-hover-zoom');
+        el.setAttribute('data-delay', String(Math.min(i + 1, 6)));
+      }
+    });
+    runRevealPass();
+  };
+
   function boot() {
     if (booted) return;
     booted = true;
+    if (document.body.classList.contains('embed-preview')) {
+      document.body.dataset.lwTvBoot = '1';
+    }
     document.body.classList.add('tv-loaded');
     if (reduced) {
       document.querySelectorAll('.tv-reveal, .tv-split').forEach(function (el) {

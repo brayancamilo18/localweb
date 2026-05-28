@@ -12,6 +12,8 @@ export type FaviconUploaderProps = {
   /** Tras subir o borrar con éxito. */
   onSaved?: () => void
   onSaveError?: () => void
+  /** Sin Card ni título: el padre aporta la cabecera de sección (p. ej. página Imágenes). */
+  embedded?: boolean
 }
 
 function mutationErrorMessage(err: unknown): string {
@@ -123,7 +125,7 @@ function BrowserTabPreview({ faviconUrl, businessName }: { faviconUrl: string | 
   )
 }
 
-export default function FaviconUploader({ enabled, onSaved, onSaveError }: FaviconUploaderProps) {
+export default function FaviconUploader({ enabled, onSaved, onSaveError, embedded = false }: FaviconUploaderProps) {
   const qc = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
@@ -186,28 +188,23 @@ export default function FaviconUploader({ enabled, onSaved, onSaveError }: Favic
   }, [controlsDisabled, deleteMut])
 
   if (businessQuery.isLoading || !business) {
-    return (
-      <Card padding={18}>
+    const skeleton = (
+      <>
         <div className="lw-shimmer" style={{ height: 28, borderRadius: 8, maxWidth: 280, marginBottom: 14 }} />
         <div className="lw-shimmer" style={{ height: 48, borderRadius: 8, marginBottom: 14 }} />
         <div className="lw-shimmer" style={{ height: 120, borderRadius: 12 }} />
-      </Card>
+      </>
     )
+    return embedded ? <div className="lw-images-favicon--embedded">{skeleton}</div> : <Card padding={18}>{skeleton}</Card>
   }
 
   const hasFavicon = Boolean(business.favicon_url)
   const busy = uploadMut.isPending || deleteMut.isPending || uploadProgress != null
+  const initials = businessInitials(business.name)
 
-  return (
-    <Card
-      padding={18}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 14,
-      }}
-    >
-      <div>
+  const inner = (
+    <>
+      <div className="lw-images-favicon__title-block">
         <div style={{ fontWeight: 600, marginBottom: 4 }}>Favicon (icono de pestaña)</div>
         <p className="lw-small" style={{ margin: 0, color: 'var(--lw-text-2)', lineHeight: 1.5 }}>
           Es el pequeño icono que identifica tu web en la pestaña del navegador, en los marcadores y en la pantalla de
@@ -218,6 +215,7 @@ export default function FaviconUploader({ enabled, onSaved, onSaveError }: Favic
 
       {!enabled ? (
         <Card
+          className="lw-images-favicon__lock-banner"
           padding={14}
           style={{
             border: '1px solid #FCD34D',
@@ -240,40 +238,65 @@ export default function FaviconUploader({ enabled, onSaved, onSaveError }: Favic
         </Card>
       ) : null}
 
-      <div>
-        <BrowserTabPreview faviconUrl={business.favicon_url} businessName={business.name} />
-        <p className="lw-small" style={{ margin: '8px 0 0', color: 'var(--lw-text-3)' }}>
-          Así se verá en la pestaña del navegador.
-        </p>
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-        <div
-          style={{
-            width: 64,
-            height: 64,
-            borderRadius: 'var(--lw-r-sm)',
-            background: 'var(--lw-bg-elev)',
-            border: '1px solid var(--lw-border)',
-            overflow: 'hidden',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          {business.favicon_url ? (
-            <img
-              src={business.favicon_url}
-              alt="Favicon actual"
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
+      <div className="lw-images-favicon__row">
+        <div className="lw-images-favicon__tab-preview-wrap">
+          {embedded ? (
+            <div className="lw-images-favicon__preview-stack">
+              <div className="lw-images-favicon__browser-frame" aria-hidden>
+                <div className="lw-images-favicon__preview-tab">
+                  <div className="lw-images-favicon__preview-tab-icon">
+                    {business.favicon_url ? (
+                      <img src={business.favicon_url} alt="" />
+                    ) : (
+                      initials
+                    )}
+                  </div>
+                  <span className="lw-images-favicon__preview-tab-title">
+                    {business.name.trim() || 'Tu negocio'}
+                  </span>
+                  <span className="lw-images-favicon__preview-tab-x">×</span>
+                </div>
+              </div>
+              <span className="lw-images-favicon__tab-label">Vista previa pestaña</span>
+            </div>
           ) : (
-            <Icon name="sparkle" size={22} style={{ opacity: 0.25 }} />
+            <div>
+              <BrowserTabPreview faviconUrl={business.favicon_url} businessName={business.name} />
+              <p className="lw-small" style={{ margin: '8px 0 0', color: 'var(--lw-text-3)' }}>
+                Así se verá en la pestaña del navegador.
+              </p>
+            </div>
           )}
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className="lw-images-favicon__actions">
+          {!embedded ? (
+            <div
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: 'var(--lw-r-sm)',
+                background: 'var(--lw-bg-elev)',
+                border: '1px solid var(--lw-border)',
+                overflow: 'hidden',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              {business.favicon_url ? (
+                <img
+                  src={business.favicon_url}
+                  alt="Favicon actual"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                <Icon name="sparkle" size={22} style={{ opacity: 0.25 }} />
+              )}
+            </div>
+          ) : null}
+
           <input
             ref={fileInputRef}
             type="file"
@@ -287,27 +310,52 @@ export default function FaviconUploader({ enabled, onSaved, onSaveError }: Favic
               handleFileChange(f)
             }}
           />
-          <Btn
-            type="button"
-            size="sm"
-            kind="outline"
-            disabled={controlsDisabled || busy}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            {hasFavicon ? 'Cambiar favicon' : 'Subir favicon'}
-          </Btn>
-          {hasFavicon ? (
-            <Btn
-              type="button"
-              size="sm"
-              kind="ghost"
-              disabled={controlsDisabled || busy}
-              loading={deleteMut.isPending}
-              onClick={() => handleDelete()}
-            >
-              Quitar
-            </Btn>
-          ) : null}
+          {embedded ? (
+            <>
+              <button
+                type="button"
+                className="lw-images-favicon-btn"
+                disabled={controlsDisabled || busy}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {hasFavicon ? 'Cambiar favicon' : 'Subir favicon'}
+              </button>
+              {hasFavicon ? (
+                <button
+                  type="button"
+                  className="lw-images-favicon-btn lw-images-favicon-btn--ghost"
+                  disabled={controlsDisabled || busy}
+                  onClick={() => handleDelete()}
+                >
+                  {deleteMut.isPending ? 'Quitando…' : 'Quitar'}
+                </button>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <Btn
+                type="button"
+                size="sm"
+                kind="outline"
+                disabled={controlsDisabled || busy}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {hasFavicon ? 'Cambiar favicon' : 'Subir favicon'}
+              </Btn>
+              {hasFavicon ? (
+                <Btn
+                  type="button"
+                  size="sm"
+                  kind="ghost"
+                  disabled={controlsDisabled || busy}
+                  loading={deleteMut.isPending}
+                  onClick={() => handleDelete()}
+                >
+                  Quitar
+                </Btn>
+              ) : null}
+            </>
+          )}
         </div>
       </div>
 
@@ -350,6 +398,23 @@ export default function FaviconUploader({ enabled, onSaved, onSaveError }: Favic
           </p>
         </div>
       ) : null}
+    </>
+  )
+
+  if (embedded) {
+    return <div className="lw-images-favicon--embedded">{inner}</div>
+  }
+
+  return (
+    <Card
+      padding={18}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14,
+      }}
+    >
+      {inner}
     </Card>
   )
 }

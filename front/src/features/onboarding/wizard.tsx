@@ -469,7 +469,7 @@ function TemplateIframe({
   const hasPreviewPayload = Boolean(previewData)
   const src = useMemo(() => {
     const params = new URLSearchParams()
-    params.set('v', '4')
+    params.set('v', '5')
     if (embed) params.set('embed', '1')
     if (mode === 'thumb') params.set('thumb', '1')
     if (hasPreviewPayload) {
@@ -499,7 +499,9 @@ function TemplateIframe({
     if (!frame?.contentDocument || !brandVariable) return
     const hex = brandColorOverride
     if (hex && isValidBrandColorHex(hex)) {
-      applyBrandColorToDocument(frame.contentDocument, brandVariable, hex)
+      applyBrandColorToDocument(frame.contentDocument, brandVariable, hex, {
+        embedPreview: embed,
+      })
     }
   }, [brandColorOverride, brandVariable])
 
@@ -524,6 +526,11 @@ function TemplateIframe({
         Number.isFinite(rawScale) ? Math.min(1.5, Math.max(0.45, rawScale)) : 1
       const socialDef = defaultSocialUrls()
       applyBrandToFrame()
+      const brandHexForFrame =
+        previewData.brandColorOverride && isValidBrandColorHex(previewData.brandColorOverride)
+          ? previewData.brandColorOverride.toLowerCase()
+          : null
+      const brandVarForFrame = previewData.brandVariable ?? null
       frame.contentWindow.postMessage(
         {
           type: 'lw:onboarding-preview',
@@ -575,6 +582,11 @@ function TemplateIframe({
         // este mensaje a un documento que se haya redirigido a otro origin.
         window.location.origin,
       )
+      if (brandHexForFrame && brandVarForFrame) {
+        requestAnimationFrame(() => {
+          applyBrandToFrame()
+        })
+      }
     },
     [applyBrandToFrame],
   )

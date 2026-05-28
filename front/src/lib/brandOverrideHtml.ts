@@ -35,11 +35,12 @@ export function applyBrandColorToDocument(
   doc: Document | null | undefined,
   cssVarName: string | null | undefined,
   hex: string | null | undefined,
+  options?: { embedPreview?: boolean },
 ): void {
   if (!doc || !hex || !cssVarName) return
   if (!isValidBrandColorHex(hex) || !CSS_VAR_NAME_RE.test(cssVarName)) return
 
-  const props = brandDerivativeProperties(cssVarName, hex)
+  const props = brandDerivativeProperties(cssVarName, hex, options?.embedPreview === true)
   const root = doc.documentElement
   for (const [name, value] of Object.entries(props)) {
     root.style.setProperty(`--${name}`, value)

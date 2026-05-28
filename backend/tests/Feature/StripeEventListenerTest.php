@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Plan;
 use App\Listeners\StripeEventListener;
 use App\Mail\WelcomeProOnez;
 use App\Models\Business;
@@ -10,6 +11,74 @@ use Illuminate\Support\Facades\Mail;
 use Laravel\Cashier\Events\WebhookReceived;
 
 uses(RefreshDatabase::class);
+
+it('checkout completed keeps is_published true for an already published free business', function () {
+    Mail::fake();
+
+    $business = Business::create([
+        'name' => 'Published Free Biz',
+        'subdomain' => 'aleatorio-xyz',
+        'subdomain_type' => 'random',
+        'sector' => 'otros',
+        'plan' => 'free',
+        'is_published' => true,
+    ]);
+    $user = User::factory()->create(['business_id' => $business->id]);
+
+    (new StripeEventListener)->handle(new WebhookReceived([
+        'id' => 'evt_test_checkout_published_free_'.uniqid(),
+        'type' => 'checkout.session.completed',
+        'data' => [
+            'object' => [
+                'metadata' => [
+                    'user_id' => (string) $user->id,
+                    'business_id' => (string) $business->id,
+                ],
+                'payment_status' => 'paid',
+            ],
+        ],
+    ]));
+
+    $business->refresh();
+
+    expect($business->plan->value)->toBe('pro')
+        ->and($business->is_published)->toBeTrue()
+        ->and($business->subdomain)->toBe('aleatorio-xyz');
+});
+
+it('checkout completed keeps is_published false for unpublished pro onboarding business', function () {
+    Mail::fake();
+
+    $business = Business::create([
+        'name' => 'Pending Pro Biz',
+        'subdomain' => 'mi-negocio',
+        'subdomain_type' => 'custom',
+        'sector' => 'otros',
+        'plan' => Plan::Pending,
+        'is_published' => false,
+    ]);
+    $user = User::factory()->create(['business_id' => $business->id]);
+
+    (new StripeEventListener)->handle(new WebhookReceived([
+        'id' => 'evt_test_checkout_unpublished_pro_'.uniqid(),
+        'type' => 'checkout.session.completed',
+        'data' => [
+            'object' => [
+                'metadata' => [
+                    'user_id' => (string) $user->id,
+                    'business_id' => (string) $business->id,
+                ],
+                'payment_status' => 'paid',
+            ],
+        ],
+    ]));
+
+    $business->refresh();
+
+    expect($business->plan->value)->toBe('pro')
+        ->and($business->is_published)->toBeFalse()
+        ->and($business->subdomain)->toBe('mi-negocio');
+});
 
 it('sets business plan to pro on checkout.session.completed without publishing', function () {
     Mail::fake();

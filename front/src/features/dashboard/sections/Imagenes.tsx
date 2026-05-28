@@ -1,18 +1,107 @@
-import { useCallback, useRef, useState, type DragEvent } from 'react'
+import { useCallback, useRef, useState, type DragEvent, type ReactNode } from 'react'
 import axios from 'axios'
 import { useQueryClient } from '@tanstack/react-query'
-import { Btn, Card, Icon } from '../../../components/primitives/primitives'
+import { Btn, Icon } from '../../../components/primitives/primitives'
 import { deleteBusinessLogo, deleteImage, uploadBusinessLogo, uploadImage } from '../../../api/dashboard'
 import { compressImageForUpload } from '../../../utils/compressImageForUpload'
 import FaviconUploader from '../../shared/FaviconUploader'
 import { keys } from '../../../api/queryKeys'
 import { useDashboard } from '../context/DashboardContext'
 import type { BusinessImage } from '../../../types/api'
+import './imagenesContent.css'
 
 type Section = 'cover' | 'about' | 'gallery'
 
 function isAxiosStatus(err: unknown, status: number): boolean {
   return axios.isAxiosError(err) && err.response?.status === status
+}
+
+function Pill({ children, tone = 'neutral' }: { children: ReactNode; tone?: 'neutral' | 'ok' }) {
+  return (
+    <span className={`lw-images-pill lw-images-pill--${tone === 'ok' ? 'ok' : 'neutral'}`}>{children}</span>
+  )
+}
+
+function SectionCard({
+  icon,
+  title,
+  subtitle,
+  meta,
+  children,
+}: {
+  icon: string
+  title: string
+  subtitle: string
+  meta?: ReactNode
+  children: ReactNode
+}) {
+  return (
+    <section className="lw-images-section">
+      <div className="lw-images-section__head">
+        <div className="lw-images-section__icon">
+          <Icon name={icon} size={20} stroke={2.2} />
+        </div>
+        <div className="lw-images-section__titles">
+          <h2 className="lw-images-section__title">{title}</h2>
+          <p className="lw-images-section__subtitle">{subtitle}</p>
+        </div>
+        {meta ? <div className="lw-images-section__meta">{meta}</div> : null}
+      </div>
+      {children}
+    </section>
+  )
+}
+
+function UploadProgress({ progress, label }: { progress: number; label?: string }) {
+  return (
+    <div className="lw-images-progress">
+      <div className="lw-images-progress__label">
+        {label ?? 'Subiendo…'} {progress}%
+      </div>
+      <div className="lw-images-progress__track">
+        <div className="lw-images-progress__fill" style={{ width: `${progress}%` }} />
+      </div>
+    </div>
+  )
+}
+
+function ImageThumb({
+  src,
+  alt,
+  primary,
+  onDelete,
+  deleteBusy,
+  deleteDisabled,
+}: {
+  src: string
+  alt: string
+  primary?: boolean
+  onDelete: () => void
+  deleteBusy: boolean
+  deleteDisabled: boolean
+}) {
+  return (
+    <div className="lw-images-tile">
+      <img src={src} alt={alt} />
+      {primary ? (
+        <div className="lw-images-tile__badge">
+          <Icon name="star" size={11} />
+          Principal
+        </div>
+      ) : null}
+      <div className="lw-images-tile__overlay">
+        <button
+          type="button"
+          className="lw-images-tile__delete"
+          disabled={deleteDisabled || deleteBusy}
+          onClick={onDelete}
+          aria-label="Eliminar"
+        >
+          <Icon name="trash" size={14} color="#fff" />
+        </button>
+      </div>
+    </div>
+  )
 }
 
 function DropZone({
@@ -25,6 +114,11 @@ function DropZone({
   onDeleteImage,
   deletingImageId,
   atLimit = false,
+  sectionTitle,
+  sectionSubtitle,
+  sectionIcon,
+  meta,
+  galleryLimit,
 }: {
   title: string
   section: Section
@@ -34,22 +128,34 @@ function DropZone({
   onPick: (section: Section, files: File[]) => void
   onDeleteImage: (id: number) => void
   deletingImageId: number | null
-  /** Solo galería: oculta «Añadir fotos» y bloquea nuevas subidas cuando ya está al límite. */
   atLimit?: boolean
+  sectionTitle: string
+  sectionSubtitle: string
+  sectionIcon: string
+  meta?: ReactNode
+  galleryLimit: number
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [drag, setDrag] = useState(false)
 
-  return (
+  const pickFiles = (list: File[]) => {
+    if (busy || atLimit) return
+    onPick(section, list)
+  }
+
+  const dropHint =
+    section === 'gallery'
+      ? 'Arrastra imágenes aquí o elige archivos. Se añadirán a la galería.'
+      : section === 'cover' && !atLimit && images.length > 0
+        ? 'Arrastra una imagen aquí o elige archivo. Se añadirá al collage.'
+        : 'Arrastra una imagen aquí o elige archivo. Reemplaza la actual.'
+
+  const buttonLabel =
+    section === 'gallery' ? 'Añadir fotos' : images.length > 0 ? 'Cambiar foto' : 'Elegir archivo'
+
+  const dropzone = !atLimit ? (
     <div
-      style={{
-        borderRadius: 'var(--lw-r)',
-        padding: 16,
-        border: `2px dashed ${drag ? 'var(--lw-accent)' : 'var(--lw-border)'}`,
-        background: drag ? 'var(--lw-accent-soft)' : 'var(--lw-bg-elev)',
-        opacity: busy ? 0.6 : 1,
-        boxShadow: 'var(--lw-shadow-1)',
-      }}
+      className={`lw-images-dropzone${drag ? ' lw-images-dropzone--drag' : ''}${busy ? ' lw-images-dropzone--busy' : ''}`}
       onDragOver={(e: DragEvent) => {
         e.preventDefault()
         setDrag(true)
@@ -58,21 +164,37 @@ function DropZone({
       onDrop={(e: DragEvent) => {
         e.preventDefault()
         setDrag(false)
-        if (busy) return
-        if (atLimit) return
         const dropped = e.dataTransfer.files
-        const list = dropped ? Array.from(dropped) : []
-        onPick(section, list)
+        pickFiles(dropped ? Array.from(dropped) : [])
+      }}
+      onClick={() => inputRef.current?.click()}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          inputRef.current?.click()
+        }
       }}
     >
-      <div style={{ fontWeight: 600, marginBottom: 8 }}>{title}</div>
-      <p className="lw-small" style={{ marginBottom: 12 }}>
-        {section === 'gallery'
-          ? 'Arrastra imágenes aquí o elige archivos. Se añadirán a la galería.'
-          : section === 'cover' && !atLimit && images.length > 0
-            ? 'Arrastra una imagen aquí o elige archivo. Se añadirá al collage.'
-            : 'Arrastra una imagen aquí o elige archivo. Reemplaza la actual.'}
-      </p>
+      <div className="lw-images-dropzone__icon-box">
+        <Icon name="upload" size={18} stroke={2.2} />
+      </div>
+      <div className="lw-images-dropzone__text">
+        <div className="lw-images-dropzone__title">{title}</div>
+        <div className="lw-images-dropzone__hint">{dropHint}</div>
+      </div>
+      <button
+        type="button"
+        className="lw-images-dropzone__btn"
+        disabled={busy}
+        onClick={(e) => {
+          e.stopPropagation()
+          inputRef.current?.click()
+        }}
+      >
+        {busy ? 'Subiendo…' : buttonLabel}
+      </button>
       <input
         ref={inputRef}
         type="file"
@@ -82,100 +204,116 @@ function DropZone({
         onChange={(e) => {
           const list = e.target.files ? Array.from(e.target.files) : []
           e.target.value = ''
-          if (atLimit) return
-          onPick(section, list)
+          pickFiles(list)
         }}
       />
-      {!atLimit ? (
-        <Btn kind="primary" type="button" size="sm" disabled={busy} loading={busy} onClick={() => inputRef.current?.click()}>
-          {section === 'gallery' ? 'Añadir fotos' : images.length > 0 ? 'Cambiar foto' : 'Seleccionar foto'}
-        </Btn>
-      ) : null}
-      {images.length > 0 ? (
-        <div
-          style={{
-            marginTop: 14,
-            display: 'grid',
-            gridTemplateColumns: section === 'gallery' ? 'repeat(auto-fill, minmax(120px, 1fr))' : 'repeat(auto-fill, minmax(180px, 1fr))',
-            gap: 10,
-          }}
-        >
+    </div>
+  ) : null
+
+  if (section === 'gallery') {
+    return (
+      <SectionCard icon={sectionIcon} title={sectionTitle} subtitle={sectionSubtitle} meta={meta}>
+        <div className="lw-images-gallery-grid">
           {images.map((img, idx) => (
-            <div
+            <ImageThumb
               key={img.id}
-              style={{
-                position: 'relative',
-                border: '1px solid var(--lw-border)',
-                borderRadius: 'var(--lw-r-sm)',
-                overflow: 'hidden',
-                background: 'var(--lw-bg-elev)',
+              src={img.url}
+              alt={`${title} ${idx + 1}`}
+              onDelete={() => onDeleteImage(img.id)}
+              deleteBusy={deletingImageId === img.id}
+              deleteDisabled={busy || deletingImageId != null}
+            />
+          ))}
+          {!atLimit ? (
+            <div
+              className="lw-images-tile lw-images-tile--empty"
+              onClick={() => inputRef.current?.click()}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  inputRef.current?.click()
+                }
+              }}
+              onDragOver={(e: DragEvent) => {
+                e.preventDefault()
+                setDrag(true)
+              }}
+              onDragLeave={() => setDrag(false)}
+              onDrop={(e: DragEvent) => {
+                e.preventDefault()
+                setDrag(false)
+                const dropped = e.dataTransfer.files
+                pickFiles(dropped ? Array.from(dropped) : [])
               }}
             >
-              <img
-                src={img.url}
-                alt={`${title} ${idx + 1}`}
-                style={{
-                  width: '100%',
-                  height: section === 'gallery' ? 112 : 132,
-                  objectFit: 'cover',
-                  display: 'block',
+              <div className="lw-images-tile__placeholder">
+                <Icon name="plus" size={22} />
+                <span>Añadir foto</span>
+              </div>
+              <input
+                ref={inputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  const list = e.target.files ? Array.from(e.target.files) : []
+                  e.target.value = ''
+                  pickFiles(list)
                 }}
               />
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 8,
-                  right: 8,
-                }}
-              >
-                <Btn
-                  type="button"
-                  size="sm"
-                  kind="ghost"
-                  disabled={busy || deletingImageId === img.id}
-                  loading={deletingImageId === img.id}
-                  onClick={() => onDeleteImage(img.id)}
-                  style={{
-                    background: 'rgba(15, 23, 42, 0.62)',
-                    color: '#fff',
-                  }}
-                >
-                  Eliminar
-                </Btn>
+            </div>
+          ) : null}
+        </div>
+        {dropzone ? <div style={{ marginTop: 12 }}>{dropzone}</div> : null}
+        {progress != null && progress >= 0 ? <UploadProgress progress={progress} /> : null}
+        <div className="lw-images-info-bar">
+          <Icon name="info" size={14} color="var(--lw-images-accent-dark)" />
+          <span>
+            Hasta {galleryLimit} imágenes en galería. Se optimizan automáticamente para web.
+          </span>
+        </div>
+      </SectionCard>
+    )
+  }
+
+  const multi = images.length > 1
+
+  return (
+    <SectionCard icon={sectionIcon} title={sectionTitle} subtitle={sectionSubtitle} meta={meta}>
+      <div className={`lw-images-split${multi ? ' lw-images-split--multi' : ''}`}>
+        <div className={`lw-images-thumbs${multi ? ' lw-images-thumbs--row' : ''}`}>
+          {images.length > 0 ? (
+            images.map((img, idx) => (
+              <ImageThumb
+                key={img.id}
+                src={img.url}
+                alt={`${title} ${idx + 1}`}
+                primary={section === 'cover' && idx === 0}
+                onDelete={() => onDeleteImage(img.id)}
+                deleteBusy={deletingImageId === img.id}
+                deleteDisabled={busy || deletingImageId != null}
+              />
+            ))
+          ) : (
+            <div className="lw-images-tile lw-images-tile--empty" aria-hidden>
+              <div className="lw-images-tile__placeholder">
+                <Icon name="image" size={22} />
               </div>
             </div>
-          ))}
+          )}
         </div>
-      ) : (
-        <div className="lw-small" style={{ marginTop: 10, color: 'var(--lw-text-3)' }}>
-          No hay imágenes todavía.
+        <div>
+          {dropzone}
+          {images.length === 0 && !atLimit ? (
+            <p className="lw-images-empty">No hay imágenes todavía.</p>
+          ) : null}
+          {progress != null && progress >= 0 ? <UploadProgress progress={progress} /> : null}
         </div>
-      )}
-      {progress != null && progress >= 0 ? (
-        <div style={{ marginTop: 12 }}>
-          <div className="lw-small" style={{ marginBottom: 4 }}>
-            Subiendo… {progress}%
-          </div>
-          <div
-            style={{
-              height: 6,
-              borderRadius: 4,
-              background: 'var(--lw-border)',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                height: '100%',
-                width: `${progress}%`,
-                background: 'var(--lw-accent)',
-                transition: 'width .12s',
-              }}
-            />
-          </div>
-        </div>
-      ) : null}
-    </div>
+      </div>
+    </SectionCard>
   )
 }
 
@@ -188,6 +326,7 @@ export default function Imagenes() {
   const [logoProgress, setLogoProgress] = useState<number | null>(null)
   const [logoBusy, setLogoBusy] = useState(false)
   const [logoDeleteBusy, setLogoDeleteBusy] = useState(false)
+  const [logoDrag, setLogoDrag] = useState(false)
   const [deletingImageId, setDeletingImageId] = useState<number | null>(null)
   const [upgradeBanner, setUpgradeBanner] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -202,6 +341,9 @@ export default function Imagenes() {
   const galleryFull = gallery.length >= galleryLimit
   const heroPhotoSlots = (business as { template?: { hero_photo_slots?: number } })?.template?.hero_photo_slots ?? 1
 
+  const totalImages =
+    (business.logo_url ? 1 : 0) + (business.favicon_url ? 1 : 0) + cover.length + about.length + gallery.length
+
   const invalidate = useCallback(async () => {
     await qc.invalidateQueries({ queryKey: keys.dashboard.business })
     refetch()
@@ -211,7 +353,6 @@ export default function Imagenes() {
     try {
       await deleteImage(id)
     } catch (err) {
-      // 404 = ya estaba borrada en backend; lo tratamos como éxito.
       if (!isAxiosStatus(err, 404)) throw err
     }
   }, [])
@@ -266,7 +407,7 @@ export default function Imagenes() {
         setBusySection(null)
       }
     },
-    [about, busySection, cover, invalidate, isPro, safeDelete],
+    [about, busySection, cover, heroPhotoSlots, invalidate, safeDelete],
   )
 
   const handleDeleteImage = useCallback(
@@ -283,7 +424,7 @@ export default function Imagenes() {
         setDeletingImageId(null)
       }
     },
-    [busySection, deletingImageId, invalidate, isPro, safeDelete],
+    [busySection, deletingImageId, invalidate, safeDelete],
   )
 
   const handleLogoChange = useCallback(
@@ -303,7 +444,7 @@ export default function Imagenes() {
         setLogoBusy(false)
       }
     },
-    [invalidate, isPro, logoBusy],
+    [invalidate, logoBusy],
   )
 
   const handleLogoDelete = useCallback(async () => {
@@ -321,150 +462,184 @@ export default function Imagenes() {
     }
   }, [invalidate, logoDeleteBusy])
 
+  const coverTitle = heroPhotoSlots > 1 ? `Portada (${cover.length}/${heroPhotoSlots} fotos)` : 'Portada'
+
   return (
-    <div>
-      <h1 className="lw-h2" style={{ marginBottom: 8 }}>
-        Imágenes
-      </h1>
-      <p className="lw-small" style={{ marginBottom: 20 }}>
-        Portada, sección «Sobre nosotros» y galería.
-      </p>
-
-      <Card
-        padding={18}
-        style={{
-          marginBottom: 20,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 14,
-        }}
-      >
-        <div>
-          <div style={{ fontWeight: 600, marginBottom: 4 }}>Logo del negocio</div>
-          <p className="lw-small" style={{ margin: 0, color: 'var(--lw-text-2)' }}>
-            Aparece en la barra superior de tu web. Cuadrado o horizontal, máx. 2 MB (JPG, PNG, WebP).
-          </p>
+    <div className="lw-images-page" data-tour="imagenes-main">
+      <header className="lw-images-page__header">
+        <div className="lw-images-page__badge">
+          <Icon name="sparkle" size={12} color="var(--lw-images-accent-dark)" />
+          Imágenes de tu web
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <div
-            style={{
-              width: 88,
-              height: 88,
-              borderRadius: 12,
-              background: 'var(--lw-bg-elev)',
-              border: '1px solid var(--lw-border)',
-              overflow: 'hidden',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            {business.logo_url ? (
-              <img src={business.logo_url} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              <Icon name="sparkle" size={24} style={{ opacity: 0.25 }} />
-            )}
+        <div className="lw-images-page__header-row">
+          <div>
+            <h1 className="lw-images-page__title">Imágenes</h1>
+            <p className="lw-images-page__subtitle">
+              Logo, favicon, portada, sección «Sobre nosotros» y galería.
+            </p>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <input
-              ref={logoInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              style={{ display: 'none' }}
-              onChange={(e) => {
-                const f = e.target.files?.[0]
-                e.target.value = ''
-                if (!f) return
-                void handleLogoChange(f)
-              }}
-            />
-            <Btn
-              type="button"
-              size="sm"
-              kind="outline"
-              disabled={logoBusy || logoDeleteBusy}
-              onClick={() => logoInputRef.current?.click()}
-            >
-              {business.logo_url ? 'Cambiar logo' : 'Subir logo'}
-            </Btn>
-            {business.logo_url ? (
-              <Btn
-                type="button"
-                size="sm"
-                kind="ghost"
-                disabled={logoBusy || logoDeleteBusy}
-                loading={logoDeleteBusy}
-                onClick={() => void handleLogoDelete()}
+          <div className="lw-images-page__pills">
+            <Pill tone="ok">
+              <Icon name="check" size={12} />
+              {totalImages} imágenes
+            </Pill>
+            <Pill>
+              {cover.length} portada · {about.length} sobre nosotros · {gallery.length} galería
+            </Pill>
+          </div>
+        </div>
+      </header>
+
+      <div className="lw-images-page__two-col">
+        <SectionCard
+          icon="image"
+          title="Logo del negocio"
+          subtitle="Aparece en la barra superior. Cuadrado u horizontal, máx. 2 MB (JPG, PNG, WebP)."
+        >
+          <div className="lw-images-logo-row">
+            <div className="lw-images-logo-preview">
+              {business.logo_url ? (
+                <img src={business.logo_url} alt="Logo" />
+              ) : (
+                <Icon name="image" size={28} />
+              )}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
+                className={`lw-images-dropzone${logoDrag ? ' lw-images-dropzone--drag' : ''}${logoBusy || logoDeleteBusy ? ' lw-images-dropzone--busy' : ''}`}
+                onDragOver={(e: DragEvent) => {
+                  e.preventDefault()
+                  setLogoDrag(true)
+                }}
+                onDragLeave={() => setLogoDrag(false)}
+                onDrop={(e: DragEvent) => {
+                  e.preventDefault()
+                  setLogoDrag(false)
+                  const f = e.dataTransfer.files?.[0]
+                  if (f) void handleLogoChange(f)
+                }}
+                onClick={() => logoInputRef.current?.click()}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    logoInputRef.current?.click()
+                  }
+                }}
               >
-                Eliminar logo
-              </Btn>
-            ) : null}
-            {logoProgress != null && logoProgress >= 0 ? (
-              <div className="lw-small" style={{ color: 'var(--lw-text-3)' }}>
-                Subiendo logo… {logoProgress}%
+                <div className="lw-images-dropzone__icon-box">
+                  <Icon name="upload" size={16} stroke={2.2} />
+                </div>
+                <div className="lw-images-dropzone__text">
+                  <div className="lw-images-dropzone__title">
+                    {business.logo_url ? 'Cambiar logo' : 'Subir logo'}
+                  </div>
+                  <div className="lw-images-dropzone__hint">Arrastra aquí o haz click</div>
+                </div>
+                <button
+                  type="button"
+                  className="lw-images-dropzone__btn"
+                  disabled={logoBusy || logoDeleteBusy}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    logoInputRef.current?.click()
+                  }}
+                >
+                  Elegir archivo
+                </button>
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    e.target.value = ''
+                    if (!f) return
+                    void handleLogoChange(f)
+                  }}
+                />
               </div>
-            ) : null}
+              {business.logo_url ? (
+                <button
+                  type="button"
+                  className="lw-images-favicon-btn lw-images-favicon-btn--ghost"
+                  style={{ marginTop: 8 }}
+                  disabled={logoBusy || logoDeleteBusy}
+                  onClick={() => void handleLogoDelete()}
+                >
+                  {logoDeleteBusy ? 'Eliminando…' : 'Eliminar logo'}
+                </button>
+              ) : null}
+              {logoProgress != null && logoProgress >= 0 ? (
+                <UploadProgress progress={logoProgress} label="Subiendo logo…" />
+              ) : null}
+            </div>
           </div>
-        </div>
-      </Card>
+        </SectionCard>
 
-      <Card padding={18} style={{ marginBottom: 20 }}>
-        <FaviconUploader enabled={isPro} />
-      </Card>
+        <SectionCard
+          icon="layout"
+          title="Favicon"
+          subtitle="Icono cuadrado de pestaña. Usa tu símbolo, no el logo completo. PNG transparente, mín. 64×64 px."
+        >
+          <FaviconUploader enabled={isPro} embedded />
+        </SectionCard>
+      </div>
 
       {upgradeBanner && !isPro ? (
-        <Card
-          padding={18}
-          style={{
-            marginBottom: 20,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-            background: 'linear-gradient(180deg, var(--lw-bg-elev), var(--lw-surface))',
-          }}
-        >
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 'var(--lw-r)',
-              background: 'var(--lw-pro-soft)',
-              color: 'var(--lw-pro)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+        <div className="lw-images-banner lw-images-banner--upgrade">
+          <div className="lw-images-banner__icon">
             <Icon name="sparkle" size={20} />
           </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 600, marginBottom: 4 }}>Has alcanzado el límite de fotos</div>
-            <p className="lw-small">Pasa a Pro para subir más imágenes y desbloquear todo el potencial.</p>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={{ fontWeight: 700, marginBottom: 4, color: 'var(--lw-images-ink)' }}>
+              Has alcanzado el límite de fotos
+            </div>
+            <p style={{ margin: 0, fontSize: 13, color: 'var(--lw-images-muted)' }}>
+              Pasa a Pro para subir más imágenes y desbloquear todo el potencial.
+            </p>
           </div>
-          <Btn kind="primary" iconRight="arrowRight" type="button" onClick={() => (window.location.href = '/dashboard/account?tab=plan')}>
+          <Btn
+            kind="primary"
+            iconRight="arrowRight"
+            type="button"
+            onClick={() => {
+              window.location.href = '/dashboard/account?tab=plan'
+            }}
+          >
             Mejorar plan
           </Btn>
-        </Card>
+        </div>
       ) : upgradeBanner && isPro ? (
-        <Card padding={14} style={{ marginBottom: 20, borderColor: 'var(--lw-border)' }}>
-          <p className="lw-small" style={{ margin: 0 }}>
+        <div className="lw-images-banner">
+          <p style={{ margin: 0, fontSize: 13, color: 'var(--lw-images-muted)' }}>
             Has alcanzado el límite de 20 fotos de galería de tu plan Pro.
           </p>
-        </Card>
+        </div>
       ) : null}
 
       {errorMsg ? (
-        <Card padding={14} style={{ marginBottom: 20, borderColor: 'var(--lw-danger)' }}>
-          <p className="lw-small" style={{ margin: 0, color: 'var(--lw-danger)' }}>
-            {errorMsg}
-          </p>
-        </Card>
+        <div className="lw-images-banner lw-images-banner--error">
+          <p>{errorMsg}</p>
+        </div>
       ) : null}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }} data-tour="imagenes-main">
+      <div className="lw-images-page__two-col">
         <DropZone
-          title={heroPhotoSlots > 1 ? `Portada (${cover.length}/${heroPhotoSlots} fotos)` : 'Portada'}
+          title={cover.length > 0 ? 'Cambiar portada' : 'Subir portada'}
+          sectionTitle={coverTitle}
+          sectionSubtitle="Imagen principal del hero. Arrastra una imagen o elige archivo."
+          sectionIcon="star"
+          meta={
+            cover.length > 0 ? (
+              <Pill tone="ok">
+                <Icon name="check" size={12} />
+                Configurada
+              </Pill>
+            ) : undefined
+          }
           section="cover"
           busy={busySection === 'cover'}
           progress={busySection === 'cover' ? progress : null}
@@ -473,9 +648,21 @@ export default function Imagenes() {
           onDeleteImage={handleDeleteImage}
           deletingImageId={deletingImageId}
           atLimit={heroPhotoSlots > 1 && cover.length >= heroPhotoSlots}
+          galleryLimit={galleryLimit}
         />
         <DropZone
-          title="Sobre nosotros"
+          title={about.length > 0 ? 'Cambiar imagen' : 'Subir imagen'}
+          sectionTitle="Sobre nosotros"
+          sectionSubtitle="Aparece en la sección de presentación de tu equipo o historia."
+          sectionIcon="users"
+          meta={
+            about.length > 0 ? (
+              <Pill tone="ok">
+                <Icon name="check" size={12} />
+                Configurada
+              </Pill>
+            ) : undefined
+          }
           section="about"
           busy={busySection === 'about'}
           progress={busySection === 'about' ? progress : null}
@@ -483,23 +670,30 @@ export default function Imagenes() {
           onPick={(s, f) => void handleFiles(s, f)}
           onDeleteImage={handleDeleteImage}
           deletingImageId={deletingImageId}
-        />
-        <DropZone
-          title="Galería"
-          section="gallery"
-          busy={busySection === 'gallery'}
-          progress={busySection === 'gallery' ? progress : null}
-          images={gallery}
-          onPick={(s, f) => void handleFiles(s, f)}
-          onDeleteImage={handleDeleteImage}
-          deletingImageId={deletingImageId}
-          atLimit={galleryFull}
+          galleryLimit={galleryLimit}
         />
       </div>
 
-      <p className="lw-small" style={{ marginTop: 20, color: 'var(--lw-text-3)' }}>
-        {cover.length} portada · {about.length} sobre nosotros · {gallery.length} galería
-      </p>
+      <DropZone
+        title="Añadir fotos a la galería"
+        sectionTitle="Galería"
+        sectionSubtitle="Se mostrarán en cuadrícula en tu página pública."
+        sectionIcon="grid"
+        meta={
+          <Pill>
+            {gallery.length} / {galleryLimit}
+          </Pill>
+        }
+        section="gallery"
+        busy={busySection === 'gallery'}
+        progress={busySection === 'gallery' ? progress : null}
+        images={gallery}
+        onPick={(s, f) => void handleFiles(s, f)}
+        onDeleteImage={handleDeleteImage}
+        deletingImageId={deletingImageId}
+        atLimit={galleryFull}
+        galleryLimit={galleryLimit}
+      />
     </div>
   )
 }

@@ -9,7 +9,7 @@ import { keys } from '../../../api/queryKeys'
 import { useAuthStore } from '../../../store/authStore'
 import { clearOnboardingPersistForUser } from '../onboardingPersist'
 import ProServicesEditor from '../../shared/ProServicesEditor'
-import ProIntegrationsForm from '../../shared/ProIntegrationsForm'
+import ProIntegrationsForm, { EnlacesSectionHeader } from '../../shared/ProIntegrationsForm'
 import FaviconUploader from '../../shared/FaviconUploader'
 import BrandColorPicker from '../../shared/BrandColorPicker'
 import { useBrandColor } from '../../shared/useBrandColor'
@@ -82,15 +82,6 @@ export default function Step9ProSetup({
       const previewHex = (color ?? brandColorDefault).toLowerCase()
       onBrandColorLiveChange(previewHex)
       saveBrandColor(color, {
-        onSuccess: (result) => {
-          if (result?.contrast_warning) {
-            showToast({
-              type: 'info',
-              title: 'Aviso de contraste',
-              description: result.contrast_warning,
-            })
-          }
-        },
         onError: () => {
           showToast({
             type: 'error',
@@ -118,15 +109,19 @@ export default function Step9ProSetup({
         : 'Google Business, redes sociales en el pie y vCard. «Cómo llegar» usa la dirección y el mapa que ya configuraste.'
 
   return (
-    <div style={{ maxWidth: 640 }}>
-      <div style={{ marginBottom: 24 }}>
-        <h1 className="lw-h2" style={{ marginBottom: 10 }}>
-          {phaseTitle}
-        </h1>
-        <p className="lw-body" style={{ margin: 0, fontSize: 14, color: 'var(--lw-text-2)' }}>
-          {phaseSubtitle}
-        </p>
-      </div>
+    <div className={setupPhase === 'extras' ? 'lw-enlaces-page' : undefined} style={{ maxWidth: 640 }}>
+      {setupPhase === 'extras' ? (
+        <EnlacesSectionHeader title={phaseTitle} subtitle={phaseSubtitle} />
+      ) : (
+        <div style={{ marginBottom: 24 }}>
+          <h1 className="lw-h2" style={{ marginBottom: 10 }}>
+            {phaseTitle}
+          </h1>
+          <p className="lw-body" style={{ margin: 0, fontSize: 14, color: 'var(--lw-text-2)' }}>
+            {phaseSubtitle}
+          </p>
+        </div>
+      )}
 
       {setupPhase === 'services' ? (
         <>
@@ -209,27 +204,19 @@ export default function Step9ProSetup({
         </>
       ) : (
         <>
-          <Card padding={20} style={{ marginBottom: 24 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <Icon name="arrowUpRight" size={20} color="var(--lw-accent)" />
-              <h2 className="lw-h2" style={{ margin: 0, fontSize: 17 }}>
-                Conecta tus enlaces
-              </h2>
-            </div>
-            <ProIntegrationsForm
-              enabled
-              compact
-              saveLabel="Guardar"
-              onSaved={() => {
-                showToast({
-                  type: 'success',
-                  title: 'Enlaces guardados',
-                  description: 'Ya están conectados a tu web pública.',
-                })
-                void qc.invalidateQueries({ queryKey: keys.dashboard.business })
-              }}
-            />
-          </Card>
+          <ProIntegrationsForm
+            enabled
+            compact
+            saveLabel="Guardar enlaces"
+            onSaved={() => {
+              showToast({
+                type: 'success',
+                title: 'Enlaces guardados',
+                description: 'Ya están conectados a tu web pública.',
+              })
+              void qc.invalidateQueries({ queryKey: keys.dashboard.business })
+            }}
+          />
 
           <Card padding={20} style={{ marginBottom: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>

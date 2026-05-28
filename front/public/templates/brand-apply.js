@@ -111,7 +111,10 @@
       root.style.setProperty('--' + names[i], valueForSyncedVar(names[i], h));
     }
     if (names.indexOf(varName) !== -1) {
-      root.style.setProperty('--' + varName + '-hover', hoverBrandHex(h));
+      var embedPreview =
+        document.body.classList.contains('embed-preview') ||
+        document.documentElement.classList.contains('embed-preview-root');
+      root.style.setProperty('--' + varName + '-hover', embedPreview ? h : hoverBrandHex(h));
       root.style.setProperty('--' + varName + '-on', contrastTextOn(h));
     }
   }

@@ -74,9 +74,14 @@ class StripeEventListener
         $updates = [
             'plan' => 'pro',
             'plan_activated_at' => now(),
-            // La publicación visible ocurre en onboarding step 8, no aquí.
-            'is_published' => false,
         ];
+
+        // Conservar la visibilidad de negocios Free ya publicados; los que aún
+        // no estaban publicados (onboarding Pro directo) siguen su flujo normal
+        // de publicación en step 8/9.
+        if (! $business->is_published) {
+            $updates['is_published'] = false;
+        }
 
         if (($business->subdomain_type === 'random') && ! empty($metadata['subdomain'])) {
             $updates['subdomain'] = $metadata['subdomain'];
