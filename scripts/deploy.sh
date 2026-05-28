@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Copia canónica del script de deploy del VPS (/var/www/onez/deploy.sh).
-# Instalar/actualizar en el servidor (como root):
-#   sudo cp scripts/deploy.sh /var/www/onez/deploy.sh && sudo chmod 755 /var/www/onez/deploy.sh
+# Script de deploy (también puede vivir en /var/www/onez/deploy.sh en el VPS).
+# Si se invoca la copia estática del VPS, hace git pull y re-ejecuta la versión
+# canónica de este archivo en el repo para no quedar desactualizado.
 set -euo pipefail
 
 ENV="${1:-}"
@@ -18,13 +18,36 @@ esac
 
 APP_DIR="/var/www/onez/$ENV"
 REPO_DIR="$APP_DIR/repo"
+CANONICAL_DEPLOY="$REPO_DIR/scripts/deploy.sh"
+SCRIPT_SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+
+# Wrapper del VPS (/var/www/onez/deploy.sh) → siempre usar la versión del repo tras pull.
+if [[ -f "$CANONICAL_DEPLOY" ]]; then
+    CANONICAL_SELF="$(readlink -f "$CANONICAL_DEPLOY")"
+    if [[ "$SCRIPT_SELF" != "$CANONICAL_SELF" ]]; then
+        git config --global --add safe.directory "$REPO_DIR" 2>/dev/null || true
+        cd "$REPO_DIR"
+        git fetch --all --prune
+        git checkout "$BRANCH"
+        git reset --hard "origin/$BRANCH"
+        exec bash "$CANONICAL_DEPLOY" "$ENV"
+    fi
+fi
+
 BACKEND="$APP_DIR/backend"
 FRONTEND="$APP_DIR/frontend"
+LOCK_FILE="$APP_DIR/.deploy.lock"
 
 echo "==> Desplegando entorno: $ENV (rama: $BRANCH)"
 
-echo "==> Limpiando temporales huérfanos..."
-rm -rf /tmp/tmp.* /var/tmp/tmp.* 2>/dev/null || true
+exec 200>"$LOCK_FILE"
+if ! flock -n 200; then
+    echo "ERROR: Ya hay un deploy en curso para $ENV ($LOCK_FILE)."
+    exit 1
+fi
+
+echo "==> Limpiando builds frontend huérfanos (>24 h)..."
+find "$APP_DIR" -maxdepth 1 -type d -name '.front-build.*' -mtime +1 -exec rm -rf {} + 2>/dev/null || true
 
 git config --global --add safe.directory "$REPO_DIR" 2>/dev/null || true
 
@@ -44,7 +67,7 @@ rsync -a --delete \
     "$REPO_DIR/backend/" "$BACKEND/"
 
 echo "==> Building frontend..."
-BUILD_TMP=$(mktemp -d -p /var/tmp 2>/dev/null) || BUILD_TMP=$(mktemp -d)
+BUILD_TMP=$(mktemp -d "$APP_DIR/.front-build.XXXXXX")
 trap 'rm -rf "$BUILD_TMP"' EXIT
 
 rsync -a \
@@ -52,6 +75,13 @@ rsync -a \
     --exclude='dist' \
     --exclude='.vite' \
     "$REPO_DIR/front/" "$BUILD_TMP/"
+
+if [[ ! -f "$BUILD_TMP/src/main.tsx" || ! -f "$BUILD_TMP/vite.config.ts" ]]; then
+    echo "ERROR: El checkout no tiene el frontend completo en $REPO_DIR/front (falta src/)."
+    echo "       Revisa el clone en el VPS y vuelve a ejecutar: git -C \"$REPO_DIR\" checkout \"$BRANCH\" -- front/"
+    exit 1
+fi
+
 cd "$BUILD_TMP"
 
 case "$ENV" in
@@ -61,6 +91,8 @@ case "$ENV" in
 esac
 
 npm ci --silent
+# Evita TS6053 por tsbuildinfo incremental con rutas de un build anterior.
+rm -rf node_modules/.tmp dist
 npm run build
 
 rsync -a --delete "$BUILD_TMP/dist/" "$FRONTEND/"
