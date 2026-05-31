@@ -1,0 +1,57 @@
+# Marketing: onez.es y www → mismo build que app.onez.es (/var/www/onez/prod/frontend).
+# Instalar en el VPS (p. ej. /etc/nginx/sites-available/onez-marketing) y:
+#   ln -s .../onez-marketing /etc/nginx/sites-enabled/
+#   nginx -t && systemctl reload nginx
+#
+# DNS: A/AAAA de onez.es y www.onez.es → IP del servidor.
+# Certbot: certbot --nginx -d onez.es -d www.onez.es
+
+# Evita mapear onez.es como tenant "onez" en proxies al API (ver ResolveTenantSubdomain).
+map $host $tenant_subdomain {
+    default "";
+    onez.es "";
+    www.onez.es "";
+    app.onez.es "";
+    api.onez.es "";
+    ~^(?<subdomain>[^.]+)\..+$ $subdomain;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name onez.es www.onez.es;
+    return 301 https://onez.es$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name www.onez.es;
+    # Certificado gestionado por certbot (mismo SAN que onez.es).
+    return 301 https://onez.es$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name onez.es;
+
+    root /var/www/onez/prod/frontend;
+    index index.html;
+
+    # ssl_certificate /etc/letsencrypt/live/onez.es/fullchain.pem;
+    # ssl_certificate_key /etc/letsencrypt/live/onez.es/privkey.pem;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location ^~ /landing/ {
+        try_files $uri $uri/ /landing/index.html;
+    }
+
+    location ^~ /templates/ {
+        add_header Cache-Control "public, max-age=300, must-revalidate" always;
+        try_files $uri =404;
+    }
+}

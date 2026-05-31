@@ -13,11 +13,11 @@
 <meta name="theme-color" content="#FAFAF7" />
 
 <!-- Canonical -->
-<link rel="canonical" href="https://onez.es/" />
+<link rel="canonical" href="https://onez.es/landing" />
 
 <!-- Open Graph image (TODO: subir imagen 1200x630 a /og.png antes de publicar) -->
 <meta property="og:image" content="https://onez.es/og.png" />
-<meta property="og:url" content="https://onez.es/" />
+<meta property="og:url" content="https://onez.es/landing" />
 <meta property="og:site_name" content="ONEZ" />
 
 <!-- Twitter -->
@@ -1594,6 +1594,18 @@
 ========================================================= */
 (function () {
   'use strict';
+
+  // En onez.es el SPA de la app vive en app.onez.es (cookies Sanctum, registro, login).
+  var APP_ORIGIN = 'https://app.onez.es';
+  if (location.hostname === 'onez.es' || location.hostname === 'www.onez.es') {
+    document.querySelectorAll(
+      'a[href^="/login"], a[href^="/register"], a[href^="/forgot-password"],' +
+      'a[href^="/aviso-legal"], a[href^="/privacidad"], a[href^="/cookies"], a[href^="/terminos"]'
+    ).forEach(function (a) {
+      var href = a.getAttribute('href');
+      if (href) a.href = APP_ORIGIN + href;
+    });
+  }
 
   // ---- track ----
   function track(event, props) {

@@ -19,6 +19,7 @@ class ResolveTenantSubdomain
         'api',
         'app',
         'www',
+        'onez',
         'pre',
         'des',
         'mail',

@@ -40,7 +40,7 @@ import AdminTemplatesPage from './features/admin/AdminTemplatesPage'
 import AdminUsersPage from './features/admin/AdminUsersPage'
 import AdminTopPagesPage from './features/admin/AdminTopPagesPage'
 import { postAuthDestination } from './lib/authRouting'
-import { isMarketingSiteHost, LANDING_INDEX_PATH } from './lib/landing'
+import { LANDING_INDEX_PATH, shouldRootRedirectToLanding } from './lib/landing'
 import { useAuthStore } from './store/authStore'
 import CookieBanner from './components/cookies/CookieBanner'
 import AvisoLegalPage from './pages/legal/AvisoLegalPage'
@@ -70,7 +70,7 @@ function RootRedirect() {
     return null
   }
   if (!isAuthenticated) {
-    if (isMarketingSiteHost()) {
+    if (shouldRootRedirectToLanding()) {
       return <Navigate to="/landing" replace />
     }
     return <Navigate to="/login" replace />

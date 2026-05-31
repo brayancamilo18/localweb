@@ -16,6 +16,12 @@ it('ignores reserved infrastructure subdomain api from nginx host map', function
         ->assertStatus(200);
 });
 
+it('ignores reserved brand host onez from nginx host map on onez.es', function () {
+    test()->withHeader('X-Tenant-Subdomain', 'onez')
+        ->getJson('/api/v1/public/subdomain-rules')
+        ->assertStatus(200);
+});
+
 it('returns 404 when tenant subdomain header is unknown', function () {
     test()->withHeader('X-Tenant-Subdomain', 'sectio')
         ->getJson('/api/v1/public/subdomain-rules')
