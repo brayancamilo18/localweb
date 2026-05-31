@@ -10,6 +10,23 @@ use Symfony\Component\HttpFoundation\Response;
 class ResolveTenantSubdomain
 {
     /**
+     * Hosts de infra (api.onez.es, app.onez.es) que nginx puede mapear como
+     * subdominio; no son tenants de negocio.
+     *
+     * @var list<string>
+     */
+    private const RESERVED_SUBDOMAINS = [
+        'api',
+        'app',
+        'www',
+        'pre',
+        'des',
+        'mail',
+        'smtp',
+        'cdn',
+    ];
+
+    /**
      * Rechaza peticiones API con subdominio de tenant inexistente (header X-Tenant-Subdomain).
      */
     public function handle(Request $request, Closure $next): Response
@@ -20,7 +37,7 @@ class ResolveTenantSubdomain
 
         $subdomain = trim((string) $request->header('X-Tenant-Subdomain', ''));
 
-        if ($subdomain === '') {
+        if ($subdomain === '' || $this->isReservedSubdomain($subdomain)) {
             return $next($request);
         }
 
@@ -33,5 +50,10 @@ class ResolveTenantSubdomain
         }
 
         return $next($request);
+    }
+
+    private function isReservedSubdomain(string $subdomain): bool
+    {
+        return in_array(strtolower($subdomain), self::RESERVED_SUBDOMAINS, true);
     }
 }
