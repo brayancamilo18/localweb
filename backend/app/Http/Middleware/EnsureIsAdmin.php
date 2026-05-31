@@ -17,7 +17,7 @@ class EnsureIsAdmin
 
         if (! $user || ! $user->is_admin) {
             return response()->json([
-                'message' => 'Forbidden',
+                'message' => 'No tienes permiso para acceder a esta sección.',
             ], 403);
         }
 

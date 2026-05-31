@@ -33,10 +33,27 @@ class RegisterController extends BaseApiController
             'country_code' => ['required', 'string', 'size:2', 'regex:/^[A-Za-z]{2}$/'],
             'marketing_consent' => ['sometimes', 'boolean'],
             'accept_terms' => ['required', 'accepted'],
+        ], [
+            'name.required' => 'Indica tu nombre.',
+            'email.required' => 'Indica tu correo electrónico.',
+            'email.email' => 'El correo electrónico no es válido.',
+            'email.unique' => 'Ese correo ya está registrado. Inicia sesión o usa otro.',
+            'password.required' => 'Crea una contraseña.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.confirmed' => 'La confirmación de contraseña no coincide.',
+            'business_name.required' => 'Indica el nombre de tu negocio.',
+            'sector.required' => 'Selecciona el sector de tu negocio.',
+            'city.required' => 'Indica la ciudad.',
+            'country.required' => 'Indica el país.',
+            'country_code.required' => 'Indica el código de país.',
+            'country_code.size' => 'El código de país debe tener 2 letras.',
+            'country_code.regex' => 'El código de país debe tener 2 letras (por ejemplo, ES).',
+            'accept_terms.required' => 'Debes aceptar las condiciones para continuar.',
+            'accept_terms.accepted' => 'Debes aceptar las condiciones para continuar.',
         ]);
 
         if (! $sectors->exists($data['sector'])) {
-            return $this->error('Datos inválidos', ['sector' => 'invalid'], 422);
+            return $this->error('El sector seleccionado no es válido.', ['sector' => ['El sector seleccionado no es válido.']], 422);
         }
 
         // El modelo aplica el cast 'hashed' a password: no usar Hash::make aquí (evita doble hash).

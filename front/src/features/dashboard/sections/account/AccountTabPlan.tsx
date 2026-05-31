@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Badge, Btn, Card, Icon } from '../../../../components/primitives/primitives'
+import { CancelProDialog } from '../../../../components/ui/CancelProDialog'
 import { useToast } from '../../../../components/ui/Toast'
 import {
   getBillingStatus,
@@ -453,55 +454,15 @@ export default function AccountTabPlan() {
         </div>
       </Card>
 
-      {/* Diálogo de confirmación de cancelación */}
-      {confirmCancelOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="cancel-dialog-title"
-          className="lw-account-modal-overlay"
-          onClick={() => {
-            if (!cancelM.isPending) setConfirmCancelOpen(false)
-          }}
-        >
-          <Card padding={24} className="lw-account-modal">
-            {/*
-              `stopPropagation` impide que un click dentro del modal burbujee
-              hasta el overlay y dispare el cierre. El handler del overlay
-              comprueba además `cancelM.isPending` para no cerrar mientras la
-              mutación está en vuelo.
-            */}
-            <div onClick={(e) => e.stopPropagation()}>
-              <h3 id="cancel-dialog-title" className="lw-h3" style={{ marginBottom: 8 }}>
-                ¿Cancelar tu plan Pro?
-              </h3>
-              <p className="lw-body" style={{ marginBottom: 16 }}>
-                Mantendrás todas las ventajas Pro hasta el{' '}
-                <strong>{formatLongDateEs(s.renewal_date)}</strong>. Después tu página volverá al
-                plan Gratis (3 fotos y 3 servicios máximo).
-              </p>
-              <div className="lw-account-actions-row" style={{ justifyContent: 'flex-end' }}>
-                <Btn
-                  kind="ghost"
-                  type="button"
-                  disabled={cancelM.isPending}
-                  onClick={() => setConfirmCancelOpen(false)}
-                >
-                  Volver
-                </Btn>
-                <Btn
-                  kind="danger"
-                  type="button"
-                  loading={cancelM.isPending}
-                  onClick={() => cancelM.mutate()}
-                >
-                  Sí, cancelar
-                </Btn>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
+      <CancelProDialog
+        open={confirmCancelOpen}
+        onKeepPro={() => {
+          if (!cancelM.isPending) setConfirmCancelOpen(false)
+        }}
+        onConfirmCancel={() => cancelM.mutate()}
+        loading={cancelM.isPending}
+        renewalDateLabel={formatLongDateEs(s.renewal_date)}
+      />
     </>
   )
 }

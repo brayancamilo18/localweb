@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import type { AxiosError } from 'axios'
-import { Badge, Btn, Card, Field, Input } from '../../../../components/primitives/primitives'
-import { Modal } from '../../../../components/ui/Modal'
+import { Badge, Btn, Card } from '../../../../components/primitives/primitives'
+import { DeleteAccountDialog } from '../../../../components/ui/DeleteAccountDialog'
 import { useToast } from '../../../../components/ui/Toast'
 import { useCookieConsent } from '../../../../hooks/useCookieConsent'
 import { deleteAccount } from '../../../../api/account'
@@ -222,64 +222,25 @@ export default function AccountTabPrivacidad() {
         </Btn>
       </Card>
 
-      <Modal
+      <DeleteAccountDialog
         open={confirmOpen}
-        onClose={closeConfirm}
-        title="Eliminar cuenta permanentemente"
-        closeOnBackdrop={!deleteM.isPending}
-        footer={
-          <>
-            <Btn kind="ghost" type="button" disabled={deleteM.isPending} onClick={closeConfirm}>
-              Cancelar
-            </Btn>
-            <Btn
-              kind="danger"
-              type="button"
-              loading={deleteM.isPending}
-              disabled={!canConfirm}
-              onClick={() => deleteM.mutate()}
-            >
-              Eliminar para siempre
-            </Btn>
-          </>
-        }
-      >
-        <p className="lw-small" style={{ margin: '0 0 16px', lineHeight: 1.55 }}>
-          Esta acción no se puede deshacer. Tu página se despublicará, se cerrarán todas tus
-          sesiones y, si tienes suscripción Pro, se cancelará al instante.
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <Field label="Contraseña actual" error={passwordError}>
-            <Input
-              type="password"
-              value={currentPassword}
-              onChange={(e) => {
-                setCurrentPassword(e.target.value)
-                setPasswordError(undefined)
-              }}
-              autoComplete="current-password"
-              placeholder="Tu contraseña"
-            />
-          </Field>
-          <Field
-            label='Escribe "ELIMINAR" para confirmar'
-            error={confirmationError}
-            hint="Debe coincidir exactamente, en mayúsculas."
-          >
-            <Input
-              type="text"
-              value={confirmation}
-              onChange={(e) => {
-                setConfirmation(e.target.value)
-                setConfirmationError(undefined)
-              }}
-              autoComplete="off"
-              placeholder="ELIMINAR"
-              spellCheck={false}
-            />
-          </Field>
-        </div>
-      </Modal>
+        onCancel={closeConfirm}
+        onConfirm={() => deleteM.mutate()}
+        loading={deleteM.isPending}
+        currentPassword={currentPassword}
+        onCurrentPasswordChange={(value) => {
+          setCurrentPassword(value)
+          setPasswordError(undefined)
+        }}
+        confirmation={confirmation}
+        onConfirmationChange={(value) => {
+          setConfirmation(value)
+          setConfirmationError(undefined)
+        }}
+        passwordError={passwordError}
+        confirmationError={confirmationError}
+        canConfirm={canConfirm}
+      />
     </div>
   )
 }

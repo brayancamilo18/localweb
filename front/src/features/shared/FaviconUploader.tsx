@@ -6,6 +6,7 @@ import { deleteBusinessFavicon, getBusiness, uploadBusinessFavicon } from '../..
 import { prepareImageForUpload, UPLOAD_MAX_BYTES } from '../../lib/imageUpload'
 import { resolveImageUploadError } from '../../lib/uploadErrorFeedback'
 import { useToast } from '../../components/ui/Toast'
+import { RemoveFaviconDialog } from '../../components/ui/RemoveFaviconDialog'
 import { keys } from '../../api/queryKeys'
 
 export type FaviconUploaderProps = {
@@ -161,6 +162,7 @@ export default function FaviconUploader({
   const lastFileRef = useRef<File | null>(null)
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [localError, setLocalError] = useState<string | null>(null)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const displayError = inlineError ?? localError
 
   const businessQuery = useQuery({
@@ -243,6 +245,7 @@ export default function FaviconUploader({
       setLocalError(null)
     },
     onSuccess: async () => {
+      setDeleteConfirmOpen(false)
       await qc.invalidateQueries({ queryKey: keys.dashboard.business })
       onSaved?.()
     },
@@ -261,9 +264,8 @@ export default function FaviconUploader({
 
   const handleDelete = useCallback(() => {
     if (controlsDisabled || deleteMut.isPending) return
-    if (!window.confirm('¿Quitar el favicon personalizado? La pestaña volverá al icono por defecto.')) return
-    deleteMut.mutate()
-  }, [controlsDisabled, deleteMut])
+    setDeleteConfirmOpen(true)
+  }, [controlsDisabled, deleteMut.isPending])
 
   if (businessQuery.isLoading || !business) {
     const skeleton = (
@@ -466,20 +468,41 @@ export default function FaviconUploader({
     </>
   )
 
+  const deleteDialog = (
+    <RemoveFaviconDialog
+      open={deleteConfirmOpen}
+      onCancel={() => {
+        if (!deleteMut.isPending) setDeleteConfirmOpen(false)
+      }}
+      onConfirm={() => deleteMut.mutate()}
+      loading={deleteMut.isPending}
+      faviconUrl={business.favicon_url}
+      businessName={business.name}
+    />
+  )
+
   if (embedded) {
-    return <div className="lw-images-favicon--embedded">{inner}</div>
+    return (
+      <>
+        <div className="lw-images-favicon--embedded">{inner}</div>
+        {deleteDialog}
+      </>
+    )
   }
 
   return (
-    <Card
-      padding={18}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 14,
-      }}
-    >
-      {inner}
-    </Card>
+    <>
+      <Card
+        padding={18}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+        }}
+      >
+        {inner}
+      </Card>
+      {deleteDialog}
+    </>
   )
 }

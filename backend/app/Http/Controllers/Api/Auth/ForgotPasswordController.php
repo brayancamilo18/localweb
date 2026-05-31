@@ -22,6 +22,9 @@ class ForgotPasswordController extends BaseApiController
     {
         $data = $request->validate([
             'email' => ['required', 'email'],
+        ], [
+            'email.required' => 'Introduce tu correo electrónico.',
+            'email.email' => 'Introduce un correo electrónico válido.',
         ]);
 
         $status = Password::broker()->sendResetLink(['email' => $data['email']]);

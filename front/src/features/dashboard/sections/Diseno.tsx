@@ -8,7 +8,7 @@ import {
   type CSSProperties,
 } from 'react'
 import { createPortal } from 'react-dom'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Badge, Btn, Card, Icon } from '../../../components/primitives/primitives'
@@ -338,6 +338,8 @@ function TemplatePreviewModal({
 export default function Diseno() {
   const { business, refetch } = useDashboard()
   const { showToast } = useToast()
+  const location = useLocation()
+  const navigate = useNavigate()
   const qc = useQueryClient()
   const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null)
   const [changePreview, setChangePreview] = useState<TemplateChangePreview | null>(null)
@@ -346,6 +348,7 @@ export default function Diseno() {
   const [page, setPage] = useState(1)
   const pageRef = useRef<HTMLDivElement | null>(null)
   const gridRef = useRef<HTMLDivElement | null>(null)
+  const templatesBlockRef = useRef<HTMLDivElement | null>(null)
 
   const templatesQ = useQuery({
     queryKey: keys.dashboard.templates,
@@ -398,6 +401,22 @@ export default function Diseno() {
       setPage(totalPages)
     }
   }, [page, totalPages])
+
+  useEffect(() => {
+    if (location.hash !== '#plantillas') return
+    if (templatesQ.isLoading || templatesQ.isError) return
+
+    templatesBlockRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    navigate({ pathname: location.pathname, search: location.search }, { replace: true })
+  }, [
+    location.hash,
+    location.pathname,
+    location.search,
+    navigate,
+    templatesQ.isLoading,
+    templatesQ.isError,
+    pageTemplates.length,
+  ])
 
   useLayoutEffect(() => {
     const pageEl = pageRef.current
@@ -567,7 +586,7 @@ export default function Diseno() {
         </p>
       ) : (
         <>
-          <div className="lw-diseno-templates-block">
+          <div className="lw-diseno-templates-block" id="plantillas" ref={templatesBlockRef}>
           <div ref={gridRef} style={gridStyle}>
             {pageTemplates.map((template) => {
               const isCurrent = template.id === meta?.current_template_id

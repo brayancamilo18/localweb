@@ -119,10 +119,16 @@ class StepController extends BaseApiController
             'sector' => ['required', 'string'],
             'logo' => ['nullable', 'image', 'max:2048', 'mimes:jpg,jpeg,png,webp'],
             'remove_logo' => ['sometimes', 'boolean'],
+        ], [
+            'template_id.required' => 'Selecciona una plantilla.',
+            'sector.required' => 'Selecciona el sector de tu negocio.',
+            'logo.image' => 'El logo debe ser una imagen.',
+            'logo.max' => 'El logo no puede pesar más de 2 MB.',
+            'logo.mimes' => 'El logo debe ser JPG, PNG o WebP.',
         ]);
 
         if (! $templates->exists((int) $data['template_id']) || ! $sectors->exists($data['sector'])) {
-            return $this->error('Datos inválidos', ['template_or_sector' => 'invalid']);
+            return $this->error('La plantilla o el sector seleccionados no son válidos.', ['template_or_sector' => ['La plantilla o el sector seleccionados no son válidos.']]);
         }
 
         $userId = $request->user()->id;
@@ -165,6 +171,20 @@ class StepController extends BaseApiController
             'cover3' => ['nullable', 'image', 'max:10240', 'mimes:jpg,jpeg,png,webp'],
             'logo' => ['nullable', 'image', 'max:2048', 'mimes:jpg,jpeg,png,webp'],
             'remove_logo' => ['sometimes', 'boolean'],
+        ], [
+            'cover.required' => 'Sube al menos una foto de portada.',
+            'cover.image' => 'La portada debe ser una imagen.',
+            'cover.max' => 'La portada no puede pesar más de 10 MB.',
+            'cover.mimes' => 'La portada debe ser JPG, PNG o WebP.',
+            'cover2.image' => 'La segunda portada debe ser una imagen.',
+            'cover2.max' => 'La segunda portada no puede pesar más de 10 MB.',
+            'cover2.mimes' => 'La segunda portada debe ser JPG, PNG o WebP.',
+            'cover3.image' => 'La tercera portada debe ser una imagen.',
+            'cover3.max' => 'La tercera portada no puede pesar más de 10 MB.',
+            'cover3.mimes' => 'La tercera portada debe ser JPG, PNG o WebP.',
+            'logo.image' => 'El logo debe ser una imagen.',
+            'logo.max' => 'El logo no puede pesar más de 2 MB.',
+            'logo.mimes' => 'El logo debe ser JPG, PNG o WebP.',
         ]);
 
         $userId = $request->user()->id;
@@ -211,6 +231,13 @@ class StepController extends BaseApiController
             'tagline' => ['nullable', 'string', 'max:120'],
             'description' => ['nullable', 'string', 'max:500'],
             'about_photo' => ['nullable', 'image', 'max:10240'],
+        ], [
+            'business_name.required' => 'Indica el nombre de tu negocio.',
+            'business_name.max' => 'El nombre del negocio no puede superar los 80 caracteres.',
+            'tagline.max' => 'El lema no puede superar los 120 caracteres.',
+            'description.max' => 'La descripción no puede superar los 500 caracteres.',
+            'about_photo.image' => 'La foto «sobre nosotros» debe ser una imagen.',
+            'about_photo.max' => 'La foto «sobre nosotros» no puede pesar más de 10 MB.',
         ]);
 
         $userId = $request->user()->id;
@@ -258,6 +285,15 @@ class StepController extends BaseApiController
                 $request->validate([
                     'photos' => ['required', 'array', 'min:1', 'max:'.$maxPhotos],
                     'photos.*' => ['required', 'image', 'max:10240', 'mimes:jpg,jpeg,png,webp'],
+                ], [
+                    'photos.required' => 'Sube al menos una foto para tu galería.',
+                    'photos.array' => 'El formato de las fotos no es válido.',
+                    'photos.min' => 'Sube al menos una foto.',
+                    'photos.max' => 'Puedes subir como máximo :max fotos en la galería.',
+                    'photos.*.required' => 'Falta alguna de las fotos.',
+                    'photos.*.image' => 'Cada foto debe ser una imagen.',
+                    'photos.*.max' => 'Cada foto no puede pesar más de 10 MB.',
+                    'photos.*.mimes' => 'Las fotos deben ser JPG, PNG o WebP.',
                 ]);
 
                 $business->images()
@@ -286,6 +322,13 @@ class StepController extends BaseApiController
             $request->validate([
                 'photos' => ['nullable', 'array', 'max:'.$maxPhotos],
                 'photos.*' => ['required', 'image', 'max:10240', 'mimes:jpg,jpeg,png,webp'],
+            ], [
+                'photos.array' => 'El formato de las fotos no es válido.',
+                'photos.max' => 'Puedes subir como máximo :max fotos en la galería.',
+                'photos.*.required' => 'Falta alguna de las fotos.',
+                'photos.*.image' => 'Cada foto debe ser una imagen.',
+                'photos.*.max' => 'Cada foto no puede pesar más de 10 MB.',
+                'photos.*.mimes' => 'Las fotos deben ser JPG, PNG o WebP.',
             ]);
 
             $existingCount = $business->images()
@@ -331,6 +374,14 @@ class StepController extends BaseApiController
         $request->validate([
             'photos' => ['required', 'array', 'max:'.$maxPhotos],
             'photos.*' => ['required', 'image', 'max:10240', 'mimes:jpg,jpeg,png,webp'],
+        ], [
+            'photos.required' => 'Sube al menos una foto para tu galería.',
+            'photos.array' => 'El formato de las fotos no es válido.',
+            'photos.max' => 'Puedes subir como máximo :max fotos en la galería.',
+            'photos.*.required' => 'Falta alguna de las fotos.',
+            'photos.*.image' => 'Cada foto debe ser una imagen.',
+            'photos.*.max' => 'Cada foto no puede pesar más de 10 MB.',
+            'photos.*.mimes' => 'Las fotos deben ser JPG, PNG o WebP.',
         ]);
 
         Storage::disk('local')->deleteDirectory("onboarding/{$userId}/gallery");
@@ -362,7 +413,29 @@ class StepController extends BaseApiController
             $rules["schedule.{$day}.close"] = ['required', 'date_format:H:i'];
             $rules["schedule.{$day}.closed"] = ['required', 'boolean'];
         }
-        $data = $request->validate($rules);
+        $data = $request->validate($rules, [], [
+            'schedule.mon.open' => 'apertura del lunes',
+            'schedule.mon.close' => 'cierre del lunes',
+            'schedule.mon.closed' => 'estado del lunes',
+            'schedule.tue.open' => 'apertura del martes',
+            'schedule.tue.close' => 'cierre del martes',
+            'schedule.tue.closed' => 'estado del martes',
+            'schedule.wed.open' => 'apertura del miércoles',
+            'schedule.wed.close' => 'cierre del miércoles',
+            'schedule.wed.closed' => 'estado del miércoles',
+            'schedule.thu.open' => 'apertura del jueves',
+            'schedule.thu.close' => 'cierre del jueves',
+            'schedule.thu.closed' => 'estado del jueves',
+            'schedule.fri.open' => 'apertura del viernes',
+            'schedule.fri.close' => 'cierre del viernes',
+            'schedule.fri.closed' => 'estado del viernes',
+            'schedule.sat.open' => 'apertura del sábado',
+            'schedule.sat.close' => 'cierre del sábado',
+            'schedule.sat.closed' => 'estado del sábado',
+            'schedule.sun.open' => 'apertura del domingo',
+            'schedule.sun.close' => 'cierre del domingo',
+            'schedule.sun.closed' => 'estado del domingo',
+        ]);
 
         $draft = Cache::get($this->cacheKey($request->user()->id), []);
         $draft['schedule'] = $data['schedule'];
@@ -385,6 +458,16 @@ class StepController extends BaseApiController
             'country_code' => ['required', 'string', 'size:2', 'regex:/^[A-Z]{2}$/'],
             'phone' => ['required', 'string'],
             'email' => ['required', 'email'],
+        ], [
+            'address.required' => 'Indica la dirección de tu negocio.',
+            'city.required' => 'Indica la ciudad.',
+            'country.required' => 'Indica el país.',
+            'country_code.required' => 'Indica el código de país.',
+            'country_code.size' => 'El código de país debe tener 2 letras.',
+            'country_code.regex' => 'El código de país debe tener 2 letras en mayúscula (por ejemplo, ES).',
+            'phone.required' => 'Indica un teléfono de contacto.',
+            'email.required' => 'Indica un correo de contacto público.',
+            'email.email' => 'Introduce un correo electrónico válido.',
         ]);
 
         $geocoded = false;
@@ -420,6 +503,9 @@ class StepController extends BaseApiController
         $data = $request->validate([
             'plan' => ['required', 'in:free,pro'],
             'subdomain' => ['nullable', 'string'],
+        ], [
+            'plan.required' => 'Selecciona un plan.',
+            'plan.in' => 'El plan indicado no es válido.',
         ]);
 
         $user = $request->user()->loadMissing('business');

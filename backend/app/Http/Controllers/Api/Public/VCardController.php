@@ -21,11 +21,11 @@ class VCardController
             ->first();
 
         if (! $business) {
-            return response()->json(['message' => 'Not found'], 404);
+            return response()->json(['message' => 'Página no encontrada'], 404);
         }
 
         if (! $business->is_pro || ! $business->vcard_enabled) {
-            return response()->json(['message' => 'Forbidden'], 403);
+            return response()->json(['message' => 'La tarjeta de contacto no está disponible para este negocio.'], 403);
         }
 
         $publicUrl = $this->urls->forBusiness($business);

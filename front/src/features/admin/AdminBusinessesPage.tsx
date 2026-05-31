@@ -12,6 +12,7 @@ import { ADMIN_SECTOR_OPTIONS } from './sectors'
 import { Btn, Card, Icon, Input } from '../../components/primitives/primitives'
 import Select from '../../components/primitives/Select'
 import { useToast } from '../../components/ui/Toast'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 
 const PLAN_OPTIONS = [
   { value: '', label: 'Todos los planes' },
@@ -58,6 +59,7 @@ export default function AdminBusinessesPage() {
   const [published, setPublished] = useState('')
   const [withTrashed, setWithTrashed] = useState(false)
   const [page, setPage] = useState(1)
+  const [pendingArchive, setPendingArchive] = useState<AdminBusinessListItem | null>(null)
 
   const params = useMemo(() => {
     const p: Parameters<typeof fetchAdminBusinesses>[0] = {
@@ -110,14 +112,7 @@ export default function AdminBusinessesPage() {
   })
 
   function confirmDelete(row: AdminBusinessListItem) {
-    if (
-      !confirm(
-        `¿Archivar "${row.name}"? El negocio pasará a papelera (soft delete). Podrás restaurarlo desde el detalle.`,
-      )
-    ) {
-      return
-    }
-    softDel.mutate(row.id)
+    setPendingArchive(row)
   }
 
   const pg = data?.pagination
@@ -338,6 +333,25 @@ export default function AdminBusinessesPage() {
           )}
         </>
       )}
+      <ConfirmDialog
+        open={pendingArchive !== null}
+        onCancel={() => setPendingArchive(null)}
+        onConfirm={() => {
+          if (pendingArchive) {
+            softDel.mutate(pendingArchive.id)
+            setPendingArchive(null)
+          }
+        }}
+        title="Archivar negocio"
+        description={
+          <p className="lw-small" style={{ margin: 0, lineHeight: 1.55 }}>
+            ¿Seguro que quieres archivar <strong>{pendingArchive?.name ?? ''}</strong>? Pasará a la papelera (eliminación reversible). Podrás restaurarlo desde el detalle.
+          </p>
+        }
+        confirmLabel="Archivar"
+        tone="danger"
+        loading={softDel.isPending}
+      />
     </div>
   )
 }

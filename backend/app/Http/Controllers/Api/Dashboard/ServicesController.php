@@ -61,7 +61,7 @@ class ServicesController extends BaseApiController
     public function update(Request $request, BusinessService $service)
     {
         if ($service->business_id !== $request->user()->business_id) {
-            return response()->json(['message' => 'Forbidden'], 403);
+            return response()->json(['message' => 'No puedes modificar servicios de otro negocio.'], 403);
         }
 
         $business = $request->user()->business;
@@ -85,7 +85,7 @@ class ServicesController extends BaseApiController
     public function destroy(Request $request, BusinessService $service)
     {
         if ($service->business_id !== $request->user()->business_id) {
-            return response()->json(['message' => 'Forbidden'], 403);
+            return response()->json(['message' => 'No puedes modificar servicios de otro negocio.'], 403);
         }
 
         // BusinessServiceObserver invalida public_page:{subdomain} en deleted.

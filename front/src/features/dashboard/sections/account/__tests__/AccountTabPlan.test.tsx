@@ -143,7 +143,7 @@ describe('AccountTabPlan', () => {
     const cancelSpy = vi.spyOn(billingApi, 'postCancelSubscription')
     renderTab()
     fireEvent.click(await screen.findByRole('button', { name: 'Cancelar suscripción' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Volver' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Mantener Pro' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(cancelSpy).not.toHaveBeenCalled()
   })
@@ -156,7 +156,7 @@ describe('AccountTabPlan', () => {
       .mockResolvedValue({ message: 'OK' })
     renderTab()
     fireEvent.click(await screen.findByRole('button', { name: 'Cancelar suscripción' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Sí, cancelar' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Sí, cancelar plan' }))
     await waitFor(() => expect(cancelSpy).toHaveBeenCalled())
   })
 

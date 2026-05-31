@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Btn, Card, Field, Icon, Input, Textarea } from '../../components/primitives/primitives'
 import DashboardSectionHeader from '../dashboard/components/DashboardSectionHeader'
 import { Modal } from '../../components/ui/Modal'
+import { RemoveServiceDialog } from '../../components/ui/RemoveServiceDialog'
 import {
   createService,
   deleteService,
@@ -70,6 +71,7 @@ export default function ProServicesEditor({
   const [editingId, setEditingId] = useState<number | null>(null)
   const [form, setForm] = useState<FormState>(emptyForm())
   const [query, setQuery] = useState('')
+  const [pendingDelete, setPendingDelete] = useState<BusinessService | null>(null)
 
   const servicesQuery = useQuery({
     queryKey: keys.dashboard.services,
@@ -127,6 +129,7 @@ export default function ProServicesEditor({
   const deleteMut = useMutation({
     mutationFn: (id: number) => deleteService(id),
     onSuccess: (_void, deletedId) => {
+      setPendingDelete(null)
       patchServicesCache((prev) => (prev ?? []).filter((s) => s.id !== deletedId))
     },
   })
@@ -200,10 +203,9 @@ export default function ProServicesEditor({
 
   const onDelete = useCallback(
     (s: BusinessService) => {
-      if (!window.confirm(`¿Eliminar el servicio «${s.name}»?`)) return
-      deleteMut.mutate(s.id)
+      setPendingDelete(s)
     },
-    [deleteMut],
+    [],
   )
 
   const nameError = useMemo(() => fieldErrors.name ?? '', [fieldErrors])
@@ -597,6 +599,17 @@ export default function ProServicesEditor({
           )}
         </>
       )}
+      <RemoveServiceDialog
+        open={pendingDelete !== null}
+        service={pendingDelete}
+        onCancel={() => {
+          if (!deleteMut.isPending) setPendingDelete(null)
+        }}
+        onConfirm={() => {
+          if (pendingDelete) deleteMut.mutate(pendingDelete.id)
+        }}
+        loading={deleteMut.isPending}
+      />
     </>
   )
 }

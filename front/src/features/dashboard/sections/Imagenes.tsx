@@ -15,6 +15,7 @@ import {
   type ImageUploadArea,
 } from '../../../lib/uploadErrorFeedback'
 import { useToast } from '../../../components/ui/Toast'
+import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
 import FaviconUploader from '../../shared/FaviconUploader'
 import { keys } from '../../../api/queryKeys'
 import { useDashboard } from '../context/DashboardContext'
@@ -428,6 +429,7 @@ export default function Imagenes() {
   const [logoProgress, setLogoProgress] = useState<number | null>(null)
   const [logoBusy, setLogoBusy] = useState(false)
   const [logoDeleteBusy, setLogoDeleteBusy] = useState(false)
+  const [logoDeleteConfirmOpen, setLogoDeleteConfirmOpen] = useState(false)
   const [logoDrag, setLogoDrag] = useState(false)
   const [deletingImageId, setDeletingImageId] = useState<number | null>(null)
   const [upgradeBanner, setUpgradeBanner] = useState(false)
@@ -626,9 +628,13 @@ export default function Imagenes() {
     [invalidate, logoBusy, reportUploadFailure, setAreaError, showToast],
   )
 
-  const handleLogoDelete = useCallback(async () => {
+  const handleLogoDelete = useCallback(() => {
     if (logoDeleteBusy) return
-    if (!window.confirm('¿Eliminar el logo? En la barra superior volverá a mostrarse el nombre.')) return
+    setLogoDeleteConfirmOpen(true)
+  }, [logoDeleteBusy])
+
+  const performLogoDelete = useCallback(async () => {
+    setLogoDeleteConfirmOpen(false)
     setLogoDeleteBusy(true)
     try {
       await deleteBusinessLogo()
@@ -638,7 +644,7 @@ export default function Imagenes() {
     } finally {
       setLogoDeleteBusy(false)
     }
-  }, [invalidate, logoDeleteBusy, reportUploadFailure])
+  }, [invalidate, reportUploadFailure])
 
   const coverTitle = heroPhotoSlots > 1 ? `Portada (${cover.length}/${heroPhotoSlots} fotos)` : 'Portada'
 
@@ -884,6 +890,17 @@ export default function Imagenes() {
         galleryLimit={galleryLimit}
         uploadAreaRef={galleryUploadRef}
         inlineError={inlineErrors.gallery}
+      />
+
+      <ConfirmDialog
+        open={logoDeleteConfirmOpen}
+        onCancel={() => setLogoDeleteConfirmOpen(false)}
+        onConfirm={() => { void performLogoDelete() }}
+        title="Eliminar logo"
+        description="En la barra superior de tu página volverá a mostrarse el nombre del negocio en lugar del logo. Podrás subir otro logo cuando quieras."
+        confirmLabel="Eliminar logo"
+        tone="danger"
+        loading={logoDeleteBusy}
       />
     </div>
   )

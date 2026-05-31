@@ -16,7 +16,7 @@ class StripeWebhookController extends CashierWebhookController
     {
         $secret = (string) (config('cashier.webhook.secret') ?? '');
         if ($secret === '') {
-            abort(response()->json(['message' => 'Stripe webhook secret is not configured'], 503));
+            abort(response()->json(['message' => 'El servicio de pagos no está configurado correctamente. Inténtalo más tarde.'], 503));
         }
 
         $this->middleware(VerifyWebhookSignature::class);

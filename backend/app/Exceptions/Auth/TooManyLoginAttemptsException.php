@@ -8,7 +8,7 @@ class TooManyLoginAttemptsException extends RuntimeException
 {
     public function __construct(
         public int $secondsUntilRelease,
-        string $message = 'Too many login attempts.'
+        string $message = 'Demasiados intentos de acceso.'
     ) {
         parent::__construct($message);
     }

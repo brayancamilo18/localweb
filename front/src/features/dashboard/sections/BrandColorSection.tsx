@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Btn } from '../../../components/primitives/primitives'
 import { useToast } from '../../../components/ui/Toast'
 import BrandColorPicker from '../../shared/BrandColorPicker'
@@ -11,11 +12,11 @@ import {
 import { useBrandColor } from '../../shared/useBrandColor'
 import { useDashboard } from '../context/DashboardContext'
 
-function scrollToTemplates() {
-  document.querySelector('.lw-diseno-templates-block')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-}
-
 export default function BrandColorSection() {
+  const navigate = useNavigate()
+  const goToDesignTemplates = useCallback(() => {
+    navigate('/dashboard/diseno#plantillas')
+  }, [navigate])
   const { business } = useDashboard()
   const templateName = business.template?.name ?? 'tu plantilla'
   const isPro = business.is_pro === true
@@ -80,7 +81,7 @@ export default function BrandColorSection() {
           <BrandColorLockedBlock
             palette={data.palette}
             templateName={templateName}
-            onGoToTemplates={scrollToTemplates}
+            onGoToTemplates={goToDesignTemplates}
           />
         ) : (
           <>

@@ -54,4 +54,18 @@ class UpdateBusinessRequest extends FormRequest
             'vcard_enabled' => ['sometimes', 'boolean'],
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'subdomain.regex' => 'El subdominio solo admite minúsculas, números y guiones (no al inicio ni al final).',
+            'subdomain.unique' => 'Ese subdominio ya está en uso.',
+            'subdomain.max' => 'El subdominio es demasiado largo.',
+            'template_id.exists' => 'La plantilla seleccionada no existe.',
+            'plan.Illuminate\\Validation\\Rules\\Enum' => 'El plan indicado no es válido.',
+        ];
+    }
 }

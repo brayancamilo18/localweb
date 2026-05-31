@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { getColorDisplayName } from '../../../lib/hexColorName'
 import BrandColorSection from '../sections/BrandColorSection'
 
@@ -49,8 +49,11 @@ vi.mock('../context/DashboardContext', () => ({
 
 function renderSection() {
   return render(
-    <MemoryRouter>
-      <BrandColorSection />
+    <MemoryRouter initialEntries={['/dashboard/brand-color']}>
+      <Routes>
+        <Route path="/dashboard/brand-color" element={<BrandColorSection />} />
+        <Route path="/dashboard/diseno" element={<div data-testid="diseno-page" />} />
+      </Routes>
     </MemoryRouter>,
   )
 }
@@ -100,6 +103,13 @@ describe('BrandColorSection', () => {
     renderSection()
     expect(screen.getByText(/no admite cambio de color de marca/i)).toBeInTheDocument()
     expect(screen.queryByRole('group', { name: 'Elige el color de marca' })).not.toBeInTheDocument()
+  })
+
+  it('botón Cambiar plantilla navega a la sección Diseño', () => {
+    brandColorState = { ...brandColorState, is_supported: false }
+    renderSection()
+    fireEvent.click(screen.getByRole('button', { name: 'Cambiar plantilla' }))
+    expect(screen.getByTestId('diseno-page')).toBeInTheDocument()
   })
 
   it('clic en un swatch no guarda hasta pulsar Confirmar color', () => {

@@ -52,7 +52,7 @@ class ImagesController extends BaseApiController
     public function destroy(Request $request, BusinessImage $image, ImageService $images)
     {
         if ($image->business_id !== $request->user()->business_id) {
-            return response()->json(['message' => 'Forbidden'], 403);
+            return response()->json(['message' => 'No tienes permiso para realizar esta acción.'], 403);
         }
 
         // BusinessImageObserver invalida public_page:{subdomain} en deleted.
@@ -75,7 +75,7 @@ class ImagesController extends BaseApiController
             ->whereIn('id', $ids)
             ->count();
         if ($ownedCount !== count($ids)) {
-            return response()->json(['message' => 'Forbidden'], 403);
+            return response()->json(['message' => 'No tienes permiso para realizar esta acción.'], 403);
         }
 
         // ImageService::reorder usa BusinessImage::query()->update() masivo: NO dispara observers,
@@ -100,7 +100,7 @@ class ImagesController extends BaseApiController
 
         $business = $request->user()->business;
         if (! $business) {
-            return response()->json(['message' => 'Forbidden'], 403);
+            return response()->json(['message' => 'Aún no has completado el alta de tu negocio.'], 403);
         }
 
         // BusinessObserver invalida public_page:{subdomain} en saved (replace hace $business->save()).
@@ -115,7 +115,7 @@ class ImagesController extends BaseApiController
     {
         $business = $request->user()->business;
         if (! $business) {
-            return response()->json(['message' => 'Forbidden'], 403);
+            return response()->json(['message' => 'Aún no has completado el alta de tu negocio.'], 403);
         }
 
         // BusinessObserver invalida en saved tras $business->update(['logo_path' => null]).
@@ -130,7 +130,7 @@ class ImagesController extends BaseApiController
     {
         $business = $request->user()->business;
         if (! $business) {
-            return response()->json(['message' => 'Forbidden'], 403);
+            return response()->json(['message' => 'Aún no has completado el alta de tu negocio.'], 403);
         }
 
         if (! $business->is_pro) {
@@ -168,7 +168,7 @@ class ImagesController extends BaseApiController
     {
         $business = $request->user()->business;
         if (! $business) {
-            return response()->json(['message' => 'Forbidden'], 403);
+            return response()->json(['message' => 'Aún no has completado el alta de tu negocio.'], 403);
         }
 
         $images->deleteBusinessFavicon($business);

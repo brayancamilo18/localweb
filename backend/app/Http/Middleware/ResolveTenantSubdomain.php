@@ -29,7 +29,7 @@ class ResolveTenantSubdomain
             ->exists();
 
         if (! $exists) {
-            return response()->json(['error' => 'Tenant not found'], 404);
+            return response()->json(['error' => 'Negocio no encontrado'], 404);
         }
 
         return $next($request);

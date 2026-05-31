@@ -19,6 +19,10 @@ class LoginController extends BaseApiController
         $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
+        ], [
+            'email.required' => 'Introduce tu correo electrónico.',
+            'email.email' => 'Introduce un correo electrónico válido.',
+            'password.required' => 'Introduce tu contraseña.',
         ]);
 
         $key = $authService->getRateLimitKey($request);

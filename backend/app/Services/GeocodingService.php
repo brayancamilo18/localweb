@@ -20,7 +20,7 @@ class GeocodingService
         $item = $response->json()[0] ?? null;
 
         if (! is_array($item)) {
-            throw new GeocodingException('Address not found.');
+            throw new GeocodingException('No se pudo localizar la dirección indicada.');
         }
 
         return [

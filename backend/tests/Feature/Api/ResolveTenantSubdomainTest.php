@@ -14,7 +14,7 @@ it('returns 404 when tenant subdomain header is unknown', function () {
     test()->withHeader('X-Tenant-Subdomain', 'sectio')
         ->getJson('/api/v1/public/subdomain-rules')
         ->assertStatus(404)
-        ->assertJson(['error' => 'Tenant not found']);
+        ->assertJson(['error' => 'Negocio no encontrado']);
 });
 
 it('allows api requests when tenant subdomain exists', function () {
@@ -44,5 +44,5 @@ it('returns 404 for soft-deleted tenant subdomain', function () {
     test()->withHeader('X-Tenant-Subdomain', 'gone-tenant')
         ->getJson('/api/v1/public/subdomain-rules')
         ->assertStatus(404)
-        ->assertJson(['error' => 'Tenant not found']);
+        ->assertJson(['error' => 'Negocio no encontrado']);
 });

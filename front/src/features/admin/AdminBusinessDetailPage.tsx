@@ -22,6 +22,7 @@ import type { AdminBusinessImageRow, AdminBusinessServiceRow, AdminBusinessShow 
 import { Btn, Card, Field, Icon, Input, Textarea } from '../../components/primitives/primitives'
 import Select from '../../components/primitives/Select'
 import { useToast } from '../../components/ui/Toast'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { ADMIN_SECTOR_FORM_OPTIONS } from './sectors'
 
 type TabId = 'general' | 'media' | 'stats' | 'billing' | 'owner'
@@ -111,6 +112,8 @@ export default function AdminBusinessDetailPage() {
   const [tab, setTab] = useState<TabId>('general')
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState<DraftState | null>(null)
+  const [restoreConfirmOpen, setRestoreConfirmOpen] = useState(false)
+  const [forceDeleteConfirmOpen, setForceDeleteConfirmOpen] = useState(false)
 
   const businessQuery = useQuery({
     queryKey: keys.admin.business(numericId),
@@ -324,10 +327,7 @@ export default function AdminBusinessDetailPage() {
               kind="success"
               size="sm"
               loading={restoreMut.isPending}
-              onClick={() => {
-                if (!confirm('¿Restaurar este negocio?')) return
-                restoreMut.mutate()
-              }}
+              onClick={() => setRestoreConfirmOpen(true)}
             >
               Restaurar
             </Btn>
@@ -336,16 +336,7 @@ export default function AdminBusinessDetailPage() {
               kind="danger"
               size="sm"
               loading={forceMut.isPending}
-              onClick={() => {
-                if (
-                  !confirm(
-                    '¿Eliminar PERMANENTEMENTE? Se borrarán archivos, visitas y datos relacionados. No se puede deshacer.',
-                  )
-                ) {
-                  return
-                }
-                forceMut.mutate()
-              }}
+              onClick={() => setForceDeleteConfirmOpen(true)}
             >
               Eliminar permanentemente
             </Btn>
@@ -480,6 +471,39 @@ export default function AdminBusinessDetailPage() {
           ) : null}
         </div>
       </Card>
+
+      <ConfirmDialog
+        open={restoreConfirmOpen}
+        onCancel={() => setRestoreConfirmOpen(false)}
+        onConfirm={() => {
+          setRestoreConfirmOpen(false)
+          restoreMut.mutate()
+        }}
+        title="Restaurar negocio"
+        description="El negocio saldrá de la papelera y volverá a estar operativo. Podrás volver a publicarlo desde su detalle."
+        confirmLabel="Restaurar"
+        tone="default"
+        loading={restoreMut.isPending}
+      />
+
+      <ConfirmDialog
+        open={forceDeleteConfirmOpen}
+        onCancel={() => setForceDeleteConfirmOpen(false)}
+        onConfirm={() => {
+          setForceDeleteConfirmOpen(false)
+          forceMut.mutate()
+        }}
+        title="Eliminar permanentemente"
+        description={
+          <p className="lw-small" style={{ margin: 0, lineHeight: 1.55 }}>
+            Vas a borrar de forma permanente el negocio <strong>{b.name}</strong>. Se eliminarán todos sus archivos, imágenes, visitas y datos relacionados. <strong>Esta acción no se puede deshacer.</strong>
+          </p>
+        }
+        confirmLabel="Eliminar permanentemente"
+        tone="destructive"
+        destructiveConfirmWord="ELIMINAR"
+        loading={forceMut.isPending}
+      />
     </div>
   )
 }

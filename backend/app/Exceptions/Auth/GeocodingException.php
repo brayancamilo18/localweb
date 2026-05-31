@@ -6,7 +6,7 @@ use RuntimeException;
 
 class GeocodingException extends RuntimeException
 {
-    public function __construct(string $message = 'Unable to geocode address.')
+    public function __construct(string $message = 'No se pudo localizar la dirección indicada.')
     {
         parent::__construct($message);
     }

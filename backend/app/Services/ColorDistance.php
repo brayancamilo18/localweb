@@ -19,7 +19,7 @@ class ColorDistance
         $hex = ltrim(strtolower($hex), '#');
 
         if (strlen($hex) !== 6 || ! ctype_xdigit($hex)) {
-            throw new \InvalidArgumentException('Invalid hex color: '.$hex);
+            throw new \InvalidArgumentException('Color hexadecimal no válido: '.$hex);
         }
 
         return [

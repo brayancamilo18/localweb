@@ -30,6 +30,13 @@ class ResetPasswordController extends BaseApiController
             'token' => ['required', 'string'],
             'email' => ['required', 'email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'token.required' => 'El enlace de recuperación es inválido. Vuelve a solicitarlo.',
+            'email.required' => 'Introduce tu correo electrónico.',
+            'email.email' => 'Introduce un correo electrónico válido.',
+            'password.required' => 'Introduce una nueva contraseña.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.confirmed' => 'La confirmación de contraseña no coincide.',
         ]);
 
         $status = Password::broker()->reset(
