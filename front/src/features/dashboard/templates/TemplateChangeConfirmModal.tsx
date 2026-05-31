@@ -256,29 +256,29 @@ export default function TemplateChangeConfirmModal({
 
   if (preview === null) {
     body = (
-      <div style={{ padding: '8px 0' }}>
-        <h2 id={titleId} style={{ margin: '0 0 12px', fontSize: 20, fontWeight: 600, color: T.ink }}>
+      <div>
+        <h2 id={titleId} className="lw-tpl-change-modal__title">
           {title}
         </h2>
-        <p style={{ margin: 0, fontSize: 14, color: T.ink99 }}>Calculando opciones de color…</p>
+        <p className="lw-tpl-change-modal__intro">Calculando opciones de color…</p>
       </div>
     )
   } else if (!brand?.has_current) {
     body = (
-      <div style={{ padding: '8px 0' }}>
-        <h2 id={titleId} style={{ margin: '0 0 12px', fontSize: 20, fontWeight: 600, color: T.ink }}>
+      <div>
+        <h2 id={titleId} className="lw-tpl-change-modal__title">
           {title}
         </h2>
-        <p style={{ margin: 0, fontSize: 14, color: T.ink }}>¿Confirmas el cambio de plantilla a «{templateName}»?</p>
+        <p className="lw-tpl-change-modal__intro">¿Confirmas el cambio de plantilla a «{templateName}»?</p>
       </div>
     )
   } else if (brand.current_in_new) {
     body = (
-      <div style={{ padding: '8px 0' }}>
-        <h2 id={titleId} style={{ margin: '0 0 12px', fontSize: 20, fontWeight: 600, color: T.ink }}>
+      <div>
+        <h2 id={titleId} className="lw-tpl-change-modal__title">
           {title}
         </h2>
-        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: T.ink99 }}>
+        <p className="lw-tpl-change-modal__intro">
           Tu color de marca actual ({getColorDisplayName(brand.current_color)}) también está disponible en esta
           plantilla. Se mantendrá al cambiar.
         </p>
@@ -286,14 +286,18 @@ export default function TemplateChangeConfirmModal({
     )
   } else if (!brand.new_template_supported) {
     body = (
-      <div style={{ padding: '8px 0' }}>
-        <h2 id={titleId} style={{ margin: '0 0 16px', fontSize: 20, fontWeight: 600, color: T.ink }}>
+      <div className="lw-tpl-change-modal__body lw-tpl-change-modal__body--locked">
+        <h2 id={titleId} className="lw-tpl-change-modal__title">
           {title}
         </h2>
-        <BrandColorLockedBlock palette={palette.length ? palette : [brand.current_color]} compact />
-        <p style={{ margin: '16px 0 0', fontSize: 12, color: T.ink60, lineHeight: 1.5 }}>
-          Tu color {getColorDisplayName(brand.current_color)} quedará guardado por si vuelves a una plantilla
-          compatible.
+        <BrandColorLockedBlock
+          palette={palette.length ? palette : [brand.current_color]}
+          templateName={templateName}
+          compact
+        />
+        <p className="lw-tpl-change-modal__saved-note">
+          Tu color <strong>{getColorDisplayName(brand.current_color)}</strong> quedará guardado por si vuelves a
+          una plantilla compatible.
         </p>
       </div>
     )
@@ -394,7 +398,7 @@ export default function TemplateChangeConfirmModal({
         <Icon name="x" size={20} />
       </button>
 
-      <div style={{ paddingRight: 36 }}>
+      <div className="lw-tpl-change-modal__content">
         {showCoverTrimNotice && covers ? (
           <CoverTrimNotice
             excess={covers.excess}
@@ -405,22 +409,10 @@ export default function TemplateChangeConfirmModal({
         {body}
       </div>
 
-      {showRichPicker ? (
-        <BrandColorFooterHint />
-      ) : (
-        <div style={{ height: 4 }} />
-      )}
+      {showRichPicker ? <BrandColorFooterHint /> : null}
 
       <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          gap: 8,
-          marginTop: showRichPicker ? 4 : 8,
-          paddingTop: 16,
-          borderTop: `1px solid var(--lw-border)`,
-        }}
+        className={`lw-tpl-change-modal__footer${showRichPicker ? '' : ' lw-tpl-change-modal__footer--compact'}`}
       >
         <button
           type="button"
@@ -469,7 +461,7 @@ export default function TemplateChangeConfirmModal({
       <div
         className={`lw-tpl-change-modal${showRichPicker ? ' lw-tpl-change-modal--wide' : ''}`}
       >
-        <BrandColorPanelShell style={{ marginBottom: 0, padding: showRichPicker ? '22px 24px' : undefined }}>
+        <BrandColorPanelShell className="lw-tpl-change-modal__panel">
           {panelInner}
         </BrandColorPanelShell>
       </div>

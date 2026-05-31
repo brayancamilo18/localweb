@@ -8,12 +8,14 @@ const T = brandColorTokens
 
 type ShellProps = {
   children: ReactNode
+  className?: string
   style?: CSSProperties
 }
 
-export function BrandColorPanelShell({ children, style }: ShellProps) {
+export function BrandColorPanelShell({ children, className, style }: ShellProps) {
   return (
     <section
+      className={className}
       style={{
         borderRadius: 24,
         background: T.cream,
