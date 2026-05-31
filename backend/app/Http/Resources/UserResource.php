@@ -19,6 +19,8 @@ class UserResource extends JsonResource
             'terms_version' => $this->terms_version,
             'privacy_policy_version' => $this->privacy_policy_version,
             'marketing_consent_at' => optional($this->marketing_consent_at)?->toIso8601String(),
+            'provider' => $this->provider,
+            'business_id' => $this->business_id,
         ];
     }
 }

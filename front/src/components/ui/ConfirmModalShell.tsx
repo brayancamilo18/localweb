@@ -11,7 +11,7 @@ export type ConfirmModalShellProps = {
   title: string
   eyebrowTone?: 'danger' | 'gold'
   headerIcon: ReactNode
-  headerIconVariant?: 'danger' | 'gold'
+  headerIconVariant?: 'danger' | 'gold' | 'plain'
   topBand?: 'danger' | 'pro' | 'none'
   wide?: boolean
   footerClassName?: string

@@ -9,6 +9,8 @@ export interface User {
   terms_version?: string | null
   privacy_policy_version?: string | null
   marketing_consent_at?: string | null
+  provider?: string | null
+  business_id?: number | null
 }
 
 /** GET /admin/stats/overview */

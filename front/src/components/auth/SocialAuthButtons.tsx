@@ -1,3 +1,4 @@
+import { startGoogleOAuth } from '../../lib/socialAuth'
 import { Btn } from '../primitives/primitives'
 
 function SocialGoogle() {
@@ -23,14 +24,6 @@ function SocialGoogle() {
   )
 }
 
-function SocialApple() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M17.05 12.04c-.03-3.07 2.5-4.55 2.62-4.62-1.43-2.09-3.66-2.38-4.45-2.41-1.9-.19-3.7 1.12-4.66 1.12-.97 0-2.45-1.09-4.04-1.06-2.07.03-3.99 1.21-5.06 3.07-2.16 3.74-.55 9.27 1.55 12.31 1.03 1.49 2.25 3.16 3.85 3.1 1.55-.06 2.13-1 4-1 1.86 0 2.4 1 4.03.97 1.66-.03 2.71-1.51 3.73-3 .96-1.4 1.36-2.77 1.39-2.84-.03-.01-2.66-1.02-2.69-4.04zM14.36 3.94c.85-1.04 1.43-2.49 1.27-3.94-1.23.05-2.72.82-3.61 1.86-.79.91-1.49 2.39-1.3 3.81 1.37.11 2.79-.7 3.64-1.73z" />
-    </svg>
-  )
-}
-
 type SocialAuthButtonsProps = {
   dividerLabel?: string
   /** `top`: botones y divisor debajo (login). `bottom`: divisor y botones debajo del formulario (registro). */
@@ -49,15 +42,17 @@ function SocialDivider({ label }: { label: string }) {
 
 function SocialGrid() {
   return (
-    <div className="lw-login-page__social-grid">
-      <Btn kind="outline" size="lg" type="button" disabled title="Próximamente" style={{ height: 48 }}>
+    <div className="lw-login-page__social-grid" style={{ gridTemplateColumns: '1fr' }}>
+      <Btn
+        kind="outline"
+        size="lg"
+        type="button"
+        fullWidth
+        onClick={() => startGoogleOAuth()}
+        style={{ height: 48 }}
+      >
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
           <SocialGoogle /> Google
-        </span>
-      </Btn>
-      <Btn kind="dark" size="lg" type="button" disabled title="Próximamente" style={{ height: 48 }}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-          <SocialApple /> Apple
         </span>
       </Btn>
     </div>

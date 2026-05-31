@@ -10,13 +10,17 @@ use App\Http\Controllers\Api\Admin\TemplatesController as AdminTemplatesControll
 use App\Http\Controllers\Api\Admin\UsersController as AdminUsersController;
 use App\Http\Controllers\Api\Admin\PingController;
 use App\Http\Controllers\Api\Admin\StatsController as AdminStatsController;
+use App\Http\Controllers\Api\Auth\Social\CompleteRegistrationController;
 use App\Http\Controllers\Api\Auth\ForgotPasswordController;
+use App\Http\Controllers\Api\Auth\Social\GoogleCallbackController;
+use App\Http\Controllers\Api\Auth\Social\GoogleRedirectController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\QrController;
 use App\Http\Controllers\Api\Auth\LogoutController;
 use App\Http\Controllers\Api\Auth\MeController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\ResetPasswordController;
+use App\Http\Controllers\Api\Auth\Social\SocialMeController;
 use App\Http\Controllers\Api\BillingController;
 use App\Http\Controllers\Api\Dashboard\BusinessController as DashboardBusinessController;
 use App\Http\Controllers\Api\Dashboard\ImagesController;
@@ -37,7 +41,10 @@ use App\Http\Controllers\Api\Public\StorageMediaController;
 use App\Http\Controllers\Api\Public\SubdomainRulesController;
 use App\Http\Controllers\Api\Public\TenantExistsController;
 use App\Http\Controllers\Api\Public\VCardController;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
@@ -47,11 +54,20 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/login', LoginController::class)->middleware('throttle:10,1');
         Route::post('/forgot-password', ForgotPasswordController::class)->middleware('throttle:5,1');
         Route::post('/reset-password', ResetPasswordController::class)->middleware('throttle:10,1');
+        Route::get('/google/redirect', GoogleRedirectController::class)->middleware('throttle:10,1');
+        Route::get('/google/callback', GoogleCallbackController::class)->middleware([
+            EncryptCookies::class,
+            AddQueuedCookiesToResponse::class,
+            StartSession::class,
+            'throttle:30,1',
+        ]);
     });
 
     Route::middleware('auth:sanctum')->group(function (): void {
         Route::post('/auth/logout', LogoutController::class)->middleware('throttle:60,1');
         Route::get('/auth/me', MeController::class)->middleware('throttle:120,1');
+        Route::post('/auth/social/complete-registration', CompleteRegistrationController::class)->middleware('throttle:5,1');
+        Route::get('/auth/social/me', SocialMeController::class)->middleware('throttle:60,1');
 
         // Reenvío del email de verificación. Limitado a 6 intentos/hora.
         Route::post('/auth/email/verification-notification', function (Request $request) {
@@ -96,7 +112,7 @@ Route::prefix('v1')->group(function (): void {
             Route::post('/poster', [QrController::class, 'poster'])->middleware('throttle:15,1');
         });
 
-        Route::prefix('onboarding')->middleware('verified.api')->group(function (): void {
+        Route::prefix('onboarding')->middleware(['verified.api', 'social.registration.complete'])->group(function (): void {
             Route::get('/status', StatusController::class)->middleware('throttle:60,1');
             Route::post('/reset', ResetController::class)->middleware('throttle:30,1');
             Route::get('/draft-gallery/{index}', DraftGalleryController::class)

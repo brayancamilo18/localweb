@@ -1,12 +1,14 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { isOnboardingPreviewWithoutAuth } from '../../config/devFlags'
 import { useAuth } from '../../hooks/useAuth'
+import { needsSocialRegistrationCompletion } from '../../lib/authRouting'
 import { useAuthStore } from '../../store/authStore'
 
 export default function OnboardingGuard() {
   const { isLoading, isAuthenticated } = useAuth()
   const hasCompletedOnboarding = useAuthStore((state) => state.hasCompletedOnboarding)
   const user = useAuthStore((state) => state.user)
+  const business = useAuthStore((state) => state.business)
 
   if (isLoading && !isAuthenticated) {
     return null
@@ -22,6 +24,10 @@ export default function OnboardingGuard() {
 
   if (user && user.email_verified_at == null) {
     return <Navigate to="/verify-email" replace />
+  }
+
+  if (needsSocialRegistrationCompletion(user, business)) {
+    return <Navigate to="/register/social" replace />
   }
 
   if (hasCompletedOnboarding) {

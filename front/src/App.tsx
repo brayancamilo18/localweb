@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import GuestRoute from './components/guards/GuestRoute'
 import OnboardingGuard from './components/guards/OnboardingGuard'
@@ -11,6 +12,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import LoginPage from './pages/LoginPage'
 import OnboardingPage from './pages/OnboardingPage'
 import RegisterPage from './pages/RegisterPage'
+import SocialRegisterPage from './pages/SocialRegisterPage'
 import ReferralLanding from './pages/ReferralLanding'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import VerifyEmailPage from './pages/VerifyEmailPage'
@@ -37,6 +39,7 @@ import AdminBusinessDetailPage from './features/admin/AdminBusinessDetailPage'
 import AdminTemplatesPage from './features/admin/AdminTemplatesPage'
 import AdminUsersPage from './features/admin/AdminUsersPage'
 import AdminTopPagesPage from './features/admin/AdminTopPagesPage'
+import { postAuthDestination } from './lib/authRouting'
 import { useAuthStore } from './store/authStore'
 import CookieBanner from './components/cookies/CookieBanner'
 import AvisoLegalPage from './pages/legal/AvisoLegalPage'
@@ -58,6 +61,7 @@ function RootRedirect() {
   const { isLoading, isAuthenticated } = useAuth()
   const hasCompletedOnboarding = useAuthStore((state) => state.hasCompletedOnboarding)
   const user = useAuthStore((state) => state.user)
+  const business = useAuthStore((state) => state.business)
 
   // Mientras /auth/me está en vuelo no decidimos: evita el "flash de /login" y el subsiguiente
   // /onboarding cuando la cookie es válida.
@@ -70,10 +74,17 @@ function RootRedirect() {
   if (user?.is_admin) {
     return <Navigate to="/admin" replace />
   }
-  if (user && user.email_verified_at == null) {
-    return <Navigate to="/verify-email" replace />
-  }
-  return <Navigate to={hasCompletedOnboarding ? '/dashboard' : '/onboarding'} replace />
+  return <Navigate to={postAuthDestination(user, business, hasCompletedOnboarding)} replace />
+}
+
+function LandingStaticRedirect() {
+  useEffect(() => {
+    if (window.location.pathname === '/landing/index.html') return
+    window.location.replace(
+      '/landing/index.html' + window.location.search + window.location.hash,
+    )
+  }, [])
+  return null
 }
 
 function AppRoutes() {
@@ -98,6 +109,8 @@ function AppRoutes() {
       </Route>
 
       <Route path="/verify-email" element={<VerifyEmailPage />} />
+
+      <Route path="/register/social" element={<SocialRegisterPage />} />
 
       <Route element={<OnboardingGuard />}>
         <Route path="/onboarding" element={<OnboardingPage />} />
@@ -130,6 +143,10 @@ function AppRoutes() {
           <Route path="account" element={<AccountPage />} />
         </Route>
       </Route>
+
+      {/* Landing piloto estática (front/public/landing/index.html) */}
+      <Route path="/landing" element={<LandingStaticRedirect />} />
+      <Route path="/landing/*" element={<LandingStaticRedirect />} />
 
       {/* Fallback de desarrollo: en producción las páginas públicas las sirve
           Laravel directamente (ResolveTenantForWeb + PublicTenantPageController).

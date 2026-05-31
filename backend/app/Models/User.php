@@ -35,6 +35,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'provider',
+        'provider_id',
+        'avatar_url',
         'marketing_consent_at',
         'terms_accepted_at',
         'terms_version',
@@ -66,6 +69,11 @@ class User extends Authenticatable implements MustVerifyEmail
             'is_admin' => 'boolean',
             'deleted_at' => 'datetime',
         ];
+    }
+
+    public function hasPassword(): bool
+    {
+        return ! empty($this->password);
     }
 
     public function business(): BelongsTo

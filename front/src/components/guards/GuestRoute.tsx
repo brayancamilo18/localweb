@@ -1,11 +1,13 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { postAuthDestination } from '../../lib/authRouting'
 import { useAuthStore } from '../../store/authStore'
 
 export default function GuestRoute() {
   const { isLoading, isAuthenticated } = useAuth()
   const hasCompletedOnboarding = useAuthStore((state) => state.hasCompletedOnboarding)
   const user = useAuthStore((state) => state.user)
+  const business = useAuthStore((state) => state.business)
 
   // Mientras /auth/me está en vuelo y no hay user en memoria, mostramos /login (la
   // ruta de destino para no autenticados). Si la cookie resulta válida, el efecto del
@@ -18,10 +20,7 @@ export default function GuestRoute() {
     if (user?.is_admin) {
       return <Navigate to="/admin" replace />
     }
-    if (user && user.email_verified_at == null) {
-      return <Navigate to="/verify-email" replace />
-    }
-    return <Navigate to={hasCompletedOnboarding ? '/dashboard' : '/onboarding'} replace />
+    return <Navigate to={postAuthDestination(user, business, hasCompletedOnboarding)} replace />
   }
 
   return <Outlet />

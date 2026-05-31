@@ -38,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'business.complete' => \App\Http\Middleware\EnsureBusinessComplete::class,
             'pro.features' => \App\Http\Middleware\EnsureProFeatures::class,
             'verified.api' => \App\Http\Middleware\EnsureEmailVerified::class,
+            'social.registration.complete' => \App\Http\Middleware\EnsureSocialRegistrationComplete::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

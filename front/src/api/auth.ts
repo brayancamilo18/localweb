@@ -91,3 +91,47 @@ export async function resetPassword(
   })
   return { message: response.data?.message ?? '' }
 }
+
+export interface SocialMe {
+  id?: number
+  name: string
+  email: string
+  provider: string | null
+  avatar_url: string | null
+  business_id: number | null
+  terms_accepted_at: string | null
+}
+
+export async function socialMe(): Promise<SocialMe> {
+  const response = await apiClient.get<ApiResponse<SocialMe>>('/auth/social/me')
+  return response.data.data
+}
+
+export async function completeSocialRegistration(
+  business: {
+    business_name: string
+    sector: string
+    city: string
+    country: string
+    country_code: string
+  },
+  accept_terms: boolean,
+  marketing_consent: boolean,
+  referral_code?: string,
+): Promise<AuthResponse> {
+  const payload: Record<string, string | boolean> = {
+    business_name: business.business_name,
+    sector: business.sector,
+    city: business.city,
+    country: business.country,
+    country_code: business.country_code,
+    accept_terms,
+  }
+  if (marketing_consent) payload.marketing_consent = true
+  if (referral_code) payload.referral_code = referral_code
+  const response = await apiClient.post<ApiResponse<AuthResponse>>(
+    '/auth/social/complete-registration',
+    payload,
+  )
+  return response.data.data
+}

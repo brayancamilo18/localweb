@@ -92,6 +92,11 @@
   box-shadow: 0 8px 18px rgba(201, 162, 39, 0.35);
 }
 
+.lw-cmd-header__icon--plain {
+  background: transparent;
+  box-shadow: none;
+}
+
 .lw-cmd-header__eyebrow {
   font-size: 10px;
   font-weight: 700;

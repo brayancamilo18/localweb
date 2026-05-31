@@ -27,6 +27,7 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [searchParams] = useSearchParams()
+  const socialError = searchParams.get('social_error')
   const returnTo = safeNextPath(searchParams.get('next'))
   const setAuth = useAuthStore((state) => state.setAuth)
   const [email, setEmail] = useState('')
@@ -67,10 +68,17 @@ export default function LoginPage() {
   })
 
   const { fieldErrors, generalError } = useApiError(mutation.error)
-  const bannerError = useMemo(
-    () => (mutation.isError && (mutation.error as { response?: { status?: number } })?.response?.status === 401 ? generalError : ''),
-    [mutation.error, mutation.isError, generalError],
-  )
+  const bannerError = useMemo(() => {
+    if (socialError) {
+      if (socialError === 'oauth_failed') return 'No pudimos completar el acceso con Google. Inténtalo de nuevo.'
+      if (socialError === 'no_email') return 'Google no nos ha dado tu correo. Prueba con email y contraseña.'
+      return 'Ha ocurrido un error con el inicio de sesión social.'
+    }
+    if (mutation.isError && (mutation.error as { response?: { status?: number } })?.response?.status === 401) {
+      return generalError
+    }
+    return ''
+  }, [socialError, mutation.error, mutation.isError, generalError])
 
   return (
     <LoginLayout>

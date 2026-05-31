@@ -1,11 +1,13 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { needsSocialRegistrationCompletion } from '../../lib/authRouting'
 import { useAuthStore } from '../../store/authStore'
 
 export default function ProtectedRoute() {
   const { isLoading, isAuthenticated } = useAuth()
   const hasCompletedOnboarding = useAuthStore((state) => state.hasCompletedOnboarding)
   const user = useAuthStore((state) => state.user)
+  const business = useAuthStore((state) => state.business)
 
   // Primera carga: aún no sabemos si la cookie es válida. No redirigir todavía.
   if (isLoading && !isAuthenticated) {
@@ -18,6 +20,10 @@ export default function ProtectedRoute() {
 
   if (user && user.email_verified_at == null) {
     return <Navigate to="/verify-email" replace />
+  }
+
+  if (needsSocialRegistrationCompletion(user, business)) {
+    return <Navigate to="/register/social" replace />
   }
 
   if (!hasCompletedOnboarding) {
