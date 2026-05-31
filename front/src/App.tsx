@@ -40,6 +40,7 @@ import AdminTemplatesPage from './features/admin/AdminTemplatesPage'
 import AdminUsersPage from './features/admin/AdminUsersPage'
 import AdminTopPagesPage from './features/admin/AdminTopPagesPage'
 import { postAuthDestination } from './lib/authRouting'
+import { isMarketingSiteHost, LANDING_INDEX_PATH } from './lib/landing'
 import { useAuthStore } from './store/authStore'
 import CookieBanner from './components/cookies/CookieBanner'
 import AvisoLegalPage from './pages/legal/AvisoLegalPage'
@@ -69,6 +70,9 @@ function RootRedirect() {
     return null
   }
   if (!isAuthenticated) {
+    if (isMarketingSiteHost()) {
+      return <Navigate to="/landing" replace />
+    }
     return <Navigate to="/login" replace />
   }
   if (user?.is_admin) {
@@ -79,9 +83,9 @@ function RootRedirect() {
 
 function LandingStaticRedirect() {
   useEffect(() => {
-    if (window.location.pathname === '/landing/index.html') return
+    if (window.location.pathname === LANDING_INDEX_PATH) return
     window.location.replace(
-      '/landing/index.html' + window.location.search + window.location.hash,
+      LANDING_INDEX_PATH + window.location.search + window.location.hash,
     )
   }, [])
   return null
