@@ -39,7 +39,7 @@ function loadBitmap(file: File): Promise<ImageBitmap> {
  */
 export async function prepareImageForUpload(
   file: File,
-  opts: { maxBytes: number; maxDimension?: number; quality?: number },
+  opts: { maxBytes: number; maxDimension?: number; quality?: number; preferPng?: boolean },
 ): Promise<File> {
   const maxBytes = opts.maxBytes
   const maxDimension = opts.maxDimension
@@ -112,8 +112,8 @@ export async function prepareImageForUpload(
       throw oversizeAfterCompressError(file.size, maxBytes)
     }
 
-    const isPng = file.type === 'image/png' && !isHeic(file)
-    if (!isPng) {
+    const usePngOutput = opts.preferPng === true || (file.type === 'image/png' && !isHeic(file))
+    if (!usePngOutput) {
       ctx.fillStyle = '#ffffff'
       ctx.fillRect(0, 0, w, h)
     }
@@ -121,11 +121,11 @@ export async function prepareImageForUpload(
     ctx.drawImage(bitmap, 0, 0, w, h)
     bitmap.close?.()
 
-    const outputMime = isPng ? 'image/png' : 'image/jpeg'
-    const outputExt = isPng ? 'png' : 'jpg'
+    const outputMime = usePngOutput ? 'image/png' : 'image/jpeg'
+    const outputExt = usePngOutput ? 'png' : 'jpg'
 
     const blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob((b) => resolve(b), outputMime, isPng ? undefined : quality)
+      canvas.toBlob((b) => resolve(b), outputMime, usePngOutput ? undefined : quality)
     })
 
     if (!blob || blob.size === 0) {
@@ -162,9 +162,20 @@ export async function prepareImageForUpload(
   }
 }
 
+const VALIDATION_KEY_MESSAGES: Record<string, string> = {
+  'validation.mimetypes': 'Formato no válido. Usa PNG, SVG, WebP o ICO.',
+  'validation.image': 'El archivo debe ser una imagen.',
+  'validation.uploaded':
+    'No se pudo recibir la imagen. Comprueba el tamaño o tu conexión e inténtalo de nuevo.',
+}
+
+function humanizeValidationKey(key: string): string | null {
+  return VALIDATION_KEY_MESSAGES[key] ?? null
+}
+
 export async function prepareImagesForUpload(
   files: File[],
-  opts: { maxBytes: number; maxDimension?: number; quality?: number },
+  opts: { maxBytes: number; maxDimension?: number; quality?: number; preferPng?: boolean },
 ): Promise<File[]> {
   return Promise.all(files.map((f) => prepareImageForUpload(f, opts)))
 }
@@ -176,11 +187,23 @@ export function readFileUploadApiError(data: unknown): string | null {
   }
   const payload = data as { message?: string; errors?: Record<string, string[]> }
   const fieldMsg = payload.errors?.file?.[0]
-  if (fieldMsg && !fieldMsg.startsWith('validation.')) {
-    return fieldMsg
+  if (fieldMsg) {
+    if (!fieldMsg.startsWith('validation.')) {
+      return fieldMsg
+    }
+    const translated = humanizeValidationKey(fieldMsg)
+    if (translated) {
+      return translated
+    }
   }
   if (payload.message && !payload.message.startsWith('validation.')) {
     return payload.message
+  }
+  if (payload.message) {
+    const translated = humanizeValidationKey(payload.message)
+    if (translated) {
+      return translated
+    }
   }
   return null
 }

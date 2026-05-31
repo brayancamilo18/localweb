@@ -58,6 +58,22 @@ it('allows a pro business to upload a favicon png', function () {
     Storage::disk('r2')->assertExists($business->favicon_path);
 });
 
+it('accepts jpeg favicon uploads after client-side compression', function () {
+    $business = proBusiness();
+    $user = verifiedDashboardUser($business);
+
+    test()->actingAs($user)
+        ->post('/api/v1/dashboard/favicon', [
+            'file' => UploadedFile::fake()->image('icon.jpg', 512, 512),
+        ])
+        ->assertOk();
+
+    $business->refresh();
+
+    expect($business->favicon_path)->toEndWith('.png');
+    Storage::disk('r2')->assertExists($business->favicon_path);
+});
+
 it('persists favicon uploads as square png files', function () {
     $business = proBusiness();
     $user = verifiedDashboardUser($business);

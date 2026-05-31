@@ -144,10 +144,16 @@ class ImagesController extends BaseApiController
         DashboardUploadGuard::ensureFileReceived($request, $maxKb);
 
         $request->validate([
-            'file' => ['required', 'file', 'max:'.$maxKb, 'mimetypes:image/png,image/svg+xml,image/x-icon,image/vnd.microsoft.icon,image/webp'],
+            'file' => [
+                'required',
+                'file',
+                'max:'.$maxKb,
+                'mimetypes:image/png,image/jpeg,image/jpg,image/svg+xml,image/x-icon,image/vnd.microsoft.icon,image/webp',
+            ],
         ], [
             'file.max' => DashboardUploadGuard::maxSizeMessage($maxKb),
             'file.uploaded' => 'No se pudo recibir el favicon. Comprueba el tamaño (máx. 1 MB) o tu conexión.',
+            'file.mimetypes' => 'Formato no válido. Usa PNG, SVG, WebP, JPEG o ICO.',
         ]);
 
         // BusinessObserver invalida public_page:{subdomain} en saved.

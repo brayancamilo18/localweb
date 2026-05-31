@@ -186,6 +186,7 @@ export default function FaviconUploader({
         maxBytes: UPLOAD_MAX_BYTES.favicon,
         maxDimension: 512,
         quality: 0.85,
+        preferPng: true,
       })
       lastFileRef.current = ready
       return uploadBusinessFavicon(ready, (pct) => setUploadProgress(pct))
