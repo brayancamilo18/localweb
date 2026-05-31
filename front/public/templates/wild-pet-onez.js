@@ -684,13 +684,15 @@
         navLogo.src = logoUrl;
         navLogo.alt = name;
         navLogo.hidden = false;
-        navLogo.style.display = 'block';
+        navLogo.style.display = '';
+        navWrap.classList.add('brand-has-img');
         navName.style.display = 'none';
         if (navMark) navMark.style.display = 'none';
       } else {
         navLogo.removeAttribute('src');
         navLogo.hidden = true;
         navLogo.style.display = 'none';
+        navWrap.classList.remove('brand-has-img');
         navName.textContent = name;
         navName.style.display = '';
         if (navMark) navMark.style.display = '';

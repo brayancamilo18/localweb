@@ -256,6 +256,17 @@
     transition: transform .4s var(--ease-spring);
   }
   .brand:hover .brand-mark{ transform: rotate(-15deg) scale(1.08); }
+  .nav-brand-img{ display:none; }
+  .brand.brand-has-img .nav-brand-img{
+    display:block;
+    height:calc(36px * var(--lw-logo-scale, 1));
+    width:auto;
+    max-width:calc(168px * var(--lw-logo-scale, 1));
+    object-fit:contain;
+    flex-shrink:0;
+  }
+  .brand.brand-has-img .brand-mark{ display:none !important; }
+  .brand.brand-has-img #navBrandName{ display:none !important; }
   .nav-links{ display: flex; gap: .1rem; margin-left: auto; }
   .nav-links a{
     text-decoration: none;
@@ -1113,6 +1124,10 @@
       min-width: 0;
       flex: 1 1 auto;
     }
+    .brand.brand-has-img .nav-brand-img{
+      height:32px;
+      max-width:min(140px, 42vw);
+    }
     #navBrandName{
       overflow: hidden;
       text-overflow: ellipsis;
@@ -1216,11 +1231,11 @@
 <!-- 1. NAV -->
 <header class="nav" role="banner">
   <div class="nav-inner">
-    <a href="#top" class="brand" id="navBrandWrap" aria-label="Inicio">
+    <a href="#top" class="brand @if($logo_url) brand-has-img @endif" id="navBrandWrap" aria-label="Inicio">
       @if($logo_url)
-      <img id="navBrandLogo" class="nav-brand-img" src="{{ $logo_url }}" alt="{{ $nombre }}" decoding="async"/>
+      <img id="navBrandLogo" class="nav-brand-img" src="{{ $logo_url }}" alt="{{ $nombre }}" width="168" height="36" decoding="async"/>
       @else
-      <img id="navBrandLogo" class="nav-brand-img" alt="" hidden style="display:none"/>
+      <img id="navBrandLogo" class="nav-brand-img" alt="" width="168" height="36" decoding="async" hidden style="display:none"/>
       @endif
       <span class="brand-mark" id="navBrandMark" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><circle cx="6" cy="10" r="2"/><circle cx="10" cy="6" r="2"/><circle cx="14" cy="6" r="2"/><circle cx="18" cy="10" r="2"/><path d="M12 11c-3 0-6 2.5-6 5.5 0 2 1.5 3.5 3.5 3.5.9 0 1.6-.4 2.5-.4s1.6.4 2.5.4c2 0 3.5-1.5 3.5-3.5 0-3-3-5.5-6-5.5z"/></svg>
@@ -2553,13 +2568,15 @@ function lwTrackClick(kind) {
         navLogo.src = logoUrl;
         navLogo.alt = name;
         navLogo.hidden = false;
-        navLogo.style.display = 'block';
+        navLogo.style.display = '';
+        navWrap.classList.add('brand-has-img');
         navName.style.display = 'none';
         if (navMark) navMark.style.display = 'none';
       } else {
         navLogo.removeAttribute('src');
         navLogo.hidden = true;
         navLogo.style.display = 'none';
+        navWrap.classList.remove('brand-has-img');
         navName.textContent = name;
         navName.style.display = '';
         if (navMark) navMark.style.display = '';
