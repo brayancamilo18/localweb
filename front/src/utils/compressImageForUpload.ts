@@ -1,8 +1,12 @@
 /**
  * @deprecated Usa `prepareImageForUpload` desde `../lib/imageUpload`.
  */
-export {
-  prepareImageForUpload as compressImageForUpload,
-  prepareImagesForUpload as compressImagesForUpload,
+import {
+  prepareImageForUpload,
+  prepareImagesForUpload,
   UPLOAD_MAX_BYTES,
 } from '../lib/imageUpload'
+
+export { UPLOAD_MAX_BYTES }
+export const compressImageForUpload = prepareImageForUpload
+export const compressImagesForUpload = prepareImagesForUpload

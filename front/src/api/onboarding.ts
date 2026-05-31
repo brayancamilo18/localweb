@@ -8,7 +8,11 @@ import type {
   StepResponse,
   Template,
 } from '../types/api'
-import { compressImageForUpload, compressImagesForUpload } from '../utils/compressImageForUpload'
+import {
+  prepareImageForUpload as compressImageForUpload,
+  prepareImagesForUpload as compressImagesForUpload,
+  UPLOAD_MAX_BYTES,
+} from '../lib/imageUpload'
 
 function normalizeOnboardingTemplatesPayload(payload: unknown): Template[] {
   if (Array.isArray(payload)) return payload
@@ -47,7 +51,11 @@ export async function step1(data: {
     formData.append('remove_logo', '1')
   }
   if (data.logo) {
-    const ready = await compressImageForUpload(data.logo, { maxSide: 1600, quality: 0.88 })
+    const ready = await compressImageForUpload(data.logo, {
+      maxBytes: UPLOAD_MAX_BYTES.logo,
+      maxDimension: 1600,
+      quality: 0.88,
+    })
     formData.append('logo', ready)
   }
 
@@ -65,20 +73,36 @@ export async function step2(
   },
   onProgress?: (pct: number) => void,
 ): Promise<StepResponse & { preview_url: string }> {
-  const readyCover = await compressImageForUpload(data.cover, { maxSide: 2560, quality: 0.88 })
+  const readyCover = await compressImageForUpload(data.cover, {
+    maxBytes: UPLOAD_MAX_BYTES.gallery,
+    maxDimension: 2560,
+    quality: 0.88,
+  })
   const formData = new FormData()
   formData.append('cover', readyCover)
   if (data.cover2) {
-    formData.append('cover2', await compressImageForUpload(data.cover2, { maxSide: 2560, quality: 0.88 }))
+    formData.append('cover2', await compressImageForUpload(data.cover2, {
+      maxBytes: UPLOAD_MAX_BYTES.gallery,
+      maxDimension: 2560,
+      quality: 0.88,
+    }))
   }
   if (data.cover3) {
-    formData.append('cover3', await compressImageForUpload(data.cover3, { maxSide: 2560, quality: 0.88 }))
+    formData.append('cover3', await compressImageForUpload(data.cover3, {
+      maxBytes: UPLOAD_MAX_BYTES.gallery,
+      maxDimension: 2560,
+      quality: 0.88,
+    }))
   }
   if (data.removeLogo) {
     formData.append('remove_logo', '1')
   }
   if (data.logo) {
-    formData.append('logo', await compressImageForUpload(data.logo, { maxSide: 1600, quality: 0.88 }))
+    formData.append('logo', await compressImageForUpload(data.logo, {
+      maxBytes: UPLOAD_MAX_BYTES.logo,
+      maxDimension: 1600,
+      quality: 0.88,
+    }))
   }
   const response = await apiClient.post<ApiResponse<StepResponse & { preview_url: string }>>('/onboarding/step/2', formData, {
     onUploadProgress(progressEvent) {
@@ -100,7 +124,11 @@ export async function step3(data: {
   if (data.tagline) formData.append('tagline', data.tagline)
   if (data.description) formData.append('description', data.description)
   if (data.about_photo) {
-    formData.append('about_photo', await compressImageForUpload(data.about_photo, { maxSide: 2200, quality: 0.88 }))
+    formData.append('about_photo', await compressImageForUpload(data.about_photo, {
+      maxBytes: UPLOAD_MAX_BYTES.gallery,
+      maxDimension: 2200,
+      quality: 0.88,
+    }))
   }
 
   const response = await apiClient.post<ApiResponse<StepResponse>>('/onboarding/step/3', formData)
@@ -116,7 +144,11 @@ export async function step4(
     formData.append('replace_gallery', '1')
   }
   if (photos.length > 0) {
-    const ready = await compressImagesForUpload(photos, { maxSide: 2200, quality: 0.86 })
+    const ready = await compressImagesForUpload(photos, {
+      maxBytes: UPLOAD_MAX_BYTES.gallery,
+      maxDimension: 2200,
+      quality: 0.86,
+    })
     ready.forEach((photo) => formData.append('photos[]', photo))
   }
 
