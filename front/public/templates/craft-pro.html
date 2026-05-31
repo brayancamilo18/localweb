@@ -1332,6 +1332,7 @@ function applyLivePreviewData(raw, opts) {
 
 (function initLivePreviewFromQuery() {
   var params = new URLSearchParams(window.location.search);
+  if (params.get('landingDemo') === '1') return;
   if (!params.has('preview')) {
     syncBoldScheduleFromPreview(null);
     renderBoldSchedule();
@@ -1692,5 +1693,6 @@ setInterval(renderBoldSchedule, 60000);
 })();
 </script>
 
+<script src="/templates/lw-landing-demo.js?v=2"></script>
 </body>
 </html>

@@ -1729,7 +1729,16 @@
   // ---- Template preview iframes (front/public/templates/*.html) ----
   var TPL_DOC_W = 1280;
 
-  /** Rutas en dev (localhost:5173), producción (onez.es) y file:// local. */
+  /** Origen de /templates: en onez.es los HTML viven en app.onez.es (mismo build). */
+  function templatesOrigin() {
+    if (location.protocol === 'file:') return null;
+    if (location.hostname === 'onez.es' || location.hostname === 'www.onez.es') {
+      return APP_ORIGIN;
+    }
+    return location.origin;
+  }
+
+  /** Rutas en dev (localhost:5173), producción (onez.es → app) y file:// local. */
   function templateUrl(slug, mode) {
     var qs = '?v=5&embed=1&preview=1&landingDemo=1';
     if (location.protocol !== 'file:') {
@@ -1744,7 +1753,7 @@
           : 'front/public/templates/';
       return new URL(base + slug + '.html' + qs, href).href;
     }
-    return '/templates/' + slug + '.html' + qs;
+    return templatesOrigin() + '/templates/' + slug + '.html' + qs;
   }
 
   if (location.protocol === 'file:') {

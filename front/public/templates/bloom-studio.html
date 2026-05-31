@@ -986,7 +986,7 @@ function renderBloomGallery(urls) {
       '<div class="photo"><img src="https://images.unsplash.com/photo-1492106087820-71f1a00d2b11?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Recogido</span></div>' +
       '<div class="photo"><img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Studio</span></div>' +
       '<div class="photo"><img src="https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Bob</span></div>' +
-      '<div class="photo"><img src="https://images.unsplash.com/photo-1595944100050-5d9ec0a82c4f?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Detalle</span></div>' +
+      '<div class="photo"><img src="https://images.unsplash.com/photo-1605497788044-5a32c7078486?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Detalle</span></div>' +
       '<div class="photo"><img src="https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Pelirrojo</span></div>';
     return;
   }
@@ -1427,6 +1427,7 @@ function applyLivePreviewData(raw, opts) {
 
 (function initLivePreviewFromQuery() {
   const params = new URLSearchParams(window.location.search);
+  if (params.get('landingDemo') === '1') return;
   if (!params.has('preview')) return;
   applyLivePreviewData({
     nombre: params.get('nombre') || '',
@@ -1623,5 +1624,6 @@ setInterval(render, 60_000);
 })();
 </script>
 
+<script src="/templates/lw-landing-demo.js?v=2"></script>
 </body>
 </html>

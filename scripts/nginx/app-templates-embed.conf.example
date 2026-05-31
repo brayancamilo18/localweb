@@ -1,0 +1,12 @@
+# Fragmento para el vhost de app.onez.es (dentro del server { ... }).
+# Permite incrustar /templates/*.html en iframes de onez.es (landing).
+#
+# Añadir ANTES del location / { ... } genérico del SPA:
+
+location ^~ /templates/ {
+    add_header Cache-Control "public, max-age=300, must-revalidate" always;
+    # Quitar SAMEORIGIN del bloque global; CSP controla quién puede embeber.
+    add_header X-Frame-Options "" always;
+    add_header Content-Security-Policy "frame-ancestors 'self' https://onez.es https://www.onez.es https://app.onez.es" always;
+    try_files $uri =404;
+}

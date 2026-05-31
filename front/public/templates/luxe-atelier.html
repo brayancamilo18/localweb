@@ -1357,6 +1357,7 @@ function applyLivePreviewData(raw, opts) {
 
 (function initLivePreviewFromQuery() {
   var params = new URLSearchParams(window.location.search);
+  if (params.get('landingDemo') === '1') return;
   if (!params.has('preview')) {
     syncLuxeScheduleFromPreview(null);
     renderLuxeSchedule();
@@ -1518,5 +1519,6 @@ function applyLivePreviewData(raw, opts) {
 LW-CONTRACT-VERSION: 1
 Public: applyLivePreviewData, initLivePreviewFromQuery, initSecureMessageListener
 -->
+<script src="/templates/lw-landing-demo.js?v=2"></script>
 
 </html>

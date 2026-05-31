@@ -806,6 +806,7 @@
 
   (function initLivePreviewFromQuery() {
     var params = new URLSearchParams(window.location.search);
+    if (params.get('landingDemo') === '1') return;
     if (!params.has('preview')) {
       syncWildScheduleFromPreview(null);
       renderWildSchedule();
