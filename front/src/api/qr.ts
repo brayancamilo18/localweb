@@ -1,5 +1,6 @@
 import { apiClient } from './client'
 import type { ApiResponse } from '../types/api'
+import { mediaProxyFetchUrl } from '../lib/mediaUrl'
 
 export interface QrInfo {
   public_url: string
@@ -51,11 +52,13 @@ export async function postQrPoster(payload: QrPosterPayload): Promise<Blob> {
  *  2. Enviarla en el body del POST /qr/poster para que dompdf
  *     pueda incrustarla en el PDF sin hacer requests HTTP externos.
  *
- * Si la URL falla (CORS, 404, etc.) devuelve null silenciosamente.
+ * Usa el proxy /api/v1/media/… (mismo origen) para evitar CORS con el CDN.
+ * Si la URL falla (404, etc.) devuelve null silenciosamente.
  */
 export async function fetchLogoAsDataUri(logoUrl: string): Promise<string | null> {
+  const fetchUrl = mediaProxyFetchUrl(logoUrl)
   try {
-    const res = await fetch(logoUrl, { credentials: 'omit', mode: 'cors' })
+    const res = await fetch(fetchUrl, { credentials: 'omit', mode: 'cors' })
     if (!res.ok) return null
     const blob = await res.blob()
     return await new Promise<string | null>((resolve) => {
