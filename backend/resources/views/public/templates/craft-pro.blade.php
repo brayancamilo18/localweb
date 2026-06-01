@@ -177,9 +177,9 @@
   .map-shell .leaflet-control-attribution{background:var(--ink)!important;color:#666!important;font-size:10px!important}
   .map-shell .leaflet-control-attribution a{color:var(--orange)!important}
   .bold-leaflet-divicon{background:transparent!important;border:none!important}
-  .bold-map-pin-wrap{position:relative;width:48px;height:48px;display:flex;align-items:center;justify-content:center;pointer-events:none}
+  .bold-map-pin-wrap{position:relative;width:56px;height:56px;display:flex;align-items:center;justify-content:center;pointer-events:none}
   .bold-map-core{width:12px;height:12px;background:var(--orange);border:3px solid var(--ink);box-shadow:0 0 0 1px var(--orange),0 4px 12px rgba(0,0,0,.5);position:relative;z-index:2}
-  .bold-map-radar-ring{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-20px 0 0 -20px;border:2px solid var(--orange);box-shadow:0 0 10px color-mix(in srgb, var(--orange) 25%, transparent);animation:boldMapRadar 2.5s cubic-bezier(.2,.7,.2,1) infinite;pointer-events:none}
+  .bold-map-radar-ring{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border:2px solid var(--orange);box-shadow:0 0 10px color-mix(in srgb, var(--orange) 25%, transparent);transform-origin:center center;animation:boldMapRadar 2.5s cubic-bezier(.2,.7,.2,1) infinite;pointer-events:none}
   .bold-map-radar-ring.d2{animation-delay:1.25s}
   @keyframes boldMapRadar{0%{transform:scale(0.4);opacity:.95}65%{opacity:.2}100%{transform:scale(2.15);opacity:0}}
   .map-directions-row{display:none;justify-content:flex-start;align-items:center;padding:20px 46px;border-top:2px solid var(--ink);background:var(--bg)}

@@ -206,7 +206,7 @@ body.menu-open .sheet{opacity:1;pointer-events:auto}
 .sleek-leaflet-divicon{background:transparent !important;border:none !important}
 .sleek-pin-wrap{position:relative;width:56px;height:56px;display:flex;align-items:center;justify-content:center;pointer-events:none}
 .sleek-pin-core{width:14px;height:14px;border-radius:50%;background:var(--cyan);box-shadow:0 0 0 3px rgba(7,10,20,.9),0 0 0 4px var(--cyan),0 0 18px var(--cyan),0 4px 16px rgba(0,0,0,.55);position:relative;z-index:2}
-.sleek-pin-halo{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;border:1.5px solid var(--violet);box-shadow:0 0 18px var(--violet-soft);animation:sleekPinHalo 2.8s cubic-bezier(.2,.7,.2,1) infinite;pointer-events:none}
+.sleek-pin-halo{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;border:1.5px solid var(--violet);box-shadow:0 0 18px var(--violet-soft);transform-origin:center center;animation:sleekPinHalo 2.8s cubic-bezier(.2,.7,.2,1) infinite;pointer-events:none}
 .sleek-pin-halo.d2{animation-delay:1.4s;border-color:var(--cyan)}
 @keyframes sleekPinHalo{0%{transform:scale(0.4);opacity:.95}65%{opacity:.2}100%{transform:scale(2.15);opacity:0}}
 .map-directions-row{display:none;padding:20px 24px;border-top:1px solid var(--line);background:rgba(13,18,32,.5);backdrop-filter:blur(8px)}

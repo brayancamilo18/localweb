@@ -479,7 +479,7 @@
     border-radius:50%;
     border:1px solid rgba(244,162,97,.55);
     box-shadow:0 0 14px color-mix(in srgb, var(--coral) 15%, transparent);
-    animation:bloomMapRadar 2.5s cubic-bezier(.2,.7,.2,1) infinite;
+    transform-origin:center center;animation:bloomMapRadar 2.5s cubic-bezier(.2,.7,.2,1) infinite;
     pointer-events:none;
   }
   .bloom-map-radar-ring.d2{ animation-delay:1.25s; }
