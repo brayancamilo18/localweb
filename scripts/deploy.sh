@@ -85,9 +85,9 @@ fi
 cd "$BUILD_TMP"
 
 case "$ENV" in
-    prod) echo 'VITE_API_URL=https://app.onez.es/api/v1' > .env.production ;;
-    pre)  echo 'VITE_API_URL=https://pre.onez.es/api/v1' > .env.production ;;
-    des)  echo 'VITE_API_URL=https://des.onez.es/api/v1' > .env.production ;;
+    prod) printf 'VITE_API_URL=https://app.onez.es/api/v1\nVITE_PUBLIC_PAGE_HOST=onez.es\n' > .env.production ;;
+    pre)  printf 'VITE_API_URL=https://pre.onez.es/api/v1\nVITE_PUBLIC_PAGE_HOST=pre.onez.es\n' > .env.production ;;
+    des)  printf 'VITE_API_URL=https://des.onez.es/api/v1\nVITE_PUBLIC_PAGE_HOST=des.onez.es\n' > .env.production ;;
 esac
 
 npm ci --silent
