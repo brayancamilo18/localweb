@@ -30,9 +30,11 @@ class ResolveTenantForWeb
             }
         }
 
-        $headerSubdomain = trim((string) $request->header('X-Tenant-Subdomain', ''));
-        if ($headerSubdomain !== '') {
-            $subdomain = strtolower($headerSubdomain);
+        if (config('app.env') !== 'production') {
+            $headerSubdomain = trim((string) $request->header('X-Tenant-Subdomain', ''));
+            if ($headerSubdomain !== '') {
+                $subdomain = strtolower($headerSubdomain);
+            }
         }
 
         if ($subdomain === null || $subdomain === '') {

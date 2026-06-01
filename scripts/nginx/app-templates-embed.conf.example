@@ -1,6 +1,11 @@
 # Fragmento para el vhost de app.onez.es (dentro del server { ... }).
 # Permite incrustar /templates/*.html en iframes de onez.es (landing).
 #
+# En el server { } público de app.onez.es (defense in depth si hay proxy al API):
+#   proxy_set_header X-Tenant-Subdomain "";
+# Laravel ignora ese header en producción; vaciarlo en nginx evita que el cliente
+# fuerce otro tenant (duplicate content / phishing).
+#
 # Añadir ANTES del location / { ... } genérico del SPA:
 
 location ^~ /templates/ {

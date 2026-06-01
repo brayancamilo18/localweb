@@ -39,6 +39,11 @@ server {
     root /var/www/onez/prod/frontend;
     index index.html;
 
+    # Defense in depth: no reenviar X-Tenant-Subdomain del cliente al upstream.
+    # En producción Laravel ignora ese header; vaciarlo aquí evita suplantar otro tenant
+    # si este vhost proxyfica al API/PHP (duplicate content SEO / phishing).
+    proxy_set_header X-Tenant-Subdomain "";
+
     # ssl_certificate /etc/letsencrypt/live/onez.es/fullchain.pem;
     # ssl_certificate_key /etc/letsencrypt/live/onez.es/privkey.pem;
 

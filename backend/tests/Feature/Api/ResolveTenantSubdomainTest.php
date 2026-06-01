@@ -43,6 +43,14 @@ it('allows api requests when tenant subdomain exists', function () {
         ->assertStatus(200);
 });
 
+it('ignores X-Tenant-Subdomain header in production', function () {
+    config(['app.env' => 'production']);
+
+    test()->withHeader('X-Tenant-Subdomain', 'sectio')
+        ->getJson('/api/v1/public/subdomain-rules')
+        ->assertStatus(200);
+});
+
 it('returns 404 for soft-deleted tenant subdomain', function () {
     $business = Business::create([
         'name' => 'Gone',

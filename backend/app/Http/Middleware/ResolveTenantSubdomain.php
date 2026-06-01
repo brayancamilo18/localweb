@@ -36,7 +36,9 @@ class ResolveTenantSubdomain
             return $next($request);
         }
 
-        $subdomain = trim((string) $request->header('X-Tenant-Subdomain', ''));
+        $subdomain = config('app.env') === 'production'
+            ? ''
+            : trim((string) $request->header('X-Tenant-Subdomain', ''));
 
         if ($subdomain === '' || $this->isReservedSubdomain($subdomain)) {
             return $next($request);
