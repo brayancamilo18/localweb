@@ -97,7 +97,7 @@
   .hero-meta .live{display:inline-flex;align-items:center;gap:8px;color:var(--lime)}
   .hero-meta .live .dot{width:8px;height:8px;background:var(--lime);border-radius:50%;animation:pulse 2s infinite}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-  .hero h1{font-size:clamp(54px,5.6vw,96px);line-height:.92;margin-bottom:24px;word-break:break-word;overflow-wrap:anywhere;hyphens:auto}
+  .hero h1{font-size:clamp(54px,5.6vw,96px);line-height:.92;margin-bottom:24px;word-break:normal;overflow-wrap:break-word;hyphens:none}
   .hero h1 .accent{color:var(--lime)}
   .hero h1 .underline{display:inline-block;border-bottom:8px solid var(--lime);padding-bottom:0}
   .hero-tag{font-size:18px;line-height:1.5;color:#C9C9C9;max-width:520px;margin-bottom:50px;font-weight:400}
@@ -338,8 +338,16 @@
 
   /* ─── RESPONSIVE ─── */
   @media (max-width:880px){
-    .nav-inner{padding:14px 20px}
-    .menu-toggle{display:inline-flex}
+    .nav{position:sticky}
+    .nav-inner{padding:12px 16px;gap:10px;align-items:center;min-width:0}
+    .brand{min-width:0;flex:1 1 auto;max-width:calc(100% - 118px);font-size:clamp(14px,3.8vw,20px)}
+    .nav .brand.brand-has-img .nav-brand-img{
+      height:auto;
+      max-height:calc(44px * var(--lw-logo-scale, 1));
+      max-width:min(140px,38vw);
+    }
+    .nav-actions{flex-shrink:0;gap:8px}
+    .menu-toggle{display:inline-flex;width:38px;height:38px;flex-shrink:0}
     .nav ul{
       display:flex;
       position:absolute;
@@ -379,8 +387,14 @@
     .nav ul li:last-child{border-bottom:none}
     .nav ul a{display:block;padding:14px 4px;font-size:14px}
     .nav ul a::after{display:none}
-    .nav-cta{padding:8px 14px;font-size:11px}
-    .hero{padding:46px 20px 0}
+    .nav-cta{padding:7px 10px;font-size:clamp(9px,2.8vw,11px);white-space:nowrap;letter-spacing:.03em}
+    .hero{padding:40px 16px 0}
+    .hero-meta{flex-wrap:wrap;gap:8px 12px;margin-bottom:28px;padding-bottom:16px}
+    .hero-meta .mono{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .hero h1{font-size:clamp(28px,10.5vw,52px);line-height:.95;hyphens:none;word-break:normal;overflow-wrap:break-word}
+    .hero-tag{font-size:16px;max-width:100%}
+    .hero-cta{flex-direction:column;align-items:stretch;gap:10px;margin-bottom:40px}
+    .hero-cta .btn{width:100%;justify-content:center;box-sizing:border-box}
     .hero-grid{grid-template-columns:1fr;gap:46px;min-height:auto}
     .hero-photo{min-height:400px}
     section{padding:64px 20px}
@@ -395,6 +409,10 @@
     .foot-brand{font-size:46px}
     .schedule-row.today{margin:0 -20px;padding:18px 20px}
     .vcard-strip, .reviews-cta-section, .map-directions-row{padding:24px 20px}
+  }
+  @media (max-width:480px){
+    .nav .brand.brand-has-img .nav-brand-img{max-width:min(120px,34vw);max-height:calc(38px * var(--lw-logo-scale, 1))}
+    .hero h1{font-size:clamp(26px,9.5vw,44px)}
   }
   @media (prefers-reduced-motion:reduce){
     *, *::before, *::after{
@@ -457,8 +475,8 @@
   .tv-reveal[data-delay="4"].tv-in{animation-delay:.32s}
   .tv-reveal[data-delay="5"].tv-in{animation-delay:.4s}
   .tv-reveal[data-delay="6"].tv-in{animation-delay:.48s}
-  .tv-split{opacity:1;display:inline-block}
-  .tv-split .tv-word{display:inline-block;overflow:hidden;vertical-align:bottom}
+  .tv-split{opacity:1;display:inline-block;max-width:100%}
+  .tv-split .tv-word{display:inline-block;overflow:hidden;vertical-align:bottom;max-width:100%;overflow-wrap:break-word}
   .tv-split .tv-word > span{display:inline-block;transform:translateY(110%);opacity:0}
   .tv-split.tv-in .tv-word > span{animation:tv-word-up .8s var(--tv-snap) both;animation-delay:calc(var(--i,0)*70ms)}
   .tv-img-reveal{position:relative;overflow:hidden;isolation:isolate}

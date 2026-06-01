@@ -3,6 +3,7 @@
 <head>
 @include('public.partials.head-seo')
 @stack('head-extras')
+@include('public.partials.responsive-safety')
 </head>
 <body>
 @include('public.partials.tenant-leaflet-bridge')

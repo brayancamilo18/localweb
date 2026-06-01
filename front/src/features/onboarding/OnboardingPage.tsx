@@ -24,6 +24,7 @@ import { useAuthStore } from '../../store/authStore'
 import { coerceLocation } from '../../lib/location/coerceLocation'
 import { emptyLocation } from '../../lib/location/locationData'
 import { DEFAULT_LOGO_NAV_SCALE } from '../../lib/logoDisplay'
+import { readSignupPrefill } from '../../lib/signupPrefill'
 import type { LocationValue } from '../../lib/location/locationTypes'
 import {
   DEFAULT_SCHEDULE,
