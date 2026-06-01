@@ -1,4 +1,5 @@
 import type { PublicBusiness, Schedule } from '../../types/api'
+import { buildGoogleDirectionsUrl } from '../../lib/googleMapsDirectionsUrl'
 import { DEFAULT_LOGO_NAV_SCALE, resolveLogoNavScale } from '../../lib/logoDisplay'
 
 /** Servicios serializados para las plantillas HTML. */
