@@ -2733,6 +2733,7 @@ function Step4Galeria({
   photos,
   onPhotosChange,
   onGalleryPreviewUrlsChange,
+  dirty = true,
 }: WizardStepProps & {
   pro?: boolean
   /** Tras volver de Stripe Pro: mensaje de celebración y límite ampliado. */
@@ -2740,6 +2741,7 @@ function Step4Galeria({
   photos: File[]
   onPhotosChange: (files: File[]) => void
   onGalleryPreviewUrlsChange?: (urls: string[]) => void
+  dirty?: boolean
 }) {
   const nav = useContext(WizardNavContext)
   const galleryRef = useRef<HTMLInputElement>(null)
@@ -2775,9 +2777,9 @@ function Step4Galeria({
   }, [photos])
 
   useLayoutEffect(() => {
-    nav?.registerContinueHandler?.(() => photos)
+    nav?.registerContinueHandler?.(() => ({ photos, dirty }))
     return () => nav?.registerContinueHandler?.(null)
-  }, [nav, photos])
+  }, [nav, photos, dirty])
 
   const removeAt = (idx: number) => {
     onPhotosChange(photos.filter((_, i) => i !== idx))

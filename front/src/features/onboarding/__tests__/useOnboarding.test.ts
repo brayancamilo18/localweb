@@ -163,4 +163,47 @@ describe('useOnboarding', () => {
     expect(result.current.currentStep).toBe(2)
     expect(step1Spy).not.toHaveBeenCalled()
   })
+
+  it('goNext en step 4 con dirty=false llama step4 vacío sin replace (camino rápido)', async () => {
+    vi.mocked(onboardingApi.getStatus).mockResolvedValue({
+      is_complete: false,
+      step: 4,
+      // Sin gallery_paths en draft: resolveOnboardingUiStep debe quedar en 4 (con paths salta a 5).
+      draft: { template_id: 1, cover_path: 'x', business_name: 'N' },
+    })
+    vi.mocked(onboardingApi.step4).mockResolvedValue({ ok: true, next_step: 5 })
+    const { result } = renderHook(() => useOnboarding(), { wrapper })
+    await waitFor(() => expect(result.current.isPendingStatus).toBe(false))
+    await waitFor(() => expect(result.current.currentStep).toBe(4))
+
+    const fakeFile = new File([new Uint8Array([1])], 'g.jpg', { type: 'image/jpeg' })
+
+    await act(async () => {
+      await result.current.goNext({ photos: [fakeFile], dirty: false })
+    })
+
+    expect(onboardingApi.step4).toHaveBeenCalledWith([], { replace: false })
+    expect(result.current.currentStep).toBe(5)
+  })
+
+  it('goNext en step 4 con dirty=true llama step4 con todas las fotos y replace=true', async () => {
+    vi.mocked(onboardingApi.getStatus).mockResolvedValue({
+      is_complete: false,
+      step: 4,
+      draft: { template_id: 1, cover_path: 'x', business_name: 'N' },
+    })
+    vi.mocked(onboardingApi.step4).mockResolvedValue({ ok: true, next_step: 5 })
+    const { result } = renderHook(() => useOnboarding(), { wrapper })
+    await waitFor(() => expect(result.current.isPendingStatus).toBe(false))
+    await waitFor(() => expect(result.current.currentStep).toBe(4))
+
+    const fakeFile = new File([new Uint8Array([1])], 'g.jpg', { type: 'image/jpeg' })
+
+    await act(async () => {
+      await result.current.goNext({ photos: [fakeFile], dirty: true })
+    })
+
+    expect(onboardingApi.step4).toHaveBeenCalledWith([fakeFile], { replace: true })
+    expect(result.current.currentStep).toBe(5)
+  })
 })

@@ -242,19 +242,41 @@ export function useOnboarding(): UseOnboardingResult {
           }
           case 4: {
             const raw = data
-            const photosToUpload = Array.isArray(raw) ? raw : []
+            let photosToUpload: File[] = []
+            let galleryDirty = true
+            if (Array.isArray(raw)) {
+              // Compatibilidad: payload heredado (sólo array de fotos) → asumir dirty.
+              photosToUpload = raw
+            } else if (raw && typeof raw === 'object' && 'photos' in raw) {
+              const d = raw as { photos?: File[]; dirty?: boolean }
+              photosToUpload = Array.isArray(d.photos) ? d.photos : []
+              galleryDirty = d.dirty !== false
+            }
             if (photosToUpload.length === 0) {
               setErrors({ photos: 'Añade al menos una foto a la galería' })
               return
             }
-            await step4(photosToUpload, { replace: true })
-            try {
-              const status = await getStatus()
-              setServerDraft((status.draft as Record<string, unknown> | undefined) ?? {})
-            } catch {
-              /* el paso ya guardó; el borrador se refrescará al recargar */
+            if (galleryDirty) {
+              // Galería modificada por el usuario: reemplazo completo en backend (borra + re-sube).
+              await step4(photosToUpload, { replace: true })
+            } else {
+              // Galería sin cambios: ruta rápida del backend (StepController::step4 líneas 338-346),
+              // valida que el negocio sigue teniendo fotos y devuelve { unchanged: true } sin tocar R2 ni DB.
+              await step4([], { replace: false })
             }
-            await queryClient.invalidateQueries({ queryKey: keys.dashboard.business })
+            // Fire-and-forget: refrescar serverDraft y la caché del dashboard NO bloquea la navegación.
+            // `serverDraft` ya está hidratado para el resto del wizard (wizardHydratedRef gatekeeper en
+            // OnboardingPage); este refresh sólo importa si el usuario recarga, en cuyo caso `getStatus`
+            // se vuelve a llamar al montar. La caché de `dashboard.business` se reconsulta al ir al dashboard.
+            void (async () => {
+              try {
+                const status = await getStatus()
+                setServerDraft((status.draft as Record<string, unknown> | undefined) ?? {})
+              } catch {
+                /* el paso ya guardó */
+              }
+              void queryClient.invalidateQueries({ queryKey: keys.dashboard.business })
+            })()
             if (postCheckoutProGallery) {
               setPostCheckoutProGallery(false)
               setProExtrasSource('gallery')

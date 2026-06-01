@@ -110,6 +110,7 @@ export default function OnboardingPage() {
   const [galleryPreviewUrls, setGalleryPreviewUrls] = useState<string[]>([])
   /** Modo borrador: todas las fotos del paso 4 en un solo array. */
   const [galleryPhotoFiles, setGalleryPhotoFiles] = useState<File[]>([])
+  const [galleryDirty, setGalleryDirty] = useState(false)
   const [schedulePreview, setSchedulePreview] = useState<Schedule>(DEFAULT_SCHEDULE)
   const [step1PreviewVariant, setStep1PreviewVariant] = useState<Step1PreviewVariant>('urban-bold')
   const [step1LogoPreviewUrl, setStep1LogoPreviewUrl] = useState<string | undefined>(undefined)
@@ -226,6 +227,14 @@ export default function OnboardingPage() {
     return fromBiz || fromDraft
   }, [businessSubdomain, serverDraft])
 
+  const handleGalleryPhotosChange = useCallback(
+    (next: File[] | ((prev: File[]) => File[])) => {
+      setGalleryPhotoFiles(next)
+      setGalleryDirty(true)
+    },
+    [],
+  )
+
   const registerContinueHandler = useCallback((handler: (() => unknown) | null) => {
     continueHandlerRef.current = handler
   }, [])
@@ -239,6 +248,10 @@ export default function OnboardingPage() {
     } else {
       setPlanContinueOk(true)
     }
+  }, [currentStep])
+
+  useEffect(() => {
+    if (currentStep === 5) setGalleryDirty(false)
   }, [currentStep])
 
   const registerContinueEnabled = useCallback((enabled: boolean) => {
@@ -979,8 +992,9 @@ export default function OnboardingPage() {
             pro={galleryProExperience}
             postCheckoutProBanner={postCheckoutProGallery}
             photos={galleryPhotoFiles}
-            onPhotosChange={setGalleryPhotoFiles}
+            onPhotosChange={handleGalleryPhotosChange}
             onGalleryPreviewUrlsChange={setGalleryPreviewUrls}
+            dirty={galleryDirty}
           />
         )
       case 5:
