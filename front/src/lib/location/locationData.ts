@@ -123,7 +123,7 @@ export function resolveLegacyLocation(
   const cityTrim = cityText.trim()
   if (!countryTrim || !cityTrim) return null
 
-  let code =
+  const code =
     resolveCountryCodeFromName(countryTrim) ??
     (normalizeKey(countryTrim) === 'espana' || normalizeKey(countryTrim) === 'spain' ? 'ES' : null) ??
     (normalizeKey(countryTrim) === 'mexico' ? 'MX' : null) ??

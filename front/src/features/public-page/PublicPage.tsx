@@ -28,16 +28,19 @@ const RESERVED_SUBDOMAINS = new Set([
 
 export default function PublicPage() {
   const { subdomain } = useParams()
-
-  if (!subdomain || RESERVED_SUBDOMAINS.has(subdomain.toLowerCase())) {
-    return <Navigate to="/" replace />
-  }
+  const reserved =
+    !subdomain || RESERVED_SUBDOMAINS.has(subdomain.toLowerCase())
 
   const { data: business, isLoading, isError } = useQuery({
-    queryKey: keys.public(subdomain),
-    queryFn: () => getPublicBusiness(subdomain),
+    queryKey: keys.public(subdomain ?? ''),
+    queryFn: () => getPublicBusiness(subdomain!),
     retry: false,
+    enabled: !reserved,
   })
+
+  if (reserved) {
+    return <Navigate to="/" replace />
+  }
 
   if (isLoading) {
     return <PublicPageSkeleton />
