@@ -32,6 +32,7 @@ it('builds payload with all required keys', function () {
     expect($payload)->toHaveKeys([
         'business',
         'logo_url',
+        'logo_scale',
         'nombre',
         'tagline',
         'telefono',

@@ -1,5 +1,5 @@
 import type { PublicBusiness, Schedule } from '../../types/api'
-import { buildGoogleDirectionsUrl } from '../../lib/googleMapsDirectionsUrl'
+import { DEFAULT_LOGO_NAV_SCALE, resolveLogoNavScale } from '../../lib/logoDisplay'
 
 /** Servicios serializados para las plantillas HTML. */
 export type TemplateServicePayload = {
@@ -148,7 +148,7 @@ export function publicBusinessToTemplatePayload(business: PublicBusiness): HtmlT
 
   return {
     logo_url: (business.logo_url ?? '').trim(),
-    logo_scale: 1,
+    logo_scale: resolveLogoNavScale(Boolean((business.logo_url ?? '').trim())),
     nombre: business.name,
     tagline: business.tagline ?? '',
     telefono: phoneForTemplate(business),

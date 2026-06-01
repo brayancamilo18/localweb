@@ -31,7 +31,7 @@
   --ease:cubic-bezier(.22,1,.36,1);
   --ease-out:cubic-bezier(.16,1,.3,1);
   --ease-std:cubic-bezier(.4,0,.2,1);
-  --section-pad:clamp(88px,12vh,160px);
+  --section-pad:clamp(88px,12vh,230px);
   --section-pad-sm:clamp(56px,8vh,112px);
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -47,12 +47,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .serif{font-family:'Fraunces',Georgia,serif;font-weight:400;font-variation-settings:"SOFT" 50;letter-spacing:-.025em;line-height:.95}
 .mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
 .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
-.h-display{font-size:clamp(60px,10vw,140px)}
-.h-section{font-size:clamp(40px,6vw,82px)}
+.h-display{font-size:clamp(60px,10vw,154px)}
+.h-section{font-size:clamp(54px,6vw,82px)}
 .lede{font-size:clamp(17px,1.4vw,20px);color:var(--cream-2);max-width:58ch;line-height:1.55}
 
 /* Layout */
-.wrap{max-width:1440px;margin:0 auto;padding:0 clamp(20px,4vw,56px)}
+.wrap{max-width:1454px;margin:0 auto;padding:0 clamp(20px,4vw,56px)}
 section{padding:var(--section-pad) 0;position:relative}
 section.section-tight{padding:var(--section-pad-sm) 0}
 .divider{height:1px;background:var(--line);width:100%}
@@ -61,7 +61,7 @@ section.section-tight{padding:var(--section-pad-sm) 0}
 .grain{position:fixed;inset:0;pointer-events:none;z-index:80;opacity:.04;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
 
 /* Nav */
-.nav{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:32px;padding:12px 20px;background:rgba(31,29,26,.55);backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);border:1px solid var(--line);border-radius:999px;max-width:calc(100% - 32px)}
+.nav{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:46px;padding:12px 20px;background:rgba(31,29,26,.55);backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);border:1px solid var(--line);border-radius:999px;max-width:calc(100% - 46px)}
 .nav-top{display:contents}
 .nav-panel{display:contents}
 .nav .brand{font-family:'Fraunces',serif;font-size:16px;letter-spacing:-.01em;padding-right:8px;border-right:1px solid var(--line);margin-right:4px;flex-shrink:0}
@@ -73,7 +73,7 @@ section.section-tight{padding:var(--section-pad-sm) 0}
 .nav .cta{font-size:13px;padding:9px 16px;border-radius:999px;background:var(--cream);color:var(--bg);white-space:nowrap;transition:transform .3s var(--ease),background .3s var(--ease),opacity .35s var(--ease),transform .35s var(--ease)}
 .nav .cta:hover{transform:scale(1.02);background:#fff}
 .nav .cta:active{transform:scale(.98)}
-.burger{display:none;width:38px;height:38px;align-items:center;justify-content:center;flex-shrink:0;border-radius:999px;border:1px solid var(--line);background:rgba(31,29,26,.4)}
+.burger{display:none;width:52px;height:52px;align-items:center;justify-content:center;flex-shrink:0;border-radius:999px;border:1px solid var(--line);background:rgba(31,29,26,.4)}
 .burger span{display:block;width:18px;height:1px;background:var(--cream);position:relative;transition:background .25s var(--ease)}
 .burger span::before,.burger span::after{content:"";position:absolute;left:0;width:18px;height:1px;background:var(--cream);transition:transform .35s var(--ease),top .35s var(--ease)}
 .burger span::before{top:-5px}.burger span::after{top:5px}
@@ -153,7 +153,7 @@ header.hero,#servicios,#sobre-nosotros,#galeria,#horario,#contacto,#opiniones,#m
 
 /* Ticker */
 .ticker{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:22px 0;overflow:hidden;background:var(--bg-alt)}
-.ticker-track{display:flex;gap:64px;white-space:nowrap;animation:tick 38s linear infinite;font-family:'Fraunces',serif;font-size:clamp(22px,3vw,34px);font-weight:400;letter-spacing:-.01em}
+.ticker-track{display:flex;gap:64px;white-space:nowrap;animation:tick 38s linear infinite;font-family:'Fraunces',serif;font-size:clamp(22px,3vw,48px);font-weight:400;letter-spacing:-.01em}
 .ticker-track span{display:inline-flex;align-items:center;gap:64px;color:var(--cream-2)}
 .ticker-track span::after{content:"·";color:var(--accent);margin-left:0}
 @keyframes tick{to{transform:translateX(-50%)}}
@@ -170,10 +170,10 @@ header.hero,#servicios,#sobre-nosotros,#galeria,#horario,#contacto,#opiniones,#m
 
 /* Services */
 .svc{display:flex;flex-direction:column;border-top:1px solid var(--line)}
-.svc-row{display:grid;grid-template-columns:80px 1.2fr 1.6fr auto;gap:32px;align-items:center;padding:36px 8px;border-bottom:1px solid var(--line);transition:background .4s var(--ease),padding .4s var(--ease)}
+.svc-row{display:grid;grid-template-columns:80px 1.2fr 1.6fr auto;gap:46px;align-items:center;padding:50px 8px;border-bottom:1px solid var(--line);transition:background .4s var(--ease),padding .4s var(--ease)}
 .svc-row:hover{background:rgba(240,235,225,.025);padding-left:18px}
 .svc-row .n{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent)}
-.svc-row .t{font-family:'Fraunces',serif;font-size:clamp(24px,3vw,36px);font-weight:400;letter-spacing:-.02em}
+.svc-row .t{font-family:'Fraunces',serif;font-size:clamp(24px,3vw,50px);font-weight:400;letter-spacing:-.02em}
 .svc-row .d{color:var(--cream-2);max-width:50ch}
 .svc-row .p{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cream-2);font-variant-numeric:tabular-nums}
 @media(max-width:780px){.svc-row{grid-template-columns:auto 1fr;grid-template-areas:"n t" ". d" ". p";gap:8px 16px}.svc-row .n{grid-area:n}.svc-row .t{grid-area:t}.svc-row .d{grid-area:d}.svc-row .p{grid-area:p}}
@@ -183,7 +183,7 @@ header.hero,#servicios,#sobre-nosotros,#galeria,#horario,#contacto,#opiniones,#m
 .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start}
 .about-text{position:sticky;top:120px;align-self:start}
 .about-text h2{margin-bottom:24px}
-.about-text .meta{margin-top:32px;display:flex;flex-direction:column;gap:6px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:.1em}
+.about-text .meta{margin-top:46px;display:flex;flex-direction:column;gap:6px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:.1em}
 .about-text .meta b{color:var(--cream);font-weight:500}
 .about-photos{display:flex;flex-direction:column;gap:24px}
 .about-photo{position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:6px;background:var(--bg)}
@@ -191,7 +191,7 @@ header.hero,#servicios,#sobre-nosotros,#galeria,#horario,#contacto,#opiniones,#m
 .about-photo.in .img{animation:reveal 1s var(--ease) forwards}
 .about-photo:hover .img{transform:scale(1.03)}
 .about-photo cap{position:absolute;left:18px;bottom:18px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cream);letter-spacing:.15em;text-transform:uppercase;background:rgba(31,29,26,.6);backdrop-filter:blur(8px);padding:6px 10px;border-radius:999px}
-@media(max-width:880px){.about-grid{grid-template-columns:1fr;gap:40px}.about-text{position:static}}
+@media(max-width:880px){.about-grid{grid-template-columns:1fr;gap:54px}.about-text{position:static}}
 
 /* Gallery — al bajar: fotos fijas en pantalla y avance horizontal (desktop, pin con JS) */
 .gallery-h{position:relative;width:100%}
@@ -202,7 +202,7 @@ header.hero,#servicios,#sobre-nosotros,#galeria,#horario,#contacto,#opiniones,#m
 .gallery-track .gi .img{position:absolute;inset:0;background-size:cover;background-position:center;transition:transform .6s var(--ease)}
 .gallery-track .gi:hover .img{transform:scale(1.03)}
 .gallery-track .gi.lg{width:46vw;max-width:520px;aspect-ratio:4/3}
-#galeria + section.wrap{padding-top:clamp(32px,5vh,56px)}
+#galeria + section.wrap{padding-top:clamp(46px,5vh,56px)}
 @media(max-width:780px){
   .gallery-h{height:auto!important;min-height:0!important}
   .gallery-stick{position:static!important;height:auto;display:block;padding:12px 0 8px}
@@ -210,7 +210,7 @@ header.hero,#servicios,#sobre-nosotros,#galeria,#horario,#contacto,#opiniones,#m
   .gallery-track{transform:none!important;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding:0 20px 8px}
   .gallery-track .gi,.gallery-track .gi.lg{width:78vw;max-width:none;scroll-snap-align:start}
 }
-.nav .brand.brand-has-img #navBrandLogo{display:block;height:28px;width:auto;max-width:140px;object-fit:contain}
+.nav .brand.brand-has-img #navBrandLogo{display:block;height:44px;width:auto;max-width:154px;object-fit:contain}
 .nav .brand.brand-has-img #navBrandName{display:none}
 .is-hidden{display:none!important}
 #mapaSection.is-hidden{display:none!important}
@@ -219,7 +219,7 @@ header.hero,#servicios,#sobre-nosotros,#galeria,#horario,#contacto,#opiniones,#m
 /* CTA final — foto cubre todo el marco */
 .cta-final-section{width:100%;padding:var(--section-pad-sm) 0}
 .cta-final-section .cta-final{width:100%;max-width:none;margin:0;border-radius:0;min-height:clamp(300px,42vw,480px);padding:0;display:block}
-.cta-final-inner{position:relative;z-index:2;max-width:1440px;margin:0 auto;padding:clamp(40px,6vw,72px) clamp(20px,4vw,56px);display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:center}
+.cta-final-inner{position:relative;z-index:2;max-width:1454px;margin:0 auto;padding:clamp(54px,6vw,72px) clamp(20px,4vw,56px);display:grid;grid-template-columns:1.2fr 1fr;gap:54px;align-items:center}
 #tplVcardWrap.section-tight{padding-bottom:0}
 #tplVcardWrap + .cta-final-section{padding-top:clamp(28px,5vh,44px)}
 @media(max-width:780px){
@@ -233,7 +233,7 @@ header.hero,#servicios,#sobre-nosotros,#galeria,#horario,#contacto,#opiniones,#m
 .hours-list .row{display:grid;grid-template-columns:1fr auto;padding:18px 0;border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.06em;color:var(--cream-2);font-variant-numeric:tabular-nums}
 .hours-list .row.today{color:var(--cream)}
 .hours-list .row.today::before{content:"●";color:var(--accent);margin-right:10px;font-size:8px;vertical-align:middle}
-.contact-list{display:flex;flex-direction:column;gap:18px;border-top:1px solid var(--line);padding-top:32px}
+.contact-list{display:flex;flex-direction:column;gap:18px;border-top:1px solid var(--line);padding-top:46px}
 .contact-list a{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--line);transition:color .3s var(--ease),padding .3s var(--ease)}
 .contact-list a:hover{color:var(--cream);padding-left:8px}
 .contact-list a .k{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
@@ -247,10 +247,10 @@ header.hero,#servicios,#sobre-nosotros,#galeria,#horario,#contacto,#opiniones,#m
 .reviews{text-align:center}
 .reviews .stars{color:var(--accent);letter-spacing:.3em;font-size:18px;margin-bottom:18px}
 .reviews h2{margin-bottom:18px}
-.reviews p{color:var(--cream-2);max-width:55ch;margin:0 auto 32px}
+.reviews p{color:var(--cream-2);max-width:55ch;margin:0 auto 46px}
 
 /* VCard strip */
-.vcard{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:36px 0;display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+.vcard{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:50px 0;display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
 .vcard h3{font-family:'Fraunces',serif;font-size:clamp(28px,3.5vw,42px);font-weight:400;letter-spacing:-.02em;flex:1 1 auto;min-width:0}
 @media(max-width:780px){
   #tplVcardWrap .vcard{flex-direction:column;align-items:center;justify-content:center;text-align:center}
@@ -266,36 +266,36 @@ header.hero,#servicios,#sobre-nosotros,#galeria,#horario,#contacto,#opiniones,#m
 .cta-final-inner .body{display:flex;flex-direction:column;gap:24px}
 
 /* Footer */
-footer{background:var(--bg);color:var(--muted);padding:clamp(56px,8vh,80px) clamp(20px,4vw,56px) clamp(28px,4vh,40px);margin-top:clamp(40px,7vh,64px);border-top:1px solid var(--line)}
-.foot{max-width:1440px;margin:0 auto;display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:clamp(28px,4vw,40px);margin-bottom:clamp(36px,6vh,52px)}
-.foot-brand{font-family:'Fraunces',Georgia,serif;font-size:clamp(36px,5vw,48px);line-height:.92;font-weight:400;letter-spacing:-.025em;color:var(--cream)}
+footer{background:var(--bg);color:var(--muted);padding:clamp(56px,8vh,80px) clamp(20px,4vw,56px) clamp(28px,4vh,54px);margin-top:clamp(54px,7vh,64px);border-top:1px solid var(--line)}
+.foot{max-width:1454px;margin:0 auto;display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:clamp(28px,4vw,54px);margin-bottom:clamp(50px,6vh,52px)}
+.foot-brand{font-family:'Fraunces',Georgia,serif;font-size:clamp(50px,5vw,48px);line-height:.92;font-weight:400;letter-spacing:-.025em;color:var(--cream)}
 .foot-brand .accent{font-style:italic;font-variation-settings:"SOFT" 100;color:var(--cream-2)}
 .foot p{color:var(--muted);margin-top:16px;line-height:1.6;max-width:280px;font-size:14px}
 .foot h4{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.18em;color:var(--accent);margin-bottom:18px}
 .foot ul{list-style:none;display:flex;flex-direction:column;gap:10px}
 .foot ul a{color:var(--cream-2);font-size:14px;transition:color .3s var(--ease)}
 .foot ul a:hover{color:var(--cream)}
-.foot-bottom{max-width:1440px;margin:0 auto;border-top:1px solid var(--line);padding-top:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.foot-bottom{max-width:1454px;margin:0 auto;border-top:1px solid var(--line);padding-top:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
 .foot-bottom a{color:var(--cream-2);transition:color .3s var(--ease)}
 .foot-bottom a:hover{color:var(--cream)}
 @media(max-width:780px){
   :root{
     --section-pad:clamp(56px,11vh,84px);
-    --section-pad-sm:clamp(36px,7vh,56px);
+    --section-pad-sm:clamp(50px,7vh,56px);
   }
   section.wrap{padding-top:var(--section-pad);padding-bottom:var(--section-pad)}
   #galeria{padding-top:clamp(48px,8vh,72px)!important;padding-bottom:0!important}
   #galeria .wrap{margin-bottom:20px!important}
-  #galeria + section.wrap{padding-top:clamp(32px,6vh,48px);padding-bottom:var(--section-pad)}
+  #galeria + section.wrap{padding-top:clamp(46px,6vh,48px);padding-bottom:var(--section-pad)}
   #mapaSection.section-tight,#opiniones.section-tight{padding-top:var(--section-pad-sm);padding-bottom:var(--section-pad-sm)}
-  #tplVcardWrap.section-tight{padding-top:clamp(28px,6vh,40px);padding-bottom:0}
+  #tplVcardWrap.section-tight{padding-top:clamp(28px,6vh,54px);padding-bottom:0}
   #tplVcardWrap .vcard{padding:clamp(22px,5vw,28px) clamp(16px,4vw,20px);gap:16px}
-  #tplVcardWrap + .cta-final-section{padding-top:clamp(20px,4vh,32px);padding-bottom:clamp(28px,6vh,40px)}
-  .cta-final-section .cta-final{min-height:clamp(260px,52vw,340px)}
-  .cta-final-inner{padding:clamp(28px,6vw,40px) clamp(16px,4vw,22px);gap:20px}
-  footer{margin-top:clamp(28px,6vh,40px);padding-top:clamp(44px,8vh,56px);padding-bottom:clamp(28px,5vh,36px)}
-  .foot{grid-template-columns:1fr 1fr;gap:32px}
-  .foot-brand{font-size:32px}
+  #tplVcardWrap + .cta-final-section{padding-top:clamp(20px,4vh,46px);padding-bottom:clamp(28px,6vh,54px)}
+  .cta-final-section .cta-final{min-height:clamp(260px,52vw,354px)}
+  .cta-final-inner{padding:clamp(28px,6vw,54px) clamp(16px,4vw,22px);gap:20px}
+  footer{margin-top:clamp(28px,6vh,54px);padding-top:clamp(44px,8vh,56px);padding-bottom:clamp(28px,5vh,50px)}
+  .foot{grid-template-columns:1fr 1fr;gap:46px}
+  .foot-brand{font-size:46px}
 }
 
 /* Reveal base */
@@ -436,7 +436,7 @@ footer{background:var(--bg);color:var(--muted);padding:clamp(56px,8vh,80px) clam
 
 <!-- 6 GALERIA horizontal -->
 <section id="galeria" style="padding-top:clamp(64px,9vh,108px);padding-bottom:0">
-  <div class="wrap" style="margin-bottom:32px">
+  <div class="wrap" style="margin-bottom:46px">
     <div class="sec-head" style="margin-bottom:0">
       <div>
         <span class="sec-num">N° 03 — Galería</span>
@@ -456,12 +456,12 @@ footer{background:var(--bg);color:var(--muted);padding:clamp(56px,8vh,80px) clam
   <div class="split-cols">
     <div id="horario">
       <span class="sec-num">N° 04 — Horario</span>
-      <h2 class="serif h-section split" style="margin:14px 0 32px"><span class="w"><i>Cuándo</i></span> <span class="w"><i><em>visitarnos.</em></i></span></h2>
+      <h2 class="serif h-section split" style="margin:14px 0 46px"><span class="w"><i>Cuándo</i></span> <span class="w"><i><em>visitarnos.</em></i></span></h2>
       <div class="hours-list" id="hoursList"></div>
     </div>
     <div id="contacto">
       <span class="sec-num">N° 05 — Contacto</span>
-      <h2 class="serif h-section split" style="margin:14px 0 32px"><span class="w"><i>Cómo</i></span> <span class="w"><i><em>encontrarnos.</em></i></span></h2>
+      <h2 class="serif h-section split" style="margin:14px 0 46px"><span class="w"><i>Cómo</i></span> <span class="w"><i><em>encontrarnos.</em></i></span></h2>
       <div class="contact-list" id="tplContactList">
         <a href="{{ $whatsapp ? 'tel:+'.$whatsapp : 'tel:' }}" id="tplContactPhone" data-tel-link class="{{ ($telefono || $whatsapp) ? '' : 'is-hidden' }}"><span class="k">Teléfono</span><span class="v serif" id="tplContactPhoneVal" data-phone-display>{{ $telefono }}</span></a>
         <a href="mailto:" id="tplContactEmail" class="is-hidden"><span class="k">Email</span><span class="v serif" id="tplContactEmailVal"></span></a>
@@ -481,7 +481,7 @@ footer{background:var(--bg);color:var(--muted);padding:clamp(56px,8vh,80px) clam
 <section id="opiniones" class="wrap reviews is-hidden">
   <span class="sec-num">N° 06 — Opiniones</span>
   <h2 class="serif h-section split" style="margin-top:14px"><span class="w"><i>Lo que</i></span> <span class="w"><i>dicen</i></span> <span class="w"><i>de</i></span> <span class="w"><i><em>nosotros.</em></i></span></h2>
-  <p class="lede" style="margin:18px auto 32px">Si has visitado la tienda, tu opinión en Google nos ayuda a seguir cuidando el oficio.</p>
+  <p class="lede" style="margin:18px auto 46px">Si has visitado la tienda, tu opinión en Google nos ayuda a seguir cuidando el oficio.</p>
   <a class="btn btn-primary" href="#" id="tplGbizLink" target="_blank" rel="noopener noreferrer">Dejar opinión en Google</a>
 </section>
 
@@ -1786,6 +1786,7 @@ setInterval(renderSchedule, 60000);
     if (typeof applyLivePreviewData === 'function') {
       applyLivePreviewData({
         logo_url: @json($logo_url),
+        logo_scale: @json($logo_scale ?? null),
         nombre: @json($nombre),
         tagline: @json($tagline),
         telefono: @json($telefono),

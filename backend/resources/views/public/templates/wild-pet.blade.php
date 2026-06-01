@@ -42,7 +42,7 @@
 
     --r-sm: 14px;
     --r:    22px;
-    --r-lg: 32px;
+    --r-lg: 46px;
     --r-xl: 48px;
 
     /* Bouncy / overshoot easings */
@@ -54,7 +54,7 @@
     --display-2: "Fredoka", system-ui, sans-serif;
     --sans: "Nunito Sans", system-ui, sans-serif;
 
-    --container: 1200px;
+    --container: 1280px;
   }
 
   *,*::before,*::after{ box-sizing: border-box; }
@@ -136,7 +136,7 @@
   }
 
   .container{
-    width: min(100% - 32px, var(--container));
+    width: min(100% - 46px, var(--container));
     margin-inline: auto;
     position: relative;
   }
@@ -202,7 +202,7 @@
     will-change: transform;
   }
   .decor.dot-pattern{
-    width: 140px; height: 140px;
+    width: 154px; height: 154px;
     background-image: radial-gradient(var(--ink) 2px, transparent 2.5px);
     background-size: 18px 18px;
     opacity: .25;
@@ -248,7 +248,7 @@
     letter-spacing: -0.02em;
   }
   .brand-mark{
-    width: 36px; height: 36px;
+    width: 50px; height: 50px;
     border-radius: 50%;
     background: var(--amar);
     border: 2px solid var(--ink);
@@ -259,9 +259,9 @@
   .nav-brand-img{ display:none; }
   .brand.brand-has-img .nav-brand-img{
     display:block;
-    height:calc(36px * var(--lw-logo-scale, 1));
+    height:calc(50px * var(--lw-logo-scale, 1));
     width:auto;
-    max-width:calc(168px * var(--lw-logo-scale, 1));
+    max-width:calc(240px * var(--lw-logo-scale, 1));
     object-fit:contain;
     flex-shrink:0;
   }
@@ -377,7 +377,7 @@
   .sheet.open .sheet-inner nav a:nth-child(6){ transition-delay: .26s; }
   .sheet-inner a:hover{ background: var(--amar-soft); }
   .sheet-close{
-    width: 38px; height: 38px;
+    width: 52px; height: 52px;
     border-radius: 50%;
     background: var(--amar);
     border: 2px solid var(--ink);
@@ -878,8 +878,8 @@
 
   /* ===== Map ===== */
   #map{
-    height: 440px;
-    min-height: 440px;
+    height: 454px;
+    min-height: 454px;
     border: 3px solid var(--ink);
     border-radius: var(--r-lg);
     overflow: hidden;
@@ -978,7 +978,7 @@
     content: "";
     position: absolute; inset: 0;
     background-image: radial-gradient(rgba(255,255,255,.35) 3px, transparent 4px);
-    background-size: 38px 38px;
+    background-size: 52px 52px;
     pointer-events: none;
   }
   .final-cta > *{ position: relative; z-index: 2; }
@@ -1125,8 +1125,8 @@
       flex: 1 1 auto;
     }
     .brand.brand-has-img .nav-brand-img{
-      height:32px;
-      max-width:min(140px, 42vw);
+      height:46px;
+      max-width:min(154px, 42vw);
     }
     #navBrandName{
       overflow: hidden;
@@ -1209,7 +1209,7 @@
     .hp-3{ transform: rotate(-6deg); }
     .decor{ display: none; }
   }
-  @media (max-width: 540px){
+  @media (max-width: 554px){
     .container{ width: min(100% - 24px, var(--container)); }
     section{ padding: 2.5rem 0; }
     .footer-grid{ grid-template-columns: 1fr; }
@@ -1336,7 +1336,7 @@
 <!-- 4. SERVICIOS -->
 <section id="servicios" data-bg="lila-soft" aria-labelledby="serv-title" style="display:none;">
   <span class="decor dot-pattern" data-parallax="0.3" style="top:8%; right:5%;" aria-hidden="true"></span>
-  <span class="decor blob" data-parallax="0.4" style="bottom:5%; left:-3%; width:160px; height:160px; background: var(--amar); border:3px solid var(--ink);" aria-hidden="true"></span>
+  <span class="decor blob" data-parallax="0.4" style="bottom:5%; left:-3%; width:230px; height:230px; background: var(--amar); border:3px solid var(--ink);" aria-hidden="true"></span>
   <div class="container">
     <div class="section-head sr">
       <span class="eyebrow">Servicios</span>
@@ -1369,7 +1369,7 @@
 <!-- 5. ABOUT -->
 <section id="sobre-nosotros" data-bg="lima-soft" aria-labelledby="about-title">
   <span class="decor squig" data-parallax="0.4" style="top:12%; right:6%;" aria-hidden="true"></span>
-  <span class="decor blob" data-parallax="0.3" style="bottom:8%; left:-4%; width:140px; height:140px; background: var(--coral); border:3px solid var(--ink);" aria-hidden="true"></span>
+  <span class="decor blob" data-parallax="0.3" style="bottom:8%; left:-4%; width:154px; height:154px; background: var(--coral); border:3px solid var(--ink);" aria-hidden="true"></span>
   <div class="container">
     <div class="about-grid about">
       <div class="about-photo sr @if($foto_equipo) has-photo @endif" id="aboutPhotoWrap" style="--sr-rot:-15deg;">
@@ -1430,7 +1430,7 @@
 
 <!-- 7. HORARIO -->
 <section id="horario" data-bg="amar-soft" aria-labelledby="sched-title">
-  <span class="decor blob" data-parallax="0.35" style="top:5%; right:-3%; width:140px; height:140px; background: var(--sky); border:3px solid var(--ink);" aria-hidden="true"></span>
+  <span class="decor blob" data-parallax="0.35" style="top:5%; right:-3%; width:154px; height:154px; background: var(--sky); border:3px solid var(--ink);" aria-hidden="true"></span>
   <div class="container">
     <div class="section-head sr">
       <span class="eyebrow">Horario</span>
@@ -2774,6 +2774,7 @@ function lwTrackClick(kind) {
     if (typeof applyLivePreviewData === 'function') {
       applyLivePreviewData({
         logo_url: @json($logo_url),
+        logo_scale: @json($logo_scale ?? null),
         nombre: @json($nombre),
         tagline: @json($tagline),
         telefono: @json($telefono),

@@ -12,6 +12,13 @@ import {
 import { createPortal } from 'react-dom'
 import type { Schedule, Template } from '../../types/api'
 import { geocodeAddress } from '../../lib/geocodeAddress'
+import {
+  clampLogoNavScale,
+  DEFAULT_LOGO_NAV_SCALE,
+  LOGO_NAV_SCALE_MAX,
+  LOGO_NAV_SCALE_MIN,
+  resolveLogoNavScale,
+} from '../../lib/logoDisplay'
 import { getPublicPageHost } from '../../lib/tenant'
 import {
   Icon,
@@ -521,9 +528,7 @@ function TemplateIframe({
       const rawLogo = (previewData.logoUrl ?? '').trim()
       /** Los blob: solo son válidos en el documento que los creó; el iframe es otro contexto. */
       const logoUrlForIframe = rawLogo.startsWith('blob:') ? '' : rawLogo
-      const rawScale = Number(previewData.logoScale)
-      const logoScale =
-        Number.isFinite(rawScale) ? Math.min(1.5, Math.max(0.45, rawScale)) : 1
+      const logoScale = resolveLogoNavScale(Boolean(logoUrlForIframe), previewData.logoScale)
       const socialDef = defaultSocialUrls()
       applyBrandToFrame()
       const brandHexForFrame =
@@ -1078,12 +1083,9 @@ const FALLBACK_TEMPLATES: Template[] = [
  * de sectores en `RegisterPage` para coherencia (dots + slide horizontal de 220 ms).
  */
 const TEMPLATES_PAGE_SIZE = 8
-const LOGO_SCALE_MIN = 0.55
-const LOGO_SCALE_MAX = 1.35
 
 function clampStep1LogoScale(n: number): number {
-  if (!Number.isFinite(n)) return 1
-  return Math.min(LOGO_SCALE_MAX, Math.max(LOGO_SCALE_MIN, n))
+  return clampLogoNavScale(n)
 }
 
 function Step1Logo({
@@ -1107,7 +1109,7 @@ function Step1Logo({
   onPendingRemoveLogoChange?: (v: boolean) => void
 }) {
   const logoInputRef = useRef<HTMLInputElement>(null)
-  const resolvedLogoScale = clampStep1LogoScale(logoScale ?? 1)
+  const resolvedLogoScale = clampStep1LogoScale(logoScale ?? DEFAULT_LOGO_NAV_SCALE)
   const [logoNatural, setLogoNatural] = useState<{ w: number; h: number } | null>(null)
 
   useEffect(() => {
@@ -1158,8 +1160,8 @@ function Step1Logo({
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
           <div
             style={{
-              width: 72,
-              height: 72,
+              width: 96,
+              height: 96,
               borderRadius: 12,
               background: 'var(--lw-bg-elev)',
               border: '1px solid var(--lw-border)',
@@ -1202,7 +1204,7 @@ function Step1Logo({
                 }
                 onPendingRemoveLogoChange?.(false)
                 onLogoFileChange?.(f)
-                onLogoScaleChange?.(1)
+                onLogoScaleChange?.(DEFAULT_LOGO_NAV_SCALE)
                 const reader = new FileReader()
                 reader.onload = () => {
                   const r = reader.result
@@ -1226,7 +1228,7 @@ function Step1Logo({
                   onPendingRemoveLogoChange?.(true)
                   if (logoInputRef.current) logoInputRef.current.value = ''
                   onPreviewUrlChange?.(undefined)
-                  onLogoScaleChange?.(1)
+                  onLogoScaleChange?.(DEFAULT_LOGO_NAV_SCALE)
                 }}
               >
                 Quitar logo
@@ -1253,15 +1255,15 @@ function Step1Logo({
             </div>
             <input
               type="range"
-              min={LOGO_SCALE_MIN}
-              max={LOGO_SCALE_MAX}
+              min={LOGO_NAV_SCALE_MIN}
+              max={LOGO_NAV_SCALE_MAX}
               step={0.05}
               value={resolvedLogoScale}
               disabled={busy || !onLogoScaleChange}
               onChange={(e) => onLogoScaleChange?.(clampStep1LogoScale(Number(e.target.value)))}
               style={{ width: '100%', accentColor: 'var(--lw-accent)' }}
-              aria-valuemin={LOGO_SCALE_MIN}
-              aria-valuemax={LOGO_SCALE_MAX}
+              aria-valuemin={LOGO_NAV_SCALE_MIN}
+              aria-valuemax={LOGO_NAV_SCALE_MAX}
               aria-valuenow={resolvedLogoScale}
             />
             <p className="lw-small" style={{ margin: '8px 0 0', color: 'var(--lw-text-3)', lineHeight: 1.45 }}>

@@ -18,6 +18,9 @@ class TenantViewPayload
         return [
             'business' => $business,
             'logo_url' => $business->logo_url,
+            'logo_scale' => filled($business->logo_url)
+                ? (float) config('localweb.default_logo_nav_scale', 1.35)
+                : null,
             'nombre' => $business->name,
             'tagline' => $business->tagline ?? '',
             'telefono' => $business->phone ?? '',

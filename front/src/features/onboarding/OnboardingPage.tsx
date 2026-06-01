@@ -23,7 +23,7 @@ import {
 import { useAuthStore } from '../../store/authStore'
 import { coerceLocation } from '../../lib/location/coerceLocation'
 import { emptyLocation } from '../../lib/location/locationData'
-import { readSignupPrefill } from '../../lib/signupPrefill'
+import { DEFAULT_LOGO_NAV_SCALE } from '../../lib/logoDisplay'
 import type { LocationValue } from '../../lib/location/locationTypes'
 import {
   DEFAULT_SCHEDULE,
@@ -114,7 +114,7 @@ export default function OnboardingPage() {
   const [schedulePreview, setSchedulePreview] = useState<Schedule>(DEFAULT_SCHEDULE)
   const [step1PreviewVariant, setStep1PreviewVariant] = useState<Step1PreviewVariant>('urban-bold')
   const [step1LogoPreviewUrl, setStep1LogoPreviewUrl] = useState<string | undefined>(undefined)
-  const [step1LogoScale, setStep1LogoScale] = useState(1)
+  const [step1LogoScale, setStep1LogoScale] = useState(DEFAULT_LOGO_NAV_SCALE)
   const [step1LogoFile, setStep1LogoFile] = useState<File | null>(null)
   const [step1PendingRemoveLogo, setStep1PendingRemoveLogo] = useState(false)
   const [coverFile, setCoverFile] = useState<File | null>(null)
@@ -502,7 +502,7 @@ export default function OnboardingPage() {
     if (
       typeof p?.step1LogoScale === 'number' &&
       Number.isFinite(p.step1LogoScale) &&
-      p.step1LogoScale >= 0.45 &&
+      p.step1LogoScale >= 0.75 &&
       p.step1LogoScale <= 1.5
     ) {
       setStep1LogoScale(p.step1LogoScale)

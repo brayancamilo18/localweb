@@ -19,6 +19,9 @@ return [
         'tenant_suffix' => env('LOCALWEB_TENANT_SUFFIX', 'localhost'),
     ],
 
+    /** Escala CSS `--lw-logo-scale` en plantillas cuando hay logo en la barra. */
+    'default_logo_nav_scale' => (float) env('LOCALWEB_DEFAULT_LOGO_NAV_SCALE', 1.35),
+
     'seo' => [
         // Imagen OG por defecto cuando el negocio no tiene portada.
         // Debe ser una URL absoluta. En producción apuntará a un asset en R2/CDN.
