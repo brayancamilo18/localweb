@@ -99,7 +99,7 @@ Route::prefix('v1')->group(function (): void {
             Route::get('/profile', [ProfileController::class, 'show'])->middleware('throttle:60,1');
             Route::patch('/profile', [ProfileController::class, 'update'])->middleware('throttle:30,1');
             Route::post('/password', [ProfileController::class, 'password'])->middleware('throttle:6,1');
-            Route::get('/referrals', [ReferralsController::class, 'index'])->middleware('throttle:60,1');
+            Route::get('/referrals', [ReferralsController::class, 'index'])->middleware(['throttle:60,1', 'pro.features']);
             Route::get('/sessions', [SessionsController::class, 'index'])->middleware('throttle:30,1');
             Route::post('/sessions/revoke-others', [SessionsController::class, 'destroyOthers'])->middleware('throttle:6,1');
             Route::get('/security-events', [SecurityEventsController::class, 'index'])->middleware('throttle:30,1');
@@ -109,7 +109,7 @@ Route::prefix('v1')->group(function (): void {
         Route::prefix('qr')->group(function (): void {
             Route::get('/info', [QrController::class, 'info'])->middleware('throttle:60,1');
             Route::get('/png', [QrController::class, 'png'])->middleware('throttle:30,1');
-            Route::post('/poster', [QrController::class, 'poster'])->middleware('throttle:15,1');
+            Route::post('/poster', [QrController::class, 'poster'])->middleware(['throttle:15,1', 'pro.features']);
         });
 
         Route::prefix('onboarding')->middleware(['verified.api', 'social.registration.complete'])->group(function (): void {
@@ -145,14 +145,14 @@ Route::prefix('v1')->group(function (): void {
             Route::get('/template/{template}/preview', TemplateChangePreviewController::class);
             Route::post('/template', TemplateChangeController::class);
             Route::get('/brand-color', [BrandColorController::class, 'show']);
-            Route::put('/brand-color', [BrandColorController::class, 'update']);
+            Route::put('/brand-color', [BrandColorController::class, 'update'])->middleware('pro.features');
             Route::post('/images', [ImagesController::class, 'store']);
             Route::delete('/images/{image}', [ImagesController::class, 'destroy']);
             Route::put('/images/reorder', [ImagesController::class, 'reorder']);
             Route::post('/logo', [ImagesController::class, 'storeLogo']);
             Route::delete('/logo', [ImagesController::class, 'destroyLogo']);
-            Route::post('/favicon', [ImagesController::class, 'storeFavicon']);
-            Route::delete('/favicon', [ImagesController::class, 'destroyFavicon']);
+            Route::post('/favicon', [ImagesController::class, 'storeFavicon'])->middleware('pro.features');
+            Route::delete('/favicon', [ImagesController::class, 'destroyFavicon'])->middleware('pro.features');
             Route::get('/services', [ServicesController::class, 'index']);
             Route::post('/services', [ServicesController::class, 'store']);
             Route::put('/services/reorder', [ServicesController::class, 'reorder']);

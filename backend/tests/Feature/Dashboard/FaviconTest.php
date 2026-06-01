@@ -92,7 +92,7 @@ it('persists favicon uploads as square png files', function () {
         ->and($info['mime'])->toBe('image/png');
 });
 
-it('returns 422 upgrade required when a free business uploads a favicon', function () {
+it('returns 403 from middleware when a free business uploads a favicon', function () {
     $business = freeBusiness();
     $user = verifiedDashboardUser($business);
 
@@ -100,8 +100,8 @@ it('returns 422 upgrade required when a free business uploads a favicon', functi
         ->post('/api/v1/dashboard/favicon', [
             'file' => UploadedFile::fake()->image('icon.png', 64, 64),
         ])
-        ->assertStatus(422)
-        ->assertJsonPath('upgrade_required', true);
+        ->assertStatus(403)
+        ->assertJsonPath('message', 'Esta función solo está disponible en el plan Pro.');
 
     expect($business->fresh()->favicon_path)->toBeNull();
 });

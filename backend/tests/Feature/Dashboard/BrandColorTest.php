@@ -90,7 +90,7 @@ it('free user cannot update brand color', function () {
     test()->actingAs($user)
         ->putJson('/api/v1/dashboard/brand-color', ['brand_color' => '#ff5a3a'])
         ->assertStatus(403)
-        ->assertJsonPath('message', 'Esta función requiere el plan Pro.');
+        ->assertJsonPath('message', 'Esta función solo está disponible en el plan Pro.');
 
     expect($business->fresh()->brand_color)->toBeNull();
 });

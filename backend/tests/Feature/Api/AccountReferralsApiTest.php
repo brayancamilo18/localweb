@@ -19,7 +19,7 @@ it('returns 403 for free users on GET /account/referrals', function () {
     test()->actingAs($user)
         ->getJson('/api/v1/account/referrals')
         ->assertStatus(403)
-        ->assertJsonPath('message', 'Solo disponible para usuarios Pro');
+        ->assertJsonPath('message', 'Esta función solo está disponible en el plan Pro.');
 });
 
 it('returns empty referrals structure for pro user without referrals', function () {
