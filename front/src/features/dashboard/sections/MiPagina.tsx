@@ -108,9 +108,9 @@ export default function MiPagina() {
   const [copied, setCopied] = useState(false)
   const pro = business.is_pro
   const visitsToday = pro ? visitsTodayFromDaily(stats.daily_visits) : undefined
-  const visitsWeek = pro ? visitsWeekFromDaily(stats.daily_visits) : business.stats?.visit
-  const wa = pro ? stats.whatsapp_clicks : business.stats?.whatsapp_click
-  const ph = pro ? stats.phone_clicks : business.stats?.phone_click
+  const visitsWeek = pro ? visitsWeekFromDaily(stats.daily_visits) : undefined
+  const wa = pro ? stats.whatsapp_clicks : undefined
+  const ph = pro ? stats.phone_clicks : undefined
 
   const canonicalPublicUrl = business.subdomain ? buildPublicBusinessUrl(business.subdomain) : ''
   const devReachableUrl =

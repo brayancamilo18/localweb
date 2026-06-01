@@ -7,30 +7,34 @@ use App\Http\Resources\BusinessResource;
 use App\Models\PageVisit;
 use App\Services\BusinessService;
 use App\Services\GeocodingService;
+use App\Services\PlanService;
 use App\Support\PublicPageCache;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class BusinessController extends BaseApiController
 {
-    public function show(Request $request)
+    public function show(Request $request, PlanService $plans)
     {
-        $business = $request->user()->business()
+        $user = $request->user();
+        $business = $user->business()
             ->with(['template', 'services', 'images' => fn ($q) => $q->ordered()])
             ->firstOrFail();
 
-        $weekly = PageVisit::query()
-            ->where('business_id', $business->id)
-            ->where('visited_at', '>=', now()->subDays(7))
-            ->selectRaw('event_type, count(*) as total')
-            ->groupBy('event_type')
-            ->pluck('total', 'event_type');
+        if ($plans->canAccessAnalytics($user)) {
+            $weekly = PageVisit::query()
+                ->where('business_id', $business->id)
+                ->where('visited_at', '>=', now()->subDays(7))
+                ->selectRaw('event_type, count(*) as total')
+                ->groupBy('event_type')
+                ->pluck('total', 'event_type');
 
-        $business->stats = [
-            'visit' => (int) ($weekly['visit'] ?? 0),
-            'whatsapp_click' => (int) ($weekly['whatsapp_click'] ?? 0),
-            'phone_click' => (int) ($weekly['phone_click'] ?? 0),
-        ];
+            $business->stats = [
+                'visit' => (int) ($weekly['visit'] ?? 0),
+                'whatsapp_click' => (int) ($weekly['whatsapp_click'] ?? 0),
+                'phone_click' => (int) ($weekly['phone_click'] ?? 0),
+            ];
+        }
 
         return $this->success(new BusinessResource($business));
     }

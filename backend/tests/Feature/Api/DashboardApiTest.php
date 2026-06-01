@@ -2,6 +2,7 @@
 
 use App\Models\Business;
 use App\Models\BusinessImage;
+use App\Models\PageVisit;
 use App\Models\Template;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -140,6 +141,63 @@ it('stats free user returns upgrade required', function () {
         ->getJson('/api/v1/dashboard/stats')
         ->assertStatus(403)
         ->assertJsonPath('upgrade_required', true);
+});
+
+it('dashboard business free user does not expose stats in JSON', function () {
+    $business = Business::create([
+        'name' => 'B',
+        'subdomain' => 'free-no-stats',
+        'subdomain_type' => 'random',
+        'sector' => 'otros',
+        'plan' => 'free',
+    ]);
+    $user = User::factory()->create(['business_id' => $business->id]);
+
+    PageVisit::create([
+        'business_id' => $business->id,
+        'event_type' => 'visit',
+        'visited_at' => now(),
+    ]);
+    PageVisit::create([
+        'business_id' => $business->id,
+        'event_type' => 'whatsapp_click',
+        'visited_at' => now(),
+    ]);
+
+    $response = test()->actingAs($user)->getJson('/api/v1/dashboard/business');
+
+    $response->assertStatus(200)
+        ->assertJsonMissingPath('data.stats');
+});
+
+it('dashboard business pro user includes weekly stats', function () {
+    $business = Business::create([
+        'name' => 'Pro Stats',
+        'subdomain' => 'pro-has-stats',
+        'subdomain_type' => 'random',
+        'sector' => 'otros',
+        'plan' => 'pro',
+        'plan_activated_at' => now(),
+    ]);
+    $user = User::factory()->create(['business_id' => $business->id]);
+
+    PageVisit::create([
+        'business_id' => $business->id,
+        'event_type' => 'visit',
+        'visited_at' => now(),
+    ]);
+    PageVisit::create([
+        'business_id' => $business->id,
+        'event_type' => 'whatsapp_click',
+        'visited_at' => now(),
+    ]);
+
+    test()->actingAs($user)
+        ->getJson('/api/v1/dashboard/business')
+        ->assertStatus(200)
+        ->assertJsonPath('data.stats.visit', 1)
+        ->assertJsonPath('data.stats.whatsapp_click', 1)
+        ->assertJsonPath('data.stats.phone_click', 0);
 });
 
 it('images upload over free limit returns 422 upgrade required', function () {
