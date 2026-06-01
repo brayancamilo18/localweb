@@ -6,8 +6,11 @@ export const legalEntityName =
 export const legalEntityNif =
   (import.meta.env.VITE_LEGAL_ENTITY_NIF as string | undefined)?.trim() || '[TU NIF]'
 
-export const legalPrivacyEmail = 'privacidad@onez.es'
-export const legalSupportEmail = 'soporte@onez.es'
+export const legalContactEmail = 'contacto@onez.es'
+
+/** Alias históricos — todo el contacto va al mismo buzón. */
+export const legalPrivacyEmail = legalContactEmail
+export const legalSupportEmail = legalContactEmail
 
 export const legalRoutes = {
   avisoLegal: '/aviso-legal',

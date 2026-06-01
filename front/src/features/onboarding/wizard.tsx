@@ -330,33 +330,33 @@ export function mergeStep1TemplatePreview(
 function previewDemoHostForVariant(variant: Step1PreviewVariant): string {
   switch (variant) {
     case 'noir-elite':
-      return 'casa-lumen.localweb.es'
+      return 'casa-lumen.app.onez.es'
     case 'bloom-studio':
-      return 'salon-margarita.localweb.es'
+      return 'salon-margarita.app.onez.es'
     case 'urban-bold':
-      return 'studio-barber.localweb.es'
+      return 'studio-barber.app.onez.es'
     case 'coastal-calm':
-      return 'hotel-marea.localweb.es'
+      return 'hotel-marea.app.onez.es'
     case 'craft-pro':
-      return 'construcciones-lanza.localweb.es'
+      return 'construcciones-lanza.app.onez.es'
     case 'tavola-warm':
-      return 'tavola-roma.localweb.es'
+      return 'tavola-roma.app.onez.es'
     case 'tech-sleek':
-      return 'atlas-studio.localweb.es'
+      return 'atlas-studio.app.onez.es'
     case 'trust-clinic':
-      return 'clinica-vega.localweb.es'
+      return 'clinica-vega.app.onez.es'
     case 'versa-studio':
-      return 'estudio-versa.localweb.es'
+      return 'estudio-versa.app.onez.es'
     case 'mono-edito':
-      return 'taller-linea.localweb.es'
+      return 'taller-linea.app.onez.es'
     case 'luxe-atelier':
-      return 'maison-eclat.localweb.es'
+      return 'maison-eclat.app.onez.es'
     case 'graphite-soft':
-      return 'nomada-store.localweb.es'
+      return 'nomada-store.app.onez.es'
     case 'wild-pet':
-      return 'patitas-felices.localweb.es'
+      return 'patitas-felices.app.onez.es'
     default:
-      return 'studio-barber.localweb.es'
+      return 'studio-barber.app.onez.es'
   }
 }
 
@@ -2221,7 +2221,7 @@ function Step1Plantilla({
 // Preview rail used across most steps — small fake browser
 function PreviewBrowser({
   children,
-  url = 'estudio-marta.localweb.es',
+  url = 'estudio-marta.app.onez.es',
 }: {
   children: ReactNode
   url?: string
@@ -3437,7 +3437,7 @@ function Step8Publicar({ errors, reservedSubdomain }: WizardStepProps & { reserv
 }
 function PublicarPreview() {
   return (
-    <PreviewBrowser url="estudio-marta.localweb.es">
+    <PreviewBrowser url="estudio-marta.app.onez.es">
       <div style={{ position: "relative", height: 220 }}>
         <Placeholder ratio="16:9" h={220} dark style={{ borderRadius: 0 }} label="portada"/>
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 35%, rgba(0,0,0,.6))" }}/>

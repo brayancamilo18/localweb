@@ -654,7 +654,7 @@ body.embed-preview .info{scroll-margin-top:100px}
   </div>
   <div class="foot-bot">
     <span id="sleekFootBottomBrand">// © 2026 · Tu negocio</span>
-    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
+    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://onez.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
   </div>
 </footer>
 @endsection
@@ -1072,7 +1072,7 @@ function syncSleekTemplateExtensions(raw) {
   if (rowEl) rowEl.classList.toggle('is-visible', hasReviews || hasVcard);
   if (secEl) secEl.style.display = (hasReviews || hasVcard) ? '' : 'none';
 
-  var SOCIAL = { instagram:'https://www.instagram.com/localweb.es', tiktok:'https://www.tiktok.com/@localweb', facebook:'https://www.facebook.com/localweb' };
+  var SOCIAL = { instagram:'https://www.instagram.com/onez.es', tiktok:'https://www.tiktok.com/@onez', facebook:'https://www.facebook.com/onez' };
   function r(key, fb) { var u = (raw[key] || '').trim(); return u || fb || '#'; }
   var igEl = document.getElementById('tplSocialInstagram'); if (igEl) igEl.href = r('instagram_url', SOCIAL.instagram);
   var ttEl = document.getElementById('tplSocialTiktok');    if (ttEl) ttEl.href = r('tiktok_url',    SOCIAL.tiktok);

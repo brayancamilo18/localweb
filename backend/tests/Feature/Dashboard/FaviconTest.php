@@ -2,7 +2,6 @@
 
 use App\Enums\Plan;
 use App\Models\Business;
-use App\Models\User;
 use App\Services\SeoMetaBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -14,11 +13,6 @@ beforeEach(function () {
     Storage::fake('local');
     Storage::fake('r2');
 });
-
-function verifiedDashboardUser(Business $business): User
-{
-    return User::factory()->create(['business_id' => $business->id]);
-}
 
 function proBusiness(array $overrides = []): Business
 {
@@ -55,7 +49,7 @@ it('allows a pro business to upload a favicon png', function () {
         ->and($business->favicon_path)->toStartWith("businesses/{$business->id}/favicon/")
         ->and($business->favicon_path)->toEndWith('.png');
 
-    Storage::disk('r2')->assertExists($business->favicon_path);
+    expect(Storage::disk('r2')->exists($business->favicon_path))->toBeTrue();
 });
 
 it('accepts jpeg favicon uploads after client-side compression', function () {
@@ -71,7 +65,7 @@ it('accepts jpeg favicon uploads after client-side compression', function () {
     $business->refresh();
 
     expect($business->favicon_path)->toEndWith('.png');
-    Storage::disk('r2')->assertExists($business->favicon_path);
+    expect(Storage::disk('r2')->exists($business->favicon_path))->toBeTrue();
 });
 
 it('persists favicon uploads as square png files', function () {
@@ -88,8 +82,7 @@ it('persists favicon uploads as square png files', function () {
     $path = $business->favicon_path;
 
     expect($path)->toEndWith('.png');
-
-    Storage::disk('r2')->assertExists($path);
+    expect(Storage::disk('r2')->exists($path))->toBeTrue();
 
     $contents = Storage::disk('r2')->get($path);
     $info = getimagesizefromstring($contents);
@@ -127,7 +120,7 @@ it('deletes favicon file and clears favicon_path', function () {
     $path = $business->favicon_path;
 
     expect($path)->not->toBeNull();
-    Storage::disk('r2')->assertExists($path);
+    expect(Storage::disk('r2')->exists($path))->toBeTrue();
 
     test()->actingAs($user)
         ->deleteJson('/api/v1/dashboard/favicon')
@@ -135,7 +128,7 @@ it('deletes favicon file and clears favicon_path', function () {
         ->assertJsonPath('data.favicon_url', null);
 
     expect($business->fresh()->favicon_path)->toBeNull();
-    Storage::disk('r2')->assertMissing($path);
+    expect(Storage::disk('r2')->exists($path))->toBeFalse();
 });
 
 it('seo meta builder exposes favicon url for pro businesses with favicon', function () {

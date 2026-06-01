@@ -18,7 +18,7 @@ class DevelopmentSeeder extends Seeder
         $business = Business::updateOrCreate(
             ['subdomain' => 'demo'],
             [
-                'name' => 'LocalWeb Demo',
+                'name' => 'ONEZ Demo',
                 'subdomain_type' => 'random',
                 'sector' => 'Servicios',
                 'template_id' => $template->id,

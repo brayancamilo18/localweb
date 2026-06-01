@@ -107,6 +107,6 @@ class WelcomeProOnez extends Mailable implements ShouldQueue
             return $from;
         }
 
-        return 'soporte@onez.es';
+        return 'contacto@onez.es';
     }
 }

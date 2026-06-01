@@ -55,9 +55,9 @@ export function defaultSocialUrls(): { instagram: string; tiktok: string; facebo
   const tt = (import.meta.env.VITE_DEFAULT_TIKTOK_URL as string | undefined)?.trim()
   const fb = (import.meta.env.VITE_DEFAULT_FACEBOOK_URL as string | undefined)?.trim()
   return {
-    instagram: ig || 'https://www.instagram.com/localweb.es',
-    tiktok: tt || 'https://www.tiktok.com/@localweb',
-    facebook: fb || 'https://www.facebook.com/localweb',
+    instagram: ig || 'https://www.instagram.com/onez.es',
+    tiktok: tt || 'https://www.tiktok.com/@onez',
+    facebook: fb || 'https://www.facebook.com/onez',
   }
 }
 

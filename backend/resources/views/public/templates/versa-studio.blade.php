@@ -726,7 +726,7 @@ Cerrado
     </div>
     <div class="foot-bot">
       <span>© {{ date('Y') }} {{ $nombre }} · CIF {{ $cif ?? '' }}</span>
-      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Hecho con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
+      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Hecho con <a href="https://onez.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
     </div>
   </div>
 </footer>
@@ -1242,9 +1242,9 @@ function syncVersaTemplateExtensions(raw) {
   }
 
   var LW_DEFAULT_SOCIAL = {
-    instagram: 'https://www.instagram.com/localweb.es',
-    tiktok: 'https://www.tiktok.com/@localweb',
-    facebook: 'https://www.facebook.com/localweb',
+    instagram: 'https://www.instagram.com/onez.es',
+    tiktok: 'https://www.tiktok.com/@onez',
+    facebook: 'https://www.facebook.com/onez',
   };
   function versaSocialHref(key, fallback) {
     var u = (raw[key] || '').trim();

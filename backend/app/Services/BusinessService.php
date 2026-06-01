@@ -147,6 +147,51 @@ class BusinessService
     }
 
     /**
+     * Campos obligatorios que los pasos 1–8 deben haber persistido antes de cerrar el onboarding.
+     *
+     * @return list<string>
+     */
+    public function onboardingMissingFields(Business $business): array
+    {
+        $missing = [];
+
+        if ($business->template_id === null) {
+            $missing[] = 'template_id';
+        }
+        if (trim((string) $business->sector) === '') {
+            $missing[] = 'sector';
+        }
+        if (trim((string) $business->name) === '') {
+            $missing[] = 'name';
+        }
+        if (trim((string) $business->city) === '') {
+            $missing[] = 'city';
+        }
+        if (trim((string) $business->country_code) === '') {
+            $missing[] = 'country_code';
+        }
+        if ($business->lat === null) {
+            $missing[] = 'lat';
+        }
+        if ($business->lng === null) {
+            $missing[] = 'lng';
+        }
+        if (trim((string) ($business->phone ?? '')) === '' && trim((string) ($business->email ?? '')) === '') {
+            $missing[] = 'phone_or_email';
+        }
+        if (trim((string) $business->subdomain) === '') {
+            $missing[] = 'subdomain';
+        }
+
+        return $missing;
+    }
+
+    public function isOnboardingDataComplete(Business $business): bool
+    {
+        return $this->onboardingMissingFields($business) === [];
+    }
+
+    /**
      * Marca el onboarding como terminado. Es lo que activa la entrada al dashboard
      * (`hasCompletedOnboarding` en el front, vía `business.onboarding_completed_at`).
      * Idempotente: si ya estaba marcado, no lo sobrescribe.
@@ -210,7 +255,7 @@ class BusinessService
         $base = Str::slug($businessName);
         $base = str_replace('-', '', $base);
         $base = substr($base, 0, 10);
-        $base = $base !== '' ? $base : 'localweb';
+        $base = $base !== '' ? $base : 'onez';
 
         $suggestion = strtolower($base . '-' . Str::lower(Str::random(4)));
         $suggestion = preg_replace('/[^a-z0-9-]/', '', $suggestion) ?: $this->generateRandomSubdomain();

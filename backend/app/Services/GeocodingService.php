@@ -10,7 +10,7 @@ class GeocodingService
     public function geocode(string $address): array
     {
         $response = Http::withHeaders([
-            'User-Agent' => 'LocalWeb/1.0 (localweb@app.com)',
+            'User-Agent' => 'ONEZ/1.0 (app@onez.es)',
         ])->get('https://nominatim.openstreetmap.org/search', [
             'q' => $address,
             'format' => 'json',

@@ -682,7 +682,7 @@ Cerrado
   </div>
   <div class="foot-bot">
     <span>© {{ date('Y') }} {{ $nombre }}</span>
-    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Hecho con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
+    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Hecho con <a href="https://onez.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
   </div>
 </footer>
 @endsection

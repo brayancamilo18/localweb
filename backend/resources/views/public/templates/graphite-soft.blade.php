@@ -549,7 +549,7 @@ footer{background:var(--bg);color:var(--muted);padding:clamp(56px,8vh,80px) clam
   </div>
   <div class="foot-bottom">
     <span id="footBottomBrand">© {{ date('Y') }} · {{ $nombre }}</span>
-    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
+    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://onez.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
   </div>
 </footer>
 @endsection
@@ -1433,9 +1433,9 @@ function resolveGraphitePhoneDisplay(raw) {
 }
 
 var LW_DEFAULT_SOCIAL_GRAPHITE = {
-  instagram: 'https://www.instagram.com/localweb.es',
-  tiktok: 'https://www.tiktok.com/@localweb',
-  facebook: 'https://www.facebook.com/localweb',
+  instagram: 'https://www.instagram.com/onez.es',
+  tiktok: 'https://www.tiktok.com/@onez',
+  facebook: 'https://www.facebook.com/onez',
 };
 
 function graphiteResolveSocialHref(raw, key, fallback) {

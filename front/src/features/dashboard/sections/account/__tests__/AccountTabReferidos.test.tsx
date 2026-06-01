@@ -1,10 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import AccountTabReferidos from '../AccountTabReferidos'
-
-vi.mock('react-router-dom', () => ({
-  useSearchParams: () => [new URLSearchParams(), vi.fn()] as const,
-}))
 import { ToastProvider } from '../../../../../components/ui/Toast'
 import * as referralsApi from '../../../../../api/referrals'
 import axios from 'axios'
@@ -16,7 +13,9 @@ function renderTab() {
   return render(
     <QueryClientProvider client={qc}>
       <ToastProvider>
-        <AccountTabReferidos />
+        <MemoryRouter>
+          <AccountTabReferidos />
+        </MemoryRouter>
       </ToastProvider>
     </QueryClientProvider>,
   )

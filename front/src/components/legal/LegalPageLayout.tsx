@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { legalLastUpdate, legalRoutes } from '../../lib/legal'
+import { legalContactEmail, legalLastUpdate, legalRoutes } from '../../lib/legal'
 import '../../styles/legal.css'
 
 export interface TocItem {
@@ -124,10 +124,7 @@ export function LegalPageLayout({
             <h4>Contacto</h4>
             <ul>
               <li>
-                <a href="mailto:soporte@onez.es">soporte@onez.es</a>
-              </li>
-              <li>
-                <a href="mailto:privacidad@onez.es">privacidad@onez.es</a>
+                <a href={`mailto:${legalContactEmail}`}>{legalContactEmail}</a>
               </li>
             </ul>
           </div>

@@ -125,6 +125,10 @@ return [
     | the framework. Typically, you should not need to change this value
     | since doing so does not grant a meaningful security improvement.
     |
+    | TODO(rebrand): Renombrar la cookie (p. ej. `onez_session` vía APP_NAME=ONEZ o
+    | SESSION_COOKIE) invalidaría todas las sesiones activas en producción. Coordinar
+    | el cambio con un deploy de mantenimiento y comunicación a usuarios.
+    |
     */
 
     'cookie' => env(

@@ -488,11 +488,26 @@ it('step8 pending also defers finalization (Stripe webhook may still be in fligh
 });
 
 it('finalize endpoint sets onboarding_completed_at and is idempotent', function () {
+    $template = Template::create([
+        'name' => 'Finalize Template',
+        'slug' => 'finalize-template',
+        'primary_color' => '#000000',
+        'is_active' => true,
+        'requires_pro' => false,
+    ]);
+
     $business = Business::create([
         'name' => 'Finalize Me',
         'subdomain' => 'fin-'.substr(sha1((string) random_int(0, PHP_INT_MAX)), 0, 6),
         'subdomain_type' => 'custom',
         'sector' => 'otros',
+        'template_id' => $template->id,
+        'city' => 'Madrid',
+        'country_code' => 'ES',
+        'lat' => 40.4168,
+        'lng' => -3.7038,
+        'phone' => '+34900111222',
+        'email' => 'finalize@example.com',
         'plan' => Plan::Pro,
         'is_published' => true,
         'onboarding_completed_at' => null,

@@ -1,4 +1,4 @@
-# Sistema visual emails LocalWeb
+# Sistema visual emails ONEZ
 
 Tokens compartidos por los 3 templates.
 
@@ -27,4 +27,4 @@ Tokens compartidos por los 3 templates.
 - CTA: button en tabla anidada (bulletproof button) con padding 16px 32px, radius 8px
 
 ## Variables de plantilla
-Marcadas con `{{variable}}` para que el backend de LocalWeb las inyecte.
+Marcadas con `{{variable}}` para que el backend de ONEZ las inyecte.

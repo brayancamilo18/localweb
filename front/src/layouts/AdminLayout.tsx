@@ -146,7 +146,7 @@ export default function AdminLayout() {
         <header className="lw-mipagina-header" style={{ marginBottom: 8 }}>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--lw-text-3)', letterSpacing: '0.04em' }}>
-              LOCALWEB
+              ONEZ
             </div>
             <h1 style={{ fontSize: 22, fontWeight: 600, margin: '4px 0 0', color: 'var(--lw-text)' }}>
               Administración

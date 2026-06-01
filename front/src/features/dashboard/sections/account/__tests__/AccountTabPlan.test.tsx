@@ -94,6 +94,10 @@ describe('AccountTabPlan', () => {
       .spyOn(billingApi, 'postCheckout')
       .mockResolvedValue('https://checkout.stripe.test/abc')
     renderTab()
+    const termsCheckbox = await screen.findByRole('checkbox', {
+      name: /acepto las condiciones del plan pro y el inicio inmediato/i,
+    })
+    fireEvent.click(termsCheckbox)
     fireEvent.click(await screen.findByRole('button', { name: /Mejorar a Pro/i }))
     await waitFor(() => expect(checkoutSpy).toHaveBeenCalled())
     await waitFor(() =>

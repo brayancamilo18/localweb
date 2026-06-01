@@ -8,7 +8,8 @@ sesión robable desde `localStorage` → 0).
 
 1. El SPA llama `GET /sanctum/csrf-cookie` antes de la primera mutación. La
    respuesta es `204 No Content` con dos cookies: `XSRF-TOKEN` (legible por JS,
-   solo para que axios la lea y reenvíe) y `localweb_session` (HttpOnly).
+   solo para que axios la lea y reenvíe) y `localweb_session` (HttpOnly; nombre
+   heredado de `APP_NAME` anterior — ver `config/session.php` antes de renombrar).
 2. Cualquier `POST/PUT/PATCH/DELETE` debe llevar el header `X-XSRF-TOKEN` con
    el valor de la cookie `XSRF-TOKEN`. Axios lo hace automáticamente cuando
    `withCredentials: true` y los nombres por defecto coinciden.
@@ -23,13 +24,13 @@ sesión robable desde `localStorage` → 0).
 
 | Variable | Dev | Prod |
 |---|---|---|
-| `APP_URL` | `http://localhost` | `https://api.localweb.es` (con HTTPS, dominio, no IP) |
+| `APP_URL` | `http://localhost` | `https://api.onez.es` (con HTTPS, dominio, no IP) |
 | `SESSION_DRIVER` | `redis` | `redis` |
-| `SESSION_DOMAIN` | `localhost` | `.localweb.es` (punto inicial: comparte cookie entre `localweb.es` y `api.localweb.es`) |
+| `SESSION_DOMAIN` | `localhost` | `.onez.es` (punto inicial: comparte cookie entre `onez.es` y `api.onez.es`) |
 | `SESSION_SAME_SITE` | `lax` | `lax` |
 | `SESSION_SECURE_COOKIE` | `false` | **`true`** (obligatorio bajo HTTPS) |
-| `SANCTUM_STATEFUL_DOMAINS` | `localhost:5173,localhost:4173,127.0.0.1:5173,127.0.0.1:4173` | `app.localweb.es,localweb.es` |
-| `CORS_ALLOWED_ORIGINS` | (default) | `https://localweb.es,https://app.localweb.es` |
+| `SANCTUM_STATEFUL_DOMAINS` | `localhost:5173,localhost:4173,127.0.0.1:5173,127.0.0.1:4173` | `app.onez.es,onez.es` |
+| `CORS_ALLOWED_ORIGINS` | (default) | `https://onez.es,https://app.onez.es` |
 
 Requisito de arquitectura: SPA y API deben compartir eTLD+1. Si despliegas el
 SPA en un dominio totalmente distinto (Vercel, etc.), la cookie de sesión no

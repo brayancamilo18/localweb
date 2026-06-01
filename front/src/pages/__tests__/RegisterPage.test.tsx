@@ -34,14 +34,20 @@ function renderPage() {
   )
 }
 
+function acceptTermsCheckbox() {
+  return screen.getByRole('checkbox', {
+    name: /acepto los términos y condiciones y la política de privacidad/i,
+  })
+}
+
 async function fillStep1AndContinue() {
   fireEvent.change(screen.getByLabelText('Tu nombre'), { target: { value: 'Brayan' } })
   fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'b@b.com' } })
   fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: '12345678' } })
   fireEvent.change(screen.getByLabelText('Repite tu contraseña'), { target: { value: '12345678' } })
-  fireEvent.click(screen.getByRole('checkbox'))
+  fireEvent.click(acceptTermsCheckbox())
   fireEvent.click(screen.getByRole('button', { name: 'Continuar' }))
-  await screen.findByRole('heading', { name: 'Tu negocio' })
+  await screen.findByLabelText('Nombre del negocio')
 }
 
 describe('RegisterPage', () => {
@@ -57,7 +63,7 @@ describe('RegisterPage', () => {
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'b@b.com' } })
     fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: '12345678' } })
     fireEvent.change(screen.getByLabelText('Repite tu contraseña'), { target: { value: '87654321' } })
-    fireEvent.click(screen.getByRole('checkbox'))
+    fireEvent.click(acceptTermsCheckbox())
     fireEvent.click(screen.getByRole('button', { name: 'Continuar' }))
     expect(await screen.findByText('Las contraseñas no coinciden')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Tu negocio' })).not.toBeInTheDocument()

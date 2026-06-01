@@ -73,14 +73,14 @@ describe('ToastProvider · render visual', () => {
     setup(() => ({
       type: 'success',
       title: '¡Tu web está publicada!',
-      description: 'estudio-marta.localweb.es ya es visible.',
+      description: 'estudio-marta.app.onez.es ya es visible.',
       action: { label: 'Compartir', onClick },
     }))
 
     fireEvent.click(screen.getByRole('button', { name: 'fire' }))
 
     expect(screen.getByText('¡Tu web está publicada!')).toBeInTheDocument()
-    expect(screen.getByText('estudio-marta.localweb.es ya es visible.')).toBeInTheDocument()
+    expect(screen.getByText('estudio-marta.app.onez.es ya es visible.')).toBeInTheDocument()
     // El botón de acción es un <button> con su label visible.
     expect(screen.getByRole('button', { name: /Compartir/i })).toBeInTheDocument()
   })

@@ -5,6 +5,7 @@ import { apiClient } from '../../../api/client'
 import { setBusinessSubdomain } from '../../../api/dashboard'
 import { Btn, Field, Icon, Input } from '../../../components/primitives/primitives'
 import { buildPublicBusinessUrl, getPublicPageHost } from '../../../lib/tenant'
+import { legalContactEmail } from '../../../lib/legal'
 import type { Business } from '../../../types/api'
 import '../tour/tour.css'
 
@@ -206,8 +207,8 @@ export function SubdomainSetupModal({ business, onDone, onLater }: SubdomainSetu
           }}
         >
           ⚠️ Una vez confirmado, no podrás cambiarlo tú mismo. Contacta con{' '}
-          <a href="mailto:soporte@onez.es" style={{ color: 'inherit' }}>
-            soporte@onez.es
+          <a href={`mailto:${legalContactEmail}`} style={{ color: 'inherit' }}>
+            {legalContactEmail}
           </a>{' '}
           si necesitas modificarlo en el futuro.
         </p>

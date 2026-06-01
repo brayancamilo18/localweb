@@ -7,7 +7,7 @@ import { useToast } from '../../../../components/ui/Toast'
 import { useCookieConsent } from '../../../../hooks/useCookieConsent'
 import { deleteAccount } from '../../../../api/account'
 import { resetConsent } from '../../../../lib/cookieConsent'
-import { legalEntityName, legalEntityNif } from '../../../../lib/legal'
+import { legalContactEmail, legalEntityName, legalEntityNif } from '../../../../lib/legal'
 import { useAuthStore } from '../../../../store/authStore'
 import type { ApiError } from '../../../../types/api'
 import './account.css'
@@ -123,8 +123,8 @@ export default function AccountTabPrivacidad() {
         <p className="lw-small" style={{ margin: '12px 0 0', lineHeight: 1.6, fontSize: 13 }}>
           Puedes ejercer tus derechos de acceso, rectificación, supresión, limitación, oposición y
           portabilidad contactando con{' '}
-          <a href="mailto:privacidad@onez.es" style={{ color: 'var(--lw-accent)' }}>
-            privacidad@onez.es
+          <a href={`mailto:${legalContactEmail}`} style={{ color: 'var(--lw-accent)' }}>
+            {legalContactEmail}
           </a>
           . Responsable del tratamiento: {legalEntityName}
           {legalEntityNif ? `, ${legalEntityNif}` : ''}.

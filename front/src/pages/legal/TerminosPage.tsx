@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { LegalPageLayout } from '../../components/legal/LegalPageLayout'
 import { LegalPlaceholder as Placeholder } from '../../components/legal/LegalEntity'
-import { legalRoutes } from '../../lib/legal'
+import { legalContactEmail, legalRoutes } from '../../lib/legal'
 const PAGE_TITLE = 'Términos y Condiciones · ONEZ'
 const PAGE_DESCRIPTION = 'Condiciones de uso y contratación del servicio ONEZ, incluyendo plan Free y plan Pro (8,99 €/mes).'
 
@@ -50,7 +50,7 @@ export default function TerminosPage() {
           <li><strong>Titular:</strong> <Placeholder>[NOMBRE_TITULAR]</Placeholder></li>
           <li><strong>NIF/NIE:</strong> <Placeholder>[NIF_TITULAR]</Placeholder></li>
           <li><strong>Domicilio:</strong> <Placeholder>[DIRECCION_TITULAR]</Placeholder></li>
-          <li><strong>Email:</strong> <a href="mailto:soporte@onez.es">soporte@onez.es</a></li>
+          <li><strong>Email de contacto:</strong> <a href={`mailto:${legalContactEmail}`}>{legalContactEmail}</a></li>
         </ul>
         <p>
           El resto de información requerida por la LSSI está en el{" "}
@@ -76,7 +76,7 @@ export default function TerminosPage() {
           contratar, actuar en su propio nombre o con poder bastante si lo hace por una
           persona jurídica, facilitar <strong>información veraz</strong> y custodiar sus
           credenciales notificando cualquier acceso no autorizado a{" "}
-          <a href="mailto:soporte@onez.es">soporte@onez.es</a>.
+          <a href={`mailto:${legalContactEmail}`}>{legalContactEmail}</a>.
         </p>
       </section>
 
@@ -294,9 +294,7 @@ export default function TerminosPage() {
         <p>
           Las comunicaciones de ONEZ se enviarán al email registrado por el Usuario. Las
           del Usuario se dirigirán a{" "}
-          <a href="mailto:soporte@onez.es">soporte@onez.es</a> (cuestiones generales) o{" "}
-          <a href="mailto:privacidad@onez.es">privacidad@onez.es</a> (protección de
-          datos).
+          <a href={`mailto:${legalContactEmail}`}>{legalContactEmail}</a>.
         </p>
       </section>
 

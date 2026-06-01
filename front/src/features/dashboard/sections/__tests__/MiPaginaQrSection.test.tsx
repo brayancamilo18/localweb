@@ -35,7 +35,7 @@ function renderSection() {
 }
 
 const PRO_INFO: qrApi.QrInfo = {
-  public_url: 'https://cafeluna.localweb.app',
+  public_url: 'https://cafeluna.app.onez.es',
   is_pro: true,
   business_name: 'Cafetería Luna',
   tagline: null,
@@ -55,6 +55,7 @@ const FREE_INFO: qrApi.QrInfo = {
 describe('MiPaginaQrSection', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
+    vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/png;base64,test')
   })
 
   // ─── Loading ────────────────────────────────────────────────────
@@ -75,15 +76,16 @@ describe('MiPaginaQrSection', () => {
   it('renderiza título "Código QR" y la descripción', async () => {
     vi.spyOn(qrApi, 'getQrInfo').mockResolvedValue(PRO_INFO)
     renderSection()
-    expect(await screen.findByRole('heading', { level: 2, name: 'Código QR' })).toBeInTheDocument()
-    expect(screen.getByText(/Genera un código QR de tu página/i)).toBeInTheDocument()
+    expect(await screen.findByText('Código QR')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Tu cartel listo para imprimir' })).toBeInTheDocument()
+    expect(screen.getByText(/Genera un póster con QR/i)).toBeInTheDocument()
   })
 
   // ─── Pro ───────────────────────────────────────────────────────
   it('NO muestra el badge "Solo Pro" para usuarios Pro', async () => {
     vi.spyOn(qrApi, 'getQrInfo').mockResolvedValue(PRO_INFO)
     renderSection()
-    await screen.findByRole('heading', { name: 'Código QR' })
+    await screen.findByRole('heading', { name: 'Tu cartel listo para imprimir' })
     expect(screen.queryByText('Solo Pro')).not.toBeInTheDocument()
   })
 
@@ -153,10 +155,10 @@ describe('MiPaginaQrSection', () => {
     expect(screen.getByRole('button', { name: /Descargar póster PDF/i })).toBeInTheDocument()
   })
 
-  it('renderiza la URL pública sin el protocolo bajo la previsualización', async () => {
+  it('renderiza la URL pública en la previsualización del póster', async () => {
     vi.spyOn(qrApi, 'getQrInfo').mockResolvedValue(PRO_INFO)
     renderSection()
-    expect(await screen.findByText('cafeluna.localweb.app')).toBeInTheDocument()
+    expect(await screen.findByText('https://cafeluna.app.onez.es')).toBeInTheDocument()
   })
 
   // ─── Free ──────────────────────────────────────────────────────

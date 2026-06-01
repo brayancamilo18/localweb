@@ -9,6 +9,7 @@ const isWebKitMobile =
 const supportsCssMask =
   !isWebKitMobile &&
   typeof CSS !== 'undefined' &&
+  typeof CSS.supports === 'function' &&
   CSS.supports('-webkit-text-security', 'disc')
 
 /** Muestra/oculta contraseña sin mover el cursor (CSS mask; fallback type+selection). */

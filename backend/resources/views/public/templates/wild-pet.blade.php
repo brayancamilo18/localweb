@@ -1633,7 +1633,7 @@
     </div>
     <div class="footer-bottom">
       <span id="footBottomBrand">© <span id="year"></span> · {{ $nombre }} · Todos los derechos reservados</span>
-      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
+      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://onez.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
     </div>
   </div>
 </footer>

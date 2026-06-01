@@ -784,7 +784,7 @@
     </div>
     <div class="foot-bottom">
       <span>© 2026 · Salón Margarita</span>
-      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
+      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://onez.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
     </div>
   </div>
 </footer>
@@ -1341,9 +1341,9 @@ function syncBloomTemplateExtensions(raw) {
   }
 
   var LW_DEFAULT_SOCIAL_BLOOM = {
-    instagram: 'https://www.instagram.com/localweb.es',
-    tiktok: 'https://www.tiktok.com/@localweb',
-    facebook: 'https://www.facebook.com/localweb'
+    instagram: 'https://www.instagram.com/onez.es',
+    tiktok: 'https://www.tiktok.com/@onez',
+    facebook: 'https://www.facebook.com/onez'
   };
   function bloomResolveSocialHref(raw, key, fallback) {
     var u = (raw[key] || '').trim();
@@ -1379,7 +1379,7 @@ function applyLivePreviewData(raw, opts) {
   const aboutDefault =
     'Margarita abrió el estudio en 2014 y desde entonces somos cinco peluqueros enamorados del oficio. Trabajamos con cita previa, productos cuidados y conversaciones tranquilas.';
 
-  document.title = `${name} — LocalWeb`;
+  document.title = `${name} — ONEZ`;
 
   const logoUrlBloom = (raw?.logo_url || '').trim();
   var navTopBloom = document.querySelector('nav.top');

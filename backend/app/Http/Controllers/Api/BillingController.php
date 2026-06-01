@@ -200,7 +200,7 @@ class BillingController extends BaseApiController
         try {
             return $user->downloadInvoice($invoiceId, [
                 'vendor' => config('app.name'),
-                'product' => 'LocalWeb Pro',
+                'product' => 'ONEZ Pro',
             ]);
         } catch (InvalidInvoice) {
             return response()->json(['message' => 'Factura no encontrada'], 404);

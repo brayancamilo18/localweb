@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { LegalPageLayout } from '../../components/legal/LegalPageLayout'
 import { LegalPlaceholder as Placeholder } from '../../components/legal/LegalEntity'
+import { legalContactEmail } from '../../lib/legal'
+
 const PAGE_TITLE = 'Aviso Legal · ONEZ'
 const PAGE_DESCRIPTION = 'Información legal del titular de ONEZ, la plataforma para crear tu web de negocio en menos de 10 minutos.'
 
@@ -46,7 +48,7 @@ export default function AvisoLegalPage() {
           <li><strong>Titular:</strong> <Placeholder>[NOMBRE_TITULAR]</Placeholder></li>
           <li><strong>NIF/NIE:</strong> <Placeholder>[NIF_TITULAR]</Placeholder></li>
           <li><strong>Domicilio a efectos de notificaciones:</strong> <Placeholder>[DIRECCION_TITULAR]</Placeholder></li>
-          <li><strong>Correo electrónico de contacto:</strong> <a href="mailto:soporte@onez.es">soporte@onez.es</a></li>
+          <li><strong>Correo electrónico de contacto:</strong> <a href={`mailto:${legalContactEmail}`}>{legalContactEmail}</a></li>
           <li><strong>Actividad económica:</strong> Servicios de creación, alojamiento y mantenimiento de páginas web profesionales para pequeños negocios mediante suscripción (plataforma ONEZ).</li>
         </ul>
       </section>

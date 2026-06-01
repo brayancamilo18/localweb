@@ -2,9 +2,9 @@
 
 return [
     'default_social' => [
-        'instagram' => env('LOCALWEB_DEFAULT_INSTAGRAM', 'https://www.instagram.com/localweb.es'),
-        'tiktok' => env('LOCALWEB_DEFAULT_TIKTOK', 'https://www.tiktok.com/@localweb'),
-        'facebook' => env('LOCALWEB_DEFAULT_FACEBOOK', 'https://www.facebook.com/localweb'),
+        'instagram' => env('LOCALWEB_DEFAULT_INSTAGRAM', 'https://www.instagram.com/onez.es'),
+        'tiktok' => env('LOCALWEB_DEFAULT_TIKTOK', 'https://www.tiktok.com/@onez'),
+        'facebook' => env('LOCALWEB_DEFAULT_FACEBOOK', 'https://www.facebook.com/onez'),
     ],
 
     'domains' => [

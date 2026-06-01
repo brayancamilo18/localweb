@@ -43,7 +43,7 @@ it('ignores duplicate checkout.session.completed with the same Stripe event id',
     $firstUpdatedAt = $business->updated_at->copy();
 
     expect($business->plan->value)->toBe('pro')
-        ->and($business->is_published)->toBeTrue();
+        ->and($business->is_published)->toBeFalse();
 
     $r2CountAfterFirst = count(Storage::disk('r2')->allFiles());
 

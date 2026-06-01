@@ -9,6 +9,10 @@ vi.mock('../../../api/public', () => ({
   getPublicBusiness: vi.fn(),
 }))
 
+vi.mock('../../../lib/cookieConsent', () => ({
+  hasConsent: vi.fn(() => true),
+}))
+
 const mockTrackClick = vi.mocked(trackClick)
 
 const baseBusiness = {

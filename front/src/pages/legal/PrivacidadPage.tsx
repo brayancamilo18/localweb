@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { LegalPageLayout } from '../../components/legal/LegalPageLayout'
 import { LegalPlaceholder as Placeholder } from '../../components/legal/LegalEntity'
-import { legalRoutes } from '../../lib/legal'
+import { legalContactEmail, legalRoutes } from '../../lib/legal'
 const PAGE_TITLE = 'Política de Privacidad · ONEZ'
 const PAGE_DESCRIPTION = 'Cómo tratamos tus datos personales en ONEZ: finalidades, bases legales, plazos y derechos.'
 
@@ -44,13 +44,12 @@ export default function PrivacidadPage() {
           <li><strong>Responsable:</strong> <Placeholder>[NOMBRE_TITULAR]</Placeholder></li>
           <li><strong>NIF/NIE:</strong> <Placeholder>[NIF_TITULAR]</Placeholder></li>
           <li><strong>Domicilio:</strong> <Placeholder>[DIRECCION_TITULAR]</Placeholder></li>
-          <li><strong>Email de privacidad:</strong> <a href="mailto:privacidad@onez.es">privacidad@onez.es</a></li>
-          <li><strong>Email de soporte:</strong> <a href="mailto:soporte@onez.es">soporte@onez.es</a></li>
+          <li><strong>Email de contacto:</strong> <a href={`mailto:${legalContactEmail}`}>{legalContactEmail}</a></li>
         </ul>
         <p>
           No hemos designado un Delegado de Protección de Datos al no concurrir los
           supuestos del Art. 37 RGPD. Para cualquier cuestión escríbenos a{" "}
-          <a href="mailto:privacidad@onez.es">privacidad@onez.es</a>.
+          <a href={`mailto:${legalContactEmail}`}>{legalContactEmail}</a>.
         </p>
       </section>
 
@@ -202,7 +201,7 @@ export default function PrivacidadPage() {
         </ul>
         <p>
           <strong>Cómo ejercerlos:</strong> envíanos un email a{" "}
-          <a href="mailto:privacidad@onez.es">privacidad@onez.es</a> desde la dirección
+          <a href={`mailto:${legalContactEmail}`}>{legalContactEmail}</a> desde la dirección
           registrada. Te responderemos en el plazo máximo de <strong>un mes</strong>,
           prorrogable a dos si la solicitud es compleja.
         </p>
@@ -222,7 +221,7 @@ export default function PrivacidadPage() {
           Si has marcado la casilla correspondiente, podemos usar tu email para enviarte
           novedades, mejoras y ofertas de ONEZ. Cada email comercial incluirá un enlace
           para darte de baja con un solo clic, y también puedes hacerlo escribiendo a{" "}
-          <a href="mailto:privacidad@onez.es">privacidad@onez.es</a>.
+          <a href={`mailto:${legalContactEmail}`}>{legalContactEmail}</a>.
         </p>
         <p><strong>No cedemos tu email a terceros para que ellos te envíen publicidad.</strong></p>
         <p>
@@ -256,7 +255,7 @@ export default function PrivacidadPage() {
         <p>
           ONEZ está dirigido a mayores de edad que actúan en su actividad profesional. No
           tratamos conscientemente datos de menores. Si tienes constancia de lo contrario,
-          escríbenos a <a href="mailto:privacidad@onez.es">privacidad@onez.es</a>.
+          escríbenos a <a href={`mailto:${legalContactEmail}`}>{legalContactEmail}</a>.
         </p>
       </section>
 

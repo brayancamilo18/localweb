@@ -799,7 +799,7 @@
   </div>
 </section>
 
-<!-- ═══ 5. FOOTER (datos + redes + LocalWeb) ════════════ -->
+<!-- ═══ 5. FOOTER (datos + redes + ONEZ) ════════════ -->
 <footer id="contacto">
   <div class="easter" id="easter"><span id="easterBrand">{{ $nombre }}</span> · est. 2014 <span class="stars">✦</span></div>
   <div class="wrap foot-map-block">
@@ -838,7 +838,7 @@
     </div>
     <div class="foot-bottom">
       <span id="footBottomBrand">{{ $nombre }}</span>
-      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
+      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://onez.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
     </div>
   </div>
 </footer>
@@ -1406,9 +1406,9 @@ function syncNoirTemplateExtensions(raw) {
   }
 
   var LW_DEFAULT_SOCIAL = {
-    instagram: 'https://www.instagram.com/localweb.es',
-    tiktok: 'https://www.tiktok.com/@localweb',
-    facebook: 'https://www.facebook.com/localweb'
+    instagram: 'https://www.instagram.com/onez.es',
+    tiktok: 'https://www.tiktok.com/@onez',
+    facebook: 'https://www.facebook.com/onez'
   };
   function noirResolveSocialHref(raw, key, fallback) {
     var u = (raw[key] || '').trim();
@@ -1442,7 +1442,7 @@ function applyLivePreviewData(raw, opts){
   const direccion = (raw?.direccion || '').trim();
   const correo = (raw?.correo || '').trim();
 
-  document.title = `${name} — LocalWeb`;
+  document.title = `${name} — ONEZ`;
 
   const logoUrl = (raw?.logo_url || '').trim();
   var navTopEl = document.querySelector('nav.top');

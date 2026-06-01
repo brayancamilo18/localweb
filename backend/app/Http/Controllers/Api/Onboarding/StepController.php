@@ -668,6 +668,13 @@ class StepController extends BaseApiController
             return $this->error('Business no encontrado', [], 404);
         }
 
+        if (! $service->isOnboardingDataComplete($business)) {
+            return response()->json([
+                'message' => 'Faltan datos del onboarding para publicar',
+                'missing' => $service->onboardingMissingFields($business),
+            ], 422);
+        }
+
         $service->completeOnboarding($business);
 
         return $this->success(['ok' => true]);

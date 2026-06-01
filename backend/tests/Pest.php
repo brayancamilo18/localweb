@@ -63,3 +63,9 @@ function tenantUrl(\App\Models\Business $business, string $path = '/'): string
 {
     return 'http://'.tenantHost($business).$path;
 }
+
+/** Usuario verificado (email) vinculado a un negocio para rutas /dashboard. */
+function verifiedDashboardUser(\App\Models\Business $business): \App\Models\User
+{
+    return \App\Models\User::factory()->create(['business_id' => $business->id]);
+}

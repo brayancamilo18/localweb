@@ -138,3 +138,37 @@ it('completes free onboarding over HTTP and exposes data on the public page', fu
         ->assertJsonPath('data.subdomain', $subdomain)
         ->assertJsonPath('data.phone', '+34900111222');
 });
+
+it('rejects finalize when geocoding is missing', function () {
+    $template = Template::create([
+        'name' => 'Bloom Studio',
+        'slug' => 'bloom-geo-missing',
+        'primary_color' => '#E8572A',
+        'is_active' => true,
+        'requires_pro' => false,
+    ]);
+
+    $business = Business::create([
+        'name' => 'Sin geocoding',
+        'subdomain' => 'sin-geo-'.substr(bin2hex(random_bytes(4)), 0, 8),
+        'subdomain_type' => 'custom',
+        'sector' => 'peluqueria',
+        'template_id' => $template->id,
+        'city' => 'Madrid',
+        'country_code' => 'ES',
+        'phone' => '+34900111222',
+        'lat' => null,
+        'lng' => null,
+        'plan' => 'pro',
+        'is_published' => true,
+    ]);
+    $user = User::factory()->create(['business_id' => $business->id]);
+
+    test()->actingAs($user)
+        ->postJson('/api/v1/onboarding/finalize')
+        ->assertStatus(422)
+        ->assertJson([
+            'message' => 'Faltan datos del onboarding para publicar',
+            'missing' => ['lat', 'lng'],
+        ]);
+});

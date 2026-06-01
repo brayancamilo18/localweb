@@ -23,8 +23,8 @@ export function isInPostAuthGracePublic(): boolean {
 /**
  * Auth: Sanctum SPA mode (cookie HttpOnly + CSRF).
  *
- * Producción: SPA y API comparten eTLD+1 (p. ej. localweb.es / api.localweb.es) con
- * SESSION_DOMAIN=.localweb.es. El SPA llama al backend en su URL absoluta vía
+ * Producción: SPA y API comparten eTLD+1 (p. ej. onez.es / api.onez.es) con
+ * SESSION_DOMAIN=.onez.es. El SPA llama al backend en su URL absoluta vía
  * VITE_API_URL.
  *
  * Dev: Vite proxy redirige /api a nginx → Laravel; baseURL es '/api/v1' relativo y

@@ -11,7 +11,7 @@ $inferredDomain = match ($frontendHost) {
     'app.onez.es', 'www.onez.es', 'onez.es' => 'onez.es',
     'pre.onez.es' => 'pre.onez.es',
     'des.onez.es' => 'des.onez.es',
-    'app.localweb.es', 'localweb.es' => 'localweb.es',
+    'app.onez.es', 'onez.es' => 'onez.es',
     default => null,
 };
 

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Procesado y almacenamiento de imágenes de negocio.
+ *
+ * Política de logs: este servicio NO debe registrar nombres de archivo originales
+ * del cliente ni otros metadatos derivados del upload (RGPD / minimización). Usar
+ * `Log::debug` para diagnóstico local; en producción mantener `LOG_LEVEL=warning`
+ * o superior.
+ */
+
 namespace App\Services;
 
 use App\Enums\ImageSection;
@@ -68,12 +77,11 @@ class ImageService
     {
         $preserveTransparency = $this->sourceMayHaveTransparency($file);
 
-        Log::info('Logo upload debug', [
+        Log::debug('Logo upload debug', [
+            'business_id' => $business->id,
             'mime' => $this->resolveSourceMimeType($file),
             'preserveTransparency' => $preserveTransparency,
             'file_class' => is_object($file) ? get_class($file) : gettype($file),
-            'client_mime' => $file instanceof UploadedFile ? $file->getClientMimeType() : null,
-            'client_original_name' => $file instanceof UploadedFile ? $file->getClientOriginalName() : null,
             'driver' => extension_loaded('imagick') ? 'imagick' : 'gd',
         ]);
 
@@ -92,7 +100,7 @@ class ImageService
             $extension
         );
 
-        Log::info('Logo upload debug (output)', [
+        Log::debug('Logo upload debug (output)', [
             'extension' => $extension,
             'path' => $path,
             'business_id' => $business->id,

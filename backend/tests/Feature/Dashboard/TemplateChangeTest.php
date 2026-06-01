@@ -8,11 +8,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-function verifiedDashboardUser(Business $business): User
-{
-    return User::factory()->create(['business_id' => $business->id]);
-}
-
 function freeBusinessWithTemplate(Template $template, array $overrides = []): Business
 {
     return Business::factory()->create(array_merge([
