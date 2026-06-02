@@ -57,7 +57,7 @@ final class R2PublicUrl
             return false;
         }
 
-        return (bool) preg_match('#^businesses/\d+/(cover|gallery|about|logo|favicon)/#', $path);
+        return (bool) preg_match('#^businesses/\d+/(cover|gallery|about|about_sections|logo|favicon)/#', $path);
     }
 
     private static function mustUseProxy(string $url): bool

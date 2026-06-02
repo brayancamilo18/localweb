@@ -142,6 +142,17 @@
   .dish-price{font-family:"DM Serif Display",serif;font-size:22px;color:var(--wine);font-weight:400;letter-spacing:-0.01em}
   .dish-desc{font-family:"Lora",serif;font-style:italic;font-size:14.5px;color:var(--ink-2);line-height:1.55;margin-bottom:10px;max-width:90%}
 
+
+  /* ─── ABOUT EXTRAS (tavola-warm) ─── */
+  .tavola-about-extras{display:flex;flex-direction:column;gap:80px;margin-top:80px;padding-top:64px;border-top:1px solid rgba(245,235,218,.12);max-width:1254px;margin-left:auto;margin-right:auto;padding-left:46px;padding-right:46px;box-sizing:border-box;width:100%}
+  .tavola-about-extra.story-grid{position:relative}
+  .tavola-about-extra--text-first .tavola-about-extra__photo{order:2}
+  .tavola-about-extra--text-first .story-content{order:1}
+  .tavola-about-extra--photo-first .tavola-about-extra__photo{order:1}
+  .tavola-about-extra--photo-first .story-content{order:2}
+  .tavola-about-extra .story-content h3{font-family:"DM Serif Display",serif;font-size:clamp(40px,4.5vw,54px);font-weight:400;line-height:1.05;color:var(--cream);margin:14px 0 28px}
+  .tavola-about-extra .story-content p{font-size:17px;line-height:1.75;color:rgba(245,235,218,.82);font-style:italic;max-width:520px}
+  @media (max-width:980px){.tavola-about-extra .tavola-about-extra__photo{order:-1!important;max-width:480px;margin:0 auto;width:100%}}
   /* ─── GALLERY (tavola-warm original) ─── */
   .gallery-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
   .gimg{background:var(--cream-2);overflow:hidden;border-radius:4px;position:relative;background-size:cover;background-position:center;transition:transform .4s}
@@ -249,6 +260,16 @@
 
   /* ─── EMBED ─── */
   html.embed-preview-root{scroll-behavior:auto!important}
+  body.embed-preview #aboutExtraBlocks .tv-reveal,
+  body.embed-preview #aboutExtraBlocks .tv-split,
+  body.tavola-preview #aboutExtraBlocks .tv-reveal,
+  body.tavola-preview #aboutExtraBlocks .tv-split{
+    opacity:1!important;
+    transform:none!important;
+    filter:none!important;
+    clip-path:none!important;
+    animation:none!important;
+  }
 
   /* ─── RESPONSIVE ─── */
   @media (max-width:980px){
@@ -593,6 +614,7 @@
       </div>
     </div>
   </div>
+    @include('public.partials.about-extra-blocks-tavola-warm')
 </section>
 
 <!-- ═══════════════════ HOURS + CONTACT ═══════════════════ -->
@@ -862,11 +884,9 @@ html.lw-preview-inert a[href^="#"] {
 <script>
 (function initTavolaPreviewModeClasses() {
   var params = new URLSearchParams(window.location.search);
-  if (params.get('embed') === '1') {
+  if (params.get('embed') === '1' || params.get('preview') === '1' || params.get('parentOrigin')) {
     document.documentElement.classList.add('embed-preview-root');
     document.body.classList.add('embed-preview');
-  }
-  if (params.get('preview') === '1') {
     document.body.classList.add('tavola-preview');
   }
 })();
@@ -1388,7 +1408,12 @@ function applyLivePreviewData(raw, opts) {
   if (heroTagline) heroTagline.textContent = tagline;
 
   var aboutTitle = document.getElementById('aboutTitle');
-  if (aboutTitle) aboutTitle.textContent = name + '.';
+  if (aboutTitle) {
+    var customAboutTitle = (raw && raw.about_title ? String(raw.about_title).trim() : '');
+    if (raw && Object.prototype.hasOwnProperty.call(raw, 'about_title')) {
+      aboutTitle.textContent = customAboutTitle || 'Sobre nosotros.';
+    }
+  }
 
   var aboutDescripcion = document.getElementById('aboutDescripcion');
   if (aboutDescripcion) aboutDescripcion.textContent = descripcion || defaults.aboutText;
@@ -1515,6 +1540,57 @@ function applyLivePreviewData(raw, opts) {
     requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
   }
 }
+
+function escapeAttrTavola(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function renderTavolaAboutExtras(sections) {
+  var wrap = document.getElementById('aboutExtraBlocks');
+  if (!wrap) return;
+  wrap.className = 'tavola-about-extras';
+  var list = Array.isArray(sections) ? sections.filter(function (s) { return s != null; }) : [];
+  if (list.length === 0) {
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = list
+    .map(function (sec, i) {
+      var title = escapeHtmlTextBold(String(sec.title || '').trim());
+      var desc = escapeHtmlTextBold(String(sec.description || '').trim());
+      var img = String(sec.image_url || '').trim();
+      var mainTF = typeof lwIsMainAboutTextFirst === 'function' ? lwIsMainAboutTextFirst(wrap) : false;
+      var textFirst = typeof lwAboutExtraTextFirst === 'function' ? lwAboutExtraTextFirst(i, mainTF) : i % 2 === 0;
+      var mod = textFirst ? 'tavola-about-extra--text-first' : 'tavola-about-extra--photo-first';
+      var bn = String(i + 3).padStart(2, '0');
+      var bg = img ? ' style="background-image:url(\'' + escapeAttrTavola(img) + '\')"' : '';
+      return (
+        '<article class="tavola-about-extra story-grid ' +
+        mod +
+        '"><div class="story-img tavola-about-extra__photo' +
+        (img ? ' has-photo' : '') +
+        '"' +
+        bg +
+        '></div><div class="story-content"><div class="ornament">capítulo ' +
+        bn +
+        '</div>' +
+        (title ? '<h3 class="display">' + title + '</h3>' : '') +
+        (desc ? '<p>' + desc + '</p>' : '') +
+        '</div></article>'
+      );
+    })
+    .join('');
+  if (typeof window.tvAnimationsRefresh === 'function') {
+    requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
+  } else if (typeof window.lwRefreshAboutExtrasReveal === 'function') {
+    window.lwRefreshAboutExtrasReveal();
+  }
+}
+
+window.lwRenderAboutExtrasImpl = renderTavolaAboutExtras;
+</script>
+<script src="/templates/lw-about-extras.js?v=2"></script>
+<script>
 
 /* ───── INIT FROM QUERY (fallback dev) ──────────────── */
 (function initLivePreviewFromQuery() {
@@ -1873,6 +1949,24 @@ setInterval(renderBoldSchedule, 60000);
     var storyImg = document.getElementById('storyImgDiv');
     if (storyImg && !isHidden(storyImg)) markReveal(storyImg, 'left');
 
+    document.querySelectorAll('#aboutExtraBlocks .tavola-about-extra').forEach(function (block) {
+      var textFirst = block.classList.contains('tavola-about-extra--text-first');
+      var photo = block.querySelector('.tavola-about-extra__photo, .story-img');
+      var content = block.querySelector('.story-content');
+      if (photo && !isHidden(photo)) {
+        markReveal(photo, textFirst ? 'right' : 'left');
+        if (!photo.classList.contains('tv-img-reveal')) photo.classList.add('tv-img-reveal');
+      }
+      if (content) {
+        content.querySelectorAll('.ornament, p').forEach(function (el, i) {
+          markReveal(el, 'up');
+          el.setAttribute('data-delay', String(Math.min(i + 1, 8)));
+        });
+        var h3 = content.querySelector('h3');
+        if (h3) markReveal(h3, 'blur');
+      }
+    });
+
     document.querySelectorAll('.visit-card').forEach(function (el, i) {
       markReveal(el, i === 0 ? 'right' : 'left');
     });
@@ -1925,9 +2019,19 @@ setInterval(renderBoldSchedule, 60000);
     });
   }
 
+  function forcePreviewAboutExtras() {
+    if (!document.body.classList.contains('embed-preview') && !document.body.classList.contains('tavola-preview')) {
+      return;
+    }
+    document.querySelectorAll('#aboutExtraBlocks .tv-reveal:not(.tv-in), #aboutExtraBlocks .tv-split:not(.tv-in)').forEach(function (el) {
+      el.classList.add('tv-in');
+    });
+  }
+
   function runRevealPass() {
     revealInViewport();
     observe();
+    forcePreviewAboutExtras();
   }
 
   function scrollProgress() {
@@ -2007,6 +2111,8 @@ setInterval(renderBoldSchedule, 60000);
         portada_2: @json($portada_2),
         portada_3: @json($portada_3),
         descripcion: @json($descripcion),
+        about_title: @json($about_title),
+        about_sections: @json($about_sections),
         foto_equipo: @json($foto_equipo),
         direccion: @json($direccion),
         correo: @json($correo),

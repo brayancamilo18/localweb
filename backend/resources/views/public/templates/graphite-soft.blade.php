@@ -37,6 +37,8 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 html.embed-preview-root{scroll-behavior:auto}
+body.embed-preview #aboutExtraBlocks .reveal-img,
+body.graphite-preview #aboutExtraBlocks .reveal-img{opacity:1!important;transform:none!important}
 html{background:var(--bg);color:var(--cream);overflow-x:clip}
 body{background:var(--bg);color:var(--cream);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:visible}
 img{max-width:100%;display:block}
@@ -192,6 +194,30 @@ header.hero,#servicios,#sobre-nosotros,#galeria,#horario,#contacto,#opiniones,#m
 .about-photo:hover .img{transform:scale(1.03)}
 .about-photo cap{position:absolute;left:18px;bottom:18px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cream);letter-spacing:.15em;text-transform:uppercase;background:rgba(31,29,26,.6);backdrop-filter:blur(8px);padding:6px 10px;border-radius:999px}
 @media(max-width:880px){.about-grid{grid-template-columns:1fr;gap:54px}.about-text{position:static}}
+
+
+  /* ABOUT EXTRAS (graphite-soft) */
+  .graphite-about-extras{display:flex;flex-direction:column;gap:64px;margin-top:64px;padding-top:48px;border-top:1px solid var(--line);max-width:1320px;margin-left:auto;margin-right:auto;padding-left:54px;padding-right:54px;box-sizing:border-box}
+  .graphite-about-extra.about-grid{align-items:start}
+  .graphite-about-extra--text-first .about-text{order:1}
+  .graphite-about-extra--text-first .about-photos{order:2}
+  .graphite-about-extra--photo-first .about-photos{order:1}
+  .graphite-about-extra--photo-first .about-text{order:2}
+  .graphite-about-extra .about-text h3{margin-bottom:24px}
+  @media (max-width:880px){.graphite-about-extras{padding:0 20px}.graphite-about-extra.about-grid{grid-template-columns:1fr}.graphite-about-extra .about-photos{order:-1!important}}
+  body.embed-preview .graphite-about-extra.about-grid,
+  body.graphite-preview .graphite-about-extra.about-grid{grid-template-columns:1fr 1fr!important;gap:48px!important}
+  body.embed-preview .graphite-about-extra--text-first .about-text,
+  body.graphite-preview .graphite-about-extra--text-first .about-text{order:1!important}
+  body.embed-preview .graphite-about-extra--text-first .about-photos,
+  body.graphite-preview .graphite-about-extra--text-first .about-photos{order:2!important}
+  body.embed-preview .graphite-about-extra--photo-first .about-photos,
+  body.graphite-preview .graphite-about-extra--photo-first .about-photos{order:1!important}
+  body.embed-preview .graphite-about-extra--photo-first .about-text,
+  body.graphite-preview .graphite-about-extra--photo-first .about-text{order:2!important}
+  body.embed-preview .graphite-about-extra .about-text,
+  body.graphite-preview .graphite-about-extra .about-text{position:static!important}
+
 
 /* Gallery — al bajar: fotos fijas en pantalla y avance horizontal (desktop, pin con JS) */
 .gallery-h{position:relative;width:100%}
@@ -432,6 +458,7 @@ footer{background:var(--bg);color:var(--muted);padding:clamp(56px,8vh,80px) clam
       </div>
     </div>
   </div>
+    @include('public.partials.about-extra-blocks-graphite-soft')
 </section>
 
 <!-- 6 GALERIA horizontal -->
@@ -555,6 +582,7 @@ footer{background:var(--bg);color:var(--muted);padding:clamp(56px,8vh,80px) clam
 @endsection
 
 @push('body-end')
+
 <script>
   window.__lwLat = {{ is_numeric($map_lat) ? $map_lat : 'null' }};
   window.__lwLon = {{ is_numeric($map_lon) ? $map_lon : 'null' }};
@@ -680,7 +708,7 @@ function lwTrackClick(kind) {
 <script>
 (function initGraphitePreviewModeClasses() {
   var params = new URLSearchParams(window.location.search);
-  if (params.get('embed') === '1' || window.self !== window.top) {
+  if (params.get('embed') === '1' || params.get('preview') === '1' || params.get('parentOrigin') || window.self !== window.top) {
     document.documentElement.classList.add('embed-preview-root');
     document.body.classList.add('embed-preview');
   }
@@ -1245,6 +1273,57 @@ function graphiteRevealRows(root) {
   });
 }
 
+function graphiteRevealAboutExtras(root) {
+  var scope = root || document.getElementById('aboutExtraBlocks') || document;
+  if (!scope || !scope.querySelectorAll) return;
+  scope.querySelectorAll('.reveal-img').forEach(function (el) {
+    el.classList.add('in');
+  });
+}
+
+window.graphiteRevealAboutExtras = graphiteRevealAboutExtras;
+
+function renderGraphiteAboutExtras(sections) {
+  var wrap = document.getElementById('aboutExtraBlocks');
+  if (!wrap) return;
+  wrap.className = 'graphite-about-extras';
+  wrap.setAttribute('data-main-text-first', '1');
+  var list = Array.isArray(sections) ? sections.filter(function (s) { return s != null; }) : [];
+  if (list.length === 0) {
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = list
+    .map(function (sec, i) {
+      var title = escapeHtmlText(String(sec.title || '').trim());
+      var desc = escapeHtmlText(String(sec.description || '').trim());
+      var img = String(sec.image_url || '').trim();
+      var mainTF = typeof lwIsMainAboutTextFirst === 'function' ? lwIsMainAboutTextFirst(wrap) : true;
+      var textFirst = typeof lwAboutExtraTextFirst === 'function' ? lwAboutExtraTextFirst(i, mainTF) : (i + 1) % 2 === 0;
+      var mod = textFirst ? 'graphite-about-extra--text-first' : 'graphite-about-extra--photo-first';
+      var bn = String(i + 3).padStart(2, '0');
+      var bg = img ? ' style="background-image:url(\'' + escapeAttr(img) + '\')"' : '';
+      return (
+        '<article class="graphite-about-extra about-grid ' +
+        mod +
+        '"><div class="about-text"><span class="sec-num">N° ' +
+        bn +
+        ' — Extra</span>' +
+        (title ? '<h3 class="serif h-section" style="margin-top:14px">' + title + '</h3>' : '') +
+        (desc ? '<p class="lede" style="margin-top:24px">' + desc + '</p>' : '') +
+        '</div><div class="about-photos"><div class="about-photo reveal-img' +
+        (img ? ' has-photo in' : '') +
+        '"><div class="img"' +
+        bg +
+        '></div><cap>Equipo</cap></div></div></article>'
+      );
+    })
+    .join('');
+  graphiteRevealAboutExtras(wrap);
+}
+
+window.lwRenderAboutExtrasImpl = renderGraphiteAboutExtras;
+
 function setHeroSlot(slotId, imgId, src) {
   var slot = document.getElementById(slotId);
   var img = document.getElementById(imgId);
@@ -1692,7 +1771,11 @@ function applyLivePreviewData(raw, opts) {
   }
 
   if (opts.alignToHash) scrollEmbedPreviewToHash();
+  graphiteRevealAboutExtras(document.getElementById('aboutExtraBlocks'));
 }
+</script>
+<script src="/templates/lw-about-extras.js?v=2"></script>
+<script>
 
 (function initGraphitePreviewSampleMedia() {
   if (!shouldUseGraphiteSampleMedia()) return;
@@ -1795,6 +1878,8 @@ setInterval(renderSchedule, 60000);
         portada_2: @json($portada_2),
         portada_3: @json($portada_3),
         descripcion: @json($descripcion),
+        about_title: @json($about_title),
+        about_sections: @json($about_sections),
         foto_equipo: @json($foto_equipo),
         direccion: @json($direccion),
         correo: @json($correo),

@@ -213,6 +213,15 @@
   .about-cap{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--ink-3);letter-spacing:.16em;text-transform:uppercase;margin-top:14px;line-height:1.6;display:flex;justify-content:space-between;gap:16px;padding-top:12px;border-top:1px solid var(--ink)}
   .about-cap strong{color:var(--ink);font-family:"Playfair Display",serif;font-size:16px;font-weight:500;letter-spacing:-.005em;text-transform:none;font-style:italic}
 
+/* ─── ABOUT EXTRAS (mono-edito) ─── */
+  .mono-about-extras{display:flex;flex-direction:column;gap:96px;margin-top:96px;padding-top:64px;border-top:1px solid var(--ink);max-width:1320px;margin-left:auto;margin-right:auto;padding-left:54px;padding-right:54px;box-sizing:border-box}
+  .mono-about-extra.about-grid{align-items:start}
+  .mono-about-extra--text-first > :first-child{order:1}
+  .mono-about-extra--text-first > :last-child{order:2}
+  .mono-about-extra--photo-first > :first-child{order:2}
+  .mono-about-extra--photo-first > :last-child{order:1}
+  .mono-about-extra h3{font-family:"Playfair Display",serif;font-size:clamp(36px,4.5vw,56px);font-weight:500;line-height:.96;letter-spacing:-.02em;margin:24px 0 28px}
+  @media (max-width:768px){.mono-about-extras{padding:0 20px}.mono-about-extra.about-grid{grid-template-columns:1fr;gap:48px}.mono-about-extra .about-side{order:-1!important}}
   /* ─── GALLERY · mosaico editorial ─── */
   .gallery-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px;max-width:1320px;margin:0 auto;padding:0 54px}
   .gimg{position:relative;overflow:hidden;background:var(--bg-3);cursor:pointer}
@@ -319,6 +328,8 @@
   .slide-up.in{opacity:1;transform:none}
   .slide-up[data-d="1"]{transition-delay:.12s}
   .slide-up[data-d="2"]{transition-delay:.24s}
+  body.embed-preview #aboutExtraBlocks .slide-up,
+  body.mono-preview #aboutExtraBlocks .slide-up{opacity:1!important;transform:none!important}
 
   /* responsive */
   @media (max-width:1080px){
@@ -528,6 +539,7 @@
       <div class="about-photo" id="aboutPhoto"></div>
     </div>
   </div>
+    <div id="aboutExtraBlocks" class="mono-about-extras" data-main-text-first="1"></div>
 </section>
 
 <!-- 6. GALERÍA -->
@@ -777,11 +789,9 @@ html.lw-preview-inert a[href^="#"] {
 <script>
 (function initMonoPreviewModeClasses() {
   var params = new URLSearchParams(window.location.search);
-  if (params.get('embed') === '1') {
+  if (params.get('embed') === '1' || params.get('preview') === '1' || params.get('parentOrigin')) {
     document.documentElement.classList.add('embed-preview-root');
     document.body.classList.add('embed-preview');
-  }
-  if (params.get('preview') === '1') {
     document.body.classList.add('mono-preview');
   }
 })();
@@ -818,6 +828,53 @@ function escapeMonoHtml(str) {
 function escapeMonoAttr(s) {
   return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 }
+
+function renderMonoAboutExtras(sections) {
+  var wrap = document.getElementById('aboutExtraBlocks');
+  if (!wrap) return;
+  wrap.className = 'mono-about-extras';
+  wrap.setAttribute('data-main-text-first', '1');
+  var list = Array.isArray(sections) ? sections.filter(function (s) { return s != null; }) : [];
+  if (list.length === 0) {
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = list
+    .map(function (sec, i) {
+      var title = escapeMonoHtml(String(sec.title || '').trim());
+      var desc = escapeMonoHtml(String(sec.description || '').trim());
+      var img = String(sec.image_url || '').trim();
+      var mainTF = typeof lwIsMainAboutTextFirst === 'function' ? lwIsMainAboutTextFirst(wrap) : true;
+      var textFirst = typeof lwAboutExtraTextFirst === 'function' ? lwAboutExtraTextFirst(i, mainTF) : (i + 1) % 2 === 0;
+      var mod = textFirst ? 'mono-about-extra--text-first' : 'mono-about-extra--photo-first';
+      var bn = String(i + 3).padStart(2, '0');
+      var bg = img ? ' style="background-image:url(\'' + escapeMonoAttr(img) + '\')"' : '';
+      return (
+        '<article class="mono-about-extra about-grid ' +
+        mod +
+        '"><div class="slide-up"><span class="eyebrow">Bloque ' +
+        bn +
+        '</span>' +
+        (title ? '<h3 class="serif">' + title + '</h3>' : '') +
+        (desc ? '<p class="about-lede" style="margin-top:1.2rem">' + desc + '</p>' : '') +
+        '</div><div class="about-side slide-up" data-d="1"><div class="about-photo mono-about-extra__photo' +
+        (img ? ' has-photo' : '') +
+        '"' +
+        bg +
+        '></div><div class="about-cap"><span>Equipo</span><strong>Bloque ' +
+        bn +
+        '</strong></div></div></article>'
+      );
+    })
+    .join('');
+  if (typeof window.monoObserveReveals === 'function') {
+    window.monoObserveReveals(wrap);
+  } else if (typeof window.lwRefreshAboutExtrasReveal === 'function') {
+    window.lwRefreshAboutExtrasReveal();
+  }
+}
+
+window.lwRenderAboutExtrasImpl = renderMonoAboutExtras;
 
 function formatMonoPrice(p) {
   if (p === null || p === undefined || p === '') return 'Consultar';
@@ -1362,7 +1419,13 @@ function applyLivePreviewData(raw, opts) {
   }
 
   if (opts.alignToHash) scrollEmbedPreviewToHash();
+  if (typeof window.monoObserveReveals === 'function') {
+    window.monoObserveReveals(document.getElementById('aboutExtraBlocks'));
+  }
 }
+</script>
+<script src="/templates/lw-about-extras.js?v=2"></script>
+<script>
 
 (function initMonoPreviewSampleMedia() {
   if (!shouldUseMonoSampleMedia()) return;
@@ -1472,10 +1535,21 @@ function applyLivePreviewData(raw, opts) {
     if (hero) hero.classList.add('in');
   });
 
-  if (document.body.classList.contains('embed-preview')) {
-    document.querySelectorAll('.slide-up').forEach(function (el, i) {
-      setTimeout(function () { el.classList.add('in'); }, 60 + i * 140);
-    });
+  window.monoObserveReveals = function (root) {
+    var scope = root && root.querySelectorAll ? root : document;
+    var nodes = scope.querySelectorAll('.slide-up:not(.in)');
+    if (!nodes.length) return;
+    if (document.body.classList.contains('embed-preview') || document.body.classList.contains('mono-preview')) {
+      Array.prototype.forEach.call(nodes, function (el, i) {
+        setTimeout(function () { el.classList.add('in'); }, 40 + i * 90);
+      });
+      return;
+    }
+    Array.prototype.forEach.call(nodes, function (el) { el.classList.add('in'); });
+  };
+
+  if (document.body.classList.contains('embed-preview') || document.body.classList.contains('mono-preview')) {
+    window.monoObserveReveals(document);
   } else {
     var io = new IntersectionObserver(function (es) {
       es.forEach(function (e) {

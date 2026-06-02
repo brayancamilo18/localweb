@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import Icon from '../../../components/primitives/Icon'
@@ -7,6 +7,8 @@ import { updateBusiness } from '../../../api/dashboard'
 import { keys } from '../../../api/queryKeys'
 import { useDashboard } from '../context/DashboardContext'
 import DashboardSectionHeader from '../components/DashboardSectionHeader'
+import ProAboutSectionsEditor from '../../shared/ProAboutSectionsEditor'
+import { ContentField, EditorCounter } from './editorFields'
 import './editorContent.css'
 import '../components/dashboardSectionHeader.css'
 
@@ -15,100 +17,21 @@ import '../components/dashboardSectionHeader.css'
  * counter visual coincida con la validación del servidor. */
 const TAGLINE_MAX = 120
 const DESCRIPTION_MAX = 500
+const ABOUT_TITLE_MAX = 160
 
 const COMPLETION_RING_R = 24
 
-type FieldId = 'name' | 'tagline' | 'description' | 'phone' | 'email' | 'address'
-
-function EditorCounter({ value, max }: { value: number; max: number }) {
-  const ratio = Math.min(1, value / max)
-  const r = 9
-  const c = 2 * Math.PI * r
-  const danger = ratio > 0.95
-  const warn = ratio > 0.8
-  const color = danger ? 'var(--lw-editor-danger)' : warn ? 'var(--lw-editor-warn)' : 'var(--lw-editor-accent)'
-
-  return (
-    <div className="lw-content-editor__counter" style={{ color }}>
-      <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden>
-        <circle cx="11" cy="11" r={r} fill="none" stroke="var(--lw-editor-soft)" strokeWidth="2" />
-        <circle
-          cx="11"
-          cy="11"
-          r={r}
-          fill="none"
-          stroke={color}
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeDasharray={c}
-          strokeDashoffset={c * (1 - ratio)}
-          transform="rotate(-90 11 11)"
-        />
-      </svg>
-      <span>
-        {value} / {max}
-      </span>
-    </div>
-  )
-}
-
-function ContentField({
-  inputId,
-  label,
-  optional,
-  hint,
-  icon,
-  focused,
-  onFocus,
-  children,
-}: {
-  inputId: string
-  label: string
-  optional?: boolean
-  hint?: string
-  icon: string
-  focused: boolean
-  onFocus: () => void
-  children: ReactNode
-}) {
-  return (
-    <div
-      className={`lw-content-editor__field${focused ? ' lw-content-editor__field--focused' : ''}`}
-      onClick={onFocus}
-    >
-      <div className="lw-content-editor__field-head">
-        <div className="lw-content-editor__field-icon">
-          <Icon name={icon} size={16} stroke={2.2} />
-        </div>
-        <div className="lw-content-editor__field-labels">
-          <label htmlFor={inputId} className="lw-content-editor__field-label">
-            {label}
-          </label>
-          {optional ? (
-            <span className="lw-content-editor__pill lw-content-editor__pill--optional">Opcional</span>
-          ) : (
-            <span className="lw-content-editor__pill lw-content-editor__pill--required">Requerido</span>
-          )}
-        </div>
-      </div>
-      {children}
-      {hint ? (
-        <div className="lw-content-editor__hint">
-          <Icon name="info" size={13} style={{ marginTop: 2, flexShrink: 0 }} />
-          <span>{hint}</span>
-        </div>
-      ) : null}
-    </div>
-  )
-}
+type FieldId = 'name' | 'tagline' | 'about_title' | 'description' | 'phone' | 'email' | 'address'
 
 export default function Editor() {
   const { business, refetch } = useDashboard()
+  const isPro = business.is_pro || business.plan === 'pending'
   const { showToast } = useToast()
   const qc = useQueryClient()
 
   const [name, setName] = useState(business.name)
   const [tagline, setTagline] = useState(business.tagline ?? '')
+  const [aboutTitle, setAboutTitle] = useState(business.about_title ?? '')
   const [description, setDescription] = useState(business.description ?? '')
   const [phone, setPhone] = useState(business.phone ?? '')
   const [email, setEmail] = useState(business.email ?? '')
@@ -118,6 +41,7 @@ export default function Editor() {
   useEffect(() => {
     setName(business.name)
     setTagline(business.tagline ?? '')
+    setAboutTitle(business.about_title ?? '')
     setDescription(business.description ?? '')
     setPhone(business.phone ?? '')
     setEmail(business.email ?? '')
@@ -129,18 +53,19 @@ export default function Editor() {
     return (
       norm(name) !== norm(business.name ?? '') ||
       norm(tagline) !== norm(business.tagline ?? '') ||
+      norm(aboutTitle) !== norm(business.about_title ?? '') ||
       norm(description) !== norm(business.description ?? '') ||
       norm(phone) !== norm(business.phone ?? '') ||
       norm(email) !== norm(business.email ?? '') ||
       norm(address) !== norm(business.address ?? '')
     )
-  }, [name, tagline, description, phone, email, address, business])
+  }, [name, tagline, aboutTitle, description, phone, email, address, business])
 
   const completion = useMemo(() => {
-    const fields = [name, tagline, description, phone, email, address]
+    const fields = [name, tagline, aboutTitle, description, phone, email, address]
     const filled = fields.filter((f) => f.trim().length > 0).length
     return Math.round((filled / fields.length) * 100)
-  }, [name, tagline, description, phone, email, address])
+  }, [name, tagline, aboutTitle, description, phone, email, address])
 
   const completionCircumference = 2 * Math.PI * COMPLETION_RING_R
 
@@ -149,6 +74,7 @@ export default function Editor() {
       updateBusiness({
         name: name.trim(),
         tagline: tagline.trim() || null,
+        about_title: aboutTitle.trim() || null,
         description: description.trim() || null,
         phone: phone.trim() || null,
         email: email.trim() || null,
@@ -259,6 +185,30 @@ export default function Editor() {
         </ContentField>
 
         <ContentField
+          inputId={`${formId}-about_title`}
+          label="Título de «Sobre nosotros»"
+          optional
+          icon="sparkle"
+          hint="Encabezado de la sección en tu web. Si lo dejas vacío, la plantilla usa un texto por defecto."
+          focused={focused === 'about_title'}
+          onFocus={() => setFocused('about_title')}
+        >
+          <input
+            id={`${formId}-about_title`}
+            className="lw-content-editor__input"
+            value={aboutTitle}
+            maxLength={ABOUT_TITLE_MAX}
+            onChange={(e) => setAboutTitle(e.target.value)}
+            onFocus={() => setFocused('about_title')}
+            disabled={mutation.isPending}
+            placeholder="Una casa con oficio, abierta desde 2026"
+          />
+          <div className="lw-content-editor__counter-row">
+            <EditorCounter value={aboutTitle.length} max={ABOUT_TITLE_MAX} />
+          </div>
+        </ContentField>
+
+        <ContentField
           inputId={`${formId}-description`}
           label="Descripción"
           optional
@@ -280,6 +230,16 @@ export default function Editor() {
             <EditorCounter value={description.length} max={DESCRIPTION_MAX} />
           </div>
         </ContentField>
+
+        <ProAboutSectionsEditor
+          isPro={isPro}
+          editorStyle
+          formIdPrefix={formId}
+          onAfterMutate={() => {
+            void qc.invalidateQueries({ queryKey: keys.dashboard.business })
+            refetch()
+          }}
+        />
 
         <div className="lw-content-editor__contact-row">
           <ContentField

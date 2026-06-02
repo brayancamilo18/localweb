@@ -49,6 +49,7 @@ class ResolveTenantForWeb
             ->with([
                 'template',
                 'services',
+                'aboutSections',
                 'images' => fn ($q) => $q->ordered(),
             ])
             ->first();

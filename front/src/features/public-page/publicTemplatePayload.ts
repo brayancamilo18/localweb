@@ -24,6 +24,8 @@ export type HtmlTemplatePreviewPayload = {
   portada_2: string
   portada_3: string
   descripcion: string
+  about_title: string
+  about_sections: Array<{ title: string; description: string; image_url: string | null }>
   foto_equipo: string
   direccion: string
   ciudad: string
@@ -158,6 +160,14 @@ export function publicBusinessToTemplatePayload(business: PublicBusiness): HtmlT
     portada_2: cover[1]?.url ?? '',
     portada_3: cover[2]?.url ?? '',
     descripcion: business.description ?? '',
+    about_title: (business.about_title ?? '').trim(),
+    about_sections: Array.isArray(business.about_sections)
+      ? business.about_sections.map((s) => ({
+          title: (s.title ?? '').trim(),
+          description: (s.description ?? '').trim(),
+          image_url: s.image_url ?? null,
+        }))
+      : [],
     foto_equipo: about[0]?.url ?? '',
     direccion: business.address ?? '',
     ciudad: (business.city ?? '').trim(),

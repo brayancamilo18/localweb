@@ -29,6 +29,9 @@ class TenantViewPayload
             'portada_2' => $this->coverUrl($business, 1),
             'portada_3' => $this->coverUrl($business, 2),
             'descripcion' => $business->description ?? '',
+            'about_title' => $business->about_title ?? '',
+            'about_sections_count' => (int) ($business->about_sections_count ?? 1),
+            'about_sections' => $this->aboutSectionsPayload($business),
             'foto_equipo' => $this->aboutUrl($business, 0),
             'direccion' => $business->address ?? '',
             'ciudad' => $business->city ?? '',
@@ -97,6 +100,25 @@ class TenantViewPayload
             ->values()
             ->map(fn ($image) => (string) $image->url)
             ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{title: string, description: string, image_url: string}>
+     */
+    private function aboutSectionsPayload(Business $business): array
+    {
+        if (! $business->relationLoaded('aboutSections')) {
+            return [];
+        }
+
+        return $business->aboutSections
+            ->map(fn ($section) => [
+                'title' => $section->title ?? '',
+                'description' => $section->description ?? '',
+                'image_url' => $section->image_url ?? '',
+            ])
             ->values()
             ->all();
     }

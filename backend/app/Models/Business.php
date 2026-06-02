@@ -29,6 +29,8 @@ class Business extends Tenant
         'logo_path',
         'favicon_path',
         'description',
+        'about_title',
+        'about_sections_count',
         'tagline',
         'phone',
         'email',
@@ -80,6 +82,11 @@ class Business extends Tenant
     public function services(): HasMany
     {
         return $this->hasMany(BusinessService::class)->orderBy('display_order');
+    }
+
+    public function aboutSections(): HasMany
+    {
+        return $this->hasMany(BusinessAboutSection::class)->orderBy('display_order');
     }
 
     public function owner(): HasOne

@@ -13,6 +13,7 @@ namespace App\Services;
 
 use App\Enums\ImageSection;
 use App\Models\Business;
+use App\Models\BusinessAboutSection;
 use App\Models\BusinessImage;
 use finfo;
 use Illuminate\Filesystem\FilesystemAdapter;
@@ -177,6 +178,49 @@ class ImageService
         $disk = Storage::disk('r2');
         $disk->delete($business->favicon_path);
         $business->update(['favicon_path' => null]);
+    }
+
+    /**
+     * Foto de bloques extra «Sobre nosotros» (Pro) en businesses/{id}/about_sections/{uuid}.webp
+     */
+    public function replaceAboutSectionImage(UploadedFile|string $file, BusinessAboutSection $section): void
+    {
+        $preserveTransparency = $this->sourceMayHaveTransparency($file);
+        $manager = $this->createImageManager();
+        $image = $this->decodeSource($manager, $file);
+
+        if ($image->width() > 2000) {
+            $image = $image->scale(width: 2000);
+        }
+
+        $extension = $preserveTransparency ? 'png' : 'webp';
+        $path = sprintf(
+            'businesses/%d/about_sections/%s.%s',
+            $section->business_id,
+            (string) Str::uuid(),
+            $extension
+        );
+
+        /** @var FilesystemAdapter $disk */
+        $disk = Storage::disk('r2');
+        if ($section->image_path) {
+            $disk->delete($section->image_path);
+        }
+
+        $this->persistToR2($image, $preserveTransparency, $path);
+        $section->update(['image_path' => $path]);
+    }
+
+    public function deleteAboutSectionImage(BusinessAboutSection $section): void
+    {
+        if (! $section->image_path) {
+            return;
+        }
+
+        /** @var FilesystemAdapter $disk */
+        $disk = Storage::disk('r2');
+        $disk->delete($section->image_path);
+        $section->update(['image_path' => null]);
     }
 
     public function reorder(Business $business, array $imageIds): void

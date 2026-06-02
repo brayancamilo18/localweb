@@ -52,6 +52,7 @@ class StepController extends BaseApiController
             'business_name' => $business->name,
             'tagline' => $business->tagline,
             'description' => $business->description,
+            'about_title' => $business->about_title,
             'address' => $business->address,
             'city' => $business->city,
             'country' => $business->country,
@@ -230,12 +231,14 @@ class StepController extends BaseApiController
             'business_name' => ['required', 'string', 'max:80'],
             'tagline' => ['nullable', 'string', 'max:120'],
             'description' => ['nullable', 'string', 'max:500'],
+            'about_title' => ['nullable', 'string', 'max:160'],
             'about_photo' => ['nullable', 'image', 'max:10240'],
         ], [
             'business_name.required' => 'Indica el nombre de tu negocio.',
             'business_name.max' => 'El nombre del negocio no puede superar los 80 caracteres.',
             'tagline.max' => 'El lema no puede superar los 120 caracteres.',
             'description.max' => 'La descripción no puede superar los 500 caracteres.',
+            'about_title.max' => 'El título de «Sobre nosotros» no puede superar los 160 caracteres.',
             'about_photo.image' => 'La foto «sobre nosotros» debe ser una imagen.',
             'about_photo.max' => 'La foto «sobre nosotros» no puede pesar más de 10 MB.',
         ]);
@@ -247,6 +250,7 @@ class StepController extends BaseApiController
         $draft['business_name'] = $data['business_name'];
         $draft['tagline'] = $data['tagline'] ?? null;
         $draft['description'] = $data['description'] ?? null;
+        $draft['about_title'] = $data['about_title'] ?? null;
         $draft['step'] = 3;
 
         if ($request->hasFile('about_photo')) {
@@ -259,6 +263,7 @@ class StepController extends BaseApiController
             'name' => trim($data['business_name']),
             'tagline' => $data['tagline'] ?? null,
             'description' => $data['description'] ?? null,
+            'about_title' => $data['about_title'] ?? null,
         ]);
 
         return $this->success(['ok' => true, 'next_step' => 4]);
@@ -520,6 +525,7 @@ class StepController extends BaseApiController
             'template_id' => $draft['template_id'] ?? null,
             'tagline' => $draft['tagline'] ?? null,
             'description' => $draft['description'] ?? null,
+            'about_title' => $draft['about_title'] ?? null,
             'phone' => $draft['phone'] ?? null,
             /** Email público de contacto del negocio (columna propia en
              * `businesses`, ver migración add_email_to_businesses_table).

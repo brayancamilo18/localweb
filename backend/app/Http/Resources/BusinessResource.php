@@ -22,6 +22,8 @@ class BusinessResource extends JsonResource
             'logo_url' => $this->logo_url,
             'favicon_url' => $this->favicon_url,
             'description' => $this->description,
+            'about_title' => $this->about_title,
+            'about_sections_count' => (int) ($this->about_sections_count ?? 1),
             'tagline' => $this->tagline,
             'phone' => $this->phone,
             /** Email público de contacto del negocio (columna propia en
@@ -55,6 +57,10 @@ class BusinessResource extends JsonResource
             'services' => $this->whenLoaded(
                 'services',
                 fn () => BusinessServiceResource::collection($this->services)->resolve(),
+            ),
+            'about_sections' => $this->whenLoaded(
+                'aboutSections',
+                fn () => BusinessAboutSectionResource::collection($this->aboutSections)->resolve(),
             ),
             'stats' => $this->when(isset($this->stats), $this->stats),
             'created_at' => $this->created_at,

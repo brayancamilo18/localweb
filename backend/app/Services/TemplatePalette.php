@@ -170,6 +170,8 @@ class TemplatePalette
             'luxe-atelier' => '--champagne',
             'mono-edito' => '--accent',
             'noir-elite' => '--gold',
+            'la-republica-vintage' => '--red',
+            'kairos-bold' => '--orange',
             'tavola-warm' => '--wine',
             'tech-sleek' => '--cyan',
             'trust-clinic' => '--accent',

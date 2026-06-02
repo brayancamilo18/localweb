@@ -23,9 +23,20 @@ SLUGS_ORDER = [
     "luxe-atelier",
     "graphite-soft",
     "wild-pet",
+    "la-republica-vintage",
+    "kairos-bold",
 ]
 
-PRO_HERO_3 = {"tavola-warm", "versa-studio", "mono-edito", "luxe-atelier", "graphite-soft", "wild-pet"}
+PRO_HERO_3 = {
+    "tavola-warm",
+    "versa-studio",
+    "mono-edito",
+    "luxe-atelier",
+    "graphite-soft",
+    "wild-pet",
+    "la-republica-vintage",
+    "kairos-bold",
+}
 
 # Static HTML placeholders → TenantViewPayload keys (or Blade expressions).
 PLACEHOLDER_MAP: dict[str, str] = {
@@ -242,8 +253,83 @@ def apply_common_body(body: str, slug: str) -> str:
     )
 
     if slug in PRO_HERO_3:
-        body = apply_pro_hero_three(body)
+        if slug == "la-republica-vintage":
+            body = apply_republica_hero_three(body)
+        elif slug == "kairos-bold":
+            body = apply_kairos_hero_three(body)
+        else:
+            body = apply_pro_hero_three(body)
 
+    return body
+
+
+def apply_republica_hero_three(body: str) -> str:
+    for var, vid in (
+        ("portada", "heroPhoto1"),
+        ("portada_2", "heroPhoto2"),
+        ("portada_3", "heroPhoto3"),
+    ):
+        pat = (
+            rf'(<figure class="vphoto" id="{vid}">)\s*'
+            r'<div class="ph"[^>]*>.*?</div>\s*</figure>'
+        )
+        blade_var = "{{ $" + var + " }}"
+        repl = (
+            rf'\1\n        <div class="ph" role="img" aria-hidden="true"></div>\n'
+            f'        @if(${var})\n'
+            f'        <img class="rep-photo" src="{blade_var}" alt="{{{{ $nombre }}}}" loading="lazy" decoding="async"/>\n'
+            f"        @endif\n      </figure>"
+        )
+        body = re.sub(pat, repl, body, count=1, flags=re.DOTALL)
+    about_pat = (
+        r'(<div class="vphoto" id="aboutPhotoWrap">)\s*'
+        r'<div class="ph"[^>]*>.*?</div>\s*</div>'
+    )
+    body = re.sub(
+        about_pat,
+        r'\1\n          <div class="ph" role="img" aria-hidden="true"></div>\n'
+        r'          @if($foto_equipo)\n'
+        r'          <img class="rep-photo" src="{{ $foto_equipo }}" alt="{{ $nombre }}" loading="lazy" decoding="async"/>\n'
+        r"          @endif\n        </div>",
+        body,
+        count=1,
+        flags=re.DOTALL,
+    )
+    return body
+
+
+def apply_kairos_hero_three(body: str) -> str:
+    for var, vid in (
+        ("portada", "heroPhoto1"),
+        ("portada_2", "heroPhoto2"),
+        ("portada_3", "heroPhoto3"),
+    ):
+        pat = (
+            rf'(<figure class="hero-photo[^"]*" id="{vid}">)\s*'
+            r'<div class="ph"[^>]*>.*?</div>\s*</figure>'
+        )
+        blade_var = "{{ $" + var + " }}"
+        repl = (
+            rf'\1\n          <div class="ph" role="img" aria-hidden="true"></div>\n'
+            f'          @if(${var})\n'
+            f'          <img class="kairos-photo" src="{blade_var}" alt="{{{{ $nombre }}}}" loading="lazy" decoding="async"/>\n'
+            f"          @endif\n        </figure>"
+        )
+        body = re.sub(pat, repl, body, count=1, flags=re.DOTALL)
+    about_pat = (
+        r'(<figure class="about-photo[^"]*" id="aboutPhotoWrap">)\s*'
+        r'<div class="ph"[^>]*>.*?</div>\s*</figure>'
+    )
+    body = re.sub(
+        about_pat,
+        r'\1\n          <div class="ph" role="img" aria-hidden="true"></div>\n'
+        r'          @if($foto_equipo)\n'
+        r'          <img class="kairos-photo" src="{{ $foto_equipo }}" alt="{{ $nombre }}" loading="lazy" decoding="async"/>\n'
+        r"          @endif\n        </figure>",
+        body,
+        count=1,
+        flags=re.DOTALL,
+    )
     return body
 
 
@@ -386,6 +472,10 @@ def apply_urban_like_transforms(body: str, slug: str = "") -> str:
     services_blade = SERVICES_GRAPHITE if slug == "graphite-soft" else SERVICES_URBAN
     if slug == "wild-pet":
         services_blade = SERVICES_WILD
+    if slug == "la-republica-vintage":
+        services_blade = SERVICES_REPUBLICA
+    if slug == "kairos-bold":
+        services_blade = SERVICES_KAIROS
     if 'id="tplServicesList"></div>' in body and "@foreach($services" not in body:
         body = re.sub(
             r'(<section id="servicios"[^>]*>.*?<div class="[^"]*" id="tplServicesList">)</div>',
@@ -397,6 +487,10 @@ def apply_urban_like_transforms(body: str, slug: str = "") -> str:
 
     if slug == "wild-pet":
         body = apply_wild_blade_transforms(body)
+    if slug == "la-republica-vintage":
+        body = apply_republica_blade_transforms(body)
+    if slug == "kairos-bold":
+        body = apply_kairos_blade_transforms(body)
 
     return body
 
@@ -454,6 +548,160 @@ def apply_wild_footer(body: str) -> str:
     if foot_social_old in body:
         body = body.replace(foot_social_old, foot_social_blade)
 
+    return body
+
+
+def apply_republica_blade_transforms(body: str) -> str:
+    body = body.replace('id="heroSub">Tagline corto de la casa', 'id="heroSub">{{ $tagline }}')
+    body = re.sub(
+        r'<p class="hero-tagline reveal" id="heroTagline">.*?</p>',
+        '<p class="hero-tagline reveal" id="heroTagline">{{ $descripcion ?: $tagline }}</p>',
+        body,
+        count=1,
+        flags=re.DOTALL,
+    )
+    body = body.replace(
+        'id="aboutTitle" class="reveal">Una casa con oficio, abierta desde siempre',
+        'id="aboutTitle" class="reveal">Una casa con oficio, abierta desde {{ $anio_fundacion ?: \'siempre\' }}',
+    )
+    body = re.sub(
+        r'<p class="lede reveal" id="aboutLede">.*?</p>',
+        '<p class="lede reveal" id="aboutLede">{{ $descripcion }}</p>',
+        body,
+        count=1,
+        flags=re.DOTALL,
+    )
+    body = re.sub(
+        r'<div class="menu-grid" data-stagger id="menuGrid"></div>',
+        '<div class="menu-grid" data-stagger id="menuGrid">\n' + SERVICES_REPUBLICA + "\n      </div>",
+        body,
+        count=1,
+    )
+    body = re.sub(
+        r'<div class="gallery" data-stagger id="galleryLive">[\s\S]*?</div>\s*\n  </div>\s*\n</section>',
+        GALLERY_REPUBLICA + "\n  </div>\n</section>",
+        body,
+        count=1,
+    )
+    body = re.sub(
+        r'<div class="schedule" id="schedule"></div>',
+        SCHEDULE_REPUBLICA,
+        body,
+        count=1,
+    )
+    body = body.replace(
+        '<a class="btn btn-gold" href="{{ $google_business_url ?: \'#\' }}" id="gbizBtn"',
+        '<a class="btn btn-gold" href="{{ $google_business_url }}" id="gbizBtn"',
+    )
+    body = body.replace(
+        '<section id="opiniones" class="is-hidden"',
+        '<section id="opiniones"@if(!$google_business_url) class="is-hidden" style="display:none;"@else style=""@endif',
+    )
+    body = body.replace(
+        '<section id="servicios" class="is-hidden"',
+        '<section id="servicios"@if(count($services) === 0) class="is-hidden" style="display:none;"@endif',
+    )
+    body = body.replace(
+        '<section id="tplVcardWrap" class="is-hidden"',
+        '<section id="tplVcardWrap"@if(!$vcard_enabled || !$vcard_download_url) class="is-hidden" style="display:none;"@endif',
+    )
+    body = body.replace(
+        '<a class="contact-phone reveal num" href="tel:+00000000000" id="contactPhone" data-tel-link>+00 000 000 000</a>',
+        '<a class="contact-phone reveal num" href="{{ $whatsapp ? \'tel:+\'.$whatsapp : \'tel:\' }}" id="contactPhone" data-tel-link>{{ $telefono }}</a>',
+    )
+    body = body.replace(
+        '<span class="value" id="contactEmailValue">hola@ejemplo.com</span>',
+        '<span class="value" id="contactEmailValue">{{ $correo ?: \'hola@ejemplo.com\' }}</span>',
+    )
+    body = body.replace(
+        '<span class="value" id="contactAddressValue">Calle Ejemplo, 00</span>',
+        '<span class="value" id="contactAddressValue">{{ $direccion ?: \'Calle Ejemplo, 00\' }}</span>',
+    )
+    body = body.replace(
+        '<a href="#" id="vcardBtn"',
+        '<a href="{{ $vcard_download_url ?: \'#\' }}" id="vcardBtn"',
+    )
+    return body
+
+
+def apply_kairos_blade_transforms(body: str) -> str:
+    body = body.replace(
+        '<span id="heroTitle">Tu</span> <span class="tint" id="heroTitleTint">negocio</span>',
+        '<span id="heroTitle">{{ explode(\' \', $nombre ?: \'Tu negocio\', 2)[0] ?? \'Tu\' }}</span> '
+        '<span class="tint" id="heroTitleTint">{{ explode(\' \', $nombre ?: \'Tu negocio\', 2)[1] ?? \'negocio\' }}</span>',
+    )
+    body = re.sub(
+        r'<p class="hero-tagline" id="heroTagline">.*?</p>',
+        '<p class="hero-tagline" id="heroTagline">{{ $tagline ?: $descripcion }}</p>',
+        body,
+        count=1,
+        flags=re.DOTALL,
+    )
+    body = re.sub(
+        r'<p class="lede reveal" id="aboutLede">.*?</p>',
+        '<p class="lede reveal" id="aboutLede">{{ $descripcion }}</p>',
+        body,
+        count=1,
+        flags=re.DOTALL,
+    )
+    body = re.sub(
+        r'<div class="stack" id="stack"></div>',
+        '<div class="stack" id="stack">\n' + SERVICES_KAIROS + "\n    </div>",
+        body,
+        count=1,
+    )
+    body = re.sub(
+        r'<div class="gallery" data-stagger id="galleryLive">[\s\S]*?</div>\s*\n  </div>\s*\n</section>',
+        GALLERY_KAIROS + "\n  </div>\n</section>",
+        body,
+        count=1,
+    )
+    body = re.sub(
+        r'<div id="schedule"></div>',
+        SCHEDULE_KAIROS,
+        body,
+        count=1,
+    )
+    body = body.replace(
+        '<a class="btn btn-ink" href="{{ $google_business_url ?: \'#\' }}" id="gbizBtn"',
+        '<a class="btn btn-ink" href="{{ $google_business_url }}" id="gbizBtn"',
+    )
+    body = body.replace(
+        '<section id="opiniones" class="is-hidden"',
+        '<section id="opiniones"@if(!$google_business_url) class="is-hidden" style="display:none;"@else style=""@endif',
+    )
+    body = body.replace(
+        '<section id="servicios" class="bg-cream is-hidden" style="display:none;"',
+        '<section id="servicios" class="bg-cream"@if(count($services) === 0) style="display:none;"@endif',
+    )
+    body = body.replace(
+        '<section id="tplVcardWrap" class="is-hidden"',
+        '<section id="tplVcardWrap"@if(!$vcard_enabled || !$vcard_download_url) class="is-hidden" style="display:none;"@endif',
+    )
+    body = re.sub(
+        r'<p id="footTagline"[^>]*>.*?</p>',
+        '<p id="footTagline" style="margin-top:1rem;color:rgba(253,236,194,.8);max-width:34ch;font-weight:600;">{{ $tagline ?: $descripcion }}</p>',
+        body,
+        count=1,
+        flags=re.DOTALL,
+    )
+    body = body.replace('<span id="footBrand">Tu negocio</span>', '<span id="footBrand">{{ $nombre }}</span>')
+    body = body.replace(
+        '<span class="v" id="contactEmailValue">hola@ejemplo.com</span>',
+        '<span class="v" id="contactEmailValue">{{ $correo ?: \'hola@ejemplo.com\' }}</span>',
+    )
+    body = body.replace(
+        '<span class="v" id="contactAddressValue">Calle Ejemplo, 00 · Ciudad</span>',
+        '<span class="v" id="contactAddressValue">{{ $direccion ?: \'Calle Ejemplo, 00 · Ciudad\' }}</span>',
+    )
+    body = body.replace(
+        '<a href="#" id="vcardBtn"',
+        '<a href="{{ $vcard_download_url ?: \'#\' }}" id="vcardBtn"',
+    )
+    body = body.replace(
+        '<a href="mailto:hola@ejemplo.com" id="footEmailLink">hola@ejemplo.com</a>',
+        '<a href="mailto:{{ $correo }}" id="footEmailLink">{{ $correo ?: \'hola@ejemplo.com\' }}</a>',
+    )
     return body
 
 
@@ -685,6 +933,119 @@ ABOUT_STATS_WILD = """        <div class="about-stats num" data-stagger>
           </a>
         </div>"""
 
+SERVICES_KAIROS = """
+@php $kairosPh = ['o','c','b','o','c']; $kairosEmoji = ['🍔','🍕','🌮','🥗','🍩']; @endphp
+@foreach($services as $i => $service)
+    <article class="stack-card pop">
+      <div class="sc-photo"><div class="ph {{ $kairosPh[$i % count($kairosPh)] }}" role="img" aria-hidden="true"><span class="emoji" aria-hidden="true">{{ $kairosEmoji[$i % count($kairosEmoji)] }}</span><span class="ph-label">FOTO PLATO</span></div></div>
+      <div class="sc-body">
+        <div class="sc-top"><span class="sc-num">N° {{ str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) }}</span></div>
+        <h3 class="sc-name">{{ $service['name'] }}</h3>
+        @if(!empty($service['description']))<p class="sc-desc">{{ $service['description'] }}</p>@endif
+        <div class="sc-foot">
+          <span class="sc-price num">@if($service['price'] !== null){{ number_format($service['price'], 0, ',', '.') }} €@else Consultar @endif</span>
+          <a class="btn btn-ink btn-sm" href="{{ $whatsapp ? 'https://wa.me/'.$whatsapp : '#' }}" data-wa-link>Pedí este</a>
+        </div>
+      </div>
+    </article>
+@endforeach"""
+
+SCHEDULE_KAIROS = """<div id="schedule">
+@php
+  $scheduleDays = [
+    ['mon', 'Lunes'],
+    ['tue', 'Martes'],
+    ['wed', 'Miércoles'],
+    ['thu', 'Jueves'],
+    ['fri', 'Viernes'],
+    ['sat', 'Sábado'],
+    ['sun', 'Domingo'],
+  ];
+  $todayIdx = ((int) now()->dayOfWeek + 6) % 7;
+@endphp
+@foreach($scheduleDays as $i => [$key, $full])
+@php
+  $row = is_array($horario) ? ($horario[$key] ?? null) : null;
+  $closed = !$row || !empty($row['closed']);
+  $open = !$closed && !empty($row['open']);
+@endphp
+        <div class="sched-row{{ $i === $todayIdx ? ' is-today' : '' }}{{ $closed ? ' is-closed' : '' }}">
+          <span class="day">{{ $full }}</span>
+          <span class="hours num">@if($open){{ $row['open'] }} – {{ $row['close'] }}@else Cerrado @endif</span>
+        </div>
+@endforeach
+      </div>"""
+
+GALLERY_KAIROS = """    <div class="gallery" data-stagger id="galleryLive">
+@forelse(($galeria ?? []) as $imgUrl)
+    <figure class="g-item has-photo"><img class="kairos-photo" src="{{ $imgUrl }}" alt="" loading="lazy" decoding="async"></figure>
+@empty
+    <figure class="g-item"><div class="ph o" role="img"><span class="emoji" aria-hidden="true">🍔</span><span class="ph-label">FOTO · 01</span></div></figure>
+    <figure class="g-item"><div class="ph c" role="img"><span class="emoji" aria-hidden="true">🍕</span><span class="ph-label">FOTO · 02</span></div></figure>
+    <figure class="g-item"><div class="ph b" role="img"><span class="emoji" aria-hidden="true">🌮</span><span class="ph-label">FOTO · 03</span></div></figure>
+    <figure class="g-item"><div class="ph c" role="img"><span class="emoji" aria-hidden="true">🍟</span><span class="ph-label">FOTO · 04</span></div></figure>
+    <figure class="g-item"><div class="ph b" role="img"><span class="emoji" aria-hidden="true">🥤</span><span class="ph-label">FOTO · 05</span></div></figure>
+    <figure class="g-item"><div class="ph o" role="img"><span class="emoji" aria-hidden="true">🍩</span><span class="ph-label">FOTO · 06</span></div></figure>
+@endforelse
+    </div>"""
+
+SERVICES_REPUBLICA = """
+@foreach($services as $service)
+    <article class="menu-row">
+      <div class="menu-line">
+        <span class="menu-name">{{ $service['name'] }}</span>
+        <span class="menu-dots" aria-hidden="true"></span>
+        <span class="menu-price num">
+        @if($service['price'] !== null)
+        {{ number_format($service['price'], 0, ',', '.') }} €
+        @else
+        Consultar
+        @endif
+        </span>
+      </div>
+      @if(!empty($service['description']))<p class="menu-desc">{{ $service['description'] }}</p>@endif
+    </article>
+@endforeach"""
+
+SCHEDULE_REPUBLICA = """<div class="schedule" id="schedule">
+@php
+  $scheduleDays = [
+    ['mon', 'Lunes'],
+    ['tue', 'Martes'],
+    ['wed', 'Miércoles'],
+    ['thu', 'Jueves'],
+    ['fri', 'Viernes'],
+    ['sat', 'Sábado'],
+    ['sun', 'Domingo'],
+  ];
+  $todayIdx = ((int) now()->dayOfWeek + 6) % 7;
+@endphp
+@foreach($scheduleDays as $i => [$key, $full])
+@php
+  $row = is_array($horario) ? ($horario[$key] ?? null) : null;
+  $closed = !$row || !empty($row['closed']);
+  $open = !$closed && !empty($row['open']);
+@endphp
+        <div class="sched-row{{ $i === $todayIdx ? ' is-today' : '' }}{{ $closed ? ' is-closed' : '' }}">
+          <span class="day">{{ $full }}</span>
+          <span class="hours num">@if($open){{ $row['open'] }} – {{ $row['close'] }}@else Cerrado @endif</span>
+        </div>
+@endforeach
+      </div>"""
+
+GALLERY_REPUBLICA = """    <div class="gallery" data-stagger id="galleryLive">
+@forelse(($galeria ?? []) as $imgUrl)
+    <figure class="g-item has-photo"><img class="rep-photo" src="{{ $imgUrl }}" alt="" loading="lazy" decoding="async"></figure>
+@empty
+    <figure class="g-item"><div class="ph" role="img"><span class="ph-orn">✦</span><span class="ph-label">FOTO · 01</span></div></figure>
+    <figure class="g-item"><div class="ph" role="img"><span class="ph-label">FOTO · 02</span></div></figure>
+    <figure class="g-item"><div class="ph" role="img"><span class="ph-label">FOTO · 03</span></div></figure>
+    <figure class="g-item"><div class="ph" role="img"><span class="ph-label">FOTO · 04</span></div></figure>
+    <figure class="g-item"><div class="ph" role="img"><span class="ph-label">FOTO · 05</span></div></figure>
+    <figure class="g-item"><div class="ph" role="img"><span class="ph-orn">★</span><span class="ph-label">FOTO · 06</span></div></figure>
+@endforelse
+    </div>"""
+
 SERVICES_WILD = """
 @foreach($services as $service)
     <article class="service">
@@ -806,7 +1167,12 @@ def patch_scripts(scripts: str, slug: str) -> str:
 
     # Inject map lat fallback in update*PreviewMap if present
     if "function updateBoldPreviewMap" in scripts or "function updatePreviewMap" in scripts:
-        for fn in ("updateBoldPreviewMap", "updateNoirPreviewMap", "updateSleekPreviewMap"):
+        for fn in (
+            "updateBoldPreviewMap",
+            "updateNoirPreviewMap",
+            "updateSleekPreviewMap",
+            "updateRepublicaPreviewMap",
+        ):
             if f"function {fn}" in scripts:
                 scripts = scripts.replace(
                     f"function {fn}(lat, lon) {{",
@@ -908,6 +1274,16 @@ def detect_boot_script(scripts: str, slug: str) -> str:
     else if (typeof syncBoldScheduleFromPreview === 'function') syncBoldScheduleFromPreview(@json($horario));
     if (typeof renderSchedule === 'function') renderSchedule();
 """
+    elif "renderRepublicaSchedule" in scripts:
+        schedule_call = """    if (typeof syncRepublicaScheduleFromPreview === 'function') syncRepublicaScheduleFromPreview(@json($horario));
+    if (typeof renderRepublicaSchedule === 'function') renderRepublicaSchedule();
+    if (typeof applyRepublicaStatus === 'function') applyRepublicaStatus();
+"""
+    elif "renderKairosSchedule" in scripts:
+        schedule_call = """    if (typeof syncKairosScheduleFromPreview === 'function') syncKairosScheduleFromPreview(@json($horario));
+    if (typeof renderKairosSchedule === 'function') renderKairosSchedule();
+    if (typeof applyKairosStatus === 'function') applyKairosStatus();
+"""
 
     map_call = """    if (typeof window.__lwLat === 'number' && typeof window.__lwLon === 'number') {
       if (typeof updateBoldPreviewMap === 'function') updateBoldPreviewMap(window.__lwLat, window.__lwLon);
@@ -916,6 +1292,8 @@ def detect_boot_script(scripts: str, slug: str) -> str:
       else if (typeof updateBloomPreviewMap === 'function') updateBloomPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateGraphitePreviewMap === 'function') updateGraphitePreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateWildPreviewMap === 'function') updateWildPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateRepublicaPreviewMap === 'function') updateRepublicaPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateKairosPreviewMap === 'function') updateKairosPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
     }
 """
 
@@ -1032,10 +1410,14 @@ def convert_slug(slug: str) -> Path:
                     + scripts_part[onez_tag.end() :]
                 )
 
+    brand_include = ""
+    if slug in {"la-republica-vintage", "kairos-bold"}:
+        brand_include = "\n@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])\n"
+
     out = f"""@extends('public.layouts.tenant')
 
 @push('head-extras')
-{head_links}{inline_style}
+{head_links}{inline_style}{brand_include}
 @endpush
 
 @section('content')

@@ -4,6 +4,7 @@ import { Btn } from '../../components/primitives'
 import { apiClient } from '../../api/client'
 import { getBusiness } from '../../api/dashboard'
 import { getServices } from '../../api/services'
+import { getAboutSections } from '../../api/aboutSections'
 import { fetchOnboardingTemplates, hydrateGalleryFromServerUrls } from '../../api/onboarding'
 import { keys } from '../../api/queryKeys'
 import type { BusinessService, Schedule, Template } from '../../types/api'
@@ -68,6 +69,8 @@ const TEMPLATE_BRAND_VARIABLE: Record<string, string> = {
   'trust-clinic': 'accent',
   'urban-bold': 'lime',
   'versa-studio': 'warm',
+  'la-republica-vintage': 'red',
+  'kairos-bold': 'orange',
 }
 
 const EMPTY_TEMPLATES: Template[] = []
@@ -135,6 +138,7 @@ export default function OnboardingPage() {
   const [coverLiveObjectUrl2, setCoverLiveObjectUrl2] = useState<string | undefined>(undefined)
   const [coverLiveObjectUrl3, setCoverLiveObjectUrl3] = useState<string | undefined>(undefined)
   const [previewDescription, setPreviewDescription] = useState('')
+  const [previewAboutTitle, setPreviewAboutTitle] = useState('')
   const [aboutTeamFile, setAboutTeamFile] = useState<File | null>(null)
   const [aboutPersistDataUrl, setAboutPersistDataUrl] = useState<string | undefined>(undefined)
   const [aboutLiveObjectUrl, setAboutLiveObjectUrl] = useState<string | undefined>(undefined)
@@ -162,6 +166,7 @@ export default function OnboardingPage() {
   const templates = useMemo(() => (Array.isArray(data) ? data : EMPTY_TEMPLATES), [data])
   const businessIsPro = useAuthStore((s) => s.business?.is_pro ?? false)
   const businessPlan = useAuthStore((s) => s.business?.plan)
+  const step3Pro = businessIsPro || businessPlan === 'pending'
   const galleryProExperience = businessIsPro || businessPlan === 'pending' || postCheckoutProGallery
   const step8OrLater = currentStep >= 8
   const needsBusinessGallery = currentStep >= 4 && currentStep <= 8
@@ -171,6 +176,11 @@ export default function OnboardingPage() {
     enabled: needsBusinessGallery || step8OrLater,
   })
   const step9Active = currentStep === 9
+  const aboutSectionsQuery = useQuery({
+    queryKey: keys.dashboard.aboutSections,
+    queryFn: getAboutSections,
+    enabled: (currentStep === 3 || step8OrLater) && step3Pro,
+  })
   const brandColorQuery = useBrandColor({
     enabled: step9Active && (businessIsPro || businessPlan === 'pending'),
   })
@@ -468,6 +478,13 @@ export default function OnboardingPage() {
     setPreviewTagline(String(serverTagline || persistedTagline || ''))
     setPreviewPhone(String(p?.previewPhone ?? d.phone ?? ''))
     setPreviewDescription(String(p?.previewDescription ?? d.description ?? ''))
+    setPreviewAboutTitle(
+      String(
+        p?.previewAboutTitle ??
+          (typeof d.about_title === 'string' ? d.about_title : '') ??
+          '',
+      ),
+    )
     setPreviewAddress(String(p?.previewAddress ?? d.address ?? ''))
     setPreviewLocation(
       coerceLocation({
@@ -632,6 +649,7 @@ export default function OnboardingPage() {
       previewTagline,
       previewPhone,
       previewDescription,
+      previewAboutTitle,
       previewAddress,
       previewCity: previewLocation.city,
       previewCountry: previewLocation.country,
@@ -657,6 +675,7 @@ export default function OnboardingPage() {
     previewTagline,
     previewPhone,
     previewDescription,
+    previewAboutTitle,
     previewAddress,
     previewLocation,
     previewEmail,
@@ -713,6 +732,21 @@ export default function OnboardingPage() {
       coverUrl2: coverLiveObjectUrl2 || serverCover2 || undefined,
       coverUrl3: coverLiveObjectUrl3 || serverCover3 || undefined,
       description: previewDescription || undefined,
+      aboutTitle:
+        (previewAboutTitle.trim() || (useServer ? (b?.about_title ?? '') : '') || '').trim() || undefined,
+      aboutSections:
+        aboutSectionsQuery.data?.map((s) => ({
+          title: s.title ?? '',
+          description: s.description ?? '',
+          image_url: s.image_url ?? '',
+        })) ??
+        (useServer && b?.about_sections
+          ? b.about_sections.map((s) => ({
+              title: s.title ?? '',
+              description: s.description ?? '',
+              image_url: s.image_url ?? '',
+            }))
+          : undefined),
       aboutPhotoUrl: aboutLiveObjectUrl || serverAbout || undefined,
       address: (previewAddress.trim() || b?.address || '').trim() || undefined,
       city: (previewLocation.city.trim() || b?.city || '').trim() || undefined,
@@ -746,6 +780,7 @@ export default function OnboardingPage() {
     galleryLiveObjectUrls,
     aboutLiveObjectUrl,
     previewDescription,
+    previewAboutTitle,
     previewName,
     authBusinessName,
     serverDraft,
@@ -763,6 +798,7 @@ export default function OnboardingPage() {
     step9Active,
     brandPreviewHex,
     step1PreviewVariant,
+    aboutSectionsQuery.data,
   ])
 
   const navValue = useMemo(
@@ -854,6 +890,7 @@ export default function OnboardingPage() {
       businessName: templatePreviewData.businessName,
       tagline: templatePreviewData.tagline,
       phone: templatePreviewData.phone,
+      aboutTitle: templatePreviewData.aboutTitle,
       description: templatePreviewData.description,
     }),
     [
@@ -862,6 +899,7 @@ export default function OnboardingPage() {
       templatePreviewData.businessName,
       templatePreviewData.tagline,
       templatePreviewData.phone,
+      templatePreviewData.aboutTitle,
       templatePreviewData.description,
     ],
   )
@@ -978,12 +1016,19 @@ export default function OnboardingPage() {
             {...common}
             initialBusinessName={previewName}
             initialTagline={previewTagline}
+            aboutTitle={previewAboutTitle}
+            onAboutTitleChange={setPreviewAboutTitle}
             description={previewDescription}
             onDescriptionChange={setPreviewDescription}
             contactPhone={previewPhone}
             onContactPhoneChange={setPreviewPhone}
             currentAboutPhotoFile={aboutTeamFile}
             onAboutPhotoChange={setAboutTeamFile}
+            isPro={step3Pro}
+            onAboutSectionsChange={() => {
+              void aboutSectionsQuery.refetch()
+              void businessSnapQuery.refetch()
+            }}
           />
         )
       case 4:
@@ -1057,6 +1102,7 @@ export default function OnboardingPage() {
     previewTagline,
     previewPhone,
     previewDescription,
+    previewAboutTitle,
     aboutTeamFile,
     galleryPhotoFiles,
     schedulePreview,

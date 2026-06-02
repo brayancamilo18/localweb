@@ -189,6 +189,20 @@
   .about h2{font-size:clamp(48px,7vw,84px);margin-bottom:46px}
   .about h2 .accent{color:var(--lime)}
   .about p{font-size:18px;line-height:1.7;color:#C9C9C9;margin-bottom:20px;max-width:520px}
+  .urban-about-stack{max-width:1480px;margin:0 auto}
+  .urban-about-extras{display:flex;flex-direction:column;gap:clamp(72px,10vw,100px);margin-top:clamp(72px,10vw,100px);padding-top:clamp(48px,6vw,72px);border-top:3px solid var(--lime)}
+  .urban-about-extra{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+  .urban-about-extra--text-first .urban-about-extra__copy{order:1}
+  .urban-about-extra--text-first .urban-about-extra__media{order:2}
+  .urban-about-extra--photo-first .urban-about-extra__media{order:1}
+  .urban-about-extra--photo-first .urban-about-extra__copy{order:2}
+  .urban-about-extra__kicker{font-family:"JetBrains Mono";font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);background:var(--lime);padding:6px 12px;display:inline-block;margin-bottom:22px}
+  .urban-about-extra__title{font-family:"Archivo Black";font-size:clamp(36px,5.5vw,64px);line-height:.95;text-transform:uppercase;letter-spacing:-.02em;margin:0 0 28px;color:#fff}
+  .urban-about-extra__desc{font-size:18px;line-height:1.7;color:#C9C9C9;margin:0;max-width:520px}
+  .urban-about-extra__img{aspect-ratio:4/5;background:#1f1f1f;border:3px solid var(--lime);overflow:hidden;position:relative}
+  .urban-about-extra__img img{width:100%;height:100%;object-fit:cover;display:block}
+  .urban-about-extra__ph{position:absolute;inset:0;display:grid;place-items:center;font-family:"JetBrains Mono";font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#666}
+  .urban-about-extra__img.has-photo .urban-about-extra__ph{display:none}
 
   /* ─── GALLERY ─── */
   .gallery{max-width:1480px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:254px;gap:14px}
@@ -438,6 +452,8 @@
     .service{border-right:none;border-bottom:3px solid var(--ink)}
     .service:last-child{border-bottom:none}
     .about-grid{grid-template-columns:1fr;gap:54px}
+    .urban-about-extra{grid-template-columns:1fr;gap:54px}
+    .urban-about-extra__media{order:-1!important}
     .gallery{grid-template-columns:repeat(2,1fr);grid-auto-rows:260px}
     .info-grid{grid-template-columns:1fr}
     .info-block:first-child{border-right:none;border-bottom:3px solid var(--ink)}
@@ -630,15 +646,18 @@
 
 <!-- ═══════════════════ ABOUT ═══════════════════ -->
 <section id="sobre-nosotros" class="about">
-  <div class="about-grid">
-    <div class="about-img" id="aboutPhotoWrap">
-      <img id="aboutPhotoImg" src="" alt="" hidden style="display:none"/>
+  <div class="urban-about-stack">
+    <div class="about-grid">
+      <div class="about-img" id="aboutPhotoWrap">
+        <img id="aboutPhotoImg" src="" alt="" hidden style="display:none"/>
+      </div>
+      <div>
+        <span class="section-num">[ 02 / Sobre nosotros ]</span>
+        <h2 class="display" id="aboutTitle">Sobre nosotros.</h2>
+        <p id="aboutDescripcion">Descripción del negocio: quiénes sois, qué hacéis y por qué importa.</p>
+      </div>
     </div>
-    <div>
-      <span class="section-num">[ 02 / Sobre nosotros ]</span>
-      <h2 class="display" id="aboutTitle">Tu negocio.</h2>
-      <p id="aboutDescripcion">Descripción del negocio: quiénes sois, qué hacéis y por qué importa.</p>
-    </div>
+    <div id="aboutExtraBlocks" class="urban-about-extras"></div>
   </div>
 </section>
 
@@ -853,6 +872,7 @@ html.lw-preview-inert a[href^="#"] {
   }, true);
 })();
 </script>
+<script src="/templates/lw-about-extras.js?v=2"></script>
 <script src="/templates/lw-contact-links.js?v=2"></script>
 <script>
 (function initUrbanPreviewModeClasses() {
@@ -1117,6 +1137,60 @@ function updateBoldPreviewMap(lat, lon) {
     requestAnimationFrame(applyMap);
   });
 }
+
+function escapeAttrUrban(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function renderUrbanAboutExtras(sections) {
+  var wrap = document.getElementById('aboutExtraBlocks');
+  if (!wrap) return;
+  wrap.className = 'urban-about-extras';
+  var list = Array.isArray(sections) ? sections.filter(function (s) { return s != null; }) : [];
+  if (list.length === 0) {
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = list
+    .map(function (sec, i) {
+      var title = escapeHtmlTextBold(String(sec.title || '').trim());
+      var desc = escapeHtmlTextBold(String(sec.description || '').trim());
+      var img = String(sec.image_url || '').trim();
+      var mainTF = typeof lwIsMainAboutTextFirst === 'function' ? lwIsMainAboutTextFirst(wrap) : false;
+      var textFirst = typeof lwAboutExtraTextFirst === 'function' ? lwAboutExtraTextFirst(i, mainTF) : i % 2 === 0;
+      var mod = textFirst ? 'urban-about-extra--text-first' : 'urban-about-extra--photo-first';
+      var imgTag = img
+        ? '<img src="' + escapeAttrUrban(img) + '" alt="" loading="lazy" decoding="async"/>'
+        : '';
+      return (
+        '<article class="urban-about-extra ' +
+        mod +
+        '">' +
+        '<div class="urban-about-extra__copy">' +
+        '<span class="urban-about-extra__kicker">[ ' +
+        String(i + 3).padStart(2, '0') +
+        ' / ' +
+        String(i + 1).padStart(2, '0') +
+        ' ]</span>' +
+        (title ? '<h3 class="urban-about-extra__title display">' + title + '</h3>' : '') +
+        (desc ? '<p class="urban-about-extra__desc">' + desc + '</p>' : '') +
+        '</div>' +
+        '<div class="urban-about-extra__media">' +
+        '<div class="urban-about-extra__img' +
+        (img ? ' has-photo' : '') +
+        '">' +
+        '<div class="urban-about-extra__ph" aria-hidden="true">Foto</div>' +
+        imgTag +
+        '</div></div></article>'
+      );
+    })
+    .join('');
+  if (typeof window.tvAnimationsRefresh === 'function') {
+    requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
+  }
+}
+
+window.lwRenderAboutExtrasImpl = renderUrbanAboutExtras;
 
 /* ───── HELPERS ──────────────────────────────────────── */
 function escapeHtmlTextBold(str) {
@@ -1412,7 +1486,14 @@ function applyLivePreviewData(raw, opts) {
   if (heroTagline) heroTagline.textContent = tagline;
 
   var aboutTitle = document.getElementById('aboutTitle');
-  if (aboutTitle) aboutTitle.textContent = name + '.';
+  if (aboutTitle) {
+    var customAboutTitle = (raw && raw.about_title ? String(raw.about_title).trim() : '');
+    aboutTitle.textContent = customAboutTitle || 'Sobre nosotros.';
+  }
+
+  if (raw && Object.prototype.hasOwnProperty.call(raw, 'about_sections')) {
+    renderUrbanAboutExtras(raw.about_sections);
+  }
 
   var aboutDescripcion = document.getElementById('aboutDescripcion');
   if (aboutDescripcion) aboutDescripcion.textContent = descripcion || defaults.aboutText;
@@ -1956,6 +2037,18 @@ setInterval(renderBoldSchedule, 60000);
     });
     var aboutTitle = document.getElementById('aboutTitle');
     if (aboutTitle) markReveal(aboutTitle, 'slam');
+
+    document.querySelectorAll('#aboutExtraBlocks .urban-about-extra').forEach(function (block, bi) {
+      var media = block.querySelector('.urban-about-extra__img');
+      tagImgReveal(media, block.classList.contains('urban-about-extra--text-first') ? 'clip' : 'clipR');
+      block.querySelectorAll('.urban-about-extra__kicker').forEach(function (el) {
+        markReveal(el, 'left');
+      });
+      var t = block.querySelector('.urban-about-extra__title');
+      if (t) markReveal(t, 'slam');
+      var d = block.querySelector('.urban-about-extra__desc');
+      if (d) markReveal(d, 'left');
+    });
 
     document.querySelectorAll('.info-block').forEach(function (el, i) {
       markReveal(el, i === 0 ? 'left' : 'right');

@@ -159,6 +159,14 @@
   .trust-content h2 em{font-style:italic;color:var(--accent);font-weight:400}
   .trust-content > p{font-size:16px;line-height:1.7;color:var(--ink-2);margin-bottom:20px;max-width:520px}
 
+/* ABOUT EXTRAS (trust-clinic) */
+  .trust-about-extras{display:flex;flex-direction:column;gap:80px;margin-top:64px;padding-top:48px;border-top:1px solid var(--line)}
+  .trust-about-extra--text-first .trust-about-extra__photo{order:2}
+  .trust-about-extra--text-first .trust-content{order:1}
+  .trust-about-extra--photo-first .trust-about-extra__photo{order:1}
+  .trust-about-extra--photo-first .trust-content{order:2}
+  .trust-about-extra .trust-content h3{font-family:"Source Serif 4",serif;font-size:clamp(36px,3.5vw,46px);font-weight:500;line-height:1.1;letter-spacing:-0.02em;margin:18px 0 28px}
+  @media (max-width:900px){.trust-about-extra.trust-grid{grid-template-columns:1fr;gap:40px}.trust-about-extra .trust-about-extra__photo{order:-1!important}}
   /* ─── GALLERY (trust-clinic original) ─── */
   .trust-gal-section{padding:72px 0;border-top:1px solid var(--line)}
   .trust-gal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
@@ -248,6 +256,16 @@
 
   /* ─── EMBED ─── */
   html.embed-preview-root{scroll-behavior:auto!important}
+  body.embed-preview #aboutExtraBlocks .tv-reveal,
+  body.embed-preview #aboutExtraBlocks .tv-split,
+  body.trust-preview #aboutExtraBlocks .tv-reveal,
+  body.trust-preview #aboutExtraBlocks .tv-split{
+    opacity:1!important;
+    transform:none!important;
+    filter:none!important;
+    clip-path:none!important;
+    animation:none!important;
+  }
 
   /* ─── RESPONSIVE ─── */
   @media (max-width:980px){
@@ -455,6 +473,7 @@
           </div>
     </div>
   </div>
+    <div id="aboutExtraBlocks" class="trust-about-extras"></div>
 </section>
 
 <!-- ═══════════════════ GALLERY ═══════════════════ -->
@@ -690,11 +709,9 @@ html.lw-preview-inert a[href^="#"] {
 <script>
 (function initTrustPreviewModeClasses() {
   var params = new URLSearchParams(window.location.search);
-  if (params.get('embed') === '1') {
+  if (params.get('embed') === '1' || params.get('preview') === '1' || params.get('parentOrigin')) {
     document.documentElement.classList.add('embed-preview-root');
     document.body.classList.add('embed-preview');
-  }
-  if (params.get('preview') === '1') {
     document.body.classList.add('trust-preview');
   }
 })();
@@ -942,6 +959,56 @@ function escapeHtmlTextBold(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
+
+function escapeTrustAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function renderTrustAboutExtras(sections) {
+  var wrap = document.getElementById('aboutExtraBlocks');
+  if (!wrap) return;
+  wrap.className = 'trust-about-extras';
+  var list = Array.isArray(sections) ? sections.filter(function (s) { return s != null; }) : [];
+  if (list.length === 0) {
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = list
+    .map(function (sec, i) {
+      var title = escapeHtmlTextBold(String(sec.title || '').trim());
+      var desc = escapeHtmlTextBold(String(sec.description || '').trim());
+      var img = String(sec.image_url || '').trim();
+      var mainTF = typeof lwIsMainAboutTextFirst === 'function' ? lwIsMainAboutTextFirst(wrap) : false;
+      var textFirst = typeof lwAboutExtraTextFirst === 'function' ? lwAboutExtraTextFirst(i, mainTF) : i % 2 === 0;
+      var mod = textFirst ? 'trust-about-extra--text-first' : 'trust-about-extra--photo-first';
+      var bn = String(i + 3).padStart(2, '0');
+      var bg = img ? ' style="background-image:url(\'' + escapeTrustAttr(img) + '\')"' : '';
+      return (
+        '<article class="trust-about-extra trust-grid ' +
+        mod +
+        '"><div class="trust-img trust-about-extra__photo' +
+        (img ? ' has-photo' : '') +
+        '"' +
+        bg +
+        '></div><div class="trust-content"><span class="eyebrow"><span class="rule"></span>Bloque ' +
+        bn +
+        '</span>' +
+        (title ? '<h3 class="serif">' + title + '</h3>' : '') +
+        (desc ? '<p>' + desc + '</p>' : '') +
+        '</div></article>'
+      );
+    })
+    .join('');
+  if (typeof window.tvAnimationsRefresh === 'function') {
+    requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
+  } else if (typeof window.trustRevealAboutExtras === 'function') {
+    window.trustRevealAboutExtras();
+  } else if (typeof window.lwRefreshAboutExtrasReveal === 'function') {
+    window.lwRefreshAboutExtrasReveal();
+  }
+}
+
+window.lwRenderAboutExtrasImpl = renderTrustAboutExtras;
 
 function formatBoldPrice(p) {
   if (p === null || p === undefined || p === '') return 'Consultar';
@@ -1206,7 +1273,12 @@ function applyLivePreviewData(raw, opts) {
   if (heroTagline) heroTagline.textContent = tagline;
 
   var aboutTitle = document.getElementById('aboutTitle');
-  if (aboutTitle) aboutTitle.textContent = name + '.';
+  if (aboutTitle) {
+    var customAboutTitle = (raw && raw.about_title ? String(raw.about_title).trim() : '');
+    if (raw && Object.prototype.hasOwnProperty.call(raw, 'about_title')) {
+      aboutTitle.textContent = customAboutTitle || 'Sobre nosotros.';
+    }
+  }
 
   var aboutDescripcion = document.getElementById('aboutDescripcion');
   if (aboutDescripcion) aboutDescripcion.textContent = descripcion || defaults.aboutText;
@@ -1338,6 +1410,9 @@ function applyLivePreviewData(raw, opts) {
     requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
   }
 }
+</script>
+<script src="/templates/lw-about-extras.js?v=2"></script>
+<script>
 
 /* ───── INIT FROM QUERY (fallback dev) ──────────────── */
 (function initLivePreviewFromQuery() {
@@ -1738,6 +1813,20 @@ setInterval(renderBoldSchedule, 60000);
     var aboutTitle = document.getElementById('aboutTitle');
     if (aboutTitle) markReveal(aboutTitle, 'blur');
 
+    document.querySelectorAll('#aboutExtraBlocks .trust-about-extra').forEach(function (block) {
+      var textFirst = block.classList.contains('trust-about-extra--text-first');
+      var body = block.querySelector('.trust-content');
+      var photo = block.querySelector('.trust-about-extra__photo, .trust-img');
+      if (body) markReveal(body, textFirst ? 'left' : 'right');
+      if (photo) tagImgReveal(photo, textFirst ? 'clip' : 'clipR');
+      block.querySelectorAll('.trust-content h3').forEach(function (el) {
+        markReveal(el, 'blur');
+      });
+      block.querySelectorAll('.trust-content p, .trust-content .eyebrow').forEach(function (el) {
+        markReveal(el, 'left');
+      });
+    });
+
     document.querySelectorAll('.info-card').forEach(function (el, i) {
       markReveal(el, i === 0 ? 'left' : 'right');
     });
@@ -1790,9 +1879,27 @@ setInterval(renderBoldSchedule, 60000);
     });
   }
 
+  function forcePreviewAboutExtras() {
+    if (!document.body.classList.contains('embed-preview') && !document.body.classList.contains('trust-preview')) {
+      return;
+    }
+    var root = document.getElementById('aboutExtraBlocks');
+    if (!root) return;
+    root.querySelectorAll('.tv-reveal:not(.tv-in), .tv-split:not(.tv-in)').forEach(function (el) {
+      el.classList.add('tv-in');
+    });
+  }
+
+  window.trustRevealAboutExtras = function () {
+    forcePreviewAboutExtras();
+    revealInViewport();
+    observe();
+  };
+
   function runRevealPass() {
     revealInViewport();
     observe();
+    forcePreviewAboutExtras();
   }
 
   function scrollProgress() {

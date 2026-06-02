@@ -188,6 +188,15 @@
   .room-cta{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--terracotta);font-weight:500;border-bottom:1px solid var(--terracotta);padding-bottom:2px;transition:gap .2s}
   .room-cta:hover{gap:12px}
 
+/* ─── ABOUT EXTRAS (coastal-calm) ─── */
+  .coastal-about-extras{display:flex;flex-direction:column;gap:96px;margin-top:96px;padding-top:72px;border-top:1px solid rgba(42,42,38,.08);max-width:1254px;margin-left:auto;margin-right:auto}
+  .coastal-about-extra.about-inner{max-width:100%}
+  .coastal-about-extra--text-first .about-text{order:1}
+  .coastal-about-extra--text-first .about-photo-wrap{order:2}
+  .coastal-about-extra--photo-first .about-photo-wrap{order:1}
+  .coastal-about-extra--photo-first .about-text{order:2}
+  .coastal-about-extra .about-text h3{font-family:"DM Serif Display",serif;font-size:clamp(40px,4.5vw,54px);margin:20px 0 28px;letter-spacing:-.01em}
+  @media (max-width:768px){.coastal-about-extra.about-inner{grid-template-columns:1fr;gap:48px}.coastal-about-extra .about-photo-wrap{order:-1!important}}
   /* ─── GALLERY (coastal-calm original) ─── */
   .gallery-section{padding:120px 46px 60px}
   .gallery-head{max-width:1254px;margin:0 auto 56px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
@@ -278,6 +287,11 @@
   /* ─── EMBED ─── */
   html.embed-preview-root{scroll-behavior:auto!important}
   body.embed-preview .info{scroll-margin-top:80px}
+  body.embed-preview #aboutExtraBlocks .slide-up,
+  body.coastal-preview #aboutExtraBlocks .slide-up{
+    opacity:1!important;
+    transform:none!important;
+  }
 
   /* ─── RESPONSIVE ─── */
   @media (max-width:880px){
@@ -394,6 +408,7 @@
       <p id="aboutDescripcion">Descripción del negocio: quiénes sois, qué hacéis y por qué importa.</p>
     </div>
   </div>
+    <div id="aboutExtraBlocks" class="coastal-about-extras"></div>
 </section>
 
 <!-- ═══════════════════ SERVICES ═══════════════════ -->
@@ -628,11 +643,9 @@ html.lw-preview-inert a[href^="#"] {
 <script>
 (function initCoastalPreviewModeClasses() {
   var params = new URLSearchParams(window.location.search);
-  if (params.get('embed') === '1') {
+  if (params.get('embed') === '1' || params.get('preview') === '1' || params.get('parentOrigin')) {
     document.documentElement.classList.add('embed-preview-root');
     document.body.classList.add('embed-preview');
-  }
-  if (params.get('preview') === '1') {
     document.body.classList.add('coastal-preview');
   }
 })();
@@ -1145,7 +1158,12 @@ function applyLivePreviewData(raw, opts) {
   if (heroTagline) heroTagline.textContent = tagline;
 
   var aboutTitle = document.getElementById('aboutTitle');
-  if (aboutTitle) aboutTitle.textContent = name + '.';
+  if (aboutTitle) {
+    var customAboutTitle = (raw && raw.about_title ? String(raw.about_title).trim() : '');
+    if (raw && Object.prototype.hasOwnProperty.call(raw, 'about_title')) {
+      aboutTitle.textContent = customAboutTitle || 'Sobre nosotros.';
+    }
+  }
 
   var aboutDescripcion = document.getElementById('aboutDescripcion');
   if (aboutDescripcion) aboutDescripcion.textContent = descripcion || defaults.aboutText;
@@ -1269,6 +1287,59 @@ function applyLivePreviewData(raw, opts) {
   if (opts.alignToHash) scrollEmbedPreviewToHash();
 }
 
+function escapeAttrCoastal(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function renderCoastalAboutExtras(sections) {
+  var wrap = document.getElementById('aboutExtraBlocks');
+  if (!wrap) return;
+  wrap.className = 'coastal-about-extras';
+  var list = Array.isArray(sections) ? sections.filter(function (s) { return s != null; }) : [];
+  if (list.length === 0) {
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = list
+    .map(function (sec, i) {
+      var title = escapeHtmlTextBold(String(sec.title || '').trim());
+      var desc = escapeHtmlTextBold(String(sec.description || '').trim());
+      var img = String(sec.image_url || '').trim();
+      var mainTF = typeof lwIsMainAboutTextFirst === 'function' ? lwIsMainAboutTextFirst(wrap) : false;
+      var textFirst = typeof lwAboutExtraTextFirst === 'function' ? lwAboutExtraTextFirst(i, mainTF) : i % 2 === 0;
+      var mod = textFirst ? 'coastal-about-extra--text-first' : 'coastal-about-extra--photo-first';
+      var bn = String(i + 3).padStart(2, '0');
+      var bg = img ? ' style="background-image:url(\'' + escapeAttrCoastal(img) + '\')"' : '';
+      return (
+        '<article class="coastal-about-extra about-inner ' +
+        mod +
+        '"><div class="about-photo-wrap slide-up"><div class="about-photo-main coastal-about-extra__photo' +
+        (img ? ' has-photo' : '') +
+        '"' +
+        bg +
+        ' role="img" aria-label=""></div></div><div class="about-text slide-up" data-d="1"><span class="eyebrow">Bloque ' +
+        bn +
+        '</span>' +
+        (title ? '<h3 class="serif">' + title + '</h3>' : '') +
+        (desc ? '<p>' + desc + '</p>' : '') +
+        '</div></article>'
+      );
+    })
+    .join('');
+  wrap.querySelectorAll('.slide-up').forEach(function (el) {
+    el.classList.add('in');
+  });
+  if (typeof window.coastalRevealAboutExtras === 'function') {
+    window.coastalRevealAboutExtras();
+  } else if (typeof window.lwRefreshAboutExtrasReveal === 'function') {
+    window.lwRefreshAboutExtrasReveal();
+  }
+}
+
+window.lwRenderAboutExtrasImpl = renderCoastalAboutExtras;
+</script>
+<script src="/templates/lw-about-extras.js?v=2"></script>
+<script>
 (function initCoastalPreviewSampleMedia() {
   if (!shouldUseCoastalSampleMedia()) return;
   function boot() {
@@ -1491,6 +1562,11 @@ function coastalObserveReveals(root) {
     window.__coastalRevealIo.observe(el);
   });
 }
+
+window.coastalRevealAboutExtras = function () {
+  var root = document.getElementById('aboutExtraBlocks');
+  coastalObserveReveals(root || document);
+};
 
 (function initCoastalMotion() {
   var nav = document.querySelector('nav.nav');

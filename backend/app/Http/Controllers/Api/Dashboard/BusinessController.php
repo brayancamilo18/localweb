@@ -18,7 +18,7 @@ class BusinessController extends BaseApiController
     {
         $user = $request->user();
         $business = $user->business()
-            ->with(['template', 'services', 'images' => fn ($q) => $q->ordered()])
+            ->with(['template', 'services', 'aboutSections', 'images' => fn ($q) => $q->ordered()])
             ->firstOrFail();
 
         if ($plans->canAccessAnalytics($user)) {
@@ -62,6 +62,7 @@ class BusinessController extends BaseApiController
             'name' => ['sometimes', 'string', 'max:80'],
             'tagline' => ['nullable', 'string', 'max:120'],
             'description' => ['nullable', 'string', 'max:500'],
+            'about_title' => ['nullable', 'string', 'max:160'],
             'phone' => ['nullable', 'string', 'max:30'],
             /** Email público de contacto, independiente del email de login del
              * owner: el dueño puede mostrar `info@…` en su web aunque inicie

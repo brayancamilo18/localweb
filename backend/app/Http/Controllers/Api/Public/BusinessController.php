@@ -28,7 +28,7 @@ class BusinessController extends BaseApiController
         $business = Business::query()
             ->published()
             ->where('subdomain', $subdomain)
-            ->with(['template', 'services', 'images' => fn ($q) => $q->ordered()])
+            ->with(['template', 'services', 'aboutSections', 'images' => fn ($q) => $q->ordered()])
             ->first();
 
         if (! $business) {

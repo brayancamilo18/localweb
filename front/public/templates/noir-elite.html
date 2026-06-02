@@ -283,6 +283,28 @@
     padding:10px 16px; background:var(--bg); color:var(--gold);
     border:1px solid var(--gold-line); font-size:10px; letter-spacing:.25em; text-transform:uppercase;
   }
+  .noir-about-extras{
+    display:flex;flex-direction:column;gap:clamp(56px,8vw,80px);
+    margin-top:clamp(56px,8vw,80px);padding-top:clamp(40px,6vw,56px);
+    border-top:1px solid var(--hairline);
+  }
+  .noir-about-extra.about-grid{gap:clamp(48px,6vw,80px)}
+  .noir-about-extra--text-first .noir-about-extra__text{order:1}
+  .noir-about-extra--text-first .noir-about-extra__photo{order:2}
+  .noir-about-extra--photo-first .noir-about-extra__photo{order:1}
+  .noir-about-extra--photo-first .noir-about-extra__text{order:2}
+  .noir-about-extra__title{
+    font-family:var(--serif);font-weight:300;
+    font-size:clamp(26px,3vw,38px);letter-spacing:.04em;line-height:1.15;
+    text-transform:uppercase;margin:0 0 18px;
+  }
+  .noir-about-extra__desc{
+    color:var(--muted);font-size:15px;line-height:1.95;font-weight:300;
+    max-width:50ch;margin:0;
+  }
+  .noir-about-extra__photo:not(.has-photo){
+    background:linear-gradient(160deg,#1a1a1a 0%,#0d0d0d 100%);
+  }
 
   /* Galería masonry */
   .gallery{
@@ -611,6 +633,8 @@
     .links, .desk-cta{ display:none; }
     .burger{ display:block; }
     .about-grid{ grid-template-columns:1fr; gap:48px; }
+    .noir-about-extra.about-grid{grid-template-columns:1fr}
+    .noir-about-extra__photo{order:-1!important}
     .gallery{ column-count:2; }
     .schedule .row{ grid-template-columns:1fr 1fr; }
     .schedule .row .label{ display:none; }
@@ -621,6 +645,14 @@
   /* No forzar menú desktop en embed: el ancho del iframe gobierna hamburguesa vs. links. */
   html.embed-preview-root{ scroll-behavior:auto !important; }
   body.embed-preview #horario{ scroll-margin-top:96px; }
+  body.embed-preview #aboutExtraBlocks .noir-about-extra.reveal .reveal-up,
+  body.embed-preview #aboutExtraBlocks .noir-about-extra.reveal .h-line.short{
+    opacity:1 !important;
+    transform:translateY(0) !important;
+  }
+  body.embed-preview #aboutExtraBlocks .noir-about-extra.reveal .h-line.short{
+    width:48px;
+  }
   @media (max-width:560px){
     .gallery{ column-count:1; }
     .hero-actions{ flex-direction:column; align-items:stretch; }
@@ -742,6 +774,7 @@
         <span class="badge" id="aboutTeamBadge">Equipo</span>
       </div>
     </div>
+    <div id="aboutExtraBlocks" class="noir-about-extras" data-main-text-first="1"></div>
   </div>
 </section>
 
@@ -956,10 +989,13 @@ html.lw-preview-inert a[href^="#"] {
 </script>
 <script src="/templates/lw-contact-links.js?v=2"></script>
 <script>
-if (new URLSearchParams(window.location.search).get('embed') === '1') {
-  document.documentElement.classList.add('embed-preview-root');
-  document.body.classList.add('embed-preview');
-}
+(function () {
+  var p = new URLSearchParams(window.location.search);
+  if (p.get('embed') === '1' || p.get('preview') === '1' || p.get('parentOrigin')) {
+    document.documentElement.classList.add('embed-preview-root');
+    document.body.classList.add('embed-preview');
+  }
+})();
 /* ───── DATA: horario (plantilla + vista previa onboarding) ───────── */
 const NOIR_SCHEDULE_DEFAULT = [
   // 0 = Domingo … 6 = Sábado
@@ -1236,6 +1272,65 @@ function updatePreviewMapEmbed(lat, lon, addressLine) {
 }
 
 /* ───── LIVE PREVIEW DATA (query params + postMessage) ─── */
+function escapeAttrNoir(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function renderNoirAboutExtras(sections) {
+  var wrap = document.getElementById('aboutExtraBlocks');
+  if (!wrap) return;
+  wrap.className = 'noir-about-extras';
+  wrap.setAttribute('data-main-text-first', '1');
+  var list = Array.isArray(sections) ? sections.filter(function (s) { return s != null; }) : [];
+  if (list.length === 0) {
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = list
+    .map(function (sec, i) {
+      var title = escapeHtmlText(String(sec.title || '').trim());
+      var desc = escapeHtmlText(String(sec.description || '').trim());
+      var img = String(sec.image_url || '').trim();
+      var mainTF = typeof lwIsMainAboutTextFirst === 'function' ? lwIsMainAboutTextFirst(wrap) : true;
+      var textFirst = typeof lwAboutExtraTextFirst === 'function' ? lwAboutExtraTextFirst(i, mainTF) : (i + 1) % 2 === 0;
+      var mod = textFirst ? 'noir-about-extra--text-first' : 'noir-about-extra--photo-first';
+      var blockNum = String(i + 3).padStart(2, '0');
+      var photoStyle = img ? ' style="background-image:url(\'' + escapeAttrNoir(img) + '\')"' : '';
+      var photoClass =
+        'about-photo noir-about-extra__photo reveal-up delay-2' + (img ? ' has-photo' : '');
+      return (
+        '<article class="noir-about-extra about-grid ' +
+        mod +
+        '">' +
+        '<div class="about-text noir-about-extra__text">' +
+        '<span class="eyebrow reveal-up">— Bloque ' +
+        blockNum +
+        '</span>' +
+        '<div class="h-line short reveal-up delay-1"></div>' +
+        (title ? '<h3 class="noir-about-extra__title reveal-up delay-2">' + title + '</h3>' : '') +
+        (desc ? '<p class="noir-about-extra__desc reveal-up delay-2">' + desc + '</p>' : '') +
+        '</div>' +
+        '<div class="' +
+        photoClass +
+        '"' +
+        photoStyle +
+        '></div></article>'
+      );
+    })
+    .join('');
+  wrap.querySelectorAll('.noir-about-extra').forEach(function (el) {
+    el.classList.add('reveal');
+  });
+  if (typeof window.lwRefreshAboutExtrasReveal === 'function') {
+    window.lwRefreshAboutExtrasReveal();
+  }
+  if (typeof window.noirRevealAboutExtras === 'function') {
+    window.noirRevealAboutExtras();
+  }
+}
+
+window.lwRenderAboutExtrasImpl = renderNoirAboutExtras;
+
 function escapeHtmlText(str) {
   return String(str)
     .replace(/&/g, '&amp;')
@@ -1530,7 +1625,9 @@ function applyLivePreviewData(raw, opts){
   syncNoirTemplateExtensions(raw);
   if (opts.alignToHash) scrollEmbedPreviewToHash();
 }
-
+</script>
+<script src="/templates/lw-about-extras.js?v=2"></script>
+<script>
 (function initLivePreviewFromQuery() {
   const params = new URLSearchParams(window.location.search);
   if (params.get('landingDemo') === '1') return;
@@ -1604,14 +1701,29 @@ sheet.querySelectorAll('a').forEach(a => a.addEventListener('click', () => docum
 /* ───── INTERSECTION OBSERVER · reveal (vista previa embebida: escalonado) ─ */
 (function initSectionReveals(){
   var ids = ['heroInner','aboutSec','gallerySec','reviewsSec','servicesSec','schedSec'];
-  if (document.body.classList.contains('embed-preview')) {
+  var embedPreview = document.body.classList.contains('embed-preview');
+  var io = null;
+
+  window.noirRevealAboutExtras = function(){
+    document.querySelectorAll('#aboutExtraBlocks .noir-about-extra').forEach(function(el, i){
+      if (io && io.observe) {
+        try { io.observe(el); } catch (err) { /* ya observado */ }
+      }
+      var delay = embedPreview ? 20 + i * 70 : 40 + i * 120;
+      setTimeout(function(){ el.classList.add('reveal'); }, delay);
+    });
+  };
+
+  if (embedPreview) {
     ids.forEach(function(id, i){
       var el = document.getElementById(id);
       if (el) setTimeout(function(){ el.classList.add('reveal'); }, 60 + i * 160);
     });
+    window.noirRevealAboutExtras();
     return;
   }
-  var io = new IntersectionObserver(function(entries){
+
+  io = new IntersectionObserver(function(entries){
     entries.forEach(function(e){
       if (e.isIntersecting){
         e.target.classList.add('reveal');
@@ -1621,6 +1733,9 @@ sheet.querySelectorAll('a').forEach(a => a.addEventListener('click', () => docum
   }, { threshold:.18 });
   ids.forEach(function(id){
     var el = document.getElementById(id); if (el) io.observe(el);
+  });
+  document.querySelectorAll('#aboutExtraBlocks .noir-about-extra').forEach(function(el){
+    io.observe(el);
   });
 })();
 

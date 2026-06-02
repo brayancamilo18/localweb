@@ -229,6 +229,14 @@ export interface BusinessService {
   display_order: number
 }
 
+export interface BusinessAboutSection {
+  id: number
+  display_order: number
+  title: string | null
+  description: string | null
+  image_url: string | null
+}
+
 export interface DaySchedule {
   open: string
   close: string
@@ -267,6 +275,10 @@ export interface Business {
   dashboard_pro_tour_completed_at?: string | null
   tagline: string | null
   description: string | null
+  /** Título personalizable de la sección «Sobre nosotros» (p. ej. plantilla La República Vintage). */
+  about_title: string | null
+  /** Bloques visibles en «Sobre nosotros» (1 = solo principal; máx. 5 con Pro). */
+  about_sections_count: number
   phone: string | null
   /** Email público de contacto (independiente del email de login del owner). */
   email: string | null
@@ -297,6 +309,7 @@ export interface Business {
     about: BusinessImage[]
   }
   services: BusinessService[]
+  about_sections?: BusinessAboutSection[]
   stats?: DashboardBusinessStats | null
   created_at?: string | null
 }

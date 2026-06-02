@@ -179,6 +179,7 @@ return [
         'business_name' => 'nombre del negocio',
         'tagline' => 'lema',
         'description' => 'descripción',
+        'about_title' => 'título de sobre nosotros',
         'schedule' => 'horario',
         'cover' => 'portada',
         'cover2' => 'segunda portada',

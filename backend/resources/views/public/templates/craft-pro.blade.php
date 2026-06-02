@@ -129,6 +129,19 @@
   .about h2{font-family:"Barlow Condensed";font-size:clamp(54px,6vw,72px);font-weight:800;line-height:.92;text-transform:uppercase;letter-spacing:-.005em;margin-bottom:24px;margin-top:14px}
   .about h2 span{color:var(--orange)}
   .about p{font-size:16px;line-height:1.7;color:#B0B0B0;margin-bottom:16px;max-width:480px}
+  .craft-about-stack{max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:clamp(64px,8vw,88px)}
+  .craft-about-extras{display:flex;flex-direction:column;gap:clamp(64px,8vw,88px);padding:0 46px;border-top:1px solid rgba(255,255,255,.12);padding-top:clamp(48px,6vw,72px)}
+  .craft-about-extra{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+  .craft-about-extra--text-first .craft-about-extra__copy{order:1}
+  .craft-about-extra--text-first .craft-about-extra__figure{order:2}
+  .craft-about-extra--photo-first .craft-about-extra__figure{order:1}
+  .craft-about-extra--photo-first .craft-about-extra__copy{order:2}
+  .craft-about-extra__title{font-family:"Barlow Condensed";font-size:clamp(40px,5vw,56px);font-weight:800;line-height:.92;text-transform:uppercase;letter-spacing:-.005em;margin:14px 0 20px;color:#fff}
+  .craft-about-extra__desc{font-size:16px;line-height:1.7;color:#B0B0B0;margin:0;max-width:480px}
+  .craft-about-extra__img{aspect-ratio:4/5;background:#1a1a1a;overflow:hidden;position:relative;margin:0}
+  .craft-about-extra__img img{width:100%;height:100%;object-fit:cover}
+  .craft-about-extra__ph{position:absolute;inset:0;display:grid;place-items:center;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#666}
+  .craft-about-extra__img.has-photo .craft-about-extra__ph{display:none}
 
   /* GALLERY (craft-pro original) */
   .craft-gal-section{padding:80px 0;border-top:1px solid var(--line);background:var(--bg-2)}
@@ -235,6 +248,8 @@
     .info-card{border-right:none;border-bottom:1px solid var(--ink)}
     .info-card:last-child{border-bottom:none}
     .about-grid{grid-template-columns:1fr;gap:50px}
+    .craft-about-extra{grid-template-columns:1fr;gap:50px}
+    .craft-about-extra__figure{order:-1!important}
     .foot{grid-template-columns:1fr 1fr;gap:46px}
     .section-head{grid-template-columns:1fr;gap:24px}
   }
@@ -254,6 +269,7 @@
     .svc{border-right:none!important}
     .svc:not(:first-child){border-top:1px solid var(--line)}
     .about-grid{padding:0 20px}
+    .craft-about-extras{padding:0 20px}
     .gallery{grid-template-columns:1fr;padding:0 20px}
     .gallery-item img{height:auto}
     .info-card{padding:46px 24px}
@@ -434,16 +450,23 @@
 
 <!-- ABOUT -->
 <section id="sobre-nosotros" class="about">
-  <div class="about-grid">
-    <div class="about-img" id="aboutPhotoWrap">
-      <img id="aboutPhotoImg" src="" alt="" hidden style="display:none"/>
+  <div class="craft-about-stack">
+    <div class="about-grid">
+      <div class="about-img" id="aboutPhotoWrap">
+        @if($foto_equipo)
+        <img id="aboutPhotoImg" src="{{ $foto_equipo }}" alt="{{ $nombre }}" decoding="async"/>
+        @else
+        <img id="aboutPhotoImg" src="" alt="" hidden style="display:none"/>
+        @endif
       </div>
       <div>
-      <span class="eyebrow">Sobre nosotros</span>
-      <h2 class="cond" id="aboutTitle">Tu negocio.</h2>
-      <p id="aboutDescripcion">Descripción del negocio: quiénes sois, qué hacéis y por qué importa.</p>
+        <span class="eyebrow">Sobre nosotros</span>
+        <h2 class="cond" id="aboutTitle">{{ filled($about_title) ? $about_title : 'Sobre nosotros.' }}</h2>
+        <p id="aboutDescripcion">{{ $descripcion }}</p>
+      </div>
     </div>
-  </div>
+    @include('public.partials.about-extra-blocks-craft-pro')
+</div>
 </section>
 
 <!-- GALLERY -->
@@ -576,6 +599,7 @@
 @endsection
 
 @push('body-end')
+<script src="/templates/lw-about-extras.js?v=2"></script>
 <script>
   window.__lwLat = {{ is_numeric($map_lat) ? $map_lat : 'null' }};
   window.__lwLon = {{ is_numeric($map_lon) ? $map_lon : 'null' }};
@@ -988,6 +1012,68 @@ function updateBoldPreviewMap(lat, lon) {
   });
 }
 
+function escapeAttrCraft(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function renderCraftAboutExtras(sections) {
+  var wrap = document.getElementById('aboutExtraBlocks');
+  if (!wrap) return;
+  wrap.className = 'craft-about-extras';
+  var list = Array.isArray(sections) ? sections.filter(function (s) { return s != null; }) : [];
+  if (list.length === 0) {
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = list
+    .map(function (sec, i) {
+      var title = escapeHtmlTextBold(String(sec.title || '').trim());
+      var desc = escapeHtmlTextBold(String(sec.description || '').trim());
+      var img = String(sec.image_url || '').trim();
+      var mainTF = typeof lwIsMainAboutTextFirst === 'function' ? lwIsMainAboutTextFirst(wrap) : false;
+      var textFirst = typeof lwAboutExtraTextFirst === 'function' ? lwAboutExtraTextFirst(i, mainTF) : i % 2 === 0;
+      var mod = textFirst ? 'craft-about-extra--text-first' : 'craft-about-extra--photo-first';
+      var blockNum = String(i + 3).padStart(2, '0');
+      var imgTag = img
+        ? '<img src="' + escapeAttrCraft(img) + '" alt="" loading="lazy" decoding="async"/>'
+        : '';
+      return (
+        '<article class="craft-about-extra ' +
+        mod +
+        '">' +
+        '<div class="craft-about-extra__copy">' +
+        '<span class="eyebrow craft-about-extra__kicker">Bloque ' +
+        blockNum +
+        '</span>' +
+        (title ? '<h3 class="cond craft-about-extra__title">' + title + '</h3>' : '') +
+        (desc ? '<p class="craft-about-extra__desc">' + desc + '</p>' : '') +
+        '</div>' +
+        '<figure class="craft-about-extra__figure">' +
+        '<div class="craft-about-extra__img' +
+        (img ? ' has-photo' : '') +
+        '">' +
+        '<div class="craft-about-extra__ph" aria-hidden="true">Foto</div>' +
+        imgTag +
+        '</div></figure></article>'
+      );
+    })
+    .join('');
+  wrap.querySelectorAll('.craft-about-extra__desc, .craft-about-extra__title').forEach(function (el) {
+    el.removeAttribute('data-anim');
+    el.style.removeProperty('--anim-d');
+    el.classList.remove('in-view');
+  });
+  if (typeof window.__craftoAnimRescan === 'number') {
+    clearTimeout(window.__craftoAnimRescan);
+  }
+  window.__craftoAnimRescan = window.setTimeout(function () {
+    if (typeof window.__craftoAnimApplyTags === 'function') window.__craftoAnimApplyTags();
+    if (typeof window.__craftoAnimObserveAll === 'function') window.__craftoAnimObserveAll();
+  }, 140);
+}
+
+window.lwRenderAboutExtrasImpl = renderCraftAboutExtras;
+
 /* ───── HELPERS ──────────────────────────────────────── */
 function escapeHtmlTextBold(str) {
   return String(str)
@@ -1259,7 +1345,14 @@ function applyLivePreviewData(raw, opts) {
   if (heroTagline) heroTagline.textContent = tagline;
 
   var aboutTitle = document.getElementById('aboutTitle');
-  if (aboutTitle) aboutTitle.textContent = name + '.';
+  if (aboutTitle) {
+    var customAboutTitle = (raw && raw.about_title ? String(raw.about_title).trim() : '');
+    aboutTitle.textContent = customAboutTitle || 'Sobre nosotros.';
+  }
+
+  if (raw && Object.prototype.hasOwnProperty.call(raw, 'about_sections')) {
+    renderCraftAboutExtras(raw.about_sections);
+  }
 
   var aboutDescripcion = document.getElementById('aboutDescripcion');
   if (aboutDescripcion) aboutDescripcion.textContent = descripcion || defaults.aboutText;
@@ -1628,6 +1721,10 @@ setInterval(renderBoldSchedule, 60000);
     tag('.services-grid .svc', 'fade-in-up', {stagger:90});
     tag('.about-img', 'fade-in-left');
     tag('.about-grid > *:not(.about-img)', 'fade-in-right', {stagger:80});
+    tag('.craft-about-extra--text-first .craft-about-extra__copy', 'fade-in-left');
+    tag('.craft-about-extra--text-first .craft-about-extra__figure', 'fade-in-right');
+    tag('.craft-about-extra--photo-first .craft-about-extra__figure', 'fade-in-left');
+    tag('.craft-about-extra--photo-first .craft-about-extra__copy', 'fade-in-right', { stagger: 80 });
     tag('.gallery .gallery-item', 'zoom-in', {stagger:70});
     tag('.info-grid .info-card', 'fade-in-up', {stagger:120});
     tag('.map-section', 'fade-in-up');
@@ -1636,8 +1733,8 @@ setInterval(renderBoldSchedule, 60000);
     tag('.cta-section .cta-inner > *', 'fade-in-up', {stagger:100});
     tag('.foot > *', 'fade-in-up', {stagger:80});
     tag('.foot-bottom', 'fade-in-up');
-    tag('section h2:not([data-anim]), section h3:not([data-anim])', 'fade-in-up');
-    tag('section p:not([data-anim])', 'fade-in-up', {delay:80});
+    tag('section h2:not([data-anim]), section h3:not([data-anim]):not(.craft-about-extra__title)', 'fade-in-up');
+    tag('section p:not([data-anim]):not(.craft-about-extra__desc)', 'fade-in-up', {delay:80});
   }
 
   function isInViewport(el){
@@ -1696,6 +1793,9 @@ setInterval(renderBoldSchedule, 60000);
     }
   }
 
+  window.__craftoAnimApplyTags = applyTags;
+  window.__craftoAnimObserveAll = observeAll;
+
   function boot(){ applyTags(); observeAll(); }
 
   if (document.readyState === 'loading'){
@@ -1741,6 +1841,8 @@ setInterval(renderBoldSchedule, 60000);
         portada_2: @json($portada_2),
         portada_3: @json($portada_3),
         descripcion: @json($descripcion),
+        about_title: @json($about_title),
+        about_sections: @json($about_sections),
         foto_equipo: @json($foto_equipo),
         direccion: @json($direccion),
         correo: @json($correo),

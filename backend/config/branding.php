@@ -97,6 +97,26 @@ return [
 
         // tavola-warm | text | bg=#F5EBDA ink=#2A1F18
         // Acento principal: --wine. Restaurante italiano cálido.
+        // la-republica-vintage | text_on_dark | bg=#b8161b ink=#f5e6c8
+        'la-republica-vintage' => [
+            '#b8161b', // red (default)
+            '#9a1116', // red deep
+            '#6b0e12', // burgundy
+            '#d4a85a', // gold
+            '#c9a268', // gold soft
+            '#f5e6c8', // cream accent
+        ],
+
+        // kairos-bold | text_on_dark | bg=#ee7a1f ink=#fdecc2
+        'kairos-bold' => [
+            '#ee7a1f', // orange (default)
+            '#d8650f', // orange deep
+            '#4a2818', // brown
+            '#fdecc2', // cream
+            '#f7e0a8', // cream warm
+            '#1a1410', // ink accent
+        ],
+
         'tavola-warm' => [
             '#5a1f1f', // wine (default)
             '#7a2a2a', // tinto profundo
@@ -171,6 +191,8 @@ return [
         'luxe-atelier' => ['usage' => 'text', 'bg' => '#fbf9f4', 'ink' => '#15110c'],
         'mono-edito' => ['usage' => 'text', 'bg' => '#ffffff', 'ink' => '#0a0a0a'],
         'noir-elite' => ['usage' => 'text_on_dark', 'bg' => '#0a0a0a', 'ink' => '#f0ece4'],
+        'la-republica-vintage' => ['usage' => 'text_on_dark', 'bg' => '#b8161b', 'ink' => '#f5e6c8'],
+        'kairos-bold' => ['usage' => 'text_on_dark', 'bg' => '#ee7a1f', 'ink' => '#fdecc2'],
         'tavola-warm' => ['usage' => 'text', 'bg' => '#f5ebda', 'ink' => '#2a1f18'],
         'tech-sleek' => ['usage' => 'text_on_dark', 'bg' => '#070a14', 'ink' => '#e8ecf8'],
         'trust-clinic' => ['usage' => 'text', 'bg' => '#fbfaf7', 'ink' => '#0e1f1a'],

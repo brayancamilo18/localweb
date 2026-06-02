@@ -17,6 +17,7 @@ export const keys = {
     stats: ['dashboard', 'stats'] as const,
     images: ['dashboard', 'images'] as const,
     services: ['dashboard', 'services'] as const,
+    aboutSections: ['dashboard', 'about-sections'] as const,
     templates: ['dashboard', 'templates'] as const,
     brandColor: ['dashboard', 'brand-color'] as const,
   },

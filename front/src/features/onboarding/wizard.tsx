@@ -36,6 +36,7 @@ import {
 } from '../../components/primitives/primitives'
 import { SectorIcon } from '../../components/primitives/SectorIcon'
 import Step7Plan from './steps/Step7Plan'
+import ProAboutSectionsEditor from '../shared/ProAboutSectionsEditor'
 import { buildGoogleDirectionsUrl } from '../../lib/googleMapsDirectionsUrl'
 import {
   buildPublicVcardUrl,
@@ -76,6 +77,8 @@ export type Step1PreviewVariant =
   | 'luxe-atelier'
   | 'graphite-soft'
   | 'wild-pet'
+  | 'la-republica-vintage'
+  | 'kairos-bold'
 
 export const STEP1_PREVIEW_VARIANTS: Step1PreviewVariant[] = [
   'noir-elite',
@@ -91,6 +94,8 @@ export const STEP1_PREVIEW_VARIANTS: Step1PreviewVariant[] = [
   'luxe-atelier',
   'graphite-soft',
   'wild-pet',
+  'la-republica-vintage',
+  'kairos-bold',
 ]
 
 function isStep1PreviewVariant(value: unknown): value is Step1PreviewVariant {
@@ -109,6 +114,10 @@ type TemplatePreviewData = {
   coverUrl3?: string
   /** Texto “Sobre nosotros” / descripción del negocio */
   description?: string
+  /** Título de la sección «Sobre nosotros» (plantilla La República Vintage, etc.) */
+  aboutTitle?: string
+  /** Bloques extra Pro (texto · foto alternado). */
+  aboutSections?: Array<{ title?: string; description?: string; image_url?: string }>
   /** Imagen sección equipo (data URL) */
   aboutPhotoUrl?: string
   /** Dirección (paso ubicación) para pie de página en preview */
@@ -212,6 +221,8 @@ const TEMPLATE_URL_BY_VARIANT: Record<Step1PreviewVariant, string> = {
   'luxe-atelier': '/templates/luxe-atelier.html',
   'graphite-soft': '/templates/graphite-soft.html',
   'wild-pet': '/templates/wild-pet.html',
+  'la-republica-vintage': '/templates/la-republica-vintage.html',
+  'kairos-bold': '/templates/kairos-bold.html',
 }
 
 /** Texto de ejemplo para miniaturas y vista previa del paso 1 (sin portada, galería ni foto «Sobre nosotros»). */
@@ -300,6 +311,20 @@ const STEP1_TEMPLATE_PREVIEW_DEMO_BY_VARIANT: Record<Step1PreviewVariant, Templa
       'Boutique de ropa en pleno centro: prendas de diseño, básicos atemporales y accesorios en un espacio íntimo pensado para descubrir con calma.',
     phone: '+34 910 55 44 33',
   },
+  'la-republica-vintage': {
+    businessName: 'La República',
+    tagline: 'Soda fountain y cocina americana de barrio',
+    description:
+      'Recetas de siempre, producto de mercado y el trato de una casa abierta desde hace generaciones. Pan recién horneado y café de tueste natural.',
+    phone: '+34 915 12 34 56',
+  },
+  'kairos-bold': {
+    businessName: 'Kairos Burger',
+    tagline: 'Fast-casual bold · recién hecho, sin rodeos',
+    description:
+      'Hamburguesas smash, patatas crujientes y salsas caseras. Ingredientes top, cocina al momento y pedido rápido por WhatsApp o para recoger.',
+    phone: '+34 915 44 33 22',
+  },
   'wild-pet': {
     businessName: 'Patitas Felices',
     tagline: 'Cuidamos a tu mascota con energía, cariño y mucha diversión',
@@ -362,6 +387,10 @@ function previewDemoHostForVariant(variant: Step1PreviewVariant): string {
       return 'nomada-store.app.onez.es'
     case 'wild-pet':
       return 'patitas-felices.app.onez.es'
+    case 'la-republica-vintage':
+      return 'la-republica.app.onez.es'
+    case 'kairos-bold':
+      return 'kairos-burger.app.onez.es'
     default:
       return 'studio-barber.app.onez.es'
   }
@@ -386,6 +415,8 @@ const TEMPLATE_THUMB_PLACEHOLDER_COLOR: Record<Step1PreviewVariant, string> = {
   'luxe-atelier': '#1C1814',
   'graphite-soft': '#1F1D1A',
   'wild-pet': '#8B5CF6',
+  'la-republica-vintage': '#b8161b',
+  'kairos-bold': '#ee7a1f',
 }
 
 function resolveStep1PreviewVariant(template: Pick<Template, 'slug' | 'name'>): Step1PreviewVariant {
@@ -397,7 +428,9 @@ function resolveStep1PreviewVariant(template: Pick<Template, 'slug' | 'name'>): 
   if (slug.includes('tavola') || name.includes('tavola') || slug.includes('restaur')) return 'tavola-warm'
   if (slug.includes('tech') || name.includes('tech') || slug.includes('digital')) return 'tech-sleek'
   if (slug.includes('trust') || name.includes('trust') || slug.includes('clinic')) return 'trust-clinic'
-  if (slug.includes('urban') || slug.includes('bold') || name.includes('urban')) return 'urban-bold'
+  if (slug.includes('republica') || name.includes('república') || name.includes('republica')) return 'la-republica-vintage'
+  if (slug.includes('kairos') || name.includes('kairos')) return 'kairos-bold'
+  if (slug.includes('urban') || (slug.includes('bold') && !slug.includes('kairos')) || name.includes('urban')) return 'urban-bold'
   if (slug.includes('noir') || name.includes('noir')) return 'noir-elite'
   if (slug.includes('bloom') || name.includes('bloom') || slug.includes('aurora')) return 'bloom-studio'
   if (slug.includes('versa') || name.includes('versa')) return 'versa-studio'
@@ -551,6 +584,8 @@ function TemplateIframe({
             portada_2: previewData.coverUrl2 ?? '',
             portada_3: previewData.coverUrl3 ?? '',
             descripcion: previewData.description ?? '',
+            about_title: previewData.aboutTitle ?? '',
+            about_sections: previewData.aboutSections ?? [],
             foto_equipo: previewData.aboutPhotoUrl ?? '',
             direccion: previewData.address ?? '',
             ciudad: previewData.city ?? '',
@@ -2535,27 +2570,37 @@ function SobrePreview({
 }
 
 // ─── Step 3 · Sobre nosotros ─────────────────────────────────
+const ABOUT_TITLE_MAX = 160
+
 function Step3Sobre({
   errors,
   isLoading: busy,
   initialBusinessName = '',
   initialTagline = '',
+  aboutTitle,
+  onAboutTitleChange,
   description,
   onDescriptionChange,
   contactPhone,
   onContactPhoneChange,
   currentAboutPhotoFile,
   onAboutPhotoChange,
+  isPro = false,
+  onAboutSectionsChange,
 }: WizardStepProps & {
   /** Nombre y tagline vienen del paso Portada; se reenvían al API sin volver a pedirlos. */
   initialBusinessName?: string
   initialTagline?: string
+  aboutTitle: string
+  onAboutTitleChange: (value: string) => void
   description: string
   onDescriptionChange: (value: string) => void
   contactPhone: string
   onContactPhoneChange: (value: string) => void
   currentAboutPhotoFile: File | null
   onAboutPhotoChange: (file: File | null) => void
+  isPro?: boolean
+  onAboutSectionsChange?: () => void
 }) {
   const nav = useContext(WizardNavContext)
   const aboutRef = useRef<HTMLInputElement>(null)
@@ -2570,11 +2615,12 @@ function Step3Sobre({
     nav?.registerContinueHandler?.(() => ({
       business_name: initialBusinessName.trim(),
       tagline: initialTagline.trim() || undefined,
+      about_title: aboutTitle.trim() || undefined,
       description: description.trim() || undefined,
       about_photo: currentAboutPhotoFile ?? undefined,
     }))
     return () => nav?.registerContinueHandler?.(null)
-  }, [nav, initialBusinessName, initialTagline, description, currentAboutPhotoFile])
+  }, [nav, initialBusinessName, initialTagline, aboutTitle, description, currentAboutPhotoFile])
 
   useEffect(() => {
     if (!currentAboutPhotoFile) {
@@ -2625,6 +2671,21 @@ function Step3Sobre({
           </Btn>
         </div>
       ) : null}
+      <Field
+        label="Título de la sección"
+        hint="Encabezado de «Sobre nosotros» en tu web. Si lo dejas vacío, usamos un texto por defecto según tu plantilla."
+        error={errors?.about_title}
+        counter={`${aboutTitle.length} / ${ABOUT_TITLE_MAX}`}
+        optional
+      >
+        <Input
+          value={aboutTitle}
+          disabled={busy}
+          maxLength={ABOUT_TITLE_MAX}
+          onChange={(e) => onAboutTitleChange(e.target.value)}
+          placeholder="Una casa con oficio, abierta desde 2026"
+        />
+      </Field>
       <Field
         label="Descripción"
         error={errors?.description}
@@ -2717,6 +2778,11 @@ function Step3Sobre({
           )}
         </div>
       </Field>
+      <ProAboutSectionsEditor
+        isPro={isPro}
+        onboarding
+        onAfterMutate={onAboutSectionsChange}
+      />
       {errors?.message ? (
         <div className="lw-small" style={{ color: 'var(--lw-danger)' }}>
           {errors.message}

@@ -122,6 +122,8 @@ it('each supported template injects the correct CSS variable name', function (st
     ['mono-edito', '--accent', '#0a6cdc'],
     ['noir-elite', '--gold', '#d4b570'],
     ['tavola-warm', '--wine', '#7a2a2a'],
+    ['la-republica-vintage', '--red', '#d4a85a'],
+    ['kairos-bold', '--orange', '#d8650f'],
     ['tech-sleek', '--cyan', '#8b7cf6'],
     ['trust-clinic', '--accent', '#1e4b7c'],
     ['urban-bold', '--lime', '#ff5a3a'],

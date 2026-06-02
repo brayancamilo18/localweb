@@ -13,6 +13,8 @@ export const HTML_TEMPLATE_SRC: Record<string, string> = {
   'luxe-atelier': '/templates/luxe-atelier.html',
   'graphite-soft': '/templates/graphite-soft.html',
   'wild-pet': '/templates/wild-pet.html',
+  'la-republica-vintage': '/templates/la-republica-vintage.html',
+  'kairos-bold': '/templates/kairos-bold.html',
 }
 
 export function isHtmlTemplateSlug(slug: string): boolean {

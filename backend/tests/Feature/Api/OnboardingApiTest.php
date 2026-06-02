@@ -83,6 +83,22 @@ it('step3 without business_name returns 422', function () {
         ->assertStatus(422);
 });
 
+it('step3 persists about_title on business', function () {
+    $user = User::factory()->create();
+    $business = Business::factory()->create();
+    $user->forceFill(['business_id' => $business->id])->save();
+
+    test()->actingAs($user)
+        ->postJson('/api/v1/onboarding/step/3', [
+            'business_name' => 'Casa Test',
+            'about_title' => 'Nuestra historia desde 1990',
+        ])
+        ->assertStatus(200)
+        ->assertJsonPath('data.ok', true);
+
+    expect($business->fresh()->about_title)->toBe('Nuestra historia desde 1990');
+});
+
 it('step7 free creates business and returns public url', function () {
     $template = Template::create([
         'name' => 'Noir Elite',

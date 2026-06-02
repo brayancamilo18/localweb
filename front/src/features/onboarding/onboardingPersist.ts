@@ -19,6 +19,8 @@ export type OnboardingStep1VariantPersist =
   | 'luxe-atelier'
   | 'graphite-soft'
   | 'wild-pet'
+  | 'la-republica-vintage'
+  | 'kairos-bold'
 
 export type OnboardingStep1SubStepPersist = 'logo' | 'template'
 
@@ -32,6 +34,7 @@ export type OnboardingPersistedV1 = {
   previewTagline: string
   previewPhone: string
   previewDescription: string
+  previewAboutTitle: string
   previewAddress: string
   previewCity: string
   previewCountry: string
@@ -112,6 +115,7 @@ export function scheduleSaveOnboardingPersist(
         previewTagline: data.previewTagline ?? prev?.previewTagline ?? '',
         previewPhone: data.previewPhone ?? prev?.previewPhone ?? '',
         previewDescription: data.previewDescription ?? prev?.previewDescription ?? '',
+        previewAboutTitle: data.previewAboutTitle ?? prev?.previewAboutTitle ?? '',
         previewAddress: data.previewAddress ?? prev?.previewAddress ?? '',
         previewCity: data.previewCity ?? prev?.previewCity ?? '',
         previewCountry: data.previewCountry ?? prev?.previewCountry ?? '',

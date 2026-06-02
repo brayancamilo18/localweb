@@ -275,6 +275,17 @@
   .about-text h2 em{ color:var(--coral); font-style:italic; font-weight:500; }
   .about-text p{ font-size:16px; line-height:1.85; color:rgba(28,28,28,.78); margin-bottom:14px; max-width:48ch; }
   .about-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:30px; }
+  .bloom-about-extras{display:flex;flex-direction:column;gap:clamp(56px,8vw,80px);margin-top:clamp(56px,8vw,80px);padding-top:clamp(40px,6vw,56px);border-top:1px solid rgba(28,28,28,.08)}
+  .bloom-about-extra{display:grid;grid-template-columns:1fr 1.05fr;gap:clamp(40px,6vw,80px);align-items:center}
+  .bloom-about-extra--text-first .bloom-about-extra__copy{order:1}
+  .bloom-about-extra--text-first .bloom-about-extra__photo{order:2}
+  .bloom-about-extra--photo-first .bloom-about-extra__photo{order:1}
+  .bloom-about-extra--photo-first .bloom-about-extra__copy{order:2}
+  .bloom-about-extra__title{font-family:var(--serif);font-weight:600;font-size:clamp(36px,3.6vw,48px);line-height:1.08;letter-spacing:-.02em;margin:0 0 18px}
+  .bloom-about-extra__desc{font-size:16px;line-height:1.85;color:rgba(28,28,28,.78);margin:0;max-width:48ch}
+  .bloom-about-extra__img{aspect-ratio:4/5;position:relative;border-radius:8px;overflow:hidden;background:var(--bg-2);clip-path:polygon(0 0,96% 0,100% 8%,100% 100%,4% 100%,0 92%)}
+  .bloom-about-extra__img img{width:100%;height:100%;object-fit:cover;display:block}
+  .bloom-about-extra__img:not(.has-photo){background:linear-gradient(145deg,var(--bg-2),#e8e4df)}
   .pill-tel{
     display:inline-flex; align-items:center; gap:10px;
     padding:14px 22px; border-radius:99px; background:var(--coral); color:var(--coral-on,#fff);
@@ -559,12 +570,20 @@
     .links, .desk-cta{ display:none; }
     .burger{ display:block; }
     .about{ grid-template-columns:1fr; gap:48px; }
+    .bloom-about-extra{grid-template-columns:1fr;gap:40px}
+    .bloom-about-extra__photo{order:-1!important}
     .foot{ grid-template-columns:1fr; gap:46px; }
     .hero-meta{ display:none; }
     section{ padding:96px 0; }
   }
   html.embed-preview-root{ scroll-behavior:auto !important; }
   body.embed-preview #horario{ scroll-margin-top:88px; }
+  body.embed-preview #aboutExtraBlocks .bloom-about-extra.reveal .r-left,
+  body.embed-preview #aboutExtraBlocks .bloom-about-extra.reveal .r-right,
+  body.embed-preview #aboutExtraBlocks .bloom-about-extra.reveal .r-up{
+    opacity:1 !important;
+    transform:none !important;
+  }
   @media (max-width:560px){
     .grid{ grid-template-columns:1fr; }
     .hero-actions{ flex-direction:column; align-items:stretch; }
@@ -678,7 +697,7 @@
       </div>
       <div class="about-text r-right d-1">
         <span class="eyebrow-coral">Sobre nosotros</span>
-        <h2>Cinco peluqueros, un <em>café</em> y mucha calle.</h2>
+        <h2 id="aboutTitle">Sobre nosotros.</h2>
         <p id="aboutDescripcion">{{descripcion}}</p>
         <p id="aboutExtra">Te recibimos con un café de la torrefactora de la esquina y, si quieres, te enseñamos cómo cuidar tu pelo en casa. Sin prisas. Sin venderte nada que no necesites.</p>
 
@@ -697,6 +716,7 @@
         </div>
       </div>
     </div>
+    <div id="aboutExtraBlocks" class="bloom-about-extras"></div>
   </div>
 </section>
 
@@ -904,10 +924,13 @@ html.lw-preview-inert a[href^="#"] {
 </script>
 <script src="/templates/lw-contact-links.js?v=2"></script>
 <script>
-if (new URLSearchParams(window.location.search).get('embed') === '1') {
-  document.documentElement.classList.add('embed-preview-root');
-  document.body.classList.add('embed-preview');
-}
+(function () {
+  var p = new URLSearchParams(window.location.search);
+  if (p.get('embed') === '1' || p.get('preview') === '1' || p.get('parentOrigin')) {
+    document.documentElement.classList.add('embed-preview-root');
+    document.body.classList.add('embed-preview');
+  }
+})();
 
 /* ───── GALERÍA · vista previa onboarding ───────────────── */
 function escapeBloomGalleryAttr(s) {
@@ -1176,6 +1199,64 @@ function updateBloomPreviewMap(lat, lon, addressLine) {
 }
 
 /* ───── LIVE PREVIEW (query + postMessage, igual que noir-elite) ─── */
+function escapeAttrBloom(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function renderBloomAboutExtras(sections) {
+  var wrap = document.getElementById('aboutExtraBlocks');
+  if (!wrap) return;
+  wrap.className = 'bloom-about-extras';
+  var list = Array.isArray(sections) ? sections.filter(function (s) { return s != null; }) : [];
+  if (list.length === 0) {
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = list
+    .map(function (sec, i) {
+      var title = escapeHtmlTextBloom(String(sec.title || '').trim());
+      var desc = escapeHtmlTextBloom(String(sec.description || '').trim());
+      var img = String(sec.image_url || '').trim();
+      var mainTF = typeof lwIsMainAboutTextFirst === 'function' ? lwIsMainAboutTextFirst(wrap) : false;
+      var textFirst = typeof lwAboutExtraTextFirst === 'function' ? lwAboutExtraTextFirst(i, mainTF) : i % 2 === 0;
+      var mod = textFirst ? 'bloom-about-extra--text-first' : 'bloom-about-extra--photo-first';
+      var blockNum = String(i + 3).padStart(2, '0');
+      var imgTag = img
+        ? '<img src="' + escapeAttrBloom(img) + '" alt="" loading="lazy" decoding="async"/>'
+        : '';
+      return (
+        '<article class="bloom-about-extra ' +
+        mod +
+        '">' +
+        '<div class="bloom-about-extra__copy r-right d-1">' +
+        '<span class="eyebrow-coral bloom-about-extra__kicker">Bloque ' +
+        blockNum +
+        '</span>' +
+        (title ? '<h3 class="bloom-about-extra__title">' + title + '</h3>' : '') +
+        (desc ? '<p class="bloom-about-extra__desc">' + desc + '</p>' : '') +
+        '</div>' +
+        '<div class="bloom-about-extra__photo r-left">' +
+        '<div class="bloom-about-extra__img' +
+        (img ? ' has-photo' : '') +
+        '">' +
+        imgTag +
+        '</div></div></article>'
+      );
+    })
+    .join('');
+  wrap.querySelectorAll('.bloom-about-extra').forEach(function (el) {
+    el.classList.add('reveal');
+  });
+  if (typeof window.lwRefreshAboutExtrasReveal === 'function') {
+    window.lwRefreshAboutExtrasReveal();
+  }
+  if (typeof window.bloomRevealAboutExtras === 'function') {
+    window.bloomRevealAboutExtras();
+  }
+}
+
+window.lwRenderAboutExtrasImpl = renderBloomAboutExtras;
+
 function escapeHtmlTextBloom(str) {
   return String(str)
     .replace(/&/g, '&amp;')
@@ -1443,7 +1524,9 @@ function applyLivePreviewData(raw, opts) {
   syncBloomTemplateExtensions(raw);
   if (opts.alignToHash) scrollEmbedPreviewToHash();
 }
-
+</script>
+<script src="/templates/lw-about-extras.js?v=2"></script>
+<script>
 (function initLivePreviewFromQuery() {
   const params = new URLSearchParams(window.location.search);
   if (params.get('landingDemo') === '1') return;
@@ -1520,12 +1603,26 @@ sheet.querySelectorAll('a').forEach(a => a.addEventListener('click', () => docum
 /* ───── IO reveal (embed: escalonado + fotos) ─────────── */
 (function initSectionRevealsBloom(){
   var ids = ['heroInner','aboutSec','servicesSec','gallerySec','reviewsSec','schedSec'];
+  var embedPreview = document.body.classList.contains('embed-preview');
+  var io = null;
+
   function staggerPhotos(root){
     root.querySelectorAll('.grid .photo').forEach(function(p, i){
       p.style.transitionDelay = (i * 80) + 'ms';
     });
   }
-  if (document.body.classList.contains('embed-preview')) {
+
+  window.bloomRevealAboutExtras = function(){
+    document.querySelectorAll('#aboutExtraBlocks .bloom-about-extra').forEach(function(el, i){
+      if (io && io.observe) {
+        try { io.observe(el); } catch (err) { /* ya observado */ }
+      }
+      var delay = embedPreview ? 20 + i * 70 : 40 + i * 100;
+      setTimeout(function(){ el.classList.add('reveal'); }, delay);
+    });
+  };
+
+  if (embedPreview) {
     ids.forEach(function(id, i){
       var el = document.getElementById(id);
       if (!el) return;
@@ -1534,9 +1631,11 @@ sheet.querySelectorAll('a').forEach(a => a.addEventListener('click', () => docum
         staggerPhotos(el);
       }, 60 + i * 160);
     });
+    window.bloomRevealAboutExtras();
     return;
   }
-  var io = new IntersectionObserver(function(entries){
+
+  io = new IntersectionObserver(function(entries){
     entries.forEach(function(e){
       if (e.isIntersecting){
         e.target.classList.add('reveal');
@@ -1547,6 +1646,9 @@ sheet.querySelectorAll('a').forEach(a => a.addEventListener('click', () => docum
   }, { threshold:.16 });
   ids.forEach(function(id){
     var el = document.getElementById(id); if (el) io.observe(el);
+  });
+  document.querySelectorAll('#aboutExtraBlocks .bloom-about-extra').forEach(function(el){
+    io.observe(el);
   });
 })();
 

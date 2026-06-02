@@ -91,7 +91,27 @@
   body.embed-preview .sr,
   body.embed-preview [data-stagger],
   body.embed-preview .split,
-  body.embed-preview .pop{ opacity: 1 !important; transform: none !important; }
+  body.embed-preview .pop,
+  body.wild-preview .sr,
+  body.wild-preview [data-stagger],
+  body.wild-preview .split,
+  body.wild-preview .pop{ opacity: 1 !important; transform: none !important; }
+  body.embed-preview #aboutExtraBlocks .sr,
+  body.wild-preview #aboutExtraBlocks .sr,
+  body.embed-preview #aboutExtraBlocks .wild-about-extra,
+  body.wild-preview #aboutExtraBlocks .wild-about-extra{
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  body.embed-preview #aboutExtraBlocks .wild-about-extra .about-photo,
+  body.wild-preview #aboutExtraBlocks .wild-about-extra .about-photo{
+    transform: rotate(-3deg) !important;
+  }
+  body.embed-preview #aboutExtraBlocks .wild-about-extra--photo-first .about-photo,
+  body.wild-preview #aboutExtraBlocks .wild-about-extra--photo-first .about-photo{
+    transform: rotate(3deg) !important;
+  }
   /* Preview embebido (React onboarding): mismas reglas compactas que móvil real */
   @media (max-width: 960px){
     html.embed-preview-root,
@@ -742,6 +762,18 @@
     60%{ opacity: 1; transform: scale(1.15) rotate(4deg); }
     100%{ opacity: 1; transform: scale(1) rotate(0deg); }
   }
+
+  /* ABOUT EXTRAS (wild-pet) */
+  .wild-about-extras{display:flex;flex-direction:column;gap:clamp(2rem,5vw,4rem);margin-top:clamp(2rem,5vw,4rem);padding-top:clamp(1.5rem,4vw,2.5rem);border-top:3px solid var(--ink)}
+  .wild-about-extra.about-grid{align-items:center}
+  .wild-about-extra--text-first .wild-about-extra__body{order:1}
+  .wild-about-extra--text-first .wild-about-extra__photo{order:2}
+  .wild-about-extra--photo-first .wild-about-extra__photo{order:1}
+  .wild-about-extra--photo-first .wild-about-extra__body{order:2}
+  .wild-about-extra .wild-about-extra__body h3{font-family:var(--display);font-weight:800;font-size:clamp(1.5rem,4vw,2.2rem);margin-top:.5rem;line-height:1.05}
+  .wild-about-extra .wild-about-extra__body p{font-size:1.1rem;margin-top:1.2rem;opacity:.8;max-width:56ch}
+  .wild-about-extra .wild-about-extra__photo{max-width:100%}
+  @media (max-width:768px){.wild-about-extra.about-grid{grid-template-columns:1fr}.wild-about-extra .wild-about-extra__photo{order:-1!important;max-width:320px;margin-inline:auto}}
 
   /* ===== Gallery ===== */
   .gallery{
@@ -1407,6 +1439,7 @@
       </div>
     </div>
   </div>
+    <div class="container"><div id="aboutExtraBlocks" class="wild-about-extras"></div></div>
 </section>
 
 <!-- 6. GALERÍA -->
@@ -1644,8 +1677,21 @@
   }
 
   window.wildObserveReveals = function (root) {
-    var scope = root || document;
-    scope.querySelectorAll('.sr:not(.in), [data-stagger]:not(.in), .split:not(.in), .pop:not(.in)').forEach(wildObserveNode);
+    var scope = root && root.querySelectorAll ? root : document;
+    var nodes = scope.querySelectorAll('.sr:not(.in), [data-stagger]:not(.in), .split:not(.in), .pop:not(.in)');
+    if (!nodes.length) return;
+    if (document.body.classList.contains('embed-preview') || document.body.classList.contains('wild-preview')) {
+      nodes.forEach(function (el) {
+        el.classList.add('in');
+        el.querySelectorAll('.pop').forEach(function (p) { p.classList.add('in'); });
+      });
+      return;
+    }
+    nodes.forEach(wildObserveNode);
+  };
+
+  window.forceWildPreviewAboutExtras = function (root) {
+    window.wildObserveReveals(root || document.getElementById('aboutExtraBlocks'));
   };
 
   /* ===== Scale & rotate reveal ===== */
@@ -1728,7 +1774,8 @@
 })();
 </script>
 <script src="/templates/lw-contact-links.js?v=4"></script>
-<script src="/templates/wild-pet-onez.js?v=5"></script>
+<script src="/templates/wild-pet-onez.js?v=7"></script>
+<script src="/templates/lw-about-extras.js?v=3"></script>
 <script src="/templates/lw-landing-demo.js?v=2"></script>
 </body>
 </html>

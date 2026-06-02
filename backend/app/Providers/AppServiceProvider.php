@@ -5,7 +5,9 @@ namespace App\Providers;
 use App\Listeners\StripeEventListener;
 use App\Models\Business;
 use App\Models\BusinessImage;
+use App\Models\BusinessAboutSection;
 use App\Models\BusinessService;
+use App\Observers\BusinessAboutSectionObserver;
 use App\Observers\BusinessImageObserver;
 use App\Observers\BusinessObserver;
 use App\Observers\BusinessServiceObserver;
@@ -43,6 +45,7 @@ class AppServiceProvider extends ServiceProvider
         Business::observe(BusinessObserver::class);
         BusinessImage::observe(BusinessImageObserver::class);
         BusinessService::observe(BusinessServiceObserver::class);
+        BusinessAboutSection::observe(BusinessAboutSectionObserver::class);
 
         // En local el frontend (vite) proxyfica /api hacia el contenedor "nginx", así que las
         // requests llegan con Host=nginx. Sin esto, las URLs firmadas (verificación de email,

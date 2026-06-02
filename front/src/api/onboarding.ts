@@ -117,12 +117,14 @@ export async function step3(data: {
   business_name: string
   tagline?: string
   description?: string
+  about_title?: string
   about_photo?: File
 }): Promise<StepResponse> {
   const formData = new FormData()
   formData.append('business_name', data.business_name)
   if (data.tagline) formData.append('tagline', data.tagline)
   if (data.description) formData.append('description', data.description)
+  if (data.about_title) formData.append('about_title', data.about_title)
   if (data.about_photo) {
     formData.append('about_photo', await compressImageForUpload(data.about_photo, {
       maxBytes: UPLOAD_MAX_BYTES.gallery,

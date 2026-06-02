@@ -21,6 +21,8 @@ export default function PublicHtmlTemplateFrame({ templateSlug, business, zIndex
     const base = htmlTemplateSrc(templateSlug)
     const params = new URLSearchParams({
       v: '3',
+      embed: '1',
+      preview: '1',
       parentOrigin: window.location.origin,
     })
     return `${base}?${params.toString()}`

@@ -76,6 +76,7 @@ class BusinessService
             'template_id' => $data['template_id'] ?? $business->template_id,
             'tagline' => $data['tagline'] ?? null,
             'description' => $data['description'] ?? null,
+            'about_title' => $data['about_title'] ?? null,
             'phone' => $data['phone'] ?? null,
             'email' => $data['email'] ?? null,
             'address' => $data['address'] ?? null,
@@ -119,7 +120,7 @@ class BusinessService
     public function syncOnboardingFields(Business $business, array $fields): Business
     {
         $allowed = [
-            'name', 'sector', 'template_id', 'tagline', 'description',
+            'name', 'sector', 'template_id', 'tagline', 'description', 'about_title',
             'address', 'city', 'country', 'country_code', 'lat', 'lng',
             'phone', 'email', 'schedule',
         ];

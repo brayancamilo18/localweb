@@ -185,6 +185,15 @@
   .about-sig-text strong{display:block;font-family:"Bricolage Grotesque";font-size:18px;font-weight:600;color:var(--ink);letter-spacing:-.015em}
   .about-sig-text small{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-3);letter-spacing:.04em;margin-top:2px;display:block}
 
+
+  /* ABOUT EXTRAS (versa-studio) */
+  .versa-about-extras{display:flex;flex-direction:column;gap:80px;margin-top:80px;padding-top:56px;border-top:1px solid var(--line-2);max-width:1280px;margin-left:auto;margin-right:auto;padding:0 46px;box-sizing:border-box}
+  .versa-about-extra--text-first .about-text{order:1}
+  .versa-about-extra--text-first .about-img-wrap{order:2}
+  .versa-about-extra--photo-first .about-img-wrap{order:1}
+  .versa-about-extra--photo-first .about-text{order:2}
+  .versa-about-extra .about-text h3{font-family:"Bricolage Grotesque";font-size:clamp(40px,4.5vw,54px);font-weight:600;line-height:1;letter-spacing:-.03em;margin:18px 0 28px}
+  @media (max-width:768px){.versa-about-extras{padding:0 20px}.versa-about-extra.about-grid{grid-template-columns:1fr;gap:48px}.versa-about-extra .about-img-wrap{order:-1!important}}
   /* ─── GALLERY · slider horizontal ─── */
   .gallery-wrap{position:relative}
   .gallery-scroll{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 46px 24px;margin:0 -46px;scrollbar-width:none}
@@ -294,6 +303,8 @@
   .slide-up[data-d="1"]{transition-delay:.1s}
   .slide-up[data-d="2"]{transition-delay:.2s}
   .slide-up[data-d="3"]{transition-delay:.3s}
+  body.embed-preview #aboutExtraBlocks .slide-up,
+  body.versa-preview #aboutExtraBlocks .slide-up{opacity:1!important;transform:none!important}
 
   /* responsive */
   @media (max-width:1080px){
@@ -537,6 +548,7 @@
       </div>
     </div>
   </div>
+    @include('public.partials.about-extra-blocks-versa-studio')
 </section>
 
 <!-- 6. GALERÍA -->
@@ -876,11 +888,9 @@ html.lw-preview-inert a[href^="#"] {
 <script>
 (function initVersaPreviewModeClasses() {
   var params = new URLSearchParams(window.location.search);
-  if (params.get('embed') === '1') {
+  if (params.get('embed') === '1' || params.get('preview') === '1' || params.get('parentOrigin')) {
     document.documentElement.classList.add('embed-preview-root');
     document.body.classList.add('embed-preview');
-  }
-  if (params.get('preview') === '1') {
     document.body.classList.add('versa-preview');
   }
 })();
@@ -939,6 +949,54 @@ function escapeHtmlText(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
+
+function escapeVersaAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function renderVersaAboutExtras(sections) {
+  var wrap = document.getElementById('aboutExtraBlocks');
+  if (!wrap) return;
+  wrap.className = 'versa-about-extras';
+  var list = Array.isArray(sections) ? sections.filter(function (s) { return s != null; }) : [];
+  if (list.length === 0) {
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = list
+    .map(function (sec, i) {
+      var title = escapeHtmlText(String(sec.title || '').trim());
+      var desc = escapeHtmlText(String(sec.description || '').trim());
+      var img = String(sec.image_url || '').trim();
+      var mainTF = typeof lwIsMainAboutTextFirst === 'function' ? lwIsMainAboutTextFirst(wrap) : false;
+      var textFirst = typeof lwAboutExtraTextFirst === 'function' ? lwAboutExtraTextFirst(i, mainTF) : i % 2 === 0;
+      var mod = textFirst ? 'versa-about-extra--text-first' : 'versa-about-extra--photo-first';
+      var bn = String(i + 3).padStart(2, '0');
+      var bg = img ? ' style="background-image:url(\'' + escapeVersaAttr(img) + '\')"' : '';
+      return (
+        '<article class="versa-about-extra about-grid ' +
+        mod +
+        '"><div class="about-img-wrap slide-up"><div class="about-img versa-about-extra__img' +
+        (img ? ' has-photo' : '') +
+        '"' +
+        bg +
+        '></div><div class="about-img-tag"><span class="dot"></span>Bloque ' +
+        bn +
+        '</div></div><div class="about-text slide-up" data-d="1"><span class="eyebrow">Capítulo ' +
+        bn +
+        '</span>' +
+        (title ? '<h3 class="display">' + title + '</h3>' : '') +
+        (desc ? '<p>' + desc + '</p>' : '') +
+        '</div></article>'
+      );
+    })
+    .join('');
+  if (typeof window.versaObserveReveals === 'function') {
+    window.versaObserveReveals(wrap);
+  }
+}
+
+window.lwRenderAboutExtrasImpl = renderVersaAboutExtras;
 
 function escapeGalleryAttr(s) {
   return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -1583,7 +1641,13 @@ function applyLivePreviewData(raw, opts) {
   }
 
   if (opts.alignToHash) scrollEmbedPreviewToHash();
+  if (typeof window.versaObserveReveals === 'function') {
+    window.versaObserveReveals(document.getElementById('aboutExtraBlocks'));
+  }
 }
+</script>
+<script src="/templates/lw-about-extras.js?v=2"></script>
+<script>
 
 (function initVersaPreviewSampleMedia() {
   if (!shouldUseVersaSampleMedia()) return;
@@ -1706,12 +1770,21 @@ function applyLivePreviewData(raw, opts) {
     if (hero) hero.classList.add('in');
   });
 
-  if (document.body.classList.contains('embed-preview')) {
-    document.querySelectorAll('.slide-up').forEach(function (el, i) {
-      setTimeout(function () {
-        el.classList.add('in');
-      }, 60 + i * 160);
-    });
+  window.versaObserveReveals = function (root) {
+    var scope = root && root.querySelectorAll ? root : document;
+    var nodes = scope.querySelectorAll('.slide-up:not(.in)');
+    if (!nodes.length) return;
+    if (document.body.classList.contains('embed-preview') || document.body.classList.contains('versa-preview')) {
+      Array.prototype.forEach.call(nodes, function (el, i) {
+        setTimeout(function () { el.classList.add('in'); }, 40 + i * 90);
+      });
+      return;
+    }
+    Array.prototype.forEach.call(nodes, function (el) { el.classList.add('in'); });
+  };
+
+  if (document.body.classList.contains('embed-preview') || document.body.classList.contains('versa-preview')) {
+    window.versaObserveReveals(document);
   } else {
     var io = new IntersectionObserver(
       function (es) {
@@ -1839,6 +1912,8 @@ function applyLivePreviewData(raw, opts) {
         portada_2: @json($portada_2),
         portada_3: @json($portada_3),
         descripcion: @json($descripcion),
+        about_title: @json($about_title),
+        about_sections: @json($about_sections),
         foto_equipo: @json($foto_equipo),
         direccion: @json($direccion),
         correo: @json($correo),

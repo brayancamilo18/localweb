@@ -20,6 +20,11 @@ class PublicBusinessResource extends JsonResource
             'sector' => $this->sector,
             'logo_url' => $this->logo_url,
             'description' => $this->description,
+            'about_title' => $this->about_title,
+            'about_sections' => $this->whenLoaded(
+                'aboutSections',
+                fn () => BusinessAboutSectionResource::collection($this->aboutSections)->resolve(),
+            ),
             'tagline' => $this->tagline,
             'phone' => $this->phone,
             /** Email público de contacto del negocio (columna propia en

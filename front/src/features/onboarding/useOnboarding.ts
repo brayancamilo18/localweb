@@ -227,7 +227,13 @@ export function useOnboarding(): UseOnboardingResult {
             break
           }
           case 3: {
-            const d = data as { business_name?: string; tagline?: string; description?: string; about_photo?: File }
+            const d = data as {
+              business_name?: string
+              tagline?: string
+              description?: string
+              about_title?: string
+              about_photo?: File
+            }
             if (!d?.business_name?.trim()) {
               setErrors({ business_name: 'Indica el nombre del negocio' })
               return
@@ -236,6 +242,7 @@ export function useOnboarding(): UseOnboardingResult {
               business_name: d.business_name.trim(),
               tagline: d.tagline,
               description: d.description,
+              about_title: d.about_title,
               about_photo: d.about_photo,
             })
             break

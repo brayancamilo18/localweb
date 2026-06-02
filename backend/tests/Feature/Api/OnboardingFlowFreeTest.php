@@ -66,6 +66,7 @@ it('completes free onboarding over HTTP and exposes data on the public page', fu
         ->post('/api/v1/onboarding/step/3', [
             'business_name' => 'Salón Integración',
             'tagline' => 'Corte y color',
+            'about_title' => 'Una casa con oficio, abierta desde 2010',
             'description' => 'Descripción de prueba',
             'about_photo' => $about,
         ])
@@ -116,7 +117,8 @@ it('completes free onboarding over HTTP and exposes data on the public page', fu
     expect($business->plan->value)->toBe('free')
         ->and($business->subdomain_type)->toBe('random')
         ->and($business->is_published)->toBeFalse()
-        ->and(strlen($business->subdomain))->toBeGreaterThanOrEqual(3);
+        ->and(strlen($business->subdomain))->toBeGreaterThanOrEqual(3)
+        ->and($business->about_title)->toBe('Una casa con oficio, abierta desde 2010');
 
     test()->actingAs($user)
         ->postJson('/api/v1/onboarding/step/8')

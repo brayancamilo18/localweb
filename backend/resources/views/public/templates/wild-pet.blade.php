@@ -68,6 +68,22 @@
   body.embed-preview [data-stagger],
   body.embed-preview .split,
   body.embed-preview .pop{ opacity: 1 !important; transform: none !important; }
+  body.embed-preview #aboutExtraBlocks .sr,
+  body.wild-preview #aboutExtraBlocks .sr,
+  body.embed-preview #aboutExtraBlocks .wild-about-extra,
+  body.wild-preview #aboutExtraBlocks .wild-about-extra{
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  body.embed-preview #aboutExtraBlocks .wild-about-extra .about-photo,
+  body.wild-preview #aboutExtraBlocks .wild-about-extra .about-photo{
+    transform: rotate(-3deg) !important;
+  }
+  body.embed-preview #aboutExtraBlocks .wild-about-extra--photo-first .about-photo,
+  body.wild-preview #aboutExtraBlocks .wild-about-extra--photo-first .about-photo{
+    transform: rotate(3deg) !important;
+  }
   /* Preview embebido (React onboarding): mismas reglas compactas que móvil real */
   @media (max-width: 960px){
     html.embed-preview-root,
@@ -720,6 +736,18 @@
   }
 
   /* ===== Gallery ===== */
+
+  /* ABOUT EXTRAS (wild-pet) */
+  .wild-about-extras{display:flex;flex-direction:column;gap:clamp(2rem,5vw,4rem);margin-top:clamp(2rem,5vw,4rem);padding-top:clamp(1.5rem,4vw,2.5rem);border-top:3px solid var(--ink)}
+  .wild-about-extra.about-grid{align-items:center}
+  .wild-about-extra--text-first .wild-about-extra__body{order:1}
+  .wild-about-extra--text-first .wild-about-extra__photo{order:2}
+  .wild-about-extra--photo-first .wild-about-extra__photo{order:1}
+  .wild-about-extra--photo-first .wild-about-extra__body{order:2}
+  .wild-about-extra .wild-about-extra__body h3{font-family:var(--display);font-weight:800;font-size:clamp(1.5rem,4vw,2.2rem);margin-top:.5rem;line-height:1.05}
+  .wild-about-extra .wild-about-extra__body p{font-size:1.1rem;margin-top:1.2rem;opacity:.8;max-width:56ch}
+  .wild-about-extra .wild-about-extra__photo{max-width:100%}
+  @media (max-width:768px){.wild-about-extra.about-grid{grid-template-columns:1fr}.wild-about-extra .wild-about-extra__photo{order:-1!important;max-width:320px;margin-inline:auto}}
   .gallery{
     display: grid;
     grid-template-columns: repeat(12, 1fr);
@@ -1394,6 +1422,7 @@
       </div>
     </div>
   </div>
+    @include('public.partials.about-extra-blocks-wild-pet')
 </section>
 
 <!-- 6. GALERÍA -->
@@ -1640,6 +1669,7 @@
 @endsection
 
 @push('body-end')
+
 <script>
   window.__lwLat = {{ is_numeric($map_lat) ? $map_lat : 'null' }};
   window.__lwLon = {{ is_numeric($map_lon) ? $map_lon : 'null' }};
@@ -1719,8 +1749,21 @@ function lwTrackClick(kind) {
   }
 
   window.wildObserveReveals = function (root) {
-    var scope = root || document;
-    scope.querySelectorAll('.sr:not(.in), [data-stagger]:not(.in), .split:not(.in), .pop:not(.in)').forEach(wildObserveNode);
+    var scope = root && root.querySelectorAll ? root : document;
+    var nodes = scope.querySelectorAll('.sr:not(.in), [data-stagger]:not(.in), .split:not(.in), .pop:not(.in)');
+    if (!nodes.length) return;
+    if (document.body.classList.contains('embed-preview') || document.body.classList.contains('wild-preview')) {
+      nodes.forEach(function (el) {
+        el.classList.add('in');
+        el.querySelectorAll('.pop').forEach(function (p) { p.classList.add('in'); });
+      });
+      return;
+    }
+    nodes.forEach(wildObserveNode);
+  };
+
+  window.forceWildPreviewAboutExtras = function (root) {
+    window.wildObserveReveals(root || document.getElementById('aboutExtraBlocks'));
   };
 
   /* ===== Scale & rotate reveal ===== */
@@ -1888,7 +1931,7 @@ function lwTrackClick(kind) {
 
   (function initWildPreviewModeClasses() {
     var params = new URLSearchParams(window.location.search);
-    if (params.get('embed') === '1' || window.self !== window.top) {
+    if (params.get('embed') === '1' || params.get('preview') === '1' || params.get('parentOrigin') || window.self !== window.top) {
       document.documentElement.classList.add('embed-preview-root');
       document.body.classList.add('embed-preview');
     }
@@ -2009,6 +2052,69 @@ function lwTrackClick(kind) {
   function escapeWildAttr(s) {
     return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
   }
+
+  function renderWildAboutExtras(sections) {
+    var wrap = document.getElementById('aboutExtraBlocks');
+    if (!wrap) return;
+    wrap.className = 'wild-about-extras';
+    var list = Array.isArray(sections) ? sections.filter(function (s) { return s != null; }) : [];
+    if (list.length === 0) {
+      wrap.innerHTML = '';
+      return;
+    }
+    var previewMode = shouldUseWildSampleMedia();
+    var srIn = previewMode ? ' in' : '';
+    var phSvg =
+      '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="9" r="3"/><circle cx="17" cy="11" r="2.4"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M14 20c0-2 2-4 4-4s3 1.5 3 3.5"/></svg>';
+    wrap.innerHTML = list
+      .map(function (sec, i) {
+        var title = escapeWildHtml(String(sec.title || '').trim());
+        var desc = escapeWildHtml(String(sec.description || '').trim());
+        var img = String(sec.image_url || '').trim();
+        var mainTF = typeof lwIsMainAboutTextFirst === 'function' ? lwIsMainAboutTextFirst(wrap) : false;
+        var textFirst =
+          typeof lwAboutExtraTextFirst === 'function' ? lwAboutExtraTextFirst(i, mainTF) : i % 2 === 0;
+        var mod = textFirst ? 'wild-about-extra--text-first' : 'wild-about-extra--photo-first';
+        var bn = String(i + 3).padStart(2, '0');
+        var photoRot = textFirst ? '-12deg' : '10deg';
+        var bg = img ? ' style="background-image:url(\'' + escapeWildAttr(img) + '\')"' : '';
+        return (
+          '<article class="wild-about-extra about-grid about ' +
+          mod +
+          '"><div class="about-photo sr' +
+          srIn +
+          ' wild-about-extra__photo' +
+          (img ? ' has-photo' : '') +
+          '" style="--sr-rot:' +
+          photoRot +
+          ';"><div class="photo-fallback' +
+          (img ? ' has-photo' : '') +
+          '"' +
+          bg +
+          ' role="img" aria-hidden="true">' +
+          (img ? '' : phSvg) +
+          '</div></div><div class="wild-about-extra__body"><span class="eyebrow sr' +
+          srIn +
+          '">Bloque ' +
+          bn +
+          '</span>' +
+          (title ? '<h3 class="sr' + srIn + '" style="--sr-rot:-2deg;">' + title + '</h3>' : '') +
+          (desc ? '<p class="sr' + srIn + '">' + desc + '</p>' : '') +
+          '</div></article>'
+        );
+      })
+      .join('');
+    if (typeof window.forceWildPreviewAboutExtras === 'function') {
+      window.forceWildPreviewAboutExtras(wrap);
+    } else if (typeof window.wildObserveReveals === 'function') {
+      window.wildObserveReveals(wrap);
+      requestAnimationFrame(function () {
+        window.wildObserveReveals(wrap);
+      });
+    }
+  }
+
+  window.lwRenderAboutExtrasImpl = renderWildAboutExtras;
 
   function formatWildPrice(p) {
     if (p === null || p === undefined || p === '') return 'Consultar';
@@ -2659,6 +2765,18 @@ function lwTrackClick(kind) {
         window.tvAnimationsRefresh();
       });
     }
+    if (typeof window.wildObserveReveals === 'function') {
+      window.wildObserveReveals(document.getElementById('aboutExtraBlocks'));
+    }
+
+    if (typeof window.lwApplyAboutPreview === 'function') {
+      window.lwApplyAboutPreview(raw);
+    } else if (
+      Object.prototype.hasOwnProperty.call(raw, 'about_sections') &&
+      typeof window.lwRenderAboutExtras === 'function'
+    ) {
+      window.lwRenderAboutExtras(raw.about_sections);
+    }
 
     if (opts.alignToHash) scrollEmbedPreviewToHash();
   }
@@ -2701,7 +2819,7 @@ function lwTrackClick(kind) {
       if (window.location.hash) scrollEmbedPreviewToHash();
       return;
     }
-    applyLivePreviewData(
+    window.applyLivePreviewData(
       {
         nombre: params.get('nombre') || '',
         tagline: params.get('tagline') || '',
@@ -2750,7 +2868,8 @@ function lwTrackClick(kind) {
       if (!isAllowedOrigin(event.origin)) return;
       var data = event.data;
       if (!data || data.type !== 'lw:onboarding-preview') return;
-      applyLivePreviewData(data.payload || {}, { alignToHash: data.alignToHash === true });
+      if (typeof window.applyLivePreviewData !== 'function') return;
+      window.applyLivePreviewData(data.payload || {}, { alignToHash: data.alignToHash === true });
     });
   })();
 
@@ -2768,6 +2887,8 @@ function lwTrackClick(kind) {
 
 @endverbatim
 
+<script src="/templates/lw-about-extras.js?v=3"></script>
+
 <script>
 (function bootWildPetTenantPage() {
   function run() {
@@ -2783,6 +2904,8 @@ function lwTrackClick(kind) {
         portada_2: @json($portada_2),
         portada_3: @json($portada_3),
         descripcion: @json($descripcion),
+        about_title: @json($about_title),
+        about_sections: @json($about_sections),
         foto_equipo: @json($foto_equipo),
         direccion: @json($direccion),
         correo: @json($correo),

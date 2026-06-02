@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\Auth\Social\SocialMeController;
 use App\Http\Controllers\Api\BillingController;
 use App\Http\Controllers\Api\Dashboard\BusinessController as DashboardBusinessController;
 use App\Http\Controllers\Api\Dashboard\ImagesController;
+use App\Http\Controllers\Api\Dashboard\AboutSectionsController;
 use App\Http\Controllers\Api\Dashboard\ServicesController;
 use App\Http\Controllers\Api\Dashboard\StatsController;
 use App\Http\Controllers\Api\Dashboard\TemplatesController;
@@ -158,6 +159,12 @@ Route::prefix('v1')->group(function (): void {
             Route::put('/services/reorder', [ServicesController::class, 'reorder']);
             Route::put('/services/{service}', [ServicesController::class, 'update']);
             Route::delete('/services/{service}', [ServicesController::class, 'destroy']);
+            Route::get('/about-sections', [AboutSectionsController::class, 'index']);
+            Route::post('/about-sections', [AboutSectionsController::class, 'store'])->middleware('pro.features');
+            Route::put('/about-sections/{aboutSection}', [AboutSectionsController::class, 'update'])->middleware('pro.features');
+            Route::delete('/about-sections/{aboutSection}', [AboutSectionsController::class, 'destroy'])->middleware('pro.features');
+            Route::post('/about-sections/{aboutSection}/photo', [AboutSectionsController::class, 'uploadPhoto'])->middleware('pro.features');
+            Route::delete('/about-sections/{aboutSection}/photo', [AboutSectionsController::class, 'deletePhoto'])->middleware('pro.features');
         });
     });
 

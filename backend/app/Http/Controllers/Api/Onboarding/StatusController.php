@@ -124,6 +124,7 @@ class StatusController extends BaseApiController
             'business_name' => $business->name,
             'tagline' => $business->tagline,
             'description' => $business->description,
+            'about_title' => $business->about_title,
             'gallery_paths' => $galleryImages->isNotEmpty()
                 ? array_fill(0, $galleryImages->count(), '__synced__')
                 : [],
