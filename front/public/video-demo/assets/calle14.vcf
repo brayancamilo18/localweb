@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Calle 14 Barber
+ORG:Calle 14 Barber
+TEL;TYPE=WORK,VOICE:+34914005566
+EMAIL;TYPE=INTERNET:hola@calle14barber.es
+ADR;TYPE=WORK:;;Calle del Pez 14;Madrid;;28004;España
+URL:https://onez.es
+NOTE:Barbería en Malasaña, Madrid. Fades, clásicos y afeitado a navaja.
+END:VCARD

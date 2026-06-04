@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Sanguchería La República
+ORG:Sanguchería La República
+TEL;TYPE=WORK,VOICE:+34915342109
+EMAIL;TYPE=INTERNET:hola@sangucherialarepublica.es
+ADR;TYPE=WORK:;;Calle de la Cava Baja 12;Madrid;;28005;España
+URL:https://onez.es
+NOTE:Sánguches peruanos en Lavapiés, Madrid.
+END:VCARD

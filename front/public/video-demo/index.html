@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>Demos para grabación · ONEZ plantillas</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0a0a0a;
+      color: #e8e8e8;
+      line-height: 1.5;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 48px 20px 80px; }
+    h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
+    .lead { color: #999; margin-bottom: 32px; font-size: 15px; }
+    .lead strong { color: #ccc; font-weight: 500; }
+    ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+    li a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      background: #141414;
+      border: 1px solid #222;
+      border-radius: 10px;
+      color: inherit;
+      text-decoration: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    li a:hover:not(.disabled) { border-color: #444; background: #1a1a1a; }
+    li a.disabled {
+      opacity: 0.45;
+      cursor: default;
+      pointer-events: none;
+    }
+    .slug { font-family: ui-monospace, monospace; font-size: 12px; color: #666; }
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 3px 8px;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+    .badge--ready { background: #1a2e00; color: #c8ff00; }
+    .badge--pending { background: #222; color: #666; }
+    .note {
+      margin-top: 40px;
+      padding: 16px;
+      background: #111;
+      border: 1px dashed #333;
+      border-radius: 10px;
+      font-size: 13px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Demos para grabación</h1>
+    <p class="lead">
+      Webs de prueba con datos ficticios realistas. Carpeta temporal <strong>/video-demo/</strong> —
+      no modifica plantillas ni el producto. Borrar cuando termines los vídeos.
+    </p>
+    <ul id="demoList"></ul>
+    <p class="note">
+      Abre una demo, pulsa F11 para pantalla completa y graba. Cada demo carga la plantilla real
+      desde <code>/templates/</code> e inyecta datos por postMessage.
+    </p>
+  </div>
+  <script>
+    (function () {
+      var TEMPLATES = [
+        { slug: 'urban-bold', name: 'Urban Bold', ready: true },
+        { slug: 'bloom-studio', name: 'Bloom Studio', ready: true },
+        { slug: 'noir-elite', name: 'Noir Elite', ready: true },
+        { slug: 'coastal-calm', name: 'Coastal Calm', ready: true },
+        { slug: 'craft-pro', name: 'Craft Pro', ready: true },
+        { slug: 'tavola-warm', name: 'Tavola Warm', ready: true },
+        { slug: 'tech-sleek', name: 'Tech Sleek', ready: false },
+        { slug: 'trust-clinic', name: 'Trust Clinic', ready: false },
+        { slug: 'versa-studio', name: 'Versa Studio', ready: true },
+        { slug: 'mono-edito', name: 'Mono Edito', ready: false },
+        { slug: 'luxe-atelier', name: 'Luxe Atelier', ready: false },
+        { slug: 'graphite-soft', name: 'Graphite Soft', ready: false },
+        { slug: 'wild-pet', name: 'Wild Pet', ready: false },
+        { slug: 'la-republica-vintage', name: 'La República Vintage', ready: true },
+        { slug: 'kairos-bold', name: 'Kairos Bold', ready: false },
+        { slug: 'soft-organic', name: 'Soft Organic', ready: false },
+        { slug: 'consult-prime', name: 'Consult Prime', ready: false },
+        { slug: 'handyman-pro', name: 'Handyman Pro', ready: false },
+      ];
+
+      var list = document.getElementById('demoList');
+      TEMPLATES.forEach(function (t) {
+        var li = document.createElement('li');
+        var a = document.createElement('a');
+        if (t.ready) {
+          a.href = '/video-demo/' + t.slug + '.html';
+        } else {
+          a.className = 'disabled';
+          a.href = '#';
+        }
+        a.innerHTML =
+          '<span><strong>' + t.name + '</strong> <span class="slug">' + t.slug + '</span></span>' +
+          '<span class="badge ' + (t.ready ? 'badge--ready' : 'badge--pending') + '">' +
+          (t.ready ? 'Lista' : 'Pendiente') +
+          '</span>';
+        li.appendChild(a);
+        list.appendChild(li);
+      });
+    })();
+  </script>
+</body>
+</html>

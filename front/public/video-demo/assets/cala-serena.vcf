@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Hotel Cala Serena
+ORG:Hotel Cala Serena
+TEL;TYPE=WORK,VOICE:+34961234567
+EMAIL;TYPE=INTERNET:reservas@calaserena.es
+ADR;TYPE=WORK:;;Paseo Neptuno 34;Valencia;;46011;España
+URL:https://onez.es
+NOTE:Hotel boutique en la playa de las Arenas, Valencia.
+END:VCARD

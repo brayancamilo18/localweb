@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Craft Bite
+ORG:Craft Bite
+TEL;TYPE=WORK,VOICE:+34914433221
+EMAIL;TYPE=INTERNET:hola@craftbite.es
+ADR;TYPE=WORK:;;Calle de la Manuela 8;Madrid;;28004;España
+URL:https://onez.es
+NOTE:Comida rápida en Malasaña. Hamburguesas, pizza y pollo frito.
+END:VCARD

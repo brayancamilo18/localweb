@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Trattoria La Tavola
+ORG:Trattoria La Tavola
+TEL;TYPE=WORK,VOICE:+34915123456
+EMAIL;TYPE=INTERNET:ciao@trattorialatavola.es
+ADR;TYPE=WORK:;;Calle de Almagro 42;Madrid;;28010;España
+URL:https://onez.es
+NOTE:Trattoria italiana en Chamberí, Madrid. Pasta fresca y cocina de hogar.
+END:VCARD

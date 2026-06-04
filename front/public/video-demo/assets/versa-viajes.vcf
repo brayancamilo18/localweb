@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Versa Viajes
+ORG:Versa Viajes
+TEL;TYPE=WORK,VOICE:+34911234567
+EMAIL;TYPE=INTERNET:hola@versaviajes.es
+ADR;TYPE=WORK:;;Calle de Ponzano 33;Madrid;;28003;España
+URL:https://onez.es
+NOTE:Agencia de viajes a medida en Chamberí, Madrid.
+END:VCARD

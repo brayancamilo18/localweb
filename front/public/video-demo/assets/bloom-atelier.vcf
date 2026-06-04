@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Bloom Atelier
+ORG:Bloom Atelier
+TEL;TYPE=WORK,VOICE:+34913004455
+EMAIL;TYPE=INTERNET:hola@bloomatelier.es
+ADR;TYPE=WORK:;;Calle de Almagro 28;Madrid;;28010;España
+URL:https://onez.es
+NOTE:Salón de belleza y spa en Chamberí, Madrid.
+END:VCARD
