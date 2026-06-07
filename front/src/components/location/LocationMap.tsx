@@ -44,12 +44,13 @@ export function LocationMap({ lat, lng, zoom = 16, className, height = 280 }: Pr
       center: FALLBACK_CENTER,
       zoom,
       scrollWheelZoom: false,
-      attributionControl: true,
+      attributionControl: false,
     })
 
+    L.control.attribution({ prefix: false }).addTo(map)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
-      attribution: '&copy; OpenStreetMap',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(map)
 
     mapRef.current = map
