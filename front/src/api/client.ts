@@ -116,19 +116,33 @@ apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) =>
 })
 
 /**
- * Pantallas públicas (no requieren sesión). Si el interceptor de 401 viese al
- * usuario en una de estas rutas y le forzase un redirect a `/login`, rompería
- * el flujo: el enlace de reset por email aterriza en `/reset-password`, no hay
- * cookie aún → /auth/me da 401 → el interceptor saltaría a /login antes de que
- * la página llegue a pintar el formulario.
+ * Rutas públicas del SPA (no requieren sesión). Si el interceptor de 401 redirigiese
+ * a `/login` desde una de ellas, rompería flujos legítimos sin cookie: reset por email
+ * (`/reset-password`), registro social (`/register/social`), páginas legales
+ * (`/privacidad`, `/aviso-legal`, …) y landings de referral (`/r/:code`). Sin sesión,
+ * `/auth/me` devuelve 401; estas rutas deben seguir renderizándose con normalidad.
  */
-const PUBLIC_AUTH_PATHS = new Set([
+const PUBLIC_EXACT_PATHS = new Set([
   '/login',
   '/register',
+  '/register/social',
   '/forgot-password',
   '/reset-password',
   '/verify-email',
+  '/aviso-legal',
+  '/privacidad',
+  '/cookies',
+  '/terminos',
 ])
+
+const PUBLIC_PREFIX_PATHS = ['/r/', '/landing']
+
+function isPublicSpaPath(path: string): boolean {
+  if (PUBLIC_EXACT_PATHS.has(path)) return true
+  return PUBLIC_PREFIX_PATHS.some((prefix) =>
+    path === prefix || path.startsWith(prefix.endsWith('/') ? prefix : prefix + '/') || path === prefix
+  )
+}
 
 apiClient.interceptors.response.use(
   (response) => response,
@@ -139,7 +153,7 @@ apiClient.interceptors.response.use(
       const path = window.location.pathname
 
       const skipRedirectToLogin =
-        PUBLIC_AUTH_PATHS.has(path) ||
+        isPublicSpaPath(path) ||
         isInPostAuthGrace() ||
         (isOnboardingPreviewWithoutAuth() && path.startsWith('/onboarding'))
 
