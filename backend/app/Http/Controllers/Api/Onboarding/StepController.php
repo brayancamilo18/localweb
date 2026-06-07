@@ -18,6 +18,7 @@ use App\Services\TemplateService;
 use App\Support\OnboardingDraftMediaPath;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
@@ -281,7 +282,7 @@ class StepController extends BaseApiController
 
         $userId = $user->id;
 
-        /** @var array<int, \Illuminate\Http\UploadedFile>|null $uploaded */
+        /** @var array<int, UploadedFile>|null $uploaded */
         $uploaded = $request->file('photos');
         $newPhotos = is_array($uploaded) ? array_values(array_filter($uploaded)) : [];
 
@@ -476,11 +477,17 @@ class StepController extends BaseApiController
         ]);
 
         $geocoded = false;
+        $geocodePrecision = null;
         try {
-            $coords = $geo->geocode($data['address']);
+            $coords = $geo->geocode(
+                $data['address'],
+                $data['city'] ?? null,
+                isset($data['country_code']) ? strtoupper((string) $data['country_code']) : null,
+            );
             $data['lat'] = $coords['lat'];
             $data['lng'] = $coords['lng'];
             $geocoded = true;
+            $geocodePrecision = $coords['precision'] ?? 'area';
         } catch (GeocodingException) {
             // Warning only.
         }
@@ -500,7 +507,12 @@ class StepController extends BaseApiController
             'email' => trim($data['email']),
         ]);
 
-        return $this->success(['ok' => true, 'geocoded' => $geocoded, 'next_step' => 7]);
+        return $this->success([
+            'ok' => true,
+            'geocoded' => $geocoded,
+            'geocode_precision' => $geocoded ? $geocodePrecision : null,
+            'next_step' => 7,
+        ]);
     }
 
     public function step7(Request $request, BusinessService $businessService, ImageService $imageService, PublicPageUrlService $urls, ReferralCheckoutService $referralCheckout)
