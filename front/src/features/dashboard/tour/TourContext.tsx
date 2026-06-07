@@ -6,7 +6,7 @@ import type { TourContextValue, TourState } from './types'
 
 const STORAGE_KEY_COMPLETED = 'lw_tour_completed_v1'
 const STORAGE_KEY_PRO_COMPLETED = 'lw_pro_tour_completed_v1'
-const STORAGE_KEY_PROGRESS = 'lw_tour_progress'
+const STORAGE_KEY_PROGRESS = 'lw_tour_progress_v2'
 
 /** Claves por negocio: evita que el tour de otro usuario en el mismo navegador bloquee al nuevo. */
 function tourStorageKeys(businessId: number) {

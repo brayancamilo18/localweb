@@ -138,6 +138,7 @@ Route::prefix('v1')->group(function (): void {
         Route::prefix('dashboard')->middleware(['verified.api', 'business.complete', 'throttle:60,1'])->group(function (): void {
             Route::get('/business', [DashboardBusinessController::class, 'show']);
             Route::put('/business', [DashboardBusinessController::class, 'update']);
+            Route::put('/location', [DashboardBusinessController::class, 'updateLocation']);
             Route::post('/tour/complete', [DashboardBusinessController::class, 'completeTour']);
             Route::post('/tour/pro/complete', [DashboardBusinessController::class, 'completeProTour']);
             Route::post('/subdomain', [DashboardBusinessController::class, 'setSubdomain']);

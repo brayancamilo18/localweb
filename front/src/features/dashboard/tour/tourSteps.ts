@@ -4,9 +4,9 @@ import type { TourStep } from './types'
  * Contenido final del tour: 10 secciones del dashboard.
  *
  * Rutas: coinciden con las definidas en `src/App.tsx`
- *   /dashboard, /dashboard/editor, /dashboard/diseno, /dashboard/images, /dashboard/schedule,
- *   /dashboard/services, /dashboard/enlaces, /dashboard/stats,
- *   /dashboard/account, /dashboard/security
+ *   /dashboard, /dashboard/editor, /dashboard/location, /dashboard/diseno,
+ *   /dashboard/brand-color, /dashboard/images, /dashboard/schedule,
+ *   /dashboard/services, /dashboard/enlaces, /dashboard/stats, /dashboard/account
  *
  * Anclas desktop: `data-tour="<id>"` se añade a los NavLink del sidebar
  *   en `features/dashboard/dashboard.tsx`.
@@ -38,6 +38,18 @@ export const TOUR_STEPS: readonly TourStep[] = [
     icon: 'edit',
     title: 'Editar',
     description: 'Cambia el nombre, la descripción, el teléfono y la plantilla visual de tu página.',
+    side: 'right',
+  },
+  {
+    id: 'ubicacion',
+    route: '/dashboard/location',
+    anchorSelector: '[data-tour="ubicacion"]',
+    anchorSelectorMobile: '[data-tour="ubicacion-main"]',
+    icon: 'pin',
+    title: 'Ubicación',
+    description:
+      'Indica país, ciudad y dirección. El mapa de tu web se actualiza con el pin en el sitio exacto.',
+    microcopy: 'Incluye el número de portal para que el marcador caiga donde toca.',
     side: 'right',
   },
   {
@@ -135,17 +147,8 @@ export const TOUR_STEPS: readonly TourStep[] = [
     anchorSelectorMobile: '[data-tour="cuenta-main"]',
     icon: 'user',
     title: 'Cuenta',
-    description: 'Tus datos, suscripción, facturas y referidos. No necesitas tocarlo a diario.',
-    side: 'right',
-  },
-  {
-    id: 'seguridad',
-    route: '/dashboard/security',
-    anchorSelector: '[data-tour="seguridad"]',
-    anchorSelectorMobile: '[data-tour="seguridad-main"]',
-    icon: 'shield',
-    title: 'Seguridad',
-    description: 'Cambia tu contraseña y revisa dónde tienes la sesión abierta.',
+    description:
+      'Tus datos, suscripción, facturas, referidos y seguridad (contraseña y sesiones). No necesitas tocarlo a diario.',
     side: 'right',
   },
 ]

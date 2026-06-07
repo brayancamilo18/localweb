@@ -19,6 +19,7 @@ import VerifyEmailPage from './pages/VerifyEmailPage'
 import DashboardPage from './features/dashboard/DashboardPage'
 import MiPagina from './features/dashboard/sections/MiPagina'
 import Editor from './features/dashboard/sections/Editor'
+import Ubicacion from './features/dashboard/sections/Ubicacion'
 import Diseno from './features/dashboard/sections/Diseno'
 import BrandColor from './features/dashboard/sections/BrandColor'
 import Imagenes from './features/dashboard/sections/Imagenes'
@@ -135,6 +136,7 @@ function AppRoutes() {
         <Route path="/dashboard" element={<DashboardPage />}>
           <Route index element={<MiPagina />} />
           <Route path="editor" element={<Editor />} />
+          <Route path="location" element={<Ubicacion />} />
           <Route path="diseno" element={<Diseno />} />
           <Route path="brand-color" element={<BrandColor />} />
           <Route path="images" element={<Imagenes />} />

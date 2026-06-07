@@ -12,6 +12,7 @@
 export type TourStepId =
   | 'mi-pagina'
   | 'editor'
+  | 'ubicacion'
   | 'diseno'
   | 'brand-color'
   | 'imagenes'
@@ -20,7 +21,6 @@ export type TourStepId =
   | 'enlaces-pro'
   | 'estadisticas'
   | 'cuenta'
-  | 'seguridad'
 
 export type TourSide = 'right' | 'left' | 'top' | 'bottom' | 'center'
 
@@ -36,6 +36,7 @@ export type TourIconName =
   | 'arrowUpRight'
   | 'barChart'
   | 'user'
+  | 'pin'
   | 'shield'
   | 'sparkle'
   | 'x'

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Dashboard;
 
+use App\Exceptions\Auth\GeocodingException;
 use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Resources\BusinessResource;
 use App\Models\PageVisit;
@@ -97,6 +98,64 @@ class BusinessController extends BaseApiController
         $updated->load(['template', 'services', 'images' => fn ($q) => $q->ordered()]);
 
         return $this->success(new BusinessResource($updated));
+    }
+
+    /**
+     * Actualiza país, ciudad y dirección del negocio y recalcula el pin del mapa.
+     *
+     * A diferencia de update(), aquí SIEMPRE re-geocodificamos con los valores nuevos
+     * (país + ciudad + dirección) para que el marcador caiga en el sitio exacto. Si
+     * Nominatim no logra ubicar la dirección, NO guardamos: así la web nunca muestra
+     * un pin que no corresponde con la dirección escrita.
+     */
+    public function updateLocation(Request $request, BusinessService $service, GeocodingService $geo): JsonResponse
+    {
+        $business = $request->user()->business;
+
+        $data = $request->validate([
+            'address' => ['required', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:120'],
+            'country' => ['required', 'string', 'max:120'],
+            'country_code' => ['required', 'string', 'size:2', 'regex:/^[A-Z]{2}$/'],
+        ], [
+            'address.required' => 'Indica la dirección de tu negocio.',
+            'city.required' => 'Indica la ciudad.',
+            'country.required' => 'Indica el país.',
+            'country_code.required' => 'Indica el código de país.',
+            'country_code.size' => 'El código de país debe tener 2 letras.',
+            'country_code.regex' => 'El código de país debe tener 2 letras en mayúscula (por ejemplo, ES).',
+        ]);
+
+        try {
+            $coords = $geo->geocode(
+                $data['address'],
+                $data['city'],
+                strtoupper($data['country_code']),
+            );
+        } catch (GeocodingException) {
+            return $this->error(
+                'No pudimos situar esa dirección en el mapa. Revisa el país, la ciudad y la dirección (incluye el número).',
+                ['address' => 'not_found'],
+                422,
+            );
+        }
+
+        // BusinessObserver invalida public_page:{subdomain} en saved.
+        $updated = $service->update($business, [
+            'address' => $data['address'],
+            'city' => $data['city'],
+            'country' => $data['country'],
+            'country_code' => strtoupper($data['country_code']),
+            'lat' => $coords['lat'],
+            'lng' => $coords['lng'],
+        ]);
+        $updated->load(['template', 'services', 'images' => fn ($q) => $q->ordered()]);
+
+        return $this->success([
+            'business' => new BusinessResource($updated),
+            'geocoded' => true,
+            'geocode_precision' => $coords['precision'] ?? 'area',
+        ]);
     }
 
     public function completeTour(Request $request)
