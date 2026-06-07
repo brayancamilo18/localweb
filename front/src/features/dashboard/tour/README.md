@@ -1,6 +1,6 @@
 # Dashboard Tour · ONEZ
 
-Tour guiado de primera vez del dashboard. **9 pasos** (uno por sección del
+Tour guiado de primera vez del dashboard. **10 pasos** (uno por sección del
 sidebar), modal de bienvenida, modal de cierre, y FAB "Reanudar tour"
 cuando el usuario lo cierra a mitad.
 
@@ -17,7 +17,7 @@ cuando el usuario lo cierra a mitad.
 src/features/dashboard/tour/
 ├── README.md
 ├── types.ts
-├── tourSteps.ts        ← contenido final de los 9 pasos
+├── tourSteps.ts        ← contenido final de los 10 pasos
 ├── TourContext.tsx     ← <TourProvider> + useTour()
 ├── TourRunner.tsx      ← orquestador único, renderiza welcome/overlay/tooltip/finish/FAB
 ├── TourOverlay.tsx     ← spotlight | soft-veil (default) | attenuate
@@ -64,7 +64,7 @@ con `showWelcome: true` y `<TourRunner>` muestra el modal de bienvenida.
 | Key                          | Significado                                          |
 |------------------------------|------------------------------------------------------|
 | `lw_tour_completed_v1`       | `'true'` cuando se terminó (también marca backend)   |
-| `lw_tour_progress`           | `{stepIndex, savedAt}` si se cerró a mitad           |
+| `lw_tour_progress_v2`        | `{stepIndex, savedAt}` si se cerró a mitad           |
 | `lw_tour_mobile_intro_seen`  | `'true'` para no repetir el paso 0 móvil             |
 
 Sufijo `_v1` para poder invalidar a todos los usuarios si rehacemos el tour.
@@ -83,7 +83,7 @@ En consola del navegador para resetear:
 
 ```js
 localStorage.removeItem('lw_tour_completed_v1');
-localStorage.removeItem('lw_tour_progress');
+localStorage.removeItem('lw_tour_progress_v2');
 localStorage.removeItem('lw_tour_mobile_intro_seen');
 location.reload();
 ```

@@ -21,7 +21,7 @@ const ABOUT_TITLE_MAX = 160
 
 const COMPLETION_RING_R = 24
 
-type FieldId = 'name' | 'tagline' | 'about_title' | 'description' | 'phone' | 'email' | 'address'
+type FieldId = 'name' | 'tagline' | 'about_title' | 'description' | 'phone' | 'email'
 
 export default function Editor() {
   const { business, refetch } = useDashboard()
@@ -35,7 +35,6 @@ export default function Editor() {
   const [description, setDescription] = useState(business.description ?? '')
   const [phone, setPhone] = useState(business.phone ?? '')
   const [email, setEmail] = useState(business.email ?? '')
-  const [address, setAddress] = useState(business.address ?? '')
   const [focused, setFocused] = useState<FieldId | null>('name')
 
   useEffect(() => {
@@ -45,7 +44,6 @@ export default function Editor() {
     setDescription(business.description ?? '')
     setPhone(business.phone ?? '')
     setEmail(business.email ?? '')
-    setAddress(business.address ?? '')
   }, [business])
 
   const isDirty = useMemo(() => {
@@ -56,16 +54,15 @@ export default function Editor() {
       norm(aboutTitle) !== norm(business.about_title ?? '') ||
       norm(description) !== norm(business.description ?? '') ||
       norm(phone) !== norm(business.phone ?? '') ||
-      norm(email) !== norm(business.email ?? '') ||
-      norm(address) !== norm(business.address ?? '')
+      norm(email) !== norm(business.email ?? '')
     )
-  }, [name, tagline, aboutTitle, description, phone, email, address, business])
+  }, [name, tagline, aboutTitle, description, phone, email, business])
 
   const completion = useMemo(() => {
-    const fields = [name, tagline, aboutTitle, description, phone, email, address]
+    const fields = [name, tagline, aboutTitle, description, phone, email]
     const filled = fields.filter((f) => f.trim().length > 0).length
     return Math.round((filled / fields.length) * 100)
-  }, [name, tagline, aboutTitle, description, phone, email, address])
+  }, [name, tagline, aboutTitle, description, phone, email])
 
   const completionCircumference = 2 * Math.PI * COMPLETION_RING_R
 
@@ -78,7 +75,6 @@ export default function Editor() {
         description: description.trim() || null,
         phone: phone.trim() || null,
         email: email.trim() || null,
-        address: address.trim() || null,
       }),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: keys.dashboard.business })
@@ -283,23 +279,13 @@ export default function Editor() {
           </ContentField>
         </div>
 
-        <ContentField
-          inputId={`${formId}-address`}
-          label="Dirección"
-          optional
-          icon="pin"
-          focused={focused === 'address'}
-          onFocus={() => setFocused('address')}
-        >
-          <input
-            id={`${formId}-address`}
-            className="lw-content-editor__input"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            onFocus={() => setFocused('address')}
-            disabled={mutation.isPending}
-          />
-        </ContentField>
+        <Link to="/dashboard/location" className="lw-content-editor__location-link">
+          <Icon name="pin" size={16} />
+          <span>
+            ¿Cambiar la dirección o el mapa? Ve a <strong>Ubicación</strong>.
+          </span>
+          <Icon name="arrowRight" size={14} />
+        </Link>
       </div>
 
       <div className="lw-content-editor__save-bar">

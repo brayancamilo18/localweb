@@ -27,6 +27,27 @@ export async function updateBusiness(data: Partial<Business>): Promise<Business>
   return response.data.data
 }
 
+export type GeocodePrecision = 'exact' | 'street' | 'area'
+
+export type UpdateLocationPayload = {
+  address: string
+  city: string
+  country: string
+  country_code: string
+}
+
+export type UpdateLocationResult = {
+  business: Business
+  geocoded: boolean
+  geocode_precision: GeocodePrecision | null
+}
+
+/** Actualiza país/ciudad/dirección y recalcula el pin del mapa en el backend. */
+export async function updateLocation(payload: UpdateLocationPayload): Promise<UpdateLocationResult> {
+  const response = await apiClient.put<ApiResponse<UpdateLocationResult>>('/dashboard/location', payload)
+  return response.data.data
+}
+
 export async function updateBusinessGoogleMapsUrl(url: string | null): Promise<Business> {
   return updateBusiness({ google_maps_url: url })
 }
