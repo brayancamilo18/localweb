@@ -81,7 +81,11 @@ class BusinessController extends BaseApiController
 
         if (array_key_exists('address', $data) && $data['address'] !== $business->address) {
             try {
-                $coords = $geo->geocode((string) $data['address']);
+                $coords = $geo->geocode(
+                    (string) $data['address'],
+                    (string) ($business->city ?? '') ?: null,
+                    $business->country_code ? strtoupper((string) $business->country_code) : null,
+                );
                 $data['lat'] = $coords['lat'];
                 $data['lng'] = $coords['lng'];
             } catch (\Throwable) {

@@ -20,9 +20,9 @@ beforeEach(function () {
 
     app()->instance(GeocodingService::class, new class extends GeocodingService
     {
-        public function geocode(string $address): array
+        public function geocode(string $address, ?string $city = null, ?string $countryCode = null): array
         {
-            return ['lat' => 40.4, 'lng' => -3.7, 'display_name' => 'Test Madrid'];
+            return ['lat' => 40.4, 'lng' => -3.7, 'display_name' => 'Test Madrid', 'precision' => 'exact', 'addresstype' => 'house'];
         }
     });
 });
