@@ -187,7 +187,7 @@ function TemplateThumbPreview({
           position: 'relative',
           width: '100%',
           height: 0,
-          paddingBottom: `${thumbAspectPct}%`,
+          paddingBottom: thumbAspectPct,
           background: placeholderBg,
         }}
       >
