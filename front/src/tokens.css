@@ -522,19 +522,6 @@ textarea::placeholder {
 .lw-template-thumb-wrap {
   min-width: 0;
   max-width: 100%;
-  /* pan-y: el scroll vertical de la página debe funcionar al tocar la miniatura. */
-  touch-action: pan-y;
-  overscroll-behavior: none;
-}
-
-/* Capa transparente sobre el iframe (Safari iOS): intercepta el toque pero permite scroll vertical. */
-.lw-template-thumb-shield {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  touch-action: pan-y;
-  pointer-events: auto;
-  background: transparent;
 }
 
 .lw-step1-template-card .lw-template-thumb-wrap,

@@ -37,7 +37,7 @@ import {
 import { SectorIcon } from '../../components/primitives/SectorIcon'
 import Step7Plan from './steps/Step7Plan'
 import ProAboutSectionsEditor from '../shared/ProAboutSectionsEditor'
-import { usePreferStaticThumb } from '../shared/templateThumb'
+import TemplateThumbImage from '../shared/TemplateThumbImage'
 import { buildGoogleDirectionsUrl } from '../../lib/googleMapsDirectionsUrl'
 import {
   buildPublicVcardUrl,
@@ -397,11 +397,7 @@ function previewDemoHostForVariant(variant: Step1PreviewVariant): string {
   }
 }
 
-/** Iframe “thumb” del paso plantilla: documento renderizado a esta resolución y escalado al ancho real de la tarjeta. */
-const TEMPLATE_THUMB_DOC_W = 1280
-const TEMPLATE_THUMB_DOC_H = 760
-
-/** Color de marca por variante: se usa como fondo del placeholder mientras el iframe carga. */
+/** Color de marca por variante: se usa como fondo del placeholder mientras carga la miniatura. */
 const TEMPLATE_THUMB_PLACEHOLDER_COLOR: Record<Step1PreviewVariant, string> = {
   'noir-elite': '#0A0A0A',
   'bloom-studio': '#F5E6D3',
@@ -459,53 +455,8 @@ function TemplateIframe({
   compactThumb?: boolean
 }) {
   const templatePath = TEMPLATE_URL_BY_VARIANT[variant]
-  const preferStaticThumb = usePreferStaticThumb()
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
-  const thumbWrapRef = useRef<HTMLDivElement | null>(null)
-  const [thumbScale, setThumbScale] = useState(0.25)
-  const [hasLoaded, setHasLoaded] = useState(false)
   const loadedRef = useRef(false)
-
-  useLayoutEffect(() => {
-    if (mode !== 'thumb') return
-    const el = thumbWrapRef.current
-    if (!el) return
-    const update = () => {
-      const w = el.getBoundingClientRect().width
-      if (w > 0) setThumbScale(Math.min(w, el.parentElement?.clientWidth ?? w) / TEMPLATE_THUMB_DOC_W)
-    }
-    update()
-    const ro = new ResizeObserver(update)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [mode, compactThumb])
-
-  const [isMounted, setIsMounted] = useState(mode !== 'thumb')
-
-  useEffect(() => {
-    if (mode !== 'thumb') return
-    if (typeof IntersectionObserver === 'undefined') {
-      setIsMounted(true)
-      return
-    }
-    const el = thumbWrapRef.current
-    if (!el) return
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setIsMounted(true)
-            io.disconnect()
-            break
-          }
-        }
-      },
-      // Primera vez visible: monta. Luego queda en caché aunque salga de pantalla.
-      { rootMargin: preferStaticThumb ? '0px' : '80px 0px', threshold: 0 },
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [mode, preferStaticThumb])
 
   const hasPreviewPayload = Boolean(previewData)
   const src = useMemo(() => {
@@ -658,91 +609,7 @@ function TemplateIframe({
 
   if (mode === 'thumb') {
     const placeholderColor = TEMPLATE_THUMB_PLACEHOLDER_COLOR[variant] ?? '#FAFAFA'
-    const placeholderBg = preferStaticThumb
-      ? `linear-gradient(160deg, ${placeholderColor} 0%, color-mix(in srgb, ${placeholderColor} 50%, #1a1a1a) 100%)`
-      : placeholderColor
-    const thumbShield = <div className="lw-template-thumb-shield" aria-hidden="true" />
-    const iframeEl = isMounted ? (
-      <iframe
-        ref={iframeRef}
-        title={`Plantilla ${variant} portada`}
-        src={src}
-        loading="lazy"
-        onLoad={() => {
-          loadedRef.current = true
-          setHasLoaded(true)
-          syncPreview({ alignToHash: true })
-        }}
-        sandbox="allow-scripts allow-popups allow-forms allow-same-origin"
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: TEMPLATE_THUMB_DOC_W,
-          height: TEMPLATE_THUMB_DOC_H,
-          border: 'none',
-          transform: `scale(${thumbScale})`,
-          transformOrigin: 'top left',
-          pointerEvents: 'none',
-          background: '#fff',
-          opacity: hasLoaded ? 1 : 0,
-          transition: 'opacity 200ms ease-out',
-        }}
-      />
-    ) : null
-
-    if (compactThumb) {
-      return (
-        <div
-          ref={thumbWrapRef}
-          className="lw-template-thumb-wrap lw-template-thumb-wrap--compact"
-          style={{
-            position: 'relative',
-            width: '100%',
-            maxWidth: '100%',
-            minWidth: 0,
-            height: 148,
-            overflow: 'hidden',
-            background: placeholderBg,
-            contain: 'layout paint',
-          }}
-        >
-          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-            {iframeEl}
-            {thumbShield}
-          </div>
-        </div>
-      )
-    }
-
-    const thumbAspectPct = (TEMPLATE_THUMB_DOC_H / TEMPLATE_THUMB_DOC_W) * 100
-    return (
-      <div
-        ref={thumbWrapRef}
-        className="lw-template-thumb-wrap"
-        style={{
-          position: 'relative',
-          width: '100%',
-          maxWidth: '100%',
-          minWidth: 0,
-          overflow: 'hidden',
-          contain: 'layout paint',
-        }}
-      >
-        <div
-          style={{
-            position: 'relative',
-            width: '100%',
-            height: 0,
-            paddingBottom: `${thumbAspectPct}%`,
-            background: placeholderBg,
-          }}
-        >
-          {iframeEl}
-          {thumbShield}
-        </div>
-      </div>
-    )
+    return <TemplateThumbImage slug={variant} color={placeholderColor} compact={compactThumb} />
   }
 
   return (

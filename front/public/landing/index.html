@@ -345,13 +345,11 @@
   /* Phone content typography overrides */
   .phone-screen, .phone-screen * { font-family: 'Inter', sans-serif; }
 
-  /* Template preview iframes (mismos HTML que /templates/*.html del producto) */
+  /* Miniaturas de plantilla: captura estática del hero (sin iframe, evita crash de memoria en móvil). */
   .tpl-preview {
     position: relative;
     background: #FAFAFA;
     border-bottom: 1px solid #E8E6E1;
-    touch-action: pan-y;
-    overscroll-behavior: none;
   }
   .tpl-preview__viewport {
     position: relative;
@@ -360,32 +358,18 @@
     padding-bottom: 59.375%; /* 760 / 1280 */
     overflow: hidden;
     contain: layout paint;
-    touch-action: pan-y;
-    overscroll-behavior: none;
   }
-  /* Capa sobre el iframe: scroll vertical en móvil sin interactuar dentro del iframe. */
-  .tpl-preview__shield {
+  .tpl-preview__img {
     position: absolute;
     inset: 0;
-    z-index: 1;
-    touch-action: pan-y;
-    pointer-events: auto;
-    background: transparent;
-  }
-  .tpl-preview__frame {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 1280px;
-    height: 760px;
-    border: none;
-    transform-origin: top left;
-    pointer-events: none;
-    background: #fff;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
     opacity: 0;
     transition: opacity .25s ease;
   }
-  .tpl-preview__frame.is-loaded { opacity: 1; }
+  .tpl-preview__img.is-loaded { opacity: 1; }
   .tpl-preview__expand {
     position: absolute;
     bottom: 10px;
@@ -997,7 +981,7 @@
         </div>
         <div class="tpl-preview" data-tpl-slug="bloom-studio" style="background:#FBF8F3;">
           <div class="tpl-preview__viewport">
-            <iframe class="tpl-preview__frame" title="Vista previa Bloom Studio" data-tpl-slug="bloom-studio" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe>
+            <img class="tpl-preview__img" alt="Vista previa Bloom Studio" src="/templates/thumbs/bloom-studio.webp" loading="lazy" decoding="async" />
           </div>
           <button type="button" class="tpl-preview__expand focus-ring" data-tpl-slug="bloom-studio" data-tpl-name="Bloom Studio">Ver plantilla</button>
         </div>
@@ -1015,7 +999,7 @@
         </div>
         <div class="tpl-preview" data-tpl-slug="noir-elite" style="background:#0B1F1A;">
           <div class="tpl-preview__viewport">
-            <iframe class="tpl-preview__frame" title="Vista previa Noir Elite" data-tpl-slug="noir-elite" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe>
+            <img class="tpl-preview__img" alt="Vista previa Noir Elite" src="/templates/thumbs/noir-elite.webp" loading="lazy" decoding="async" />
           </div>
           <button type="button" class="tpl-preview__expand focus-ring" data-tpl-slug="noir-elite" data-tpl-name="Noir Elite">Ver plantilla</button>
         </div>
@@ -1033,7 +1017,7 @@
         </div>
         <div class="tpl-preview" data-tpl-slug="urban-bold" style="background:#1a1a18;">
           <div class="tpl-preview__viewport">
-            <iframe class="tpl-preview__frame" title="Vista previa Urban Bold" data-tpl-slug="urban-bold" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe>
+            <img class="tpl-preview__img" alt="Vista previa Urban Bold" src="/templates/thumbs/urban-bold.webp" loading="lazy" decoding="async" />
           </div>
           <button type="button" class="tpl-preview__expand focus-ring" data-tpl-slug="urban-bold" data-tpl-name="Urban Bold">Ver plantilla</button>
         </div>
@@ -1051,7 +1035,7 @@
         </div>
         <div class="tpl-preview" data-tpl-slug="coastal-calm" style="background:#F7FAFA;">
           <div class="tpl-preview__viewport">
-            <iframe class="tpl-preview__frame" title="Vista previa Coastal Calm" data-tpl-slug="coastal-calm" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe>
+            <img class="tpl-preview__img" alt="Vista previa Coastal Calm" src="/templates/thumbs/coastal-calm.webp" loading="lazy" decoding="async" />
           </div>
           <button type="button" class="tpl-preview__expand focus-ring" data-tpl-slug="coastal-calm" data-tpl-name="Coastal Calm">Ver plantilla</button>
         </div>
@@ -1069,7 +1053,7 @@
         </div>
         <div class="tpl-preview" data-tpl-slug="tavola-warm" style="background:#FFF8F0;">
           <div class="tpl-preview__viewport">
-            <iframe class="tpl-preview__frame" title="Vista previa Tavola Warm" data-tpl-slug="tavola-warm" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe>
+            <img class="tpl-preview__img" alt="Vista previa Tavola Warm" src="/templates/thumbs/tavola-warm.webp" loading="lazy" decoding="async" />
           </div>
           <button type="button" class="tpl-preview__expand focus-ring" data-tpl-slug="tavola-warm" data-tpl-name="Tavola Warm">Ver plantilla</button>
         </div>
@@ -1087,7 +1071,7 @@
         </div>
         <div class="tpl-preview" data-tpl-slug="trust-clinic" style="background:#F5F8FC;">
           <div class="tpl-preview__viewport">
-            <iframe class="tpl-preview__frame" title="Vista previa Trust Clinic" data-tpl-slug="trust-clinic" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe>
+            <img class="tpl-preview__img" alt="Vista previa Trust Clinic" src="/templates/thumbs/trust-clinic.webp" loading="lazy" decoding="async" />
           </div>
           <button type="button" class="tpl-preview__expand focus-ring" data-tpl-slug="trust-clinic" data-tpl-name="Trust Clinic">Ver plantilla</button>
         </div>
@@ -1105,7 +1089,7 @@
         </div>
         <div class="tpl-preview" data-tpl-slug="tech-sleek" style="background:#F5F5F5;">
           <div class="tpl-preview__viewport">
-            <iframe class="tpl-preview__frame" title="Vista previa Tech Sleek" data-tpl-slug="tech-sleek" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe>
+            <img class="tpl-preview__img" alt="Vista previa Tech Sleek" src="/templates/thumbs/tech-sleek.webp" loading="lazy" decoding="async" />
           </div>
           <button type="button" class="tpl-preview__expand focus-ring" data-tpl-slug="tech-sleek" data-tpl-name="Tech Sleek">Ver plantilla</button>
         </div>
@@ -1123,7 +1107,7 @@
         </div>
         <div class="tpl-preview" data-tpl-slug="mono-edito" style="background:#FAFAFA;">
           <div class="tpl-preview__viewport">
-            <iframe class="tpl-preview__frame" title="Vista previa Mono Edito" data-tpl-slug="mono-edito" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe>
+            <img class="tpl-preview__img" alt="Vista previa Mono Edito" src="/templates/thumbs/mono-edito.webp" loading="lazy" decoding="async" />
           </div>
           <button type="button" class="tpl-preview__expand focus-ring" data-tpl-slug="mono-edito" data-tpl-name="Mono Edito">Ver plantilla</button>
         </div>
@@ -1741,23 +1725,16 @@
     });
   });
 
-  // ---- Template preview iframes (front/public/templates/*.html) ----
-  var TPL_DOC_W = 1280;
-
+  // ---- Miniaturas de plantilla (capturas estáticas /templates/thumbs/*.webp) ----
   /** Mismo origen que la landing (onez.es) para evitar X-Frame-Options de app.onez.es. */
   function templatesOrigin() {
     if (location.protocol === 'file:') return null;
     return location.origin;
   }
 
-  function isMobileThumb() {
-    return window.matchMedia('(max-width: 780px)').matches;
-  }
-
-  /** Rutas en dev (localhost:5173), producción (onez.es/templates) y file:// local. */
-  function templateUrl(slug, mode) {
+  /** URL del HTML de la plantilla (solo para el modal de vista previa a pantalla completa). */
+  function templateUrl(slug) {
     var qs = '?v=5&embed=1&preview=1&landingDemo=1';
-    if (mode === 'thumb') qs += '&thumb=1';
     if (location.protocol !== 'file:') {
       qs += '&parentOrigin=' + encodeURIComponent(location.origin);
     }
@@ -1778,65 +1755,14 @@
     if (fileWarn) fileWarn.classList.remove('hidden');
   }
 
-  function scaleTplFrame(viewport, frame) {
-    var w = viewport.getBoundingClientRect().width;
-    if (w <= 0) return;
-    var scale = w / TPL_DOC_W;
-    frame.style.transform = 'scale(' + scale + ')';
-  }
-
-  document.querySelectorAll('.tpl-preview').forEach(function (wrap) {
-    var viewport = wrap.querySelector('.tpl-preview__viewport');
-    var frame = wrap.querySelector('.tpl-preview__frame');
-    if (!viewport || !frame) return;
-
-    var slug = wrap.getAttribute('data-tpl-slug') || frame.getAttribute('data-tpl-slug');
-    if (!slug) return;
-
-    var shield = document.createElement('div');
-    shield.className = 'tpl-preview__shield';
-    shield.setAttribute('aria-hidden', 'true');
-    viewport.appendChild(shield);
-
-    var mounted = false;
-    function mountFrame() {
-      if (mounted) return;
-      mounted = true;
-      frame.setAttribute('src', templateUrl(slug, 'thumb'));
-    }
-
-    function updateScale() {
-      scaleTplFrame(viewport, frame);
-    }
-
-    if ('IntersectionObserver' in window) {
-      var io = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            mountFrame();
-            updateScale();
-            io.disconnect();
-          }
-        });
-      }, {
-        rootMargin: isMobileThumb() ? '0px' : '80px 0px',
-        threshold: 0,
+  // Fade-in de cada miniatura cuando su imagen termina de cargar.
+  document.querySelectorAll('.tpl-preview__img').forEach(function (img) {
+    if (img.complete && img.naturalWidth > 0) {
+      img.classList.add('is-loaded');
+    } else {
+      img.addEventListener('load', function () {
+        img.classList.add('is-loaded');
       });
-      io.observe(wrap);
-    } else {
-      mountFrame();
-    }
-
-    frame.addEventListener('load', function () {
-      frame.classList.add('is-loaded');
-      updateScale();
-    });
-
-    if ('ResizeObserver' in window) {
-      var ro = new ResizeObserver(updateScale);
-      ro.observe(viewport);
-    } else {
-      window.addEventListener('resize', updateScale);
     }
   });
 
@@ -1857,7 +1783,7 @@
   function openTplModal(slug, name) {
     if (!tplModal || !tplModalFrame) return;
     tplModalTitle.textContent = name + ' — vista previa';
-    tplModalFrame.src = templateUrl(slug, 'full');
+    tplModalFrame.src = templateUrl(slug);
     tplModal.hidden = false;
     tplModal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
