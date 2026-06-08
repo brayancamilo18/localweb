@@ -3,6 +3,19 @@
  * - Actualiza [data-wa-link], cualquier <a href*="wa.me"> y placeholders {{whatsapp}}
  * - Abre WhatsApp en nueva pestaña (necesario dentro del iframe del SPA)
  */
+(function initThumbScrollLock() {
+  if (new URLSearchParams(window.location.search).get('thumb') !== '1') return;
+  var id = 'lw-thumb-scroll-lock';
+  if (document.getElementById(id)) return;
+  var style = document.createElement('style');
+  style.id = id;
+  style.textContent =
+    'html,body{overflow:hidden!important;height:100%!important;max-height:100%!important;' +
+    'overscroll-behavior:none!important;touch-action:none!important;' +
+    'position:fixed!important;width:100%!important;margin:0!important;}';
+  (document.head || document.documentElement).appendChild(style);
+})();
+
 (function (global) {
   function digitsFrom(raw, key) {
     if (!raw || raw[key] == null) return '';

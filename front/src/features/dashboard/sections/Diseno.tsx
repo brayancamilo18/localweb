@@ -174,32 +174,35 @@ function TemplateThumbPreview({ slug, business }: { slug: string; business: Busi
         }}
       >
         {isVisible ? (
-          <iframe
-            ref={iframeRef}
-            title={`Vista previa ${slug}`}
-            src={src}
-            loading="lazy"
-            onLoad={() => {
-              loadedRef.current = true
-              setHasLoaded(true)
-              syncPreview()
-            }}
-            sandbox="allow-scripts allow-popups allow-forms allow-same-origin"
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: TEMPLATE_THUMB_DOC_W,
-              height: TEMPLATE_THUMB_DOC_H,
-              border: 'none',
-              transform: `scale(${thumbScale})`,
-              transformOrigin: 'top left',
-              pointerEvents: 'none',
-              background: '#fff',
-              opacity: hasLoaded ? 1 : 0,
-              transition: 'opacity 200ms ease-out',
-            }}
-          />
+          <>
+            <iframe
+              ref={iframeRef}
+              title={`Vista previa ${slug}`}
+              src={src}
+              loading="lazy"
+              onLoad={() => {
+                loadedRef.current = true
+                setHasLoaded(true)
+                syncPreview()
+              }}
+              sandbox="allow-scripts allow-popups allow-forms allow-same-origin"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: TEMPLATE_THUMB_DOC_W,
+                height: TEMPLATE_THUMB_DOC_H,
+                border: 'none',
+                transform: `scale(${thumbScale})`,
+                transformOrigin: 'top left',
+                pointerEvents: 'none',
+                background: '#fff',
+                opacity: hasLoaded ? 1 : 0,
+                transition: 'opacity 200ms ease-out',
+              }}
+            />
+            <div className="lw-template-thumb-shield" aria-hidden="true" />
+          </>
         ) : null}
       </div>
     </div>

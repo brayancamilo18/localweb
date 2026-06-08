@@ -87,7 +87,7 @@ header.hero,#servicios,#sobre-nosotros,#galeria,#horario,#contacto,#opiniones,#m
   .burger{display:none!important}
 }
 @media(max-width:780px){
-  .nav{left:10px;right:10px;transform:none;width:auto;max-width:none;flex-direction:column;align-items:stretch;gap:0;border-radius:18px;padding:14px 16px}
+  .nav{left:10px;right:10px;transform:none;width:auto;max-width:none;flex-direction:column;align-items:stretch;gap:0;border-radius:18px;padding:14px 16px;backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(31,29,26,.92)}
   .nav-top{display:flex;align-items:center;justify-content:space-between;width:100%;gap:12px}
   .nav-panel{width:100%}
   .nav-panel{display:flex;flex-direction:column;max-height:0;opacity:0;overflow:hidden;transform:translateY(-10px);pointer-events:none;margin-top:0;transition:max-height .5s var(--ease),opacity .4s var(--ease),transform .4s var(--ease),margin .4s var(--ease)}
@@ -882,7 +882,7 @@ function lwTrackClick(kind) {
     applyGraphiteGalleryScroll();
   }
 
-  if (!reduced) {
+  if (!reduced && !graphiteGalleryUsesNative()) {
     var pxEls = Array.prototype.slice.call(document.querySelectorAll('[data-parallax]'));
     var ticking = false;
     function applyParallax() {
