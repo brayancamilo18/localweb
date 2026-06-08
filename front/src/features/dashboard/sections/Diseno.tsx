@@ -26,16 +26,10 @@ import TemplateChangeConfirmModal, {
 import { keys } from '../../../api/queryKeys'
 import type { ApiError, Business, Template } from '../../../types/api'
 import PublicHtmlTemplateFrame from '../../public-page/PublicHtmlTemplateFrame'
-import { publicBusinessToTemplatePayload } from '../../public-page/publicTemplatePayload'
 import { useDashboard } from '../context/DashboardContext'
 import DisenoPagination from './DisenoPagination'
 import DashboardSectionHeader from '../components/DashboardSectionHeader'
-import {
-  TEMPLATE_THUMB_DOC_H,
-  TEMPLATE_THUMB_DOC_W,
-  templateThumbAspectPadding,
-  usePreferStaticThumb,
-} from '../../shared/templateThumb'
+import TemplateThumbImage from '../../shared/TemplateThumbImage'
 import '../components/dashboardSectionHeader.css'
 
 const PAGE_SIZE = 9
@@ -82,150 +76,6 @@ function businessWithTemplate(business: Business, template: Template): Business 
   }
 }
 
-function TemplateThumbPreview({
-  slug,
-  business,
-  primaryColor,
-}: {
-  slug: string
-  business: Business
-  primaryColor: string
-}) {
-  const mobile = usePreferStaticThumb()
-  const iframeRef = useRef<HTMLIFrameElement | null>(null)
-  const thumbWrapRef = useRef<HTMLDivElement | null>(null)
-  const [thumbScale, setThumbScale] = useState(0.25)
-  const [isMounted, setIsMounted] = useState(false)
-  const [hasLoaded, setHasLoaded] = useState(false)
-  const loadedRef = useRef(false)
-
-  useLayoutEffect(() => {
-    const el = thumbWrapRef.current
-    if (!el) return
-    const update = () => {
-      const w = el.getBoundingClientRect().width
-      if (w > 0) setThumbScale(w / TEMPLATE_THUMB_DOC_W)
-    }
-    update()
-    const ro = new ResizeObserver(update)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
-
-  useEffect(() => {
-    if (typeof IntersectionObserver === 'undefined') {
-      setIsMounted(true)
-      return
-    }
-    const el = thumbWrapRef.current
-    if (!el) return
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setIsMounted(true)
-            io.disconnect()
-            break
-          }
-        }
-      },
-      // Primera vez visible: monta. Luego queda en caché aunque salga de pantalla.
-      { rootMargin: mobile ? '0px' : '80px 0px', threshold: 0 },
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [mobile])
-
-  const src = useMemo(() => {
-    const params = new URLSearchParams()
-    params.set('v', '4')
-    params.set('embed', '1')
-    params.set('thumb', '1')
-    params.set('preview', '1')
-    params.set('parentOrigin', window.location.origin)
-    return `/templates/${slug}.html?${params.toString()}`
-  }, [slug])
-
-  const syncPreview = useCallback(() => {
-    const frame = iframeRef.current
-    if (!frame?.contentWindow) return
-    frame.contentWindow.postMessage(
-      {
-        type: 'lw:onboarding-preview',
-        alignToHash: true,
-        payload: publicBusinessToTemplatePayload(business),
-      },
-      window.location.origin,
-    )
-  }, [business])
-
-  useEffect(() => {
-    if (loadedRef.current) syncPreview()
-  }, [syncPreview])
-
-  const thumbAspectPct = templateThumbAspectPadding()
-  const placeholderColor = primaryColor || business.template.primary_color || '#FAFAFA'
-  const placeholderBg = mobile
-    ? `linear-gradient(160deg, ${placeholderColor} 0%, color-mix(in srgb, ${placeholderColor} 50%, #1a1a1a) 100%)`
-    : placeholderColor
-
-  return (
-    <div
-      ref={thumbWrapRef}
-      className="lw-template-thumb-wrap"
-      style={{
-        position: 'relative',
-        width: '100%',
-        maxWidth: '100%',
-        minWidth: 0,
-        overflow: 'hidden',
-        contain: 'layout paint',
-      }}
-    >
-      <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: 0,
-          paddingBottom: thumbAspectPct,
-          background: placeholderBg,
-        }}
-      >
-        {isMounted ? (
-          <>
-            <iframe
-              ref={iframeRef}
-              title={`Vista previa ${slug}`}
-              src={src}
-              loading="lazy"
-              onLoad={() => {
-                loadedRef.current = true
-                setHasLoaded(true)
-                syncPreview()
-              }}
-              sandbox="allow-scripts allow-popups allow-forms allow-same-origin"
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: TEMPLATE_THUMB_DOC_W,
-                height: TEMPLATE_THUMB_DOC_H,
-                border: 'none',
-                transform: `scale(${thumbScale})`,
-                transformOrigin: 'top left',
-                pointerEvents: 'none',
-                background: '#fff',
-                opacity: hasLoaded ? 1 : 0,
-                transition: 'opacity 200ms ease-out',
-              }}
-            />
-            <div className="lw-template-thumb-shield" aria-hidden="true" />
-          </>
-        ) : null}
-      </div>
-    </div>
-  )
-}
 
 function TemplatePreviewModal({
   template,
@@ -625,10 +475,9 @@ export default function Diseno() {
                   }}
                 >
                   <div style={{ position: 'relative' }}>
-                    <TemplateThumbPreview
+                    <TemplateThumbImage
                       slug={template.slug}
-                      business={business}
-                      primaryColor={template.primary_color}
+                      color={template.primary_color}
                     />
                     <div
                       style={{
