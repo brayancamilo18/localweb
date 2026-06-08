@@ -1805,13 +1805,6 @@
       frame.setAttribute('src', templateUrl(slug, 'thumb'));
     }
 
-    function unmountFrame() {
-      if (!mounted) return;
-      mounted = false;
-      frame.removeAttribute('src');
-      frame.classList.remove('is-loaded');
-    }
-
     function updateScale() {
       scaleTplFrame(viewport, frame);
     }
@@ -1822,8 +1815,7 @@
           if (entry.isIntersecting) {
             mountFrame();
             updateScale();
-          } else {
-            unmountFrame();
+            io.disconnect();
           }
         });
       }, {

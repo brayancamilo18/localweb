@@ -95,7 +95,7 @@ function TemplateThumbPreview({
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
   const thumbWrapRef = useRef<HTMLDivElement | null>(null)
   const [thumbScale, setThumbScale] = useState(0.25)
-  const [isVisible, setIsVisible] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const [hasLoaded, setHasLoaded] = useState(false)
   const loadedRef = useRef(false)
 
@@ -114,7 +114,7 @@ function TemplateThumbPreview({
 
   useEffect(() => {
     if (typeof IntersectionObserver === 'undefined') {
-      setIsVisible(true)
+      setIsMounted(true)
       return
     }
     const el = thumbWrapRef.current
@@ -122,14 +122,14 @@ function TemplateThumbPreview({
     const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          setIsVisible(entry.isIntersecting)
-          if (!entry.isIntersecting) {
-            loadedRef.current = false
-            setHasLoaded(false)
+          if (entry.isIntersecting) {
+            setIsMounted(true)
+            io.disconnect()
+            break
           }
         }
       },
-      // En móvil cargamos solo el que está realmente en pantalla para no acumular iframes.
+      // Primera vez visible: monta. Luego queda en caché aunque salga de pantalla.
       { rootMargin: mobile ? '0px' : '80px 0px', threshold: 0 },
     )
     io.observe(el)
@@ -191,7 +191,7 @@ function TemplateThumbPreview({
           background: placeholderBg,
         }}
       >
-        {isVisible ? (
+        {isMounted ? (
           <>
             <iframe
               ref={iframeRef}
