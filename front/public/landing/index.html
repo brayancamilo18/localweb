@@ -350,6 +350,8 @@
     position: relative;
     background: #FAFAFA;
     border-bottom: 1px solid #E8E6E1;
+    touch-action: pan-y;
+    overscroll-behavior: none;
   }
   .tpl-preview__viewport {
     position: relative;
@@ -358,6 +360,17 @@
     padding-bottom: 59.375%; /* 760 / 1280 */
     overflow: hidden;
     contain: layout paint;
+    touch-action: pan-y;
+    overscroll-behavior: none;
+  }
+  /* Capa sobre el iframe: scroll vertical en móvil sin interactuar dentro del iframe. */
+  .tpl-preview__shield {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    touch-action: pan-y;
+    pointer-events: auto;
+    background: transparent;
   }
   .tpl-preview__frame {
     position: absolute;
@@ -1737,9 +1750,14 @@
     return location.origin;
   }
 
+  function isMobileThumb() {
+    return window.matchMedia('(max-width: 780px)').matches;
+  }
+
   /** Rutas en dev (localhost:5173), producción (onez.es/templates) y file:// local. */
   function templateUrl(slug, mode) {
     var qs = '?v=5&embed=1&preview=1&landingDemo=1';
+    if (mode === 'thumb') qs += '&thumb=1';
     if (location.protocol !== 'file:') {
       qs += '&parentOrigin=' + encodeURIComponent(location.origin);
     }
@@ -1775,11 +1793,23 @@
     var slug = wrap.getAttribute('data-tpl-slug') || frame.getAttribute('data-tpl-slug');
     if (!slug) return;
 
+    var shield = document.createElement('div');
+    shield.className = 'tpl-preview__shield';
+    shield.setAttribute('aria-hidden', 'true');
+    viewport.appendChild(shield);
+
     var mounted = false;
     function mountFrame() {
       if (mounted) return;
       mounted = true;
       frame.setAttribute('src', templateUrl(slug, 'thumb'));
+    }
+
+    function unmountFrame() {
+      if (!mounted) return;
+      mounted = false;
+      frame.removeAttribute('src');
+      frame.classList.remove('is-loaded');
     }
 
     function updateScale() {
@@ -1792,10 +1822,14 @@
           if (entry.isIntersecting) {
             mountFrame();
             updateScale();
-            io.disconnect();
+          } else {
+            unmountFrame();
           }
         });
-      }, { rootMargin: '200px 0px', threshold: 0.01 });
+      }, {
+        rootMargin: isMobileThumb() ? '0px' : '80px 0px',
+        threshold: 0,
+      });
       io.observe(wrap);
     } else {
       mountFrame();
