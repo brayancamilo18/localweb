@@ -4,6 +4,12 @@
   body {
     overflow-x: clip;
     max-width: 100%;
+    /* Móvil: evita el pull-to-refresh nativo (recarga fantasma al hacer
+       scroll rápido hacia arriba estando arriba del todo). */
+    overscroll-behavior-y: none;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
   }
 
   @media (max-width: 880px) {
