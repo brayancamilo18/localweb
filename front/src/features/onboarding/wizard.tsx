@@ -480,12 +480,12 @@ function TemplateIframe({
     return () => ro.disconnect()
   }, [mode, compactThumb])
 
-  const [isVisible, setIsVisible] = useState(mode !== 'thumb')
+  const [isMounted, setIsMounted] = useState(mode !== 'thumb')
 
   useEffect(() => {
     if (mode !== 'thumb') return
     if (typeof IntersectionObserver === 'undefined') {
-      setIsVisible(true)
+      setIsMounted(true)
       return
     }
     const el = thumbWrapRef.current
@@ -493,14 +493,14 @@ function TemplateIframe({
     const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          setIsVisible(entry.isIntersecting)
-          if (!entry.isIntersecting) {
-            loadedRef.current = false
-            setHasLoaded(false)
+          if (entry.isIntersecting) {
+            setIsMounted(true)
+            io.disconnect()
+            break
           }
         }
       },
-      // En móvil cargamos solo el que está en pantalla para no acumular iframes.
+      // Primera vez visible: monta. Luego queda en caché aunque salga de pantalla.
       { rootMargin: preferStaticThumb ? '0px' : '80px 0px', threshold: 0 },
     )
     io.observe(el)
@@ -662,7 +662,7 @@ function TemplateIframe({
       ? `linear-gradient(160deg, ${placeholderColor} 0%, color-mix(in srgb, ${placeholderColor} 50%, #1a1a1a) 100%)`
       : placeholderColor
     const thumbShield = <div className="lw-template-thumb-shield" aria-hidden="true" />
-    const iframeEl = isVisible ? (
+    const iframeEl = isMounted ? (
       <iframe
         ref={iframeRef}
         title={`Plantilla ${variant} portada`}
