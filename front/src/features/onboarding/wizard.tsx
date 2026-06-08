@@ -37,7 +37,6 @@ import {
 import { SectorIcon } from '../../components/primitives/SectorIcon'
 import Step7Plan from './steps/Step7Plan'
 import ProAboutSectionsEditor from '../shared/ProAboutSectionsEditor'
-import TemplateThumbStatic from '../shared/TemplateThumbStatic'
 import { usePreferStaticThumb } from '../shared/templateThumb'
 import { buildGoogleDirectionsUrl } from '../../lib/googleMapsDirectionsUrl'
 import {
@@ -468,7 +467,7 @@ function TemplateIframe({
   const loadedRef = useRef(false)
 
   useLayoutEffect(() => {
-    if (mode !== 'thumb' || preferStaticThumb) return
+    if (mode !== 'thumb') return
     const el = thumbWrapRef.current
     if (!el) return
     const update = () => {
@@ -479,12 +478,12 @@ function TemplateIframe({
     const ro = new ResizeObserver(update)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [mode, compactThumb, preferStaticThumb])
+  }, [mode, compactThumb])
 
   const [isVisible, setIsVisible] = useState(mode !== 'thumb')
 
   useEffect(() => {
-    if (mode !== 'thumb' || preferStaticThumb) return
+    if (mode !== 'thumb') return
     if (typeof IntersectionObserver === 'undefined') {
       setIsVisible(true)
       return
@@ -501,7 +500,8 @@ function TemplateIframe({
           }
         }
       },
-      { rootMargin: '80px 0px', threshold: 0 },
+      // En móvil cargamos solo el que está en pantalla para no acumular iframes.
+      { rootMargin: preferStaticThumb ? '0px' : '80px 0px', threshold: 0 },
     )
     io.observe(el)
     return () => io.disconnect()
@@ -658,9 +658,9 @@ function TemplateIframe({
 
   if (mode === 'thumb') {
     const placeholderColor = TEMPLATE_THUMB_PLACEHOLDER_COLOR[variant] ?? '#FAFAFA'
-    if (preferStaticThumb) {
-      return <TemplateThumbStatic color={placeholderColor} compact={compactThumb} />
-    }
+    const placeholderBg = preferStaticThumb
+      ? `linear-gradient(160deg, ${placeholderColor} 0%, color-mix(in srgb, ${placeholderColor} 50%, #1a1a1a) 100%)`
+      : placeholderColor
     const thumbShield = <div className="lw-template-thumb-shield" aria-hidden="true" />
     const iframeEl = isVisible ? (
       <iframe
@@ -703,7 +703,7 @@ function TemplateIframe({
             minWidth: 0,
             height: 148,
             overflow: 'hidden',
-            background: placeholderColor,
+            background: placeholderBg,
             contain: 'layout paint',
           }}
         >
@@ -735,7 +735,7 @@ function TemplateIframe({
             width: '100%',
             height: 0,
             paddingBottom: `${thumbAspectPct}%`,
-            background: placeholderColor,
+            background: placeholderBg,
           }}
         >
           {iframeEl}

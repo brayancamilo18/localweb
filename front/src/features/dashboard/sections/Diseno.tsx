@@ -30,7 +30,6 @@ import { publicBusinessToTemplatePayload } from '../../public-page/publicTemplat
 import { useDashboard } from '../context/DashboardContext'
 import DisenoPagination from './DisenoPagination'
 import DashboardSectionHeader from '../components/DashboardSectionHeader'
-import TemplateThumbStatic from '../../shared/TemplateThumbStatic'
 import {
   TEMPLATE_THUMB_DOC_H,
   TEMPLATE_THUMB_DOC_W,
@@ -92,7 +91,7 @@ function TemplateThumbPreview({
   business: Business
   primaryColor: string
 }) {
-  const preferStatic = usePreferStaticThumb()
+  const mobile = usePreferStaticThumb()
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
   const thumbWrapRef = useRef<HTMLDivElement | null>(null)
   const [thumbScale, setThumbScale] = useState(0.25)
@@ -101,7 +100,6 @@ function TemplateThumbPreview({
   const loadedRef = useRef(false)
 
   useLayoutEffect(() => {
-    if (preferStatic) return
     const el = thumbWrapRef.current
     if (!el) return
     const update = () => {
@@ -112,10 +110,9 @@ function TemplateThumbPreview({
     const ro = new ResizeObserver(update)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [preferStatic])
+  }, [])
 
   useEffect(() => {
-    if (preferStatic) return
     if (typeof IntersectionObserver === 'undefined') {
       setIsVisible(true)
       return
@@ -132,11 +129,12 @@ function TemplateThumbPreview({
           }
         }
       },
-      { rootMargin: '80px 0px', threshold: 0 },
+      // En móvil cargamos solo el que está realmente en pantalla para no acumular iframes.
+      { rootMargin: mobile ? '0px' : '80px 0px', threshold: 0 },
     )
     io.observe(el)
     return () => io.disconnect()
-  }, [preferStatic])
+  }, [mobile])
 
   const src = useMemo(() => {
     const params = new URLSearchParams()
@@ -162,15 +160,14 @@ function TemplateThumbPreview({
   }, [business])
 
   useEffect(() => {
-    if (preferStatic) return
     if (loadedRef.current) syncPreview()
-  }, [syncPreview, preferStatic])
+  }, [syncPreview])
 
   const thumbAspectPct = templateThumbAspectPadding()
-
-  if (preferStatic) {
-    return <TemplateThumbStatic color={primaryColor} />
-  }
+  const placeholderColor = primaryColor || business.template.primary_color || '#FAFAFA'
+  const placeholderBg = mobile
+    ? `linear-gradient(160deg, ${placeholderColor} 0%, color-mix(in srgb, ${placeholderColor} 50%, #1a1a1a) 100%)`
+    : placeholderColor
 
   return (
     <div
@@ -191,7 +188,7 @@ function TemplateThumbPreview({
           width: '100%',
           height: 0,
           paddingBottom: `${thumbAspectPct}%`,
-          background: business.template.primary_color ?? '#FAFAFA',
+          background: placeholderBg,
         }}
       >
         {isVisible ? (
