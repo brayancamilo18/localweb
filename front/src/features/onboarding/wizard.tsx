@@ -37,6 +37,8 @@ import {
 import { SectorIcon } from '../../components/primitives/SectorIcon'
 import Step7Plan from './steps/Step7Plan'
 import ProAboutSectionsEditor from '../shared/ProAboutSectionsEditor'
+import TemplateThumbStatic from '../shared/TemplateThumbStatic'
+import { usePreferStaticThumb } from '../shared/templateThumb'
 import { buildGoogleDirectionsUrl } from '../../lib/googleMapsDirectionsUrl'
 import {
   buildPublicVcardUrl,
@@ -458,13 +460,15 @@ function TemplateIframe({
   compactThumb?: boolean
 }) {
   const templatePath = TEMPLATE_URL_BY_VARIANT[variant]
+  const preferStaticThumb = usePreferStaticThumb()
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
   const thumbWrapRef = useRef<HTMLDivElement | null>(null)
   const [thumbScale, setThumbScale] = useState(0.25)
+  const [hasLoaded, setHasLoaded] = useState(false)
   const loadedRef = useRef(false)
 
   useLayoutEffect(() => {
-    if (mode !== 'thumb') return
+    if (mode !== 'thumb' || preferStaticThumb) return
     const el = thumbWrapRef.current
     if (!el) return
     const update = () => {
@@ -475,13 +479,12 @@ function TemplateIframe({
     const ro = new ResizeObserver(update)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [mode, compactThumb])
+  }, [mode, compactThumb, preferStaticThumb])
 
   const [isVisible, setIsVisible] = useState(mode !== 'thumb')
 
   useEffect(() => {
-    if (mode !== 'thumb') return
-    // Si el navegador no soporta IntersectionObserver, montamos directamente.
+    if (mode !== 'thumb' || preferStaticThumb) return
     if (typeof IntersectionObserver === 'undefined') {
       setIsVisible(true)
       return
@@ -491,20 +494,18 @@ function TemplateIframe({
     const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setIsVisible(true)
-            io.disconnect()
-            break
+          setIsVisible(entry.isIntersecting)
+          if (!entry.isIntersecting) {
+            loadedRef.current = false
+            setHasLoaded(false)
           }
         }
       },
-      { rootMargin: '200px 0px', threshold: 0.01 },
+      { rootMargin: '80px 0px', threshold: 0 },
     )
     io.observe(el)
     return () => io.disconnect()
-  }, [mode])
-
-  const [hasLoaded, setHasLoaded] = useState(false)
+  }, [mode, preferStaticThumb])
 
   const hasPreviewPayload = Boolean(previewData)
   const src = useMemo(() => {
@@ -657,6 +658,9 @@ function TemplateIframe({
 
   if (mode === 'thumb') {
     const placeholderColor = TEMPLATE_THUMB_PLACEHOLDER_COLOR[variant] ?? '#FAFAFA'
+    if (preferStaticThumb) {
+      return <TemplateThumbStatic color={placeholderColor} compact={compactThumb} />
+    }
     const thumbShield = <div className="lw-template-thumb-shield" aria-hidden="true" />
     const iframeEl = isVisible ? (
       <iframe
