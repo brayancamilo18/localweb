@@ -522,16 +522,17 @@ textarea::placeholder {
 .lw-template-thumb-wrap {
   min-width: 0;
   max-width: 100%;
-  touch-action: none;
+  /* pan-y: el scroll vertical de la página debe funcionar al tocar la miniatura. */
+  touch-action: pan-y;
   overscroll-behavior: none;
 }
 
-/* Bloquea gestos táctiles sobre miniaturas iframe (móvil); el iframe ya lleva pointer-events:none. */
+/* Capa transparente sobre el iframe (Safari iOS): intercepta el toque pero permite scroll vertical. */
 .lw-template-thumb-shield {
   position: absolute;
   inset: 0;
   z-index: 2;
-  touch-action: none;
+  touch-action: pan-y;
   pointer-events: auto;
   background: transparent;
 }
