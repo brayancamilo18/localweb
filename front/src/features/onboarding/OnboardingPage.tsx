@@ -77,7 +77,7 @@ const EMPTY_TEMPLATES: Template[] = []
 
 function OnboardingSkeleton() {
   return (
-    <div style={{ height: '100vh', padding: 32, background: 'var(--lw-bg)' }}>
+    <div style={{ height: '100dvh', padding: 32, background: 'var(--lw-bg)' }}>
       <div
         className="lw-shimmer"
         style={{ height: 48, borderRadius: 8, maxWidth: 360, marginBottom: 24 }}

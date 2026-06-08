@@ -72,6 +72,8 @@ export default function PublicHtmlTemplateFrame({ templateSlug, business, zIndex
         margin: 0,
         padding: 0,
         overflow: 'hidden',
+        overscrollBehavior: 'contain',
+        touchAction: 'pan-y',
         background: '#0a0a0a',
         zIndex,
       }}

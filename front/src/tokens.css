@@ -3,6 +3,10 @@ html, body {
   margin: 0;
   width: 100%;
   overflow-x: clip;
+  /* Móvil: evita pull-to-refresh que recargaría la SPA y perdería el
+     progreso del wizard de onboarding. */
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
 }
 html, body, #root {
   min-height: 100%;

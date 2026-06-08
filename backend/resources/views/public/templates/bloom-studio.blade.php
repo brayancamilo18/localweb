@@ -143,7 +143,7 @@
   .sheet a em{ color:var(--coral); }
 
   /* ─── HERO ────────────────────────────────────────── */
-  header.hero{ position:relative; height:100vh; min-height:680px; overflow:hidden; isolation:isolate; padding-top:64px; }
+  header.hero{ position:relative; height:100vh; height:100dvh; min-height:680px; overflow:hidden; isolation:isolate; padding-top:64px; }
   .hero-photo{
     position:absolute; inset:0; z-index:-3;
     background:url("https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1800&q=80") center/cover;
