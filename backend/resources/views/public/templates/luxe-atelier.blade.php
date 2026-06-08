@@ -174,21 +174,15 @@
 
   /* ABOUT EXTRAS (luxe-atelier) */
   .luxe-about-extras{display:flex;flex-direction:column;gap:80px;margin-top:80px;padding-top:56px;border-top:1px solid var(--line-2);max-width:1280px;margin-left:auto;margin-right:auto;padding:0 54px;box-sizing:border-box}
-  .luxe-about-extra.about-mosaic{max-width:100%}
+  .luxe-about-extra.about-mosaic{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:stretch;max-width:100%}
   .luxe-about-extra--text-first .about-photos{order:2}
   .luxe-about-extra--text-first .about-text{order:1}
   .luxe-about-extra--photo-first .about-photos{order:1}
   .luxe-about-extra--photo-first .about-text{order:2}
   .luxe-about-extra .about-text h3{font-family:"Cormorant Garamond",serif;font-size:clamp(44px,4.5vw,60px);font-weight:400;line-height:1.04;margin:24px 0 32px}
-  @media (max-width:768px){.luxe-about-extras{padding:0 20px}.luxe-about-extra.about-mosaic{grid-template-columns:1fr;gap:48px}.luxe-about-extra .about-photos{order:-1!important;max-width:520px;margin:0 auto}}
-
-  .luxe-about-extras{display:flex;flex-direction:column;gap:80px;margin-top:80px;padding-top:56px;border-top:1px solid var(--line-2);max-width:1280px;margin-left:auto;margin-right:auto;padding:0 54px;box-sizing:border-box}
-  .luxe-about-extra.about-mosaic{max-width:100%}
-  .luxe-about-extra--text-first .about-photos{order:2}
-  .luxe-about-extra--text-first .about-text{order:1}
-  .luxe-about-extra--photo-first .about-photos{order:1}
-  .luxe-about-extra--photo-first .about-text{order:2}
-  .luxe-about-extra .about-text h3{font-family:"Cormorant Garamond",serif;font-size:clamp(44px,4.5vw,60px);font-weight:400;line-height:1.04;margin:24px 0 32px}
+  .luxe-about-extra .about-photos{aspect-ratio:3/4;max-height:580px;min-height:0}
+  .luxe-about-extra .aphoto.a1{min-height:0;height:100%}
+  .luxe-about-extra__photo.has-photo{background-size:cover;background-position:center 55%}
   @media (max-width:768px){.luxe-about-extras{padding:0 20px}.luxe-about-extra.about-mosaic{grid-template-columns:1fr;gap:48px}.luxe-about-extra .about-photos{order:-1!important;max-width:520px;margin:0 auto}}
   /* ─── GALLERY · bento ─── */
   .gallery{max-width:1280px;margin:0 auto;padding:0 54px;display:grid;grid-template-columns:repeat(6,1fr);grid-auto-rows:154px;gap:20px}
@@ -392,7 +386,6 @@
       <img id="navBrandLogo" class="nav-brand-img" alt="" hidden style="display:none"/>
       @endif
       <strong id="navBrandName">{{ $nombre }}</strong>
-      <small id="navBrandCat">{{ $tagline }}</small>
     </a>
     <ul style="flex:1;justify-content:flex-end">
       <li><a href="#horario">Horario</a></li>
@@ -421,7 +414,6 @@
 <header class="hero" id="hero">
   <div class="container">
     <div class="hero-meta">
-      <span class="eyebrow" id="heroEyebrow">Maison · est. {{ $anio_fundacion }}</span>
       <span class="pill-status" id="pill-status"><span class="dot"></span><span id="pill-text">Atelier abierto</span></span>
     </div>
     <h1 class="serif">
@@ -437,7 +429,7 @@
     </div>
 
     <div class="hero-bottom">
-      <p class="hero-lede" id="heroLede">{{ $tagline }}. <em>Cada visita, una experiencia.</em></p>
+      <p class="hero-lede" id="heroLede">{{ $tagline }}</p>
       <div class="hero-cta">
         <a href="https://wa.me/{{ $whatsapp }}" data-wa-link class="btn-luxe solid" target="_blank" rel="noopener noreferrer">Reservar visita<span></span></a>
         <a href="{{ $whatsapp ? 'tel:+'.$whatsapp : 'tel:' }}" data-tel-link class="btn-luxe">Llamar<span></span></a>
@@ -470,7 +462,6 @@
     <div class="section-head slide-up">
       <span class="eyebrow">Nuestros servicios</span>
       <h2 class="serif">El <em>arte</em><br/>de lo bien hecho.</h2>
-      <p class="desc">Cada propuesta es una <em>conversación</em>. Cada propuesta, un proyecto pensado a medida de quien lo recibe.</p>
     </div>
   </div>
   <div class="container-narrow">
@@ -518,14 +509,6 @@
       <span class="eyebrow">La maison</span>
       <h2 class="serif" id="aboutTitle">Una casa<br/><em>con oficio.</em></h2>
       <div id="aboutBody"><p>{{ $descripcion }}</p></div>
-      <p><em>Trabajamos a mano</em>, con materiales escogidos uno a uno, y un único principio: cada pieza ha de poder firmarse. Sin atajos, sin prisa, sin compromiso con la moda.</p>
-      <div class="about-sig">
-        <div class="about-sig-img" id="aboutSigImg"></div>
-        <div class="about-sig-text">
-          <strong id="aboutSigName">{{ $nombre_responsable ?? '' }}</strong>
-          <small id="aboutSigYear">Fundador · {{ $anio_fundacion }}</small>
-        </div>
-      </div>
     </div>
   </div>
     @include('public.partials.about-extra-blocks-luxe-atelier')
@@ -537,7 +520,6 @@
     <div class="section-head slide-up">
       <span class="eyebrow">Selección</span>
       <h2 class="serif">Una <em>curaduría</em><br/>visual.</h2>
-      <p class="desc">Una <em>muestra escogida</em> de piezas, escenas y momentos del atelier.</p>
     </div>
   </div>
   <div class="gallery" id="galleryGrid">
@@ -561,7 +543,7 @@
   <div class="hours-grid">
     <div class="hours-card slide-up">
       <span class="eyebrow">Atelier abierto</span>
-      <h3 class="serif">Horarios <em>de la maison</em></h3>
+      <h3 class="serif">Horarios <em id="hoursTitleName">{{ $nombre }}</em></h3>
       @php
   $scheduleDays = [
     ['mon', 'Lunes', 1],
@@ -673,7 +655,7 @@ Cerrado
     <div class="foot-brand">
       <strong>{{ $nombre }}</strong>
       <small>{{ $categoria ?? '' }}</small>
-      <p>{{ $descripcion }} {{ $ciudad }}, desde {{ $anio_fundacion }}.</p>
+      <p id="footBrandDesc">{{ $descripcion }} En {{ $ciudad }}, {{ $pais }}.</p>
     </div>
     <div>
       <h4>Maison</h4>
@@ -1051,14 +1033,9 @@ function updateLuxeAboutPhoto(raw) {
   if (!hasFoto && !shouldUseLuxeSampleMedia()) return;
   var src = luxeResolvePreviewPhotoSrc(raw.foto_equipo, 'foto_equipo');
   var a1 = document.getElementById('aboutPhoto1');
-  var sig = document.getElementById('aboutSigImg');
   if (a1) {
     if (src) a1.style.setProperty('--about-1', 'url("' + escapeLuxeAttr(src) + '")');
     else a1.style.removeProperty('--about-1');
-  }
-  if (sig) {
-    if (src) sig.style.setProperty('--sig-img', 'url("' + escapeLuxeAttr(src) + '")');
-    else sig.style.removeProperty('--sig-img');
   }
 }
 
@@ -1202,7 +1179,7 @@ function syncLuxeFooter(raw) {
   if (fbs) fbs.textContent = (tagline || 'Atelier') + (loc ? ' — ' + loc : '');
   var fbp = document.querySelector('.foot-brand p');
   if (fbp) {
-    fbp.textContent = (desc ? desc + ' ' : '') + (loc ? 'En ' + loc + ' desde ' + year + '.' : '');
+    fbp.textContent = (desc ? desc + ' ' : '') + (loc ? 'En ' + loc + '.' : '');
   }
   var footAddress = document.getElementById('footAddress');
   if (footAddress) {
@@ -1355,35 +1332,27 @@ function applyLivePreviewData(raw, opts) {
   var navBrandWrap = document.getElementById('navBrandWrap');
   var navBrandLogo = document.getElementById('navBrandLogo');
   var navBrandName = document.getElementById('navBrandName');
-  var navBrandCat = document.getElementById('navBrandCat');
   if (navBrandWrap && navBrandLogo && navBrandName) {
     if (logoUrl) {
       navBrandLogo.src = logoUrl;
       navBrandLogo.alt = name;
       navBrandLogo.hidden = false;
       navBrandName.style.display = 'none';
-      if (navBrandCat) navBrandCat.style.display = 'none';
       navBrandWrap.classList.add('brand-has-img');
     } else {
       navBrandLogo.removeAttribute('src');
       navBrandLogo.hidden = true;
       navBrandName.style.display = '';
       navBrandName.textContent = name;
-      if (navBrandCat) {
-        navBrandCat.style.display = '';
-        navBrandCat.textContent = tagline;
-      }
       navBrandWrap.classList.remove('brand-has-img');
     }
   }
 
-  var heroEyebrow = document.getElementById('heroEyebrow');
-  if (heroEyebrow) heroEyebrow.textContent = 'Maison · est. ' + year;
-
   var heroLede = document.getElementById('heroLede');
-  if (heroLede) {
-    heroLede.innerHTML = escapeLuxeHtml(tagline) + '. <em>' + escapeLuxeHtml(descripcion ? descripcion.split(/\n\n+/)[0].slice(0, 120) : 'Cada visita, una experiencia.') + '</em>';
-  }
+  if (heroLede) heroLede.textContent = tagline;
+
+  var hoursTitleName = document.getElementById('hoursTitleName');
+  if (hoursTitleName) hoursTitleName.textContent = name;
 
   if (typeof lwApplyContactLinks === 'function') lwApplyContactLinks(raw);
 
@@ -1401,11 +1370,6 @@ function applyLivePreviewData(raw, opts) {
       aboutBody.innerHTML = '<p>' + escapeLuxeHtml(tagline || 'Un atelier donde el detalle importa.') + '</p>';
     }
   }
-  var aboutSigName = document.getElementById('aboutSigName');
-  if (aboutSigName) aboutSigName.textContent = name;
-  var aboutSigYear = document.getElementById('aboutSigYear');
-  if (aboutSigYear) aboutSigYear.textContent = 'Fundador · ' + year;
-
   var contactEmailLink = document.getElementById('contactEmailLink');
   var contactEmailStrong = contactEmailLink && contactEmailLink.querySelector('strong');
   if (contactEmailLink && contactEmailStrong) {

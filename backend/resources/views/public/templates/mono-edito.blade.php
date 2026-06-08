@@ -387,7 +387,7 @@
       @else
       <img id="navBrandLogo" class="nav-brand-img" alt="" hidden style="display:none"/>
       @endif
-      <span id="navBrandName">{{ $nombre }}</span><small id="navBrandCat">{{ $tagline }}</small>
+      <span id="navBrandName">{{ $nombre }}</span>
     </a>
     <ul class="nav-right">
       <li><a href="#horario" class="lnk">Horario</a></li>
@@ -416,7 +416,7 @@
 <header class="hero" id="hero">
   <div class="container">
     <div class="hero-top">
-      <span class="eyebrow" id="heroEyebrow">Núm. 01 / {{ $anio_fundacion }} — {{ $ciudad }}</span>
+      <span class="eyebrow" id="heroEyebrow">Núm. 01 — {{ $ciudad }}</span>
       <span class="pill-status" id="pill-status"><span class="dot"></span><span id="pill-text">Abierto ahora</span></span>
     </div>
     <h1>
@@ -435,7 +435,6 @@
     <div class="hero-bottom">
       <p class="hero-lede" id="heroLede">"<strong id="heroLedeName">{{ $nombre }}</strong> es <span id="heroLedeTag">{{ $tagline }}</span>."</p>
       <div class="hero-credits">
-        <div><span>Establecido</span><span id="heroCreditYear">{{ $anio_fundacion }}</span></div>
         <div><span>Localización</span><span id="heroCreditCity">{{ $ciudad }}</span></div>
         <div><span>País</span><span id="heroCreditCountry">{{ $pais }}</span></div>
         <div><span>Reservas</span><span data-phone-display id="heroCreditPhone">{{ $telefono }}</span></div>
@@ -473,7 +472,6 @@
         <span class="eyebrow">Lo que hacemos</span>
         <h2 class="serif">Lo que<br/><em>ofrecemos</em>.</h2>
       </div>
-      <p class="desc">Una selección curada de servicios. Pulsa cada uno para conocer el detalle, los plazos y el precio aproximado.</p>
     </div>
     <div class="acc-list" id="monoServicesList" data-services-list>
       <article class="acc-item" data-svc>
@@ -553,7 +551,6 @@
         <span class="eyebrow">Galería visual</span>
         <h2 class="serif">El sitio<br/>en <em>imágenes.</em></h2>
       </div>
-      <p class="desc">Una selección visual. Pasa el cursor sobre cada imagen para verla a todo color — el blanco y negro es solo invitación.</p>
     </div>
   </div>
   <div class="gallery-grid" id="galleryGrid">
@@ -670,7 +667,7 @@ Cerrado
     <div class="foot-brand">
       <strong>{{ $nombre }}</strong>
       <small>{{ $categoria ?? '' }} — {{ $ciudad }}</small>
-      <p>{{ $descripcion }} En {{ $ciudad }} desde {{ $anio_fundacion }}.</p>
+      <p id="footBrandDesc">{{ $descripcion }} En {{ $ciudad }}.</p>
     </div>
     <div>
       <h4>Sumario</h4>
@@ -922,9 +919,7 @@ function renderMonoAboutExtras(sections) {
         (img ? ' has-photo' : '') +
         '"' +
         bg +
-        '></div><div class="about-cap"><span>Equipo</span><strong>Bloque ' +
-        bn +
-        '</strong></div></div></article>'
+        '></div></div></article>'
       );
     })
     .join('');
@@ -1262,7 +1257,7 @@ function syncMonoFooter(raw) {
   if (fbs) fbs.textContent = (tagline || 'Editorial') + (loc ? ' — ' + loc : '');
   var fbp = document.querySelector('.foot-brand p');
   if (fbp) {
-    fbp.textContent = (desc ? desc + ' ' : '') + (loc ? 'En ' + loc + ' desde ' + year + '.' : '');
+    fbp.textContent = (desc ? desc + ' ' : '') + (loc ? 'En ' + loc + '.' : '');
   }
   var footAddress = document.getElementById('footAddress');
   if (footAddress) {
@@ -1367,40 +1362,32 @@ function applyLivePreviewData(raw, opts) {
   var navBrandWrap = document.getElementById('navBrandWrap');
   var navBrandLogo = document.getElementById('navBrandLogo');
   var navBrandName = document.getElementById('navBrandName');
-  var navBrandCat = document.getElementById('navBrandCat');
   if (navBrandWrap && navBrandLogo && navBrandName) {
     if (logoUrl) {
       navBrandLogo.src = logoUrl;
       navBrandLogo.alt = name;
       navBrandLogo.hidden = false;
       navBrandName.style.display = 'none';
-      if (navBrandCat) navBrandCat.style.display = 'none';
       navBrandWrap.classList.add('brand-has-img');
     } else {
       navBrandLogo.removeAttribute('src');
       navBrandLogo.hidden = true;
       navBrandName.style.display = '';
       navBrandName.textContent = name;
-      if (navBrandCat) {
-        navBrandCat.style.display = '';
-        navBrandCat.textContent = tagline;
-      }
       navBrandWrap.classList.remove('brand-has-img');
     }
   }
 
   var heroEyebrow = document.getElementById('heroEyebrow');
-  if (heroEyebrow) heroEyebrow.textContent = 'Núm. 01 / ' + year + (ciudad ? ' — ' + ciudad : '');
+  if (heroEyebrow) heroEyebrow.textContent = 'Núm. 01' + (ciudad ? ' — ' + ciudad : '');
 
   var heroLedeName = document.getElementById('heroLedeName');
   var heroLedeTag = document.getElementById('heroLedeTag');
   if (heroLedeName) heroLedeName.textContent = name;
   if (heroLedeTag) heroLedeTag.textContent = tagline;
 
-  var heroCreditYear = document.getElementById('heroCreditYear');
   var heroCreditCity = document.getElementById('heroCreditCity');
   var heroCreditCountry = document.getElementById('heroCreditCountry');
-  if (heroCreditYear) heroCreditYear.textContent = year;
   if (heroCreditCity) heroCreditCity.textContent = ciudad || '—';
   if (heroCreditCountry) heroCreditCountry.textContent = pais || '—';
 
