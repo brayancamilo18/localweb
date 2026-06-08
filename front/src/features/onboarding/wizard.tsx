@@ -657,6 +657,7 @@ function TemplateIframe({
 
   if (mode === 'thumb') {
     const placeholderColor = TEMPLATE_THUMB_PLACEHOLDER_COLOR[variant] ?? '#FAFAFA'
+    const thumbShield = <div className="lw-template-thumb-shield" aria-hidden="true" />
     const iframeEl = isVisible ? (
       <iframe
         ref={iframeRef}
@@ -702,7 +703,10 @@ function TemplateIframe({
             contain: 'layout paint',
           }}
         >
-          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>{iframeEl}</div>
+          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+            {iframeEl}
+            {thumbShield}
+          </div>
         </div>
       )
     }
@@ -731,6 +735,7 @@ function TemplateIframe({
           }}
         >
           {iframeEl}
+          {thumbShield}
         </div>
       </div>
     )

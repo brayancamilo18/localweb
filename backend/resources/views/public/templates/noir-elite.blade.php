@@ -629,6 +629,13 @@
   }
 
   /* ───── REDUCED MOTION ─────────────────────────────── */
+  @media(max-width:780px){
+    nav.top.scrolled{
+      backdrop-filter:none;
+      -webkit-backdrop-filter:none;
+      background:rgba(10,10,10,.92);
+    }
+  }
   @media (prefers-reduced-motion:reduce){
     *, *::before, *::after{
       animation-duration:.01ms !important; animation-iteration-count:1 !important;
@@ -1680,11 +1687,16 @@ function applyLivePreviewData(raw, opts){
 
 /* ───── NAV scroll state ───────────────────────────────── */
 const nav = document.getElementById('nav');
+const noirCoarse = window.matchMedia('(max-width: 780px)').matches;
 function onScroll(){
   nav.classList.toggle('scrolled', window.scrollY > 30);
-  // parallax on hero bg
-  const bg = document.getElementById('heroBg');
-  if (bg) bg.style.transform = `translateY(${window.scrollY * 0.4}px)`;
+  if (!noirCoarse) {
+    const bg = document.getElementById('heroBg');
+    if (bg) bg.style.transform = `translateY(${window.scrollY * 0.4}px)`;
+  } else {
+    const bg = document.getElementById('heroBg');
+    if (bg) bg.style.transform = '';
+  }
 }
 window.addEventListener('scroll', onScroll, { passive:true });
 onScroll();
