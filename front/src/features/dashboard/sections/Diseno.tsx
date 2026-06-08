@@ -30,10 +30,15 @@ import { publicBusinessToTemplatePayload } from '../../public-page/publicTemplat
 import { useDashboard } from '../context/DashboardContext'
 import DisenoPagination from './DisenoPagination'
 import DashboardSectionHeader from '../components/DashboardSectionHeader'
+import TemplateThumbStatic from '../../shared/TemplateThumbStatic'
+import {
+  TEMPLATE_THUMB_DOC_H,
+  TEMPLATE_THUMB_DOC_W,
+  templateThumbAspectPadding,
+  usePreferStaticThumb,
+} from '../../shared/templateThumb'
 import '../components/dashboardSectionHeader.css'
 
-const TEMPLATE_THUMB_DOC_W = 1280
-const TEMPLATE_THUMB_DOC_H = 760
 const PAGE_SIZE = 9
 
 function formatAvailableAt(iso: string | null | undefined): string | null {
@@ -78,7 +83,16 @@ function businessWithTemplate(business: Business, template: Template): Business 
   }
 }
 
-function TemplateThumbPreview({ slug, business }: { slug: string; business: Business }) {
+function TemplateThumbPreview({
+  slug,
+  business,
+  primaryColor,
+}: {
+  slug: string
+  business: Business
+  primaryColor: string
+}) {
+  const preferStatic = usePreferStaticThumb()
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
   const thumbWrapRef = useRef<HTMLDivElement | null>(null)
   const [thumbScale, setThumbScale] = useState(0.25)
@@ -87,6 +101,7 @@ function TemplateThumbPreview({ slug, business }: { slug: string; business: Busi
   const loadedRef = useRef(false)
 
   useLayoutEffect(() => {
+    if (preferStatic) return
     const el = thumbWrapRef.current
     if (!el) return
     const update = () => {
@@ -97,9 +112,10 @@ function TemplateThumbPreview({ slug, business }: { slug: string; business: Busi
     const ro = new ResizeObserver(update)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [])
+  }, [preferStatic])
 
   useEffect(() => {
+    if (preferStatic) return
     if (typeof IntersectionObserver === 'undefined') {
       setIsVisible(true)
       return
@@ -109,18 +125,18 @@ function TemplateThumbPreview({ slug, business }: { slug: string; business: Busi
     const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setIsVisible(true)
-            io.disconnect()
-            break
+          setIsVisible(entry.isIntersecting)
+          if (!entry.isIntersecting) {
+            loadedRef.current = false
+            setHasLoaded(false)
           }
         }
       },
-      { rootMargin: '200px 0px', threshold: 0.01 },
+      { rootMargin: '80px 0px', threshold: 0 },
     )
     io.observe(el)
     return () => io.disconnect()
-  }, [])
+  }, [preferStatic])
 
   const src = useMemo(() => {
     const params = new URLSearchParams()
@@ -146,10 +162,15 @@ function TemplateThumbPreview({ slug, business }: { slug: string; business: Busi
   }, [business])
 
   useEffect(() => {
+    if (preferStatic) return
     if (loadedRef.current) syncPreview()
-  }, [syncPreview])
+  }, [syncPreview, preferStatic])
 
-  const thumbAspectPct = (TEMPLATE_THUMB_DOC_H / TEMPLATE_THUMB_DOC_W) * 100
+  const thumbAspectPct = templateThumbAspectPadding()
+
+  if (preferStatic) {
+    return <TemplateThumbStatic color={primaryColor} />
+  }
 
   return (
     <div
@@ -607,7 +628,11 @@ export default function Diseno() {
                   }}
                 >
                   <div style={{ position: 'relative' }}>
-                    <TemplateThumbPreview slug={template.slug} business={business} />
+                    <TemplateThumbPreview
+                      slug={template.slug}
+                      business={business}
+                      primaryColor={template.primary_color}
+                    />
                     <div
                       style={{
                         position: 'absolute',
