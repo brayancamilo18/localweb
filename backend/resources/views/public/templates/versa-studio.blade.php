@@ -140,7 +140,6 @@
   /* ─── TICKER ─── */
   .ticker{padding:24px 0;background:var(--ink);color:var(--bg);overflow:hidden;margin-top:54px}
   .ticker-track{display:flex;gap:48px;font-family:"Bricolage Grotesque";font-size:22px;font-weight:600;letter-spacing:-.02em;white-space:nowrap;animation:scroll-v 45s linear infinite;will-change:transform}
-  .ticker:hover .ticker-track{animation-duration:90s}
   .ticker-track span{display:inline-flex;align-items:center;gap:48px;flex-shrink:0}
   .ticker-track span::before{content:"✦";color:var(--warm);font-size:14px;letter-spacing:0}
   @keyframes scroll-v{from{transform:translateX(0)}to{transform:translateX(-50%)}}
@@ -431,11 +430,9 @@
           <span class="meta-badge" id="heroMetaBadge"></span>
         </div>
         <h1 class="display" id="heroTitle">
-          <span class="word"><span>Un</span></span>
-          <span class="word"><span>sitio</span></span>
-          <span class="word"><span><em>nuestro.</em></span></span>
+          <span class="word"><span id="heroTitleInner">{{ $nombre }}</span></span>
         </h1>
-        <p class="hero-lede" id="heroLede"><strong>{{ $nombre }}</strong> es {{ $tagline }}. {{ $descripcion }} Pasa cuando quieras — aquí siempre cabe alguien más.</p>
+        <p class="hero-lede" id="heroLede">{{ $tagline }}</p>
         <div class="hero-cta">
           <a href="https://wa.me/{{ $whatsapp }}" target="_blank" rel="noopener noreferrer" class="btn-p" data-wa-link><span>Reservar</span></a>
           <a href="tel:{{ $telefono }}" class="btn-g" data-tel-link data-phone-display>{{ $telefono }}</a>
@@ -476,9 +473,8 @@
     <div class="section-head slide-up">
       <div>
         <span class="eyebrow">Lo que ofrecemos</span>
-        <h2 class="display">Lo que <em>hacemos</em><br/>en el estudio.</h2>
+        <h2 class="display">Lo que <em>hacemos</em>.</h2>
       </div>
-      <p class="desc">Cuatro o cinco cosas, todas hechas con el mismo nivel de cuidado. Si quieres saber más, escríbenos directamente.</p>
     </div>
     <div class="svc-grid" id="servicesList" data-services-list>
       <article class="svc-card" data-svc>
@@ -538,13 +534,6 @@
         <span class="eyebrow">Sobre nosotros</span>
         <h2 class="display">Aquí no servimos a clientes.<br/><em>Servimos a vecinos.</em></h2>
         <p id="aboutDesc">{{ $descripcion }} <strong>{{ $nombre }}</strong> abrió en {{ $anio_fundacion }}. Sin grandes planes, sin diseñador, sin marketing.</p>
-        <div class="about-sig">
-          <div class="about-sig-img"></div>
-          <div class="about-sig-text">
-            <strong>{{ $nombre_responsable ?? '' }}</strong>
-            <small>{{ $cargo ?? '' }} · desde {{ $anio_fundacion }}</small>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -559,7 +548,6 @@
         <span class="eyebrow">El espacio</span>
         <h2 class="display">El sitio<br/>en <em>imágenes.</em></h2>
       </div>
-      <p class="desc">Una muestra del lugar, del trabajo y de algunos momentos del día a día. Si quieres ver más, pásate por aquí o sígue­nos en Instagram.</p>
     </div>
   </div>
   <div class="gallery-wrap">
@@ -586,7 +574,6 @@
         <span class="eyebrow">Visítanos</span>
         <h2 class="display">Cuándo<br/>y <em>cómo.</em></h2>
       </div>
-      <p class="desc">Si necesitas algo fuera del horario habitual, escríbenos por WhatsApp y vemos. Casi siempre hay manera.</p>
     </div>
     <div class="hours-card-big slide-up">
       <span class="eyebrow">Estamos aquí</span>
@@ -686,7 +673,7 @@ Cerrado
 
 <!-- 12. CTA FINAL -->
 <section class="cta-final">
-  <div class="cta-final-bg"></div>
+  <div class="cta-final-bg" id="ctaFinalBg"@if($portada) style="--cta-img:url('{{ $portada }}')"@endif></div>
   <div class="cta-inner">
     <span class="eyebrow slide-up">¿Vienes?</span>
     <h2 class="display slide-up" data-d="1">Te esperamos<br/><em>cuando quieras.</em></h2>
@@ -737,7 +724,7 @@ Cerrado
       </div>
     </div>
     <div class="foot-bot">
-      <span>© {{ date('Y') }} {{ $nombre }} · CIF {{ $cif ?? '' }}</span>
+      <span>© {{ date('Y') }} {{ $nombre }}</span>
       <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Hecho con <a href="https://onez.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
     </div>
   </div>
@@ -1129,6 +1116,18 @@ function updateVersaHeroImage(raw) {
   versaSetPpicBg(document.getElementById('ppic3Img'), versaResolvePreviewPhotoSrc(raw.portada_3, 'portada_3'));
 }
 
+function updateVersaCtaImage(raw) {
+  raw = raw || {};
+  var bg = document.getElementById('ctaFinalBg');
+  if (!bg) return;
+  var src = versaResolvePreviewPhotoSrc(raw.portada, 'portada');
+  if (src) {
+    bg.style.setProperty('--cta-img', 'url("' + src.replace(/"/g, '\\"') + '")');
+  } else {
+    bg.style.removeProperty('--cta-img');
+  }
+}
+
 var versaPreviewMap = null;
 var versaPreviewMarker = null;
 var VERSA_MAP_ZOOM = 18;
@@ -1406,10 +1405,7 @@ function syncVersaFooter(raw) {
     if (ciudad) locParts.push(ciudad);
     if (pais) locParts.push(pais);
     if (locParts.length) {
-      var loc = 'En ' + locParts.join(', ');
-      bits.push(anio ? loc + ' desde ' + anio + '.' : loc + '.');
-    } else if (anio) {
-      bits.push('Desde ' + anio + '.');
+      bits.push('En ' + locParts.join(', ') + '.');
     }
     if (bits.length) taglineEl.textContent = bits.join(' ');
   }
@@ -1528,20 +1524,11 @@ function applyLivePreviewData(raw, opts) {
     });
   }
 
+  var heroTitleInner = document.getElementById('heroTitleInner');
+  if (heroTitleInner && name) heroTitleInner.textContent = name;
+
   var heroLede = document.getElementById('heroLede');
-  if (heroLede && (name || tagline || descripcion)) {
-    var ledeName = name || displayName;
-    var ledeTag = tagline || 'tu negocio';
-    var ledeDesc = descripcion || '';
-    heroLede.innerHTML =
-      '<strong>' +
-      escapeHtmlText(ledeName) +
-      '</strong> es ' +
-      escapeHtmlText(ledeTag) +
-      '.' +
-      (ledeDesc ? ' ' + escapeHtmlText(ledeDesc) : '') +
-      ' Pasa cuando quieras — aquí siempre cabe alguien más.';
-  }
+  if (heroLede) heroLede.textContent = tagline || descripcion || '';
 
   var aboutDesc = document.getElementById('aboutDesc');
   if (aboutDesc && descripcion) {
@@ -1566,13 +1553,6 @@ function applyLivePreviewData(raw, opts) {
         aboutImg.style.removeProperty('background-image');
       }
     }
-  }
-
-  var sigName = document.querySelector('.about-sig-text strong');
-  var sigRole = document.querySelector('.about-sig-text small');
-  if (sigName && nombreResp) sigName.textContent = nombreResp;
-  if (sigRole && (cargo || anio)) {
-    sigRole.textContent = (cargo || sigRole.textContent.split('·')[0].trim()) + (anio ? ' · desde ' + anio : '');
   }
 
   var gScore = document.getElementById('gbizScore');
@@ -1617,6 +1597,7 @@ function applyLivePreviewData(raw, opts) {
   }
 
   updateVersaHeroImage(raw);
+  updateVersaCtaImage(raw);
   var galeria = Array.isArray(raw.galeria) ? raw.galeria.filter(Boolean) : [];
   if (Object.prototype.hasOwnProperty.call(raw, 'galeria')) {
     renderVersaGallery(galeria);
@@ -1631,12 +1612,11 @@ function applyLivePreviewData(raw, opts) {
   syncVersaTemplateExtensions(raw);
   syncVersaFooter(raw);
 
-  if (name || cif) {
+  if (name) {
     var yearNow = new Date().getFullYear();
     var footName = name || displayName;
-    var footCif = cif || 'B00000000';
     document.querySelectorAll('.foot-bot span').forEach(function (span, i) {
-      if (i === 0) span.textContent = '© ' + yearNow + ' ' + footName + ' · CIF ' + footCif;
+      if (i === 0) span.textContent = '© ' + yearNow + ' ' + footName;
     });
   }
 

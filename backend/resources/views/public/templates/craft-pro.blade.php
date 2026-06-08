@@ -427,7 +427,6 @@
         <span class="eyebrow">Lo que hacemos</span>
         <h2 class="cond">Servicios <span>profesionales</span></h2>
       </div>
-      <p class="desc">Desde la pequeña reparación urgente hasta la reforma completa. Todo con presupuesto cerrado por escrito.</p>
     </div>
     <div class="services-grid" id="tplServicesList">
 
@@ -477,7 +476,6 @@
         <span class="eyebrow">Galería</span>
         <h2 class="cond">Trabajos en<br/><span>imágenes.</span></h2>
       </div>
-      <p class="desc">Algunas intervenciones recientes.</p>
     </div>
       <div class="gallery" id="galleryLive">
 @forelse($galeria as $imgUrl)
@@ -501,7 +499,6 @@
         <span class="eyebrow">Zona y disponibilidad</span>
         <h2 class="cond">Dónde llegamos<br/><span>y cuándo.</span></h2>
       </div>
-      <p class="desc" id="contactSub">Reserva con antelación o pásate sin avisar.</p>
     </div>
     <div class="info-grid">
       <div class="info-card">

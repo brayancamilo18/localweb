@@ -296,13 +296,9 @@
   .about-photo:hover img{ transform: scale(1.05); }
   .about-body h2{ font-size: clamp(2.4rem,5vw,4rem); margin-top: 1rem; }
   .about-body .lede{ font-size: 1.15rem; margin-top: 1.1rem; font-weight: 600; }
-  .about-sign{ display: flex; align-items: center; gap: 1rem; margin-top: 1.6rem; }
-  .about-sign .av{ width: 56px; height: 56px; border-radius: 14px; border: var(--bd) solid var(--cream); background: var(--orange); display: grid; place-items: center; font-family: var(--display); color: var(--ink); flex: none; }
-  .about-sign .name{ font-family: var(--display); font-size: 1.3rem; }
-  .about-sign .role{ font-size: .9rem; opacity: .8; font-weight: 600; }
-  .about-stats{ display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-top: 2rem; }
+  .about-stats{ display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; margin-top: 2rem; }
   .about-stat{ border: var(--bd) solid var(--cream); border-radius: 18px; padding: 1.1rem; text-align: center; }
-  .about-stat .n{ font-family: var(--display); font-size: 2.2rem; line-height: 1; }
+  .about-stat .n{ font-family: var(--display); font-size: 1.4rem; line-height: 1.2; word-break: break-word; }
   .about-stat .l{ font-size: .82rem; margin-top: .4rem; font-weight: 700; opacity: .85; }
 
 
@@ -386,10 +382,13 @@
   footer .brand{ color: var(--cream); font-size: 1.6rem; }
   footer .brand .bmark{ background: var(--orange); color: var(--ink); border-color: var(--cream); }
   footer h4{ font-family: var(--display); font-size: 1.1rem; margin-bottom: .9rem; text-transform: uppercase; }
-  footer ul{ list-style: none; padding: 0; margin: 0; display: grid; gap: .5rem; }
+  footer ul{ list-style: none; padding: 0; margin: 0; display: grid; gap: .65rem; }
+  footer .foot-contact li{ line-height: 1.4; word-break: break-word; }
   footer a{ color: rgba(253,236,194,.82); text-decoration: none; font-weight: 600; }
   footer a:hover{ color: var(--orange); }
   .footer-bottom{ margin-top: 2.6rem; padding-top: 1.4rem; border-top: 2px solid rgba(253,236,194,.18); display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-family: var(--mono); font-size: .8rem; color: rgba(253,236,194,.6); }
+  .footer-bottom a{ color: rgba(253,236,194,.85); text-decoration: underline; }
+  .footer-bottom a:hover{ color: var(--cream); }
 
   /* ===== Reveal ===== */
   .reveal{ opacity: 0; transform: translateY(26px); transition: opacity .55s var(--soft), transform .6s var(--bounce); will-change: transform; }
@@ -498,9 +497,9 @@
       <a href="#contacto">Contacto</a>
     </nav>
     <div class="nav-cta">
-      <a class="btn btn-wa btn-sm" href="https://wa.me/{{ $whatsapp }}" data-wa-link aria-label="Pedí por WhatsApp">
+      <a class="btn btn-wa btn-sm" href="https://wa.me/{{ $whatsapp }}" data-wa-link aria-label="Pide por WhatsApp">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 3.5A11 11 0 0 0 3.6 17.3L2 22l4.8-1.5A11 11 0 1 0 20.5 3.5zM12 20a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.9.9-2.8-.2-.3A8 8 0 1 1 12 20z"/></svg>
-        Pedí ya
+        Pide ya
       </a>
       <button class="burger" id="burger" aria-label="Abrir menú" aria-expanded="false" aria-controls="sheet">
         <span></span>
@@ -540,7 +539,7 @@
         <div class="hero-cta">
           <a class="btn btn-ink" href="https://wa.me/{{ $whatsapp }}" data-wa-link>
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 3.5A11 11 0 0 0 3.6 17.3L2 22l4.8-1.5A11 11 0 1 0 20.5 3.5z"/></svg>
-            Pedí por WhatsApp
+            Pide por WhatsApp
           </a>
           <a class="btn btn-cream" href="#servicios">Ver el menú</a>
         </div>
@@ -579,7 +578,7 @@
   <div class="ticker-track" id="ticker">
     <span class="ticker-item">Recién hecho <span class="sep" aria-hidden="true">●</span></span>
     <span class="ticker-item">Ingredientes top <span class="sep" aria-hidden="true">▲</span></span>
-    <span class="ticker-item">Pedí y recogé <span class="sep" aria-hidden="true">★</span></span>
+    <span class="ticker-item">Pide y recoge <span class="sep" aria-hidden="true">★</span></span>
     <span class="ticker-item">Delivery rápido <span class="sep" aria-hidden="true">●</span></span>
     <span class="ticker-item">Sabor de verdad <span class="sep" aria-hidden="true">▲</span></span>
     <span class="ticker-item">Hecho con ganas <span class="sep" aria-hidden="true">★</span></span>
@@ -592,7 +591,6 @@
     <div class="section-head center stack-intro reveal">
       <span class="cap on-cream">★ El menú</span>
       <h2 id="serv-title">Lo que se cocina aquí</h2>
-      <p class="lede">Desplázate y míralos apilarse: cada plato se queda fijo mientras llega el siguiente. Edita o duplica las cartas en el script.</p>
     </div>
     <div class="stack" id="stack">
 
@@ -606,7 +604,7 @@
         @if(!empty($service['description']))<p class="sc-desc">{{ $service['description'] }}</p>@endif
         <div class="sc-foot">
           <span class="sc-price num">@if($service['price'] !== null){{ number_format($service['price'], 0, ',', '.') }} €@else Consultar @endif</span>
-          <a class="btn btn-ink btn-sm" href="{{ $whatsapp ? 'https://wa.me/'.$whatsapp : '#' }}" data-wa-link>Pedí este</a>
+          <a class="btn btn-ink btn-sm" href="{{ $whatsapp ? 'https://wa.me/'.$whatsapp : '#' }}" data-wa-link>Pide este</a>
         </div>
       </div>
     </article>
@@ -629,17 +627,15 @@
         <span class="cap reveal">★ Nosotros</span>
         <h2 id="aboutTitle" class="reveal">{{ filled($about_title) ? $about_title : 'Sobre nosotros.' }}</h2>
         <p class="lede reveal" id="aboutLede">{{ $descripcion }}</p>
-        <div class="about-sign reveal">
-          <span class="av" aria-hidden="true">◆</span>
-          <div>
-            <div class="name">Nombre del responsable</div>
-            <div class="role">Fundador · Años cocinando</div>
+        <div class="about-stats reveal" data-stagger>
+          <div class="about-stat">
+            <div class="n" id="aboutPhoneValue" data-phone-display>{{ $telefono ?: '+00 000 000 000' }}</div>
+            <div class="l">Teléfono</div>
           </div>
-        </div>
-        <div class="about-stats" data-stagger>
-          <div class="about-stat"><div class="n num">+00</div><div class="l">Platos servidos</div></div>
-          <div class="about-stat"><div class="n num">+00</div><div class="l">En la carta</div></div>
-          <div class="about-stat"><div class="n num">5★</div><div class="l">Valoración</div></div>
+          <div class="about-stat">
+            <div class="n" id="aboutAddressValue">{{ $direccion ?: ($ciudad ?: 'Calle Ejemplo, 00 · Ciudad') }}</div>
+            <div class="l">Dirección</div>
+          </div>
         </div>
       </div>
     </div>
@@ -653,7 +649,6 @@
     <div class="section-head center reveal">
       <span class="cap">★ Galería</span>
       <h2 id="gal-title">Para abrir el apetito</h2>
-      <p class="lede">Cambia los bloques por fotos reales de tus platos, el local y la gente. Llevan zoom apetecible al pasar el ratón.</p>
     </div>
         <div class="gallery" data-stagger id="galleryLive">
 @forelse(($galeria ?? []) as $imgUrl)
@@ -676,7 +671,6 @@
     <div class="section-head center reveal">
       <span class="cap on-cream">★ Horario</span>
       <h2 id="sched-title">¿Cuándo cocinamos?</h2>
-      <p class="lede">Estado en tiempo real según el horario configurado en el script.</p>
     </div>
     <div class="schedule-wrap">
       <div class="panel reveal">
@@ -713,8 +707,8 @@
           <span id="sideStatusLabel">Abierto ahora</span>
         </span>
         <h3 id="sideStatusTitle">Estamos abiertos</h3>
-        <p id="sideStatusText">Pedí ya o pásate. Te lo preparamos al momento.</p>
-        <a class="btn btn-orange" href="#contacto">Pedí ahora</a>
+        <p id="sideStatusText">Pide ya o pasa. Te lo preparamos al momento.</p>
+        <a class="btn btn-orange" href="#contacto">Pide ahora</a>
       </aside>
     </div>
   </div>
@@ -725,25 +719,25 @@
   <div class="container">
     <div class="section-head center reveal">
       <span class="cap">★ Contacto</span>
-      <h2 id="contact-title">Pedí o reservá</h2>
+      <h2 id="contact-title">Pide o reserva</h2>
     </div>
     <div class="contact-grid" data-stagger>
       <a class="contact-big c1" href="tel:+00000000000" data-tel-link>
-        <span class="label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2 4.1 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1 1 .3 1.8.6 2.7a2 2 0 0 1-.5 2.1L7.9 9.8a16 16 0 0 0 6 6l1.4-1.3a2 2 0 0 1 2-.5c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2z"/></svg> Llamá</span>
-        <span class="big num">+00 000 000 000</span>
+        <span class="label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2 4.1 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1 1 .3 1.8.6 2.7a2 2 0 0 1-.5 2.1L7.9 9.8a16 16 0 0 0 6 6l1.4-1.3a2 2 0 0 1 2-.5c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2z"/></svg> Llama</span>
+        <span class="big">Llámanos ya</span>
       </a>
       <a class="contact-big c2" href="https://wa.me/{{ $whatsapp }}" data-wa-link>
         <span class="label"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 3.5A11 11 0 0 0 3.6 17.3L2 22l4.8-1.5A11 11 0 1 0 20.5 3.5z"/></svg> WhatsApp</span>
-        <span class="big num">+00 000 000 000</span>
+        <span class="big">Escríbenos</span>
       </a>
     </div>
     <div class="contact-extra" data-stagger>
       <a class="ccard" href="mailto:hola@ejemplo.com" id="contactEmailCard">
-        <span class="l">Escribinos</span>
+        <span class="l">Escríbenos</span>
         <span class="v" id="contactEmailValue">{{ $correo ?: 'hola@ejemplo.com' }}</span>
       </a>
       <a class="ccard" href="#mapa" id="contactAddressCard">
-        <span class="l">Visitanos</span>
+        <span class="l">Visítanos</span>
         <span class="v" id="contactAddressValue">{{ $direccion ?: 'Calle Ejemplo, 00 · Ciudad' }}</span>
       </a>
     </div>
@@ -755,8 +749,7 @@
   <div class="container">
     <div class="section-head center reveal">
       <span class="cap on-cream">★ Cómo llegar</span>
-      <h2 id="map-title">Acá nos encontrás</h2>
-      <p class="lede">Edita las coordenadas en el script para apuntar a tu dirección real.</p>
+      <h2 id="map-title">Aquí nos encuentras</h2>
     </div>
     <div id="map" class="reveal" role="application" aria-label="Mapa de ubicación"></div>
   </div>
@@ -767,7 +760,7 @@
   <div class="container">
     <div class="reviews reveal">
       <div class="stars" aria-hidden="true">★★★★★</div>
-      <h2 id="rev-title">La gente flipa (en bueno)</h2>
+      <h2 id="rev-title">A la gente le encanta</h2>
       <p>Las opiniones reales viven en Google. Toca el botón y mira qué cuenta quien ya pidió aquí.</p>
       <a class="btn btn-ink" href="https://www.google.com/" id="gbizBtn" rel="noopener" target="_blank">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.6a4.8 4.8 0 0 1-2.1 3.1v2.6h3.4A10.4 10.4 0 0 0 22 12.2zM12 22a10 10 0 0 0 6.9-2.5l-3.4-2.6a6.2 6.2 0 0 1-9.3-3.3H2.7v2.6A10 10 0 0 0 12 22zM5.7 13.6a6 6 0 0 1 0-3.8V7.2H2.7a10 10 0 0 0 0 9.6zM12 6a5.4 5.4 0 0 1 3.8 1.5l2.9-2.9A10 10 0 0 0 2.7 7.2l3 2.3A6 6 0 0 1 12 6z"/></svg>
@@ -785,8 +778,8 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="30" height="30"><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3h5v18h-5"/></svg>
       </span>
       <div>
-        <h3 id="vcard-title">Guardá nuestros datos</h3>
-        <p>Descargá la tarjeta de contacto y tenenos siempre a mano.</p>
+        <h3 id="vcard-title">Guarda nuestros datos</h3>
+        <p>Descarga la tarjeta de contacto y los tengas siempre a mano.</p>
       </div>
       <a class="btn btn-orange" href="#" id="vcardBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
@@ -801,13 +794,13 @@
   <span class="shape circle c-cream f1" aria-hidden="true"></span>
   <span class="shape c-brown f2" aria-hidden="true"></span>
   <div class="container">
-    <span class="cap solid-ink reveal">★ Pedí ya</span>
-    <h2 id="final-title" class="reveal">¿Tenés<br>hambre?</h2>
-    <p class="reveal">Pedí en menos de un minuto por WhatsApp o pásate a recogerlo. Te lo dejamos listo y calentito.</p>
+    <span class="cap solid-ink reveal">★ Pide ya</span>
+    <h2 id="final-title" class="reveal">¿Tienes<br>hambre?</h2>
+    <p class="reveal">Pide en menos de un minuto por WhatsApp o pasa a recogerlo. Te lo dejamos listo y calentito.</p>
     <div class="ctas reveal">
       <a class="btn btn-ink" href="https://wa.me/{{ $whatsapp }}" data-wa-link rel="noopener">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 3.5A11 11 0 0 0 3.6 17.3L2 22l4.8-1.5A11 11 0 1 0 20.5 3.5z"/></svg>
-        Pedí por WhatsApp
+        Pide por WhatsApp
       </a>
       <a class="btn btn-cream" href="tel:+00000000000" data-tel-link>Llamar ahora</a>
     </div>
@@ -825,7 +818,7 @@
         <p id="footTagline" style="margin-top:1rem;color:rgba(253,236,194,.8);max-width:34ch;font-weight:600;">{{ $tagline ?: $descripcion }}</p>
       </div>
       <div>
-        <h4>Navegá</h4>
+        <h4>Navega</h4>
         <ul>
           <li><a href="#servicios">Servicios</a></li>
           <li><a href="#nosotros">Nosotros</a></li>
@@ -836,16 +829,16 @@
       </div>
       <div>
         <h4>Contacto</h4>
-        <ul>
-          <li><a href="tel:+00000000000">+00 000 000 000</a></li>
-          <li><a href="mailto:{{ $correo }}" id="footEmailLink">{{ $correo ?: 'hola@ejemplo.com' }}</a></li>
-          <li>Calle Ejemplo, 00 · Ciudad</li>
+        <ul class="foot-contact">
+          <li id="footPhoneRow"@if(!$telefono) hidden @endif><a href="{{ $whatsapp ? 'tel:+'.$whatsapp : 'tel:' }}" data-tel-link><span id="footPhoneDisplay" data-phone-display>{{ $telefono }}</span></a></li>
+          <li id="footEmailRow"@if(!$correo) hidden @endif><a id="footEmailLink" href="mailto:{{ $correo }}"><span id="footEmailDisplay">{{ $correo }}</span></a></li>
+          <li id="footAddressRow"@if(!$direccion && !$ciudad) hidden @endif><a href="{{ $google_maps_url ?: '#mapa' }}" id="footAddressLink"@if($google_maps_url) target="_blank" rel="noopener noreferrer"@endif><span id="footAddressText">{{ $direccion ?: $ciudad }}</span></a></li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© <span id="year"></span> <span id="footCopyName">Tu negocio</span> · Todos los derechos reservados · <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span></span>
-      <span>Aviso legal · Privacidad · Cookies</span>
+      <span>© <span id="year"></span> <span id="footCopyName">{{ $nombre }}</span> · Todos los derechos reservados · <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span></span>
+      <span><a href="{{ rtrim(config('app.frontend_url'), '/') }}/aviso-legal" target="_blank" rel="noopener noreferrer">Aviso legal</a> · <a href="{{ rtrim(config('app.frontend_url'), '/') }}/privacidad" target="_blank" rel="noopener noreferrer">Privacidad</a> · <a href="{{ rtrim(config('app.frontend_url'), '/') }}/cookies" target="_blank" rel="noopener noreferrer">Cookies</a></span>
     </div>
   </div>
 </footer>
@@ -1324,7 +1317,7 @@ function renderKairosStack(services) {
           : '') +
         '<div class="sc-foot"><span class="sc-price num">' +
         escapeKairosHtml(formatKairosPrice(m.price)) +
-        '</span><a class="btn btn-ink btn-sm" href="https://wa.me/" data-wa-link>Pedí este</a></div>' +
+        '</span><a class="btn btn-ink btn-sm" href="https://wa.me/" data-wa-link>Pide este</a></div>' +
         '</div></article>'
       );
     })
@@ -1389,15 +1382,15 @@ function kairosStatus(now) {
   var idx = dayIndex(now.getDay());
   var row = SCHEDULE[idx];
   var cur = now.getHours() * 60 + now.getMinutes();
-  if (!row || !row.open) return { open: false, text: 'Cerrado hoy', sub: 'Volvé mañana o escribinos.' };
+  if (!row || !row.open) return { open: false, text: 'Cerrado hoy', sub: 'Vuelve mañana o escríbenos.' };
   var o = toMin(row.open);
   var c = toMin(row.close);
   if (c <= o) c += 1440;
   if (cur >= o && cur < c) {
-    return { open: true, text: 'Abierto · cierra a las ' + row.close, sub: 'Pedí ya o pásate. Te lo preparamos al momento.' };
+    return { open: true, text: 'Abierto · cierra a las ' + row.close, sub: 'Pide ya o pasa. Te lo preparamos al momento.' };
   }
   if (cur < o) return { open: false, text: 'Abrimos a las ' + row.open, sub: 'Te atendemos en cuanto abramos.' };
-  return { open: false, text: 'Cerrado por hoy', sub: 'Escribinos, te atendemos mañana.' };
+  return { open: false, text: 'Cerrado por hoy', sub: 'Escríbenos, te atendemos mañana.' };
 }
 
 function applyKairosStatus() {
@@ -1623,6 +1616,9 @@ function applyLivePreviewData(raw, opts) {
   }
   if (aboutLede && descripcion) aboutLede.textContent = descripcion;
 
+  var aboutAddr = document.getElementById('aboutAddressValue');
+  if (aboutAddr) aboutAddr.textContent = direccion || ciudad || 'Calle Ejemplo, 00 · Ciudad';
+
   document.querySelectorAll('.bmark').forEach(function (el) {
     if (el.id === 'navBrandLogo') return;
     el.textContent = initials;
@@ -1648,6 +1644,47 @@ function applyLivePreviewData(raw, opts) {
   }
 
   if (typeof lwApplyContactLinks === 'function') lwApplyContactLinks(raw);
+
+  var phoneRaw = (raw.telefono || '').trim();
+  var footPhoneRow = document.getElementById('footPhoneRow');
+  if (footPhoneRow) footPhoneRow.hidden = !phoneRaw;
+
+  var footEmailRow = document.getElementById('footEmailRow');
+  var footEmailLink = document.getElementById('footEmailLink');
+  var footEmailDisplay = document.getElementById('footEmailDisplay');
+  if (footEmailRow && footEmailLink && footEmailDisplay) {
+    if (correo) {
+      footEmailLink.href = 'mailto:' + correo;
+      footEmailDisplay.textContent = correo;
+      footEmailRow.hidden = false;
+    } else {
+      footEmailDisplay.textContent = '';
+      footEmailRow.hidden = true;
+    }
+  }
+
+  var footAddrVal = direccion || ciudad || '';
+  var footAddressRow = document.getElementById('footAddressRow');
+  var footAddressLink = document.getElementById('footAddressLink');
+  var footAddressText = document.getElementById('footAddressText');
+  if (footAddressRow && footAddressLink && footAddressText) {
+    if (footAddrVal) {
+      footAddressText.textContent = footAddrVal;
+      footAddressRow.hidden = false;
+      if (mapsUrl) {
+        footAddressLink.href = mapsUrl;
+        footAddressLink.target = '_blank';
+        footAddressLink.rel = 'noopener noreferrer';
+      } else {
+        footAddressLink.href = '#mapa';
+        footAddressLink.removeAttribute('target');
+        footAddressLink.removeAttribute('rel');
+      }
+    } else {
+      footAddressText.textContent = '';
+      footAddressRow.hidden = true;
+    }
+  }
 
   var emailVal = document.getElementById('contactEmailValue');
   var emailCard = document.getElementById('contactEmailCard');

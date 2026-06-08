@@ -507,7 +507,6 @@ body.sleek-preview #aboutExtraBlocks .tv-split{
       <span class="eyebrow">Servicios</span>
       <h2>Lo que<br/><span>hacemos.</span></h2>
     </div>
-    <p>Carta de servicios y precios. Sin sorpresas.</p>
   </div>
   <div class="services" id="sleekServicesList"></div>
 </section>
@@ -552,7 +551,6 @@ body.sleek-preview #aboutExtraBlocks .tv-split{
       <span class="eyebrow">Galería</span>
       <h2>Trabajos<br/><span>recientes.</span></h2>
     </div>
-    <p>Una muestra de lo que hacemos día a día.</p>
   </div>
   <div class="gallery-grid" id="sleekGalleryList"></div>
 </section>
@@ -564,7 +562,6 @@ body.sleek-preview #aboutExtraBlocks .tv-split{
       <span class="eyebrow">Encuéntranos</span>
       <h2>Horario<br/><span>y contacto.</span></h2>
     </div>
-    <p>Reserva con antelación o pásate cuando estemos abiertos.</p>
   </div>
   <div class="info">
     <div class="info-card">
@@ -631,7 +628,6 @@ body.sleek-preview #aboutExtraBlocks .tv-split{
   <div class="cta-inner">
     <span class="eyebrow">Reservas</span>
     <h2 id="sleekCtaTitle">¿Construimos<br/>algo <span>juntos</span>?</h2>
-    <p>Cuéntanos qué tienes en mente. Volvemos en 24 horas con una propuesta.</p>
     <a href="https://wa.me/{{ $whatsapp }}" class="btn-p" data-wa-link>Contactar por WhatsApp <span class="arrow">→</span></a>
   </div>
 </div>

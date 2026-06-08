@@ -655,10 +655,6 @@
     </div>
   </div>
 
-  <div class="hero-meta">
-    <div class="item"><span class="num">12<em>·</em>11</span><span>Años en el barrio</span></div>
-    <div class="item"><span class="num">5</span><span>Peluqueros del equipo</span></div>
-  </div>
 </header>
 
 <!-- ═══ 2. SOBRE NOSOTROS ═════════════════════════════ -->
@@ -671,7 +667,6 @@
         <span class="eyebrow-coral">Sobre nosotros</span>
         <h2 id="aboutTitle">{{ filled($about_title) ? $about_title : 'Sobre nosotros.' }}</h2>
         <p id="aboutDescripcion">{{ $descripcion }}</p>
-        <p id="aboutExtra" hidden></p>
 
         <div class="about-actions">
           <a href="tel:{{ $telefono }}" class="pill-tel" data-tel-link>
@@ -723,7 +718,6 @@
   <div class="wrap" id="gallerySec">
     <div class="gallery-head">
       <h2 class="r-left">Trabajos <em>recientes</em>.</h2>
-      <p class="right r-right d-1" id="gallerySub"></p>
     </div>
     <div class="grid" id="galleryLiveBloom"></div>
   </div>
@@ -793,12 +787,11 @@
         </ul>
       </div>
       <div>
-        <div class="foot-h">Servicios</div>
+        <div class="foot-h">Legal</div>
         <ul>
-          <li>Corte y peinado</li>
-          <li>Color y mechas</li>
-          <li>Tratamientos capilares</li>
-          <li>Recogidos para eventos</li>
+          <li><a href="{{ rtrim(config('app.frontend_url'), '/') }}/aviso-legal" target="_blank" rel="noopener noreferrer">Aviso legal</a></li>
+          <li><a href="{{ rtrim(config('app.frontend_url'), '/') }}/privacidad" target="_blank" rel="noopener noreferrer">Privacidad</a></li>
+          <li><a href="{{ rtrim(config('app.frontend_url'), '/') }}/cookies" target="_blank" rel="noopener noreferrer">Cookies</a></li>
         </ul>
       </div>
     </div>

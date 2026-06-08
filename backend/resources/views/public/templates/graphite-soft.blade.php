@@ -447,7 +447,6 @@ footer{background:var(--bg);color:var(--muted);padding:clamp(56px,8vh,80px) clam
       <p class="lede" id="aboutDescripcion" style="margin-top:24px"></p>
       <div class="meta" id="aboutMeta">
         <span id="aboutMetaEquipo" class="is-hidden"><b>Equipo</b> · <span id="aboutMetaEquipoVal"></span></span>
-        <span id="aboutMetaDesde" class="is-hidden"><b>Desde</b> · <span id="aboutMetaDesdeVal"></span></span>
         <span id="aboutMetaUbicacion" class="is-hidden"><b>Ubicación</b> · <span id="aboutMetaUbicacionVal"></span></span>
       </div>
     </div>
@@ -1646,7 +1645,6 @@ function applyContactRows(raw) {
 function applyAboutMeta(raw) {
   raw = raw || {};
   var resp = (raw.nombre_responsable || '').trim();
-  var year = (raw.anio_fundacion || '').trim();
   var city = (raw.ciudad || '').trim();
   var rowEq = document.getElementById('aboutMetaEquipo');
   var valEq = document.getElementById('aboutMetaEquipoVal');
@@ -1655,14 +1653,6 @@ function applyAboutMeta(raw) {
       valEq.textContent = resp;
       rowEq.classList.remove('is-hidden');
     } else rowEq.classList.add('is-hidden');
-  }
-  var rowDe = document.getElementById('aboutMetaDesde');
-  var valDe = document.getElementById('aboutMetaDesdeVal');
-  if (rowDe && valDe) {
-    if (year) {
-      valDe.textContent = year;
-      rowDe.classList.remove('is-hidden');
-    } else rowDe.classList.add('is-hidden');
   }
   var rowUb = document.getElementById('aboutMetaUbicacion');
   var valUb = document.getElementById('aboutMetaUbicacionVal');
@@ -1718,7 +1708,7 @@ function applyLivePreviewData(raw, opts) {
 
   var eyebrow = document.getElementById('heroEyebrow');
   if (eyebrow) {
-    eyebrow.textContent = ciudad ? 'Boutique · Conceptstore · ' + ciudad : '';
+    eyebrow.textContent = ciudad ? 'Boutique · ' + ciudad : '';
     eyebrow.style.display = ciudad ? '' : 'none';
   }
 
@@ -1799,7 +1789,7 @@ function applyLivePreviewData(raw, opts) {
     if (aboutDesc && !aboutDesc.textContent.trim()) aboutDesc.textContent = GRAPHITE_PREVIEW_COPY.descripcion;
     var eyebrow = document.getElementById('heroEyebrow');
     if (eyebrow && !eyebrow.textContent.trim()) {
-      eyebrow.textContent = 'Boutique · Moda · ' + GRAPHITE_PREVIEW_COPY.ciudad;
+      eyebrow.textContent = 'Boutique · ' + GRAPHITE_PREVIEW_COPY.ciudad;
       eyebrow.style.display = '';
     }
   }

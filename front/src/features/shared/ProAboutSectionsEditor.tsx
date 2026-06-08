@@ -1,7 +1,9 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
 import { Btn, Card, Field, Icon, Input, Textarea } from '../../components/primitives/primitives'
+import { postCheckout } from '../../api/billing'
+import { useToast } from '../../components/ui/Toast'
+import { navigateExternal } from '../../utils/navigate'
 import { ContentField, EditorCounter } from '../dashboard/sections/editorFields'
 import {
   createAboutSection,
@@ -23,6 +25,46 @@ type FormState = { title: string; description: string }
 type ExtraFieldFocus = 'title' | 'description' | null
 
 const emptyForm = (): FormState => ({ title: '', description: '' })
+
+function PasarAProButton({ inline = false }: { inline?: boolean }) {
+  const { showToast } = useToast()
+  const checkoutM = useMutation({
+    mutationFn: postCheckout,
+    onSuccess: (url) => navigateExternal(url),
+    onError: () =>
+      showToast({
+        type: 'error',
+        title: 'No se pudo abrir el checkout',
+        description: 'Inténtalo de nuevo en unos segundos.',
+      }),
+  })
+
+  if (inline) {
+    return (
+      <button
+        type="button"
+        className="lw-content-editor__pro-cta"
+        disabled={checkoutM.isPending}
+        onClick={() => checkoutM.mutate()}
+      >
+        {checkoutM.isPending ? 'Abriendo…' : 'Pasar a Pro'}
+      </button>
+    )
+  }
+
+  return (
+    <Btn
+      type="button"
+      kind="primary"
+      size="sm"
+      loading={checkoutM.isPending}
+      disabled={checkoutM.isPending}
+      onClick={() => checkoutM.mutate()}
+    >
+      Pasar a Pro
+    </Btn>
+  )
+}
 
 function sectionToForm(s: BusinessAboutSection): FormState {
   return {
@@ -227,7 +269,7 @@ export default function ProAboutSectionsEditor({
             {!onboarding ? (
               <>
                 {' '}
-                <Link to="/dashboard/cuenta/plan">Ver planes</Link>
+                <PasarAProButton inline />
               </>
             ) : null}
           </p>
@@ -242,7 +284,7 @@ export default function ProAboutSectionsEditor({
         </p>
         {!onboarding ? (
           <p style={{ marginTop: 10, marginBottom: 0 }}>
-            <Link to="/dashboard/cuenta/plan">Ver planes</Link>
+            <PasarAProButton />
           </p>
         ) : null}
       </Card>
