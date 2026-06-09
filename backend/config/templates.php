@@ -36,8 +36,12 @@ return [
         'npm_binary' => env('BROWSERSHOT_NPM_BINARY'),
         // Ruta a node_modules donde está instalado puppeteer (por defecto el del backend).
         'node_module_path' => env('BROWSERSHOT_NODE_MODULE_PATH', base_path('node_modules')),
-        // Chromium del sistema (opcional). Si se define, evita usar el de puppeteer.
+        // Chromium del sistema (recomendado en VPS). Si se define, no usa el de puppeteer.
         'chrome_path' => env('BROWSERSHOT_CHROME_PATH'),
+
+        // Cache de Chromium descargado por puppeteer. Por defecto backend/.puppeteer (misma ruta que deploy.sh).
+        // Sin esto, www-data busca en /var/www/.cache/puppeteer y no encuentra el navegador.
+        'puppeteer_cache_dir' => env('PUPPETEER_CACHE_DIR', base_path('.puppeteer')),
 
         // Flags extra para Chromium en servidores headless (sandbox de contenedor).
         'no_sandbox' => (bool) env('BROWSERSHOT_NO_SANDBOX', true),
