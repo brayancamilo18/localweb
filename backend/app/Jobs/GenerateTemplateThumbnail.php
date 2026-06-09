@@ -100,6 +100,13 @@ class GenerateTemplateThumbnail implements NotTenantAware, ShouldQueue
      */
     private function capture(string $url, array $cfg): string
     {
+        // www-data no hereda PUPPETEER_CACHE_DIR del deploy; fijar la ruta antes de lanzar Node.
+        if (empty($cfg['chrome_path']) && ! empty($cfg['puppeteer_cache_dir'])) {
+            $cacheDir = (string) $cfg['puppeteer_cache_dir'];
+            putenv('PUPPETEER_CACHE_DIR='.$cacheDir);
+            $_ENV['PUPPETEER_CACHE_DIR'] = $cacheDir;
+        }
+
         $browsershot = Browsershot::url($url)
             ->windowSize((int) $cfg['width'], (int) $cfg['height'])
             ->deviceScaleFactor(1)

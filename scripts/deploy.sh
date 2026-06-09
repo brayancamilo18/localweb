@@ -123,6 +123,7 @@ if [[ -f "$BACKEND/package.json" ]]; then
     # Descarga Chromium de puppeteer en cache estable (idempotente). Opcional si usas BROWSERSHOT_CHROME_PATH.
     PUPPETEER_CACHE_DIR="$PUPPETEER_CACHE_DIR" (cd "$BACKEND" && npx puppeteer browsers install chrome) || \
         echo "ADVERTENCIA: no se pudo instalar Chromium de puppeteer; define BROWSERSHOT_CHROME_PATH a un Chromium del sistema."
+    chown -R www-data:www-data "$BACKEND/node_modules" "$PUPPETEER_CACHE_DIR" 2>/dev/null || true
 fi
 
 chown -R www-data:www-data "$APP_DIR"
