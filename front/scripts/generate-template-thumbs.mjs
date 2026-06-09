@@ -5,7 +5,8 @@
  * saturan la memoria del navegador móvil y crashean la pestaña. Una imagen estática
  * pesa una fracción y permite mostrar todas las plantillas sin riesgo.
  *
- * Uso:  npm run thumbs
+ * Uso:  npm run thumbs            (todas)
+ *       npm run thumbs kairos-bold (una o varias, pasando slugs como argumentos)
  * Salida: front/public/templates/thumbs/{slug}.webp  (1280x760)
  *
  * Requiere: playwright (chromium) y sharp como devDependencies.
@@ -79,16 +80,32 @@ function startStaticServer() {
 }
 
 function templateSlugs() {
-  return fs
+  const all = fs
     .readdirSync(TEMPLATES_DIR)
     .filter((f) => f.endsWith('.html'))
     .map((f) => f.replace(/\.html$/i, ''))
     .sort()
+
+  // Filtro opcional por slug(s) pasados como argumentos: `npm run thumbs kairos-bold`.
+  const requested = process.argv.slice(2).map((s) => s.replace(/\.html$/i, ''))
+  if (requested.length === 0) return all
+
+  const known = new Set(all)
+  const missing = requested.filter((s) => !known.has(s))
+  if (missing.length) {
+    console.error(`Plantillas no encontradas: ${missing.join(', ')}`)
+  }
+  return requested.filter((s) => known.has(s))
 }
 
 async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true })
   const slugs = templateSlugs()
+  if (slugs.length === 0) {
+    console.error('No hay plantillas que generar.')
+    process.exitCode = 1
+    return
+  }
   const { server, port } = await startStaticServer()
   const base = `http://127.0.0.1:${port}`
   console.log(`Servidor estático en ${base} · ${slugs.length} plantillas`)

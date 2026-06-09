@@ -477,6 +477,7 @@ export default function Diseno() {
                   <div style={{ position: 'relative' }}>
                     <TemplateThumbImage
                       slug={template.slug}
+                      thumbnailUrl={template.thumbnail_url}
                       color={template.primary_color}
                     />
                     <div

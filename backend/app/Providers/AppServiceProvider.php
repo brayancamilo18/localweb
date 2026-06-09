@@ -7,10 +7,12 @@ use App\Models\Business;
 use App\Models\BusinessImage;
 use App\Models\BusinessAboutSection;
 use App\Models\BusinessService;
+use App\Models\Template;
 use App\Observers\BusinessAboutSectionObserver;
 use App\Observers\BusinessImageObserver;
 use App\Observers\BusinessObserver;
 use App\Observers\BusinessServiceObserver;
+use App\Observers\TemplateObserver;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
@@ -46,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
         BusinessImage::observe(BusinessImageObserver::class);
         BusinessService::observe(BusinessServiceObserver::class);
         BusinessAboutSection::observe(BusinessAboutSectionObserver::class);
+        Template::observe(TemplateObserver::class);
 
         // En local el frontend (vite) proxyfica /api hacia el contenedor "nginx", así que las
         // requests llegan con Host=nginx. Sin esto, las URLs firmadas (verificación de email,
