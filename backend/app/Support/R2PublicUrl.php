@@ -57,7 +57,12 @@ final class R2PublicUrl
             return false;
         }
 
-        return (bool) preg_match('#^businesses/\d+/(cover|gallery|about|about_sections|logo|favicon)/#', $path);
+        if (preg_match('#^businesses/\d+/(cover|gallery|about|about_sections|logo|favicon)/#', $path)) {
+            return true;
+        }
+
+        // Miniaturas de plantillas: templates/{slug}/thumb-{hash}.webp
+        return (bool) preg_match('#^templates/[a-z0-9-]+/thumb[a-z0-9.\-]*\.webp$#i', $path);
     }
 
     private static function mustUseProxy(string $url): bool

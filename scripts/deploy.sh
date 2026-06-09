@@ -101,6 +101,18 @@ rm -rf "$BUILD_TMP"
 echo "==> Backend: composer + artisan..."
 cd "$BACKEND"
 
+# Puppeteer + Chromium para Browsershot (generación de miniaturas de plantillas).
+# Instala node_modules de producción (incluye puppeteer) y descarga Chromium si falta.
+# PUPPETEER_CACHE_DIR fija una ruta estable propiedad de www-data (no el $HOME del deployer).
+export PUPPETEER_CACHE_DIR="$BACKEND/.puppeteer"
+if [[ -f "$BACKEND/package.json" ]]; then
+    echo "==> Backend: npm (puppeteer)..."
+    npm ci --omit=dev --prefix "$BACKEND" --silent || npm install --omit=dev --prefix "$BACKEND" --silent
+    # Descarga el navegador de puppeteer en la cache estable (idempotente).
+    PUPPETEER_CACHE_DIR="$PUPPETEER_CACHE_DIR" npx --prefix "$BACKEND" puppeteer browsers install chrome || \
+        echo "ADVERTENCIA: no se pudo instalar Chromium de puppeteer; define BROWSERSHOT_CHROME_PATH a un Chromium del sistema."
+fi
+
 chown -R www-data:www-data "$APP_DIR"
 find "$BACKEND/storage" -type d -exec chmod 775 {} \;
 find "$BACKEND/bootstrap/cache" -type d -exec chmod 775 {} \;

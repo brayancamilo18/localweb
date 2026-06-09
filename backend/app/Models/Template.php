@@ -16,6 +16,8 @@ class Template extends Model
         'requires_pro',
         'hero_photo_slots',
         'thumbnail_url',
+        'thumbnail_status',
+        'thumbnail_generated_at',
         'category',
         'suitable_sectors',
         'sort_order',
@@ -31,6 +33,7 @@ class Template extends Model
             'suitable_sectors' => 'array',
             'sort_order' => 'integer',
             'featured' => 'boolean',
+            'thumbnail_generated_at' => 'datetime',
         ];
     }
 

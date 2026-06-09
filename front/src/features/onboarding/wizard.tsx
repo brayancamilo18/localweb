@@ -443,6 +443,7 @@ function TemplateIframe({
   previewData,
   initialHash = '',
   compactThumb = false,
+  thumbnailUrl = null,
 }: {
   variant: Step1PreviewVariant
   mode?: 'full' | 'thumb'
@@ -453,6 +454,8 @@ function TemplateIframe({
   initialHash?: string
   /** Vista miniatura más baja en móvil (paso plantilla). */
   compactThumb?: boolean
+  /** URL de la captura en R2 (modo thumb); prioridad sobre el webp commiteado. */
+  thumbnailUrl?: string | null
 }) {
   const templatePath = TEMPLATE_URL_BY_VARIANT[variant]
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
@@ -609,7 +612,14 @@ function TemplateIframe({
 
   if (mode === 'thumb') {
     const placeholderColor = TEMPLATE_THUMB_PLACEHOLDER_COLOR[variant] ?? '#FAFAFA'
-    return <TemplateThumbImage slug={variant} color={placeholderColor} compact={compactThumb} />
+    return (
+      <TemplateThumbImage
+        slug={variant}
+        thumbnailUrl={thumbnailUrl}
+        color={placeholderColor}
+        compact={compactThumb}
+      />
+    )
   }
 
   return (
@@ -1788,6 +1798,7 @@ function Step1Plantilla({
                   variant={variant}
                   mode="thumb"
                   compactThumb={isMobile}
+                  thumbnailUrl={t.thumbnail_url}
                   previewData={previewByVariant[variant]}
                 />
                 <div style={{ position: 'absolute', top: 8, left: 8 }}>
@@ -2020,6 +2031,7 @@ function Step1Plantilla({
                         <TemplateIframe
                           variant={recoVariant}
                           mode="thumb"
+                          thumbnailUrl={recommendedTemplate.thumbnail_url}
                           previewData={
                             previewByVariant[recoVariant]
                             ?? mergeStep1TemplatePreview(recoVariant, previewOverrides)
