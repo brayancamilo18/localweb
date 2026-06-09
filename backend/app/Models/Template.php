@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\R2PublicUrl;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -50,5 +51,15 @@ class Template extends Model
     public function businesses(): HasMany
     {
         return $this->hasMany(Business::class);
+    }
+
+    /** URL pública de la miniatura en R2; null si aún no está lista (pending/failed). */
+    public function publicThumbnailUrl(): ?string
+    {
+        if ($this->thumbnail_status !== 'ready' || ! $this->thumbnail_url) {
+            return null;
+        }
+
+        return R2PublicUrl::forPath($this->thumbnail_url);
     }
 }

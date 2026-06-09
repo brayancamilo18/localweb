@@ -12,10 +12,11 @@ use Illuminate\Console\Command;
  *   php artisan templates:thumbnails            # todas
  *   php artisan templates:thumbnails urban-bold # una sola
  *   php artisan templates:thumbnails --sync     # ejecuta en proceso (sin cola)
+ *   php artisan templates:thumbnails --reset    # limpia thumbnail_url antes de regenerar
  */
 class GenerateTemplateThumbnails extends Command
 {
-    protected $signature = 'templates:thumbnails {slug? : Slug de una plantilla concreta} {--sync : Ejecutar de forma síncrona en vez de encolar}';
+    protected $signature = 'templates:thumbnails {slug? : Slug de una plantilla concreta} {--sync : Ejecutar de forma síncrona en vez de encolar} {--reset : Limpiar thumbnail_url/status antes de generar}';
 
     protected $description = 'Genera capturas webp del hero de las plantillas y las publica en R2 (thumbnail_url).';
 
@@ -35,6 +36,17 @@ class GenerateTemplateThumbnails extends Command
         }
 
         $sync = (bool) $this->option('sync');
+
+        if ($this->option('reset')) {
+            foreach ($templates as $template) {
+                $template->forceFill([
+                    'thumbnail_url' => null,
+                    'thumbnail_status' => 'pending',
+                    'thumbnail_generated_at' => null,
+                ])->saveQuietly();
+            }
+            $this->line('· Miniaturas reseteadas en BD.');
+        }
 
         foreach ($templates as $template) {
             if ($sync) {
