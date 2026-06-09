@@ -1,5 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { templateThumbAspectPadding } from './templateThumb'
+
+/** Versión del set de webp commiteados; súbela al regenerar capturas para romper caché del navegador. */
+const STATIC_THUMB_VERSION = '2'
 
 type Props = {
   /** slug de la plantilla; usado como fallback a /templates/thumbs/{slug}.webp si no hay thumbnailUrl */
@@ -13,19 +16,37 @@ type Props = {
   className?: string
 }
 
+function staticThumbSrc(slug: string): string {
+  return `/templates/thumbs/${slug}.webp?v=${STATIC_THUMB_VERSION}`
+}
+
 /**
  * Miniatura de plantilla con captura estática del hero (sin iframe).
  * Evita el crash de memoria en móvil al renderizar muchas previews a la vez.
  *
  * Fuente de la imagen: `thumbnailUrl` (R2, vía API) si existe; si no, el webp
  * commiteado en /templates/thumbs/{slug}.webp como respaldo durante la transición.
- * Si ninguna carga, queda el gradiente de marca como placeholder.
+ * Si la URL de R2 falla, cae al webp estático. Si ninguna carga, queda el gradiente.
  */
 export default function TemplateThumbImage({ slug, thumbnailUrl, color, compact = false, className }: Props) {
+  const staticSrc = staticThumbSrc(slug)
+  const [src, setSrc] = useState(thumbnailUrl || staticSrc)
   const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    setLoaded(false)
+    setSrc(thumbnailUrl || staticThumbSrc(slug))
+  }, [thumbnailUrl, slug])
+
   const fallback = color || '#FAFAFA'
   const bg = `linear-gradient(160deg, ${fallback} 0%, color-mix(in srgb, ${fallback} 55%, #1a1a1a) 100%)`
-  const src = thumbnailUrl || `/templates/thumbs/${slug}.webp`
+
+  const handleError = () => {
+    if (src !== staticSrc) {
+      setLoaded(false)
+      setSrc(staticSrc)
+    }
+  }
 
   const img = (
     <img
@@ -34,6 +55,7 @@ export default function TemplateThumbImage({ slug, thumbnailUrl, color, compact 
       loading="lazy"
       decoding="async"
       onLoad={() => setLoaded(true)}
+      onError={handleError}
       style={{
         position: 'absolute',
         inset: 0,

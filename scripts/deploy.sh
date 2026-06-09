@@ -64,6 +64,7 @@ rsync -a --delete \
     --exclude='storage/framework/sessions/*' \
     --exclude='storage/framework/views/*' \
     --exclude='node_modules' \
+    --exclude='.puppeteer' \
     "$REPO_DIR/backend/" "$BACKEND/"
 
 echo "==> Building frontend..."
@@ -102,14 +103,25 @@ echo "==> Backend: composer + artisan..."
 cd "$BACKEND"
 
 # Puppeteer + Chromium para Browsershot (generación de miniaturas de plantillas).
-# Instala node_modules de producción (incluye puppeteer) y descarga Chromium si falta.
-# PUPPETEER_CACHE_DIR fija una ruta estable propiedad de www-data (no el $HOME del deployer).
+# node_modules y .puppeteer se excluyen del rsync (--delete no los borra).
 export PUPPETEER_CACHE_DIR="$BACKEND/.puppeteer"
 if [[ -f "$BACKEND/package.json" ]]; then
     echo "==> Backend: npm (puppeteer)..."
-    npm ci --omit=dev --prefix "$BACKEND" --silent || npm install --omit=dev --prefix "$BACKEND" --silent
-    # Descarga el navegador de puppeteer en la cache estable (idempotente).
-    PUPPETEER_CACHE_DIR="$PUPPETEER_CACHE_DIR" npx --prefix "$BACKEND" puppeteer browsers install chrome || \
+    if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
+        echo "ERROR: node/npm no están en PATH. Instala Node.js en el VPS antes de desplegar."
+        exit 1
+    fi
+    if ! (cd "$BACKEND" && npm ci --omit=dev); then
+        echo "ADVERTENCIA: npm ci falló; intentando npm install --omit=dev..."
+        (cd "$BACKEND" && npm install --omit=dev)
+    fi
+    if [[ ! -f "$BACKEND/node_modules/puppeteer/package.json" ]]; then
+        echo "ERROR: puppeteer no está en $BACKEND/node_modules (Browsershot lo necesita)."
+        echo "       Ejecuta manualmente: cd $BACKEND && npm ci --omit=dev"
+        exit 1
+    fi
+    # Descarga Chromium de puppeteer en cache estable (idempotente). Opcional si usas BROWSERSHOT_CHROME_PATH.
+    PUPPETEER_CACHE_DIR="$PUPPETEER_CACHE_DIR" (cd "$BACKEND" && npx puppeteer browsers install chrome) || \
         echo "ADVERTENCIA: no se pudo instalar Chromium de puppeteer; define BROWSERSHOT_CHROME_PATH a un Chromium del sistema."
 fi
 
