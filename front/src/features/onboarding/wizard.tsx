@@ -51,6 +51,7 @@ import { useAuthStore } from '../../store/authStore'
 import { applyBrandColorToDocument, isValidBrandColorHex } from '../../lib/brandOverrideHtml'
 import { WizardNavContext, type WizardStepProps } from './wizardNavContext'
 import ScheduleEditor from '../shared/ScheduleEditor'
+import PhoneInput from '../shared/PhoneInput'
 import { generateBusinessDescription } from '../../api/ai'
 import { useAiQuota, useInvalidateAiQuota } from '../shared/useAiQuota'
 import AiGenerateButton from '../shared/AiGenerateButton'
@@ -2371,7 +2372,7 @@ function Step2Portada({
           placeholder="Estudio Marta"
         />
       </Field>
-      <Field label="Tagline" hint="Se verá justo debajo del nombre en portada.">
+      <Field label="Eslogan" hint="Se verá justo debajo del nombre en portada.">
         <Input
           value={tagline}
           disabled={busy}
@@ -2469,6 +2470,7 @@ function Step3Sobre({
   isLoading: busy,
   initialBusinessName = '',
   initialTagline = '',
+  onTaglineChange,
   aboutTitle,
   onAboutTitleChange,
   description,
@@ -2479,10 +2481,14 @@ function Step3Sobre({
   onAboutPhotoChange,
   isPro = false,
   onAboutSectionsChange,
+  aiAlreadyGenerated = false,
+  onAiGenerated,
 }: WizardStepProps & {
   /** Nombre y tagline vienen del paso Portada; se reenvían al API sin volver a pedirlos. */
   initialBusinessName?: string
   initialTagline?: string
+  /** Permite que la IA del paso 3 sugiera un tagline y lo aplique al estado del padre. */
+  onTaglineChange?: (value: string) => void
   aboutTitle: string
   onAboutTitleChange: (value: string) => void
   description: string
@@ -2493,6 +2499,9 @@ function Step3Sobre({
   onAboutPhotoChange: (file: File | null) => void
   isPro?: boolean
   onAboutSectionsChange?: () => void
+  /** En el onboarding la descripción solo se puede generar UNA vez (cuota mensual). */
+  aiAlreadyGenerated?: boolean
+  onAiGenerated?: () => void
 }) {
   const nav = useContext(WizardNavContext)
   const aboutRef = useRef<HTMLInputElement>(null)
@@ -2503,12 +2512,14 @@ function Step3Sobre({
   const aiEnabled = aiQuotaQuery.data?.enabled === true
   const aiRemaining = aiQuotaQuery.data?.remaining.business_description
   const [aiVariants, setAiVariants] = useState<string[]>([])
+  const [aiSuggestedTagline, setAiSuggestedTagline] = useState<string>('')
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState<string | null>(null)
   const [aiPendingVariant, setAiPendingVariant] = useState<string | null>(null)
   const [hoveredVariant, setHoveredVariant] = useState<number | null>(null)
 
   const handleGenerateAi = async () => {
+    if (aiAlreadyGenerated) return
     if (initialBusinessName.trim() === '') {
       setAiError('Necesitamos el nombre del negocio (paso anterior) para generar descripciones.')
       return
@@ -2520,12 +2531,14 @@ function Step3Sobre({
         business_name: initialBusinessName.trim(),
         tagline: initialTagline.trim() || undefined,
       })
+      setAiSuggestedTagline(res.suggested_tagline ?? '')
       setAiVariants(res.variants)
+      onAiGenerated?.()
       invalidateAiQuota()
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status
       if (status === 429) {
-        setAiError('Has alcanzado el límite diario de generaciones. Vuelve mañana.')
+        setAiError('Has agotado tu cuota mensual de IA. Podrás volver a usarla el mes que viene.')
       } else if (status === 503) {
         setAiError('La generación con IA no está disponible ahora mismo.')
       } else {
@@ -2540,7 +2553,12 @@ function Step3Sobre({
   const applyVariant = (variant: string) => {
     const trimmed = variant.length > descMax ? variant.slice(0, descMax) : variant
     onDescriptionChange(trimmed)
+    // Si el tagline está vacío, aplicar el sugerido por la IA
+    if (aiSuggestedTagline.trim() && !initialTagline.trim()) {
+      onTaglineChange?.(aiSuggestedTagline.trim().slice(0, 120))
+    }
     setAiVariants([])
+    setAiSuggestedTagline('')
   }
 
   const handlePickVariant = (variant: string) => {
@@ -2654,13 +2672,17 @@ function Step3Sobre({
           }}
         >
           <div style={{ fontSize: 13, color: 'var(--lw-text-3)' }}>
-            ¿No sabes qué escribir? Generamos 3 ideas para ti.
+            {aiAlreadyGenerated
+              ? 'Ya has generado tus ideas con IA. Elige una abajo o edita el texto a tu gusto.'
+              : '¿No sabes qué escribir? Generamos 3 ideas para ti.'}
           </div>
-          <AiGenerateButton
-            onClick={handleGenerateAi}
-            loading={aiLoading}
-            remaining={aiRemaining}
-          />
+          {!aiAlreadyGenerated ? (
+            <AiGenerateButton
+              onClick={handleGenerateAi}
+              loading={aiLoading}
+              remaining={aiRemaining}
+            />
+          ) : null}
         </div>
       ) : null}
 
@@ -2705,6 +2727,22 @@ function Step3Sobre({
           <p style={{ margin: 0, fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(11,31,26,0.4)' }}>
             {aiLoading ? 'Preparando variantes' : 'Toca una variante para usarla'}
           </p>
+          {!aiLoading && aiSuggestedTagline && (
+            <div style={{
+              fontSize: 13,
+              color: 'var(--lw-text-2)',
+              background: 'var(--lw-surface)',
+              border: '1px solid var(--lw-border)',
+              borderRadius: 8,
+              padding: '8px 12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}>
+              <Icon name="sparkle" size={12} color="var(--lw-accent-hover)" />
+              <span><strong>Eslogan sugerido:</strong> {aiSuggestedTagline}{!initialTagline.trim() && ' (se aplicará automáticamente)'}</span>
+            </div>
+          )}
           <div style={{ display: 'grid', gap: 8 }}>
             {aiLoading
               ? [0, 1, 2].map((i) => (
@@ -2776,12 +2814,10 @@ function Step3Sobre({
       />
 
       <Field label="Teléfono de contacto" hint="Aparecerá como botón clicable en tu web.">
-        <Input
+        <PhoneInput
           value={contactPhone}
           disabled={busy}
-          onChange={(e) => onContactPhoneChange(e.target.value)}
-          prefix={<Icon name="phone" size={14} />}
-          placeholder="+34 …"
+          onChange={onContactPhoneChange}
         />
       </Field>
       <input
@@ -3422,12 +3458,10 @@ function Step6Ubicacion({
       </Card>
       <div className="lw-wizard-two-col">
         <Field label="Teléfono" error={errors?.phone}>
-          <Input
+          <PhoneInput
             value={phone}
             disabled={busy}
-            onChange={(e) => handlePhoneInput(e.target.value)}
-            prefix={<Icon name="phone" size={14} />}
-            placeholder="+34 …"
+            onChange={handlePhoneInput}
           />
         </Field>
         <Field label="Email" error={errors?.email}>

@@ -590,7 +590,7 @@ function GeneralTab({
         </label>
       </Field>
       <div style={{ gridColumn: '1 / -1' }}>
-        <Field label="Tagline">
+        <Field label="Eslogan">
           <Input value={draft.tagline} disabled={ro} onChange={(e) => setField?.('tagline', e.target.value)} />
         </Field>
       </div>

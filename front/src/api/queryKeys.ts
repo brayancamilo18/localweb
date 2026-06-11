@@ -35,4 +35,8 @@ export const keys = {
   qr: {
     info: ['qr', 'info'] as const,
   },
+  ai: {
+    quota: ['ai', 'quota'] as const,
+    usage: ['ai', 'usage'] as const,
+  },
 }

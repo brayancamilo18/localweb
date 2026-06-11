@@ -9,6 +9,7 @@ import AccountTabPago from './AccountTabPago'
 import AccountTabPrivacidad from './AccountTabPrivacidad'
 import AccountTabSeguridad from './AccountTabSeguridad'
 import AccountTabReferidos from './AccountTabReferidos'
+import AccountTabIa from './AccountTabIa'
 import DashboardSectionHeader from '../../components/DashboardSectionHeader'
 import '../../components/dashboardSectionHeader.css'
 import './account.css'
@@ -24,7 +25,7 @@ import './account.css'
  * prompt posterior para mantener cambios pequeños y revisables.
  */
 
-export type AccountTab = 'perfil' | 'plan' | 'facturas' | 'pago' | 'referidos' | 'privacidad' | 'seguridad'
+export type AccountTab = 'perfil' | 'plan' | 'facturas' | 'pago' | 'referidos' | 'privacidad' | 'seguridad' | 'ia'
 
 const TABS: Array<{ value: AccountTab; label: string; icon: string }> = [
   { value: 'perfil', label: 'Perfil', icon: 'user' },
@@ -32,6 +33,7 @@ const TABS: Array<{ value: AccountTab; label: string; icon: string }> = [
   { value: 'facturas', label: 'Facturas', icon: 'list' },
   { value: 'pago', label: 'Pago', icon: 'creditCard' },
   { value: 'referidos', label: 'Referidos', icon: 'users' },
+  { value: 'ia', label: 'Uso IA', icon: 'sparkle' },
   { value: 'seguridad', label: 'Seguridad', icon: 'shield' },
   { value: 'privacidad', label: 'Privacidad', icon: 'shield' },
 ]
@@ -43,6 +45,7 @@ function isAccountTab(value: string | null): value is AccountTab {
     value === 'facturas' ||
     value === 'pago' ||
     value === 'referidos' ||
+    value === 'ia' ||
     value === 'privacidad' ||
     value === 'seguridad'
   )
@@ -116,6 +119,7 @@ export default function AccountPage() {
         {activeTab === 'facturas' && <AccountTabFacturas />}
         {activeTab === 'pago' && <AccountTabPago />}
         {activeTab === 'referidos' && <AccountTabReferidos />}
+        {activeTab === 'ia' && <AccountTabIa />}
         {activeTab === 'seguridad' && <AccountTabSeguridad />}
         {activeTab === 'privacidad' && <AccountTabPrivacidad />}
       </div>

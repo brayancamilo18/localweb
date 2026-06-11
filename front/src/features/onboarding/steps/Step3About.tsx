@@ -20,7 +20,7 @@ export default function Step3About({ value, onChange }: Props) {
       />
       <div>
         <Textarea
-          label="Tagline"
+          label="Eslogan"
           maxLength={120}
           value={value.tagline ?? ''}
           onChange={(event) => onChange({ ...value, tagline: event.target.value })}
@@ -41,7 +41,7 @@ export default function Step3About({ value, onChange }: Props) {
       <Card>
         <h3 style={{ margin: '0 0 8px 0' }}>Preview</h3>
         <div style={{ fontWeight: 700 }}>{value.business_name || 'Tu negocio'}</div>
-        <div style={{ color: 'var(--lw-text-2)', marginTop: 4 }}>{value.tagline || 'Tagline de ejemplo'}</div>
+        <div style={{ color: 'var(--lw-text-2)', marginTop: 4 }}>{value.tagline || 'Eslogan de ejemplo'}</div>
         <p style={{ color: 'var(--lw-text-3)' }}>{value.description || 'Descripción de ejemplo para vista previa.'}</p>
       </Card>
     </div>

@@ -118,6 +118,103 @@
   box-shadow: 0 8px 24px -16px color-mix(in srgb, var(--lw-editor-accent) 35%, transparent);
 }
 
+/* Borde "iluminado" que recorre el perímetro mientras la IA genera contenido */
+@property --lw-ai-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.lw-content-editor__field--ai-loading {
+  position: relative;
+  border-color: transparent;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--lw-editor-accent) 25%, transparent),
+    0 0 18px -2px color-mix(in srgb, var(--lw-editor-accent) 45%, transparent);
+  animation: lw-ai-glow-pulse 1.6s ease-in-out infinite;
+}
+
+/* Capa giratoria que recorre el borde (brillo principal) */
+.lw-content-editor__field--ai-loading::before {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: 15px;
+  padding: 2.5px;
+  background: conic-gradient(
+    from var(--lw-ai-angle),
+    transparent 0deg,
+    color-mix(in srgb, var(--lw-editor-accent) 40%, transparent) 30deg,
+    var(--lw-editor-accent) 70deg,
+    #ffffff 88deg,
+    var(--lw-editor-accent) 106deg,
+    color-mix(in srgb, var(--lw-editor-accent) 40%, transparent) 146deg,
+    transparent 180deg
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--lw-editor-accent) 65%, transparent));
+  animation: lw-ai-border-spin 1.4s linear infinite;
+}
+
+@keyframes lw-ai-border-spin {
+  to {
+    --lw-ai-angle: 360deg;
+  }
+}
+
+@keyframes lw-ai-glow-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--lw-editor-accent) 25%, transparent),
+      0 0 14px -2px color-mix(in srgb, var(--lw-editor-accent) 40%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--lw-editor-accent) 40%, transparent),
+      0 0 26px 0 color-mix(in srgb, var(--lw-editor-accent) 60%, transparent);
+  }
+}
+
+/* Fallback para navegadores sin @property: borde pulsante */
+@supports not (background: conic-gradient(from var(--lw-ai-angle), red, blue)) {
+  .lw-content-editor__field--ai-loading {
+    border-color: var(--lw-editor-accent);
+    animation: lw-ai-border-pulse 1.2s ease-in-out infinite;
+  }
+  .lw-content-editor__field--ai-loading::before {
+    display: none;
+  }
+}
+
+@keyframes lw-ai-border-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--lw-editor-accent) 40%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--lw-editor-accent) 12%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lw-content-editor__field--ai-loading::before {
+    animation: none;
+    background: var(--lw-editor-accent);
+    filter: none;
+  }
+  .lw-content-editor__field--ai-loading {
+    animation: none;
+    box-shadow:
+      0 0 0 1px var(--lw-editor-accent),
+      0 0 16px -4px color-mix(in srgb, var(--lw-editor-accent) 50%, transparent);
+  }
+}
+
 .lw-content-editor__field-head {
   display: flex;
   align-items: center;
@@ -210,6 +307,21 @@
   resize: vertical;
   min-height: 6.875rem;
   line-height: 1.55;
+}
+
+.lw-content-editor__field--group .lw-content-editor__subfield + .lw-content-editor__subfield {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--lw-editor-border);
+}
+
+.lw-content-editor__subfield-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--lw-editor-ink);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.004em;
 }
 
 .lw-content-editor__counter-row {

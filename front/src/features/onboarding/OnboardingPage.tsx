@@ -22,6 +22,8 @@ import {
   scheduleSaveOnboardingPersist,
 } from './onboardingPersist'
 import { useAuthStore } from '../../store/authStore'
+import AiQuotaIntroModal from '../../components/ui/AiQuotaIntroModal'
+import { markAiIntroSeen } from '../../api/ai'
 import { coerceLocation } from '../../lib/location/coerceLocation'
 import { emptyLocation } from '../../lib/location/locationData'
 import { DEFAULT_LOGO_NAV_SCALE } from '../../lib/logoDisplay'
@@ -93,6 +95,10 @@ export default function OnboardingPage() {
   const persistUserId = useAuthStore((s) => s.user?.id)
   const businessSubdomain = useAuthStore((s) => s.business?.subdomain)
   const authBusiness = useAuthStore((s) => s.business)
+  const authUser = useAuthStore((s) => s.user)
+  const setAuth = useAuthStore((s) => s.setAuth)
+  /** Modal informativo de la cuota de IA: se muestra una sola vez (flag backend). */
+  const [aiIntroDismissed, setAiIntroDismissed] = useState(false)
   const authBusinessName = authBusiness?.name?.trim() ?? ''
   const authBusinessCity = authBusiness?.city?.trim() ?? ''
   const authBusinessCountry = authBusiness?.country?.trim() ?? ''
@@ -139,6 +145,8 @@ export default function OnboardingPage() {
   const [coverLiveObjectUrl3, setCoverLiveObjectUrl3] = useState<string | undefined>(undefined)
   const [previewDescription, setPreviewDescription] = useState('')
   const [previewAboutTitle, setPreviewAboutTitle] = useState('')
+  /** La descripción del paso 3 solo se puede generar con IA una vez (cuota mensual). */
+  const [previewAiDescGenerated, setPreviewAiDescGenerated] = useState(false)
   const [aboutTeamFile, setAboutTeamFile] = useState<File | null>(null)
   const [aboutPersistDataUrl, setAboutPersistDataUrl] = useState<string | undefined>(undefined)
   const [aboutLiveObjectUrl, setAboutLiveObjectUrl] = useState<string | undefined>(undefined)
@@ -418,6 +426,7 @@ export default function OnboardingPage() {
     setCoverPersistDataUrl(undefined)
     setCoverLiveObjectUrl(undefined)
     setPreviewDescription('')
+    setPreviewAiDescGenerated(false)
     setAboutPersistDataUrl(undefined)
     setAboutLiveObjectUrl(undefined)
     setGalleryLiveObjectUrls([])
@@ -478,6 +487,7 @@ export default function OnboardingPage() {
     setPreviewTagline(String(serverTagline || persistedTagline || ''))
     setPreviewPhone(String(p?.previewPhone ?? d.phone ?? ''))
     setPreviewDescription(String(p?.previewDescription ?? d.description ?? ''))
+    setPreviewAiDescGenerated(Boolean(p?.aiDescriptionGenerated))
     setPreviewAboutTitle(
       String(
         p?.previewAboutTitle ??
@@ -650,6 +660,7 @@ export default function OnboardingPage() {
       previewPhone,
       previewDescription,
       previewAboutTitle,
+      aiDescriptionGenerated: previewAiDescGenerated,
       previewAddress,
       previewCity: previewLocation.city,
       previewCountry: previewLocation.country,
@@ -676,6 +687,7 @@ export default function OnboardingPage() {
     previewPhone,
     previewDescription,
     previewAboutTitle,
+    previewAiDescGenerated,
     previewAddress,
     previewLocation,
     previewEmail,
@@ -907,7 +919,7 @@ export default function OnboardingPage() {
   const previewFocusDescription = useMemo(() => {
     switch (currentStep) {
       case 2:
-        return 'Se abrirá en la portada, con nombre, tagline y foto si ya los has añadido.'
+        return 'Se abrirá en la portada, con nombre, eslogan y foto si ya los has añadido.'
       case 3:
         return 'Enfocamos la sección «Sobre nosotros».'
       case 4:
@@ -1016,6 +1028,7 @@ export default function OnboardingPage() {
             {...common}
             initialBusinessName={previewName}
             initialTagline={previewTagline}
+            onTaglineChange={setPreviewTagline}
             aboutTitle={previewAboutTitle}
             onAboutTitleChange={setPreviewAboutTitle}
             description={previewDescription}
@@ -1025,6 +1038,8 @@ export default function OnboardingPage() {
             currentAboutPhotoFile={aboutTeamFile}
             onAboutPhotoChange={setAboutTeamFile}
             isPro={step3Pro}
+            aiAlreadyGenerated={previewAiDescGenerated}
+            onAiGenerated={() => setPreviewAiDescGenerated(true)}
             onAboutSectionsChange={() => {
               void aboutSectionsQuery.refetch()
               void businessSnapQuery.refetch()
@@ -1103,6 +1118,7 @@ export default function OnboardingPage() {
     previewPhone,
     previewDescription,
     previewAboutTitle,
+    previewAiDescGenerated,
     aboutTeamFile,
     galleryPhotoFiles,
     schedulePreview,
@@ -1132,12 +1148,35 @@ export default function OnboardingPage() {
     setStep1PreviewVariant(resolveStep1PreviewVariant(templates[0]))
   }, [templates])
 
+  // El aviso de cuota de IA es solo para Pro y salta al entrar en el paso 9
+  // (configurar servicios, color de marca, etc.), no al inicio del onboarding.
+  const isProOnboarding = businessIsPro || businessPlan === 'pending' || businessPlan === 'pro'
+  const showAiIntro =
+    currentStep === 9 &&
+    isProOnboarding &&
+    !isPendingStatus &&
+    !!authBusiness &&
+    !authBusiness.ai_intro_seen_at &&
+    !aiIntroDismissed
+
+  const handleCloseAiIntro = () => {
+    setAiIntroDismissed(true)
+    // Actualiza el store de forma optimista para que no reaparezca en esta sesión.
+    if (authUser && authBusiness) {
+      setAuth(authUser, { ...authBusiness, ai_intro_seen_at: new Date().toISOString() })
+    }
+    void markAiIntroSeen().catch(() => {
+      /* fire-and-forget: si falla, reaparecerá en el próximo /auth/me */
+    })
+  }
+
   if (isPendingStatus) {
     return <OnboardingSkeleton />
   }
 
   return (
     <WizardNavContext.Provider value={navValue}>
+      <AiQuotaIntroModal open={showAiIntro} onClose={handleCloseAiIntro} />
       <WizardLayout
         step={currentStep}
         renderPreview={renderPreview}
