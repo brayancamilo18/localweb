@@ -29,6 +29,7 @@ import BillingRedirect from './features/dashboard/sections/BillingRedirect'
 import Seguridad from './features/dashboard/sections/Seguridad'
 import Servicios from './features/dashboard/sections/Servicios'
 import EnlacesPro from './features/dashboard/sections/EnlacesPro'
+import AsistenteIa from './features/dashboard/sections/AsistenteIa'
 import AccountPage from './features/dashboard/sections/account/AccountPage'
 import PublicPage from './features/public-page/PublicPage'
 import TenantPublicPage from './components/TenantPublicPage'
@@ -144,6 +145,7 @@ function AppRoutes() {
           <Route path="services" element={<Servicios />} />
           <Route path="enlaces" element={<EnlacesPro />} />
           <Route path="stats" element={<Estadisticas />} />
+          <Route path="asistente-ia" element={<AsistenteIa />} />
           <Route path="billing" element={<BillingRedirect />} />
           <Route path="security" element={<Seguridad />} />
           <Route path="account" element={<AccountPage />} />

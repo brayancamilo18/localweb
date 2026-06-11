@@ -36,6 +36,11 @@ class SeoMetaBuilder
 
     private function buildTitle(Business $business): string
     {
+        $override = trim((string) ($business->seo_title ?? ''));
+        if ($override !== '') {
+            return mb_strimwidth($override, 0, 60, '…');
+        }
+
         $name = (string) $business->name;
         $tagline = trim((string) ($business->tagline ?? ''));
         $city = trim((string) ($business->city ?? ''));
@@ -53,6 +58,13 @@ class SeoMetaBuilder
 
     private function buildDescription(Business $business): string
     {
+        $override = trim((string) ($business->seo_description ?? ''));
+        if ($override !== '') {
+            $override = str_replace(["\r", "\n"], ' ', $override);
+
+            return mb_strimwidth($override, 0, 155, '…');
+        }
+
         $description = trim((string) ($business->description ?? ''));
         $tagline = trim((string) ($business->tagline ?? ''));
         $city = trim((string) ($business->city ?? ''));

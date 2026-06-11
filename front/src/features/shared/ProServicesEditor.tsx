@@ -1,10 +1,14 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Btn, Card, Field, Icon, Input, Textarea } from '../../components/primitives/primitives'
 import DashboardSectionHeader from '../dashboard/components/DashboardSectionHeader'
 import { Modal } from '../../components/ui/Modal'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { RemoveServiceDialog } from '../../components/ui/RemoveServiceDialog'
+import { generateServiceDescription } from '../../api/ai'
+import AiGenerateButton from './AiGenerateButton'
+import { useAiQuota, useInvalidateAiQuota } from './useAiQuota'
 import {
   createService,
   deleteService,
@@ -19,6 +23,34 @@ import type { Business, BusinessService } from '../../types/api'
 
 const FREE_MAX = 3
 const PRO_MAX = 15
+const SERVICE_DESC_MAX = 200
+
+function formatSuggestedPrice(value: number): string {
+  return new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: 'EUR',
+    maximumFractionDigits: value % 1 === 0 ? 0 : 2,
+  }).format(value)
+}
+
+function buildPriceHint(min: number | null, max: number | null): ReactNode | null {
+  if (min === null && max === null) return null
+  if (min !== null && max !== null) {
+    return (
+      <>
+        Rango orientativo sugerido por IA: {formatSuggestedPrice(min)} – {formatSuggestedPrice(max)}. No se
+        aplicará automáticamente al precio.
+      </>
+    )
+  }
+  const single = min ?? max
+  if (single === null) return null
+  return (
+    <>
+      Precio orientativo sugerido por IA: {formatSuggestedPrice(single)}. No se aplicará automáticamente al precio.
+    </>
+  )
+}
 
 function formatPrice(price: BusinessService['price']): string {
   if (price === null || price === undefined) return 'Consultar'
@@ -72,6 +104,21 @@ export default function ProServicesEditor({
   const [form, setForm] = useState<FormState>(emptyForm())
   const [query, setQuery] = useState('')
   const [pendingDelete, setPendingDelete] = useState<BusinessService | null>(null)
+  const aiQuotaQuery = useAiQuota()
+  const invalidateAiQuota = useInvalidateAiQuota()
+  const aiEnabled = isPro && aiQuotaQuery.data?.enabled === true
+  const aiRemaining = aiQuotaQuery.data?.remaining.service_description
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState<string | null>(null)
+  const [aiPendingDescription, setAiPendingDescription] = useState<string | null>(null)
+  const [aiPriceHint, setAiPriceHint] = useState<ReactNode | null>(null)
+
+  const resetAiState = useCallback(() => {
+    setAiLoading(false)
+    setAiError(null)
+    setAiPendingDescription(null)
+    setAiPriceHint(null)
+  }, [])
 
   const servicesQuery = useQuery({
     queryKey: keys.dashboard.services,
@@ -148,28 +195,81 @@ export default function ProServicesEditor({
     setFormMode('create')
     setEditingId(null)
     setForm(emptyForm())
+    resetAiState()
     createMut.reset()
     updateMut.reset()
-  }, [atLimit, createMut, updateMut])
+  }, [atLimit, createMut, resetAiState, updateMut])
 
   const openEdit = useCallback(
     (s: BusinessService) => {
       setFormMode('edit')
       setEditingId(s.id)
       setForm(serviceToForm(s))
+      resetAiState()
       createMut.reset()
       updateMut.reset()
     },
-    [createMut, updateMut],
+    [createMut, resetAiState, updateMut],
   )
 
   const cancelForm = useCallback(() => {
     setFormMode('none')
     setEditingId(null)
     setForm(emptyForm())
+    resetAiState()
     createMut.reset()
     updateMut.reset()
-  }, [createMut, updateMut])
+  }, [createMut, resetAiState, updateMut])
+
+  const applyAiDescription = useCallback((text: string) => {
+    const trimmed = text.length > SERVICE_DESC_MAX ? text.slice(0, SERVICE_DESC_MAX) : text
+    setForm((f) => ({ ...f, description: trimmed }))
+  }, [])
+
+  const handleGenerateAi = useCallback(async () => {
+    const serviceName = form.name.trim()
+    if (serviceName === '') {
+      setAiError('Escribe primero el nombre del servicio para generar la descripción.')
+      return
+    }
+    setAiError(null)
+    setAiLoading(true)
+    try {
+      const res = await generateServiceDescription({ service_name: serviceName })
+      setAiPriceHint(buildPriceHint(res.suggested_price_min, res.suggested_price_max))
+      if (form.description.trim() !== '' && res.description !== form.description.trim()) {
+        setAiPendingDescription(res.description)
+      } else {
+        applyAiDescription(res.description)
+      }
+      invalidateAiQuota()
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status
+      if (status === 429) {
+        setAiError('Has alcanzado el límite diario de generaciones. Vuelve mañana.')
+      } else if (status === 403) {
+        setAiError('Esta función solo está disponible en el plan Pro.')
+      } else if (status === 503) {
+        setAiError('La generación con IA no está disponible ahora mismo.')
+      } else {
+        setAiError('No hemos podido generar la descripción. Inténtalo de nuevo.')
+      }
+      invalidateAiQuota()
+    } finally {
+      setAiLoading(false)
+    }
+  }, [applyAiDescription, form.description, form.name, invalidateAiQuota])
+
+  const handleConfirmReplaceDescription = useCallback(() => {
+    if (aiPendingDescription !== null) {
+      applyAiDescription(aiPendingDescription)
+    }
+    setAiPendingDescription(null)
+  }, [aiPendingDescription, applyAiDescription])
+
+  const handleCancelReplaceDescription = useCallback(() => {
+    setAiPendingDescription(null)
+  }, [])
 
   const parsePayloadFromForm = useCallback((): CreateServicePayload => {
     const name = form.name.trim()
@@ -433,6 +533,32 @@ export default function ProServicesEditor({
             disabled={saving}
             hint="Déjalo vacío para mostrar «Consultar» en la ficha del servicio."
           />
+          {aiPriceHint ? (
+            <div style={{ fontSize: 12, color: 'var(--lw-text-3)', marginTop: -8, lineHeight: 1.45 }}>
+              {aiPriceHint}
+            </div>
+          ) : null}
+          {aiEnabled ? (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+                flexWrap: 'wrap',
+              }}
+            >
+              <div style={{ fontSize: 13, color: 'var(--lw-text-3)' }}>
+                ¿No sabes qué escribir? Generamos una descripción para ti.
+              </div>
+              <AiGenerateButton
+                onClick={() => void handleGenerateAi()}
+                loading={aiLoading}
+                disabled={saving}
+                remaining={aiRemaining}
+              />
+            </div>
+          ) : null}
           <Textarea
             label="Descripción"
             value={form.description}
@@ -441,8 +567,23 @@ export default function ProServicesEditor({
             rows={4}
             disabled={saving}
           />
+          {aiError ? (
+            <div role="alert" style={{ fontSize: 13, color: 'var(--lw-danger)', marginTop: -8 }}>
+              {aiError}
+            </div>
+          ) : null}
         </div>
       </Modal>
+
+      <ConfirmDialog
+        open={aiPendingDescription !== null}
+        onCancel={handleCancelReplaceDescription}
+        onConfirm={handleConfirmReplaceDescription}
+        title="¿Reemplazar la descripción actual?"
+        description="Tienes texto escrito en la descripción. Si continúas, se sustituirá por la generada con IA."
+        confirmLabel="Reemplazar"
+        cancelLabel="Cancelar"
+      />
 
       {servicesQuery.isLoading ? (
         <div className="lw-shimmer" style={{ height: 120, borderRadius: 12 }} />

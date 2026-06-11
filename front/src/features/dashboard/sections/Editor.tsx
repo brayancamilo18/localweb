@@ -8,6 +8,7 @@ import { keys } from '../../../api/queryKeys'
 import { useDashboard } from '../context/DashboardContext'
 import DashboardSectionHeader from '../components/DashboardSectionHeader'
 import ProAboutSectionsEditor from '../../shared/ProAboutSectionsEditor'
+import AiImproveButton from '../../shared/AiImproveButton'
 import { ContentField, EditorCounter } from './editorFields'
 import './editorContent.css'
 import '../components/dashboardSectionHeader.css'
@@ -176,7 +177,17 @@ export default function Editor() {
             disabled={mutation.isPending}
           />
           <div className="lw-content-editor__counter-row">
-            <EditorCounter value={tagline.length} max={TAGLINE_MAX} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'flex-end' }}>
+              {isPro ? (
+                <AiImproveButton
+                  value={tagline}
+                  field="tagline"
+                  onResult={(text) => setTagline(text.slice(0, TAGLINE_MAX))}
+                  disabled={mutation.isPending}
+                />
+              ) : null}
+              <EditorCounter value={tagline.length} max={TAGLINE_MAX} />
+            </div>
           </div>
         </ContentField>
 
@@ -223,7 +234,17 @@ export default function Editor() {
             disabled={mutation.isPending}
           />
           <div className="lw-content-editor__counter-row">
-            <EditorCounter value={description.length} max={DESCRIPTION_MAX} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'flex-end' }}>
+              {isPro ? (
+                <AiImproveButton
+                  value={description}
+                  field="description"
+                  onResult={(text) => setDescription(text.slice(0, DESCRIPTION_MAX))}
+                  disabled={mutation.isPending}
+                />
+              ) : null}
+              <EditorCounter value={description.length} max={DESCRIPTION_MAX} />
+            </div>
           </div>
         </ContentField>
 

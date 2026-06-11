@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Api\Dashboard;
 
+use App\Enums\Plan;
 use App\Exceptions\Auth\GeocodingException;
 use App\Http\Controllers\Api\BaseApiController;
+use App\Jobs\GenerateBusinessSeoMeta;
 use App\Http\Resources\BusinessResource;
 use App\Models\PageVisit;
 use App\Services\BusinessService;
@@ -95,6 +97,18 @@ class BusinessController extends BaseApiController
 
         // BusinessObserver invalida public_page:{subdomain} en saved.
         $updated = $service->update($business, $data);
+
+        // SEO automático: si Pro y han cambiado description o tagline, regenerar en background.
+        if (
+            $updated->plan !== Plan::Free &&
+            (
+                ($request->has('description') && (string) $business->description !== (string) $updated->description) ||
+                ($request->has('tagline') && (string) $business->tagline !== (string) $updated->tagline)
+            )
+        ) {
+            GenerateBusinessSeoMeta::dispatch($updated->id)->afterCommit();
+        }
+
         $updated->load(['template', 'services', 'images' => fn ($q) => $q->ordered()]);
 
         return $this->success(new BusinessResource($updated));

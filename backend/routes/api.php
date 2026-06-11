@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Ai\GenerateController as AiGenerateController;
 use App\Http\Controllers\Api\Account\AccountController;
 use App\Http\Controllers\Api\Account\ProfileController;
 use App\Http\Controllers\Api\Account\ReferralsController;
@@ -111,6 +112,17 @@ Route::prefix('v1')->group(function (): void {
             Route::get('/info', [QrController::class, 'info'])->middleware('throttle:60,1');
             Route::get('/png', [QrController::class, 'png'])->middleware('throttle:30,1');
             Route::post('/poster', [QrController::class, 'poster'])->middleware(['throttle:15,1', 'pro.features']);
+        });
+
+        Route::prefix('ai')->middleware(['verified.api', 'social.registration.complete'])->group(function (): void {
+            Route::get('/quota', [AiGenerateController::class, 'quota'])->middleware('throttle:60,1');
+            Route::post('/business-description', [AiGenerateController::class, 'businessDescription'])->middleware('throttle:10,1');
+            Route::post('/service-description', [AiGenerateController::class, 'serviceDescription'])
+                ->middleware(['throttle:10,1', 'pro.features']);
+            Route::post('/improve-text', [AiGenerateController::class, 'improveText'])
+                ->middleware(['pro.features', 'throttle:15,1']);
+            Route::post('/social-post', [AiGenerateController::class, 'socialPost'])
+                ->middleware(['pro.features', 'throttle:15,1']);
         });
 
         Route::prefix('onboarding')->middleware(['verified.api', 'social.registration.complete'])->group(function (): void {

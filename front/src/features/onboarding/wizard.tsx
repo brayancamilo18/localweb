@@ -51,6 +51,10 @@ import { useAuthStore } from '../../store/authStore'
 import { applyBrandColorToDocument, isValidBrandColorHex } from '../../lib/brandOverrideHtml'
 import { WizardNavContext, type WizardStepProps } from './wizardNavContext'
 import ScheduleEditor from '../shared/ScheduleEditor'
+import { generateBusinessDescription } from '../../api/ai'
+import { useAiQuota, useInvalidateAiQuota } from '../shared/useAiQuota'
+import AiGenerateButton from '../shared/AiGenerateButton'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { OnboardingLogoutButton } from './OnboardingLogoutButton'
 
 // ONEZ — Onboarding wizard (8 pasos)
@@ -2494,6 +2498,70 @@ function Step3Sobre({
   const aboutRef = useRef<HTMLInputElement>(null)
   const [aboutThumbUrl, setAboutThumbUrl] = useState<string | null>(null)
   const descMax = 300
+  const aiQuotaQuery = useAiQuota()
+  const invalidateAiQuota = useInvalidateAiQuota()
+  const aiEnabled = aiQuotaQuery.data?.enabled === true
+  const aiRemaining = aiQuotaQuery.data?.remaining.business_description
+  const [aiVariants, setAiVariants] = useState<string[]>([])
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState<string | null>(null)
+  const [aiPendingVariant, setAiPendingVariant] = useState<string | null>(null)
+  const [hoveredVariant, setHoveredVariant] = useState<number | null>(null)
+
+  const handleGenerateAi = async () => {
+    if (initialBusinessName.trim() === '') {
+      setAiError('Necesitamos el nombre del negocio (paso anterior) para generar descripciones.')
+      return
+    }
+    setAiError(null)
+    setAiLoading(true)
+    try {
+      const res = await generateBusinessDescription({
+        business_name: initialBusinessName.trim(),
+        tagline: initialTagline.trim() || undefined,
+      })
+      setAiVariants(res.variants)
+      invalidateAiQuota()
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status
+      if (status === 429) {
+        setAiError('Has alcanzado el límite diario de generaciones. Vuelve mañana.')
+      } else if (status === 503) {
+        setAiError('La generación con IA no está disponible ahora mismo.')
+      } else {
+        setAiError('No hemos podido generar descripciones. Inténtalo de nuevo.')
+      }
+      invalidateAiQuota()
+    } finally {
+      setAiLoading(false)
+    }
+  }
+
+  const applyVariant = (variant: string) => {
+    const trimmed = variant.length > descMax ? variant.slice(0, descMax) : variant
+    onDescriptionChange(trimmed)
+    setAiVariants([])
+  }
+
+  const handlePickVariant = (variant: string) => {
+    if (description.trim() !== '' && variant !== description) {
+      setAiPendingVariant(variant)
+      return
+    }
+    applyVariant(variant)
+  }
+
+  const handleConfirmReplace = () => {
+    if (aiPendingVariant !== null) {
+      applyVariant(aiPendingVariant)
+    }
+    setAiPendingVariant(null)
+  }
+
+  const handleCancelReplace = () => {
+    setAiPendingVariant(null)
+  }
+
   // Si por lo que sea (paso 2 saltado, borrador antiguo, etc.) llegamos aquí sin nombre, el
   // backend devuelve 422 en business_name y goNext setea ese error: tenemos que mostrarlo
   // explícitamente porque este paso no expone su input para Nombre/Tagline.
@@ -2574,6 +2642,28 @@ function Step3Sobre({
           placeholder="Una casa con oficio, abierta desde 2026"
         />
       </Field>
+      {aiEnabled ? (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            marginBottom: 4,
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ fontSize: 13, color: 'var(--lw-text-3)' }}>
+            ¿No sabes qué escribir? Generamos 3 ideas para ti.
+          </div>
+          <AiGenerateButton
+            onClick={handleGenerateAi}
+            loading={aiLoading}
+            remaining={aiRemaining}
+          />
+        </div>
+      ) : null}
+
       <Field
         label="Descripción"
         error={errors?.description}
@@ -2592,6 +2682,99 @@ function Step3Sobre({
           }}
         />
       </Field>
+
+      {aiError ? (
+        <div
+          role="alert"
+          style={{
+            fontSize: 13,
+            color: 'var(--lw-danger)',
+            marginTop: -4,
+          }}
+        >
+          {aiError}
+        </div>
+      ) : null}
+
+      {(aiLoading || aiVariants.length > 0) ? (
+        <div style={{ display: 'grid', gap: 8, marginTop: -4 }}>
+          <style>{`
+            @keyframes ai-shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(200%); } }
+            @keyframes ai-fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+          `}</style>
+          <p style={{ margin: 0, fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(11,31,26,0.4)' }}>
+            {aiLoading ? 'Preparando variantes' : 'Toca una variante para usarla'}
+          </p>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {aiLoading
+              ? [0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    style={{
+                      borderRadius: 12,
+                      border: '1px solid rgba(11,31,26,0.1)',
+                      background: '#fff',
+                      padding: '12px 14px',
+                      position: 'relative',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div style={{ display: 'grid', gap: 8 }}>
+                      <div style={{ height: 10, borderRadius: 99, background: 'rgba(11,31,26,0.06)', width: '92%' }} />
+                      <div style={{ height: 10, borderRadius: 99, background: 'rgba(11,31,26,0.06)', width: '78%' }} />
+                      <div style={{ height: 10, borderRadius: 99, background: 'rgba(11,31,26,0.06)', width: `${60 - i * 6}%` }} />
+                    </div>
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      animation: `ai-shimmer 1.4s ${i * 120}ms infinite`,
+                      background: 'linear-gradient(90deg, transparent, rgba(15,110,86,0.10), transparent)',
+                    }} />
+                  </div>
+                ))
+              : aiVariants.map((variant, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handlePickVariant(variant)}
+                    onMouseEnter={() => setHoveredVariant(idx)}
+                    onMouseLeave={() => setHoveredVariant(null)}
+                    style={{
+                      textAlign: 'left',
+                      background: hoveredVariant === idx ? 'rgba(15,110,86,0.03)' : '#fff',
+                      border: `1px solid ${hoveredVariant === idx ? 'rgba(15,110,86,0.4)' : 'rgba(11,31,26,0.1)'}`,
+                      borderRadius: 12,
+                      padding: '12px 14px',
+                      cursor: 'pointer',
+                      fontSize: 14,
+                      lineHeight: 1.55,
+                      color: 'rgba(11,31,26,0.85)',
+                      font: 'inherit',
+                      transition: 'border-color 0.18s, background 0.18s',
+                      animation: `ai-fadein 0.3s ${idx * 80}ms both`,
+                    }}
+                  >
+                    {variant}
+                  </button>
+                ))
+            }
+          </div>
+        </div>
+      ) : null}
+
+      <ConfirmDialog
+        open={aiPendingVariant !== null}
+        onCancel={handleCancelReplace}
+        onConfirm={handleConfirmReplace}
+        title="¿Reemplazar la descripción actual?"
+        description="Tienes texto escrito en la descripción. Si continúas, se sustituirá por la variante seleccionada."
+        confirmLabel="Reemplazar"
+        cancelLabel="Cancelar"
+      />
+
       <Field label="Teléfono de contacto" hint="Aparecerá como botón clicable en tu web.">
         <Input
           value={contactPhone}
