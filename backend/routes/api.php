@@ -116,13 +116,21 @@ Route::prefix('v1')->group(function (): void {
 
         Route::prefix('ai')->middleware(['verified.api', 'social.registration.complete'])->group(function (): void {
             Route::get('/quota', [AiGenerateController::class, 'quota'])->middleware('throttle:60,1');
-            Route::post('/business-description', [AiGenerateController::class, 'businessDescription'])->middleware('throttle:10,1');
+            Route::get('/usage', [AiGenerateController::class, 'usage'])->middleware('throttle:60,1');
+            Route::post('/intro-seen', [AiGenerateController::class, 'introSeen'])->middleware('throttle:30,1');
+            // Endpoints que consumen cuota: el único límite visible para el usuario es
+            // la cuota mensual (429 con mensaje de cuota agotada). El throttle 'ai' está
+            // fijado por encima del tope mensual para que nunca salte un "Too Many Requests".
+            Route::post('/business-description', [AiGenerateController::class, 'businessDescription'])->middleware('throttle:ai');
+            Route::post('/about-section', [AiGenerateController::class, 'aboutSection'])->middleware('throttle:ai');
+            Route::post('/about-block-description', [AiGenerateController::class, 'aboutBlockDescription'])
+                ->middleware(['throttle:ai', 'pro.features']);
             Route::post('/service-description', [AiGenerateController::class, 'serviceDescription'])
-                ->middleware(['throttle:10,1', 'pro.features']);
+                ->middleware(['throttle:ai', 'pro.features']);
             Route::post('/improve-text', [AiGenerateController::class, 'improveText'])
-                ->middleware(['pro.features', 'throttle:15,1']);
+                ->middleware(['pro.features', 'throttle:ai']);
             Route::post('/social-post', [AiGenerateController::class, 'socialPost'])
-                ->middleware(['pro.features', 'throttle:15,1']);
+                ->middleware(['pro.features', 'throttle:ai']);
         });
 
         Route::prefix('onboarding')->middleware(['verified.api', 'social.registration.complete'])->group(function (): void {

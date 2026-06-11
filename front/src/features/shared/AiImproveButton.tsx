@@ -11,6 +11,8 @@ type Props = {
   onResult: (text: string) => void
   /** Para deshabilitar mientras se guarda el formulario, etc. */
   disabled?: boolean
+  /** Notifica si la mejora está en curso (para animar el campo, etc.). */
+  onLoadingChange?: (loading: boolean) => void
 }
 
 const TONE_LABELS: Record<AiImproveTone, { title: string; subtitle: string }> = {
@@ -19,7 +21,7 @@ const TONE_LABELS: Record<AiImproveTone, { title: string; subtitle: string }> = 
   vendedor: { title: 'Vendedor', subtitle: 'Dinámico, orientado a la acción' },
 }
 
-export default function AiImproveButton({ value, field, onResult, disabled }: Props) {
+export default function AiImproveButton({ value, field, onResult, disabled, onLoadingChange }: Props) {
   const aiQuotaQuery = useAiQuota()
   const invalidateAiQuota = useInvalidateAiQuota()
   const aiEnabled = aiQuotaQuery.data?.enabled === true
@@ -68,6 +70,7 @@ export default function AiImproveButton({ value, field, onResult, disabled }: Pr
     setOpen(false)
     setError(null)
     setLoading(tone)
+    onLoadingChange?.(true)
     try {
       const res = await improveText({ text: trimmedValue, tone, field })
       const newText = res.text.trim()
@@ -79,7 +82,7 @@ export default function AiImproveButton({ value, field, onResult, disabled }: Pr
       invalidateAiQuota()
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status
-      if (status === 429) setError('Has alcanzado el límite diario de generaciones. Vuelve mañana.')
+      if (status === 429) setError('Has agotado tu cuota mensual de IA. Podrás volver a usarla el mes que viene.')
       else if (status === 503) setError('La generación con IA no está disponible ahora mismo.')
       else if (status === 403) setError('Esta función es solo para el plan Pro.')
       else if (status === 422) setError('No se ha podido procesar la mejora. Revisa el texto.')
@@ -87,6 +90,7 @@ export default function AiImproveButton({ value, field, onResult, disabled }: Pr
       invalidateAiQuota()
     } finally {
       setLoading(null)
+      onLoadingChange?.(false)
     }
   }
 

@@ -50,6 +50,7 @@ class BusinessResource extends JsonResource
             'onboarding_completed_at' => $this->onboarding_completed_at,
             'dashboard_tour_completed_at' => $this->dashboard_tour_completed_at,
             'dashboard_pro_tour_completed_at' => $this->dashboard_pro_tour_completed_at,
+            'ai_intro_seen_at' => $this->ai_intro_seen_at,
             'is_free' => $this->is_free,
             'is_pro' => $this->is_pro,
             'template' => $this->whenLoaded('template', fn () => new TemplateResource($this->template)),

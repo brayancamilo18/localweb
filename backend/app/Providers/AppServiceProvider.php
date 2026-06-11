@@ -13,7 +13,10 @@ use App\Observers\BusinessImageObserver;
 use App\Observers\BusinessObserver;
 use App\Observers\BusinessServiceObserver;
 use App\Observers\TemplateObserver;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -44,6 +47,20 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Event::listen(WebhookReceived::class, StripeEventListener::class);
+
+        // Rate limiter para los endpoints de generación con IA. El ÚNICO límite que
+        // el usuario debe poder alcanzar es la cuota mensual (config('ai.monthly_limit'),
+        // 50 por defecto), que devuelve un 429 con el mensaje "has agotado tu cuota
+        // mensual". Para que nunca aparezca un 429 genérico de "Too Many Requests"
+        // aunque el usuario gaste toda su cuota en pocos minutos, el límite por minuto
+        // se fija holgadamente por encima del tope mensual: así la petición que agota
+        // la cuota siempre llega al controlador y recibe el mensaje correcto.
+        $aiPerMinute = max(60, (int) config('ai.monthly_limit') + 20);
+        RateLimiter::for('ai', function (Request $request) use ($aiPerMinute) {
+            $key = $request->user()?->getAuthIdentifier() ?? $request->ip();
+
+            return Limit::perMinute($aiPerMinute)->by('ai:' . $key);
+        });
 
         Route::bind('business', function (string $value) {
             return Business::withTrashed()->whereKey($value)->firstOrFail();

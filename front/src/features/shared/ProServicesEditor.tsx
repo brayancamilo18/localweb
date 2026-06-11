@@ -246,7 +246,7 @@ export default function ProServicesEditor({
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status
       if (status === 429) {
-        setAiError('Has alcanzado el límite diario de generaciones. Vuelve mañana.')
+        setAiError('Has agotado tu cuota mensual de IA. Podrás volver a usarla el mes que viene.')
       } else if (status === 403) {
         setAiError('Esta función solo está disponible en el plan Pro.')
       } else if (status === 503) {

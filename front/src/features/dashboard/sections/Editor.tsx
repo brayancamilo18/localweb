@@ -1,14 +1,19 @@
-import { useEffect, useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Btn } from '../../../components/primitives/primitives'
 import Icon from '../../../components/primitives/Icon'
 import { useToast } from '../../../components/ui/Toast'
 import { updateBusiness } from '../../../api/dashboard'
+import { generateAboutSection } from '../../../api/ai'
+import { useAiQuota, useInvalidateAiQuota } from '../../shared/useAiQuota'
 import { keys } from '../../../api/queryKeys'
 import { useDashboard } from '../context/DashboardContext'
 import DashboardSectionHeader from '../components/DashboardSectionHeader'
 import ProAboutSectionsEditor from '../../shared/ProAboutSectionsEditor'
 import AiImproveButton from '../../shared/AiImproveButton'
+import PhoneInput from '../../shared/PhoneInput'
+import ConfirmDialog from '../../../components/ui/ConfirmDialog'
 import { ContentField, EditorCounter } from './editorFields'
 import './editorContent.css'
 import '../components/dashboardSectionHeader.css'
@@ -38,7 +43,68 @@ export default function Editor() {
   const [email, setEmail] = useState(business.email ?? '')
   const [focused, setFocused] = useState<FieldId | null>('name')
 
+  // ── IA: generar título + descripción de «Sobre nosotros» (un solo resultado) ──
+  const aiQuotaQuery = useAiQuota()
+  const invalidateAiQuota = useInvalidateAiQuota()
+  const aiEnabled = aiQuotaQuery.data?.enabled === true
+  const aiRemaining = aiQuotaQuery.data?.remaining?.business_description ?? 0
+
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState<string | null>(null)
+  /** Resultado pendiente de confirmación cuando ya hay contenido escrito. */
+  const [aiConfirmOpen, setAiConfirmOpen] = useState(false)
+  const aiPendingRef = useRef<{ title: string; description: string } | null>(null)
+  /** Loading de la mejora de tagline (gestionado por AiImproveButton). */
+  const [taglineImproving, setTaglineImproving] = useState(false)
+
+  const applyAiResult = (result: { title: string; description: string }) => {
+    setDescription(result.description.slice(0, DESCRIPTION_MAX))
+    if (result.title.trim()) {
+      setAboutTitle(result.title.trim().slice(0, ABOUT_TITLE_MAX))
+    }
+  }
+
+  const handleGenerateAi = async () => {
+    if (name.trim() === '') {
+      setAiError('Necesitamos el nombre del negocio para generar el contenido.')
+      return
+    }
+    setAiError(null)
+    setAiLoading(true)
+    try {
+      const res = await generateAboutSection({
+        business_name: name.trim(),
+        tagline: tagline.trim() || undefined,
+        current_title: aboutTitle.trim() || undefined,
+        current_description: description.trim() || undefined,
+      })
+      void invalidateAiQuota()
+      // Si ya hay título o descripción escritos, pedir confirmación antes de reemplazar.
+      if (aboutTitle.trim() !== '' || description.trim() !== '') {
+        aiPendingRef.current = res
+        setAiConfirmOpen(true)
+      } else {
+        applyAiResult(res)
+      }
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status
+      if (status === 429) setAiError('Has agotado tu cuota mensual de IA. Podrás volver a usarla el mes que viene.')
+      else if (status === 503) setAiError('La generación con IA no está disponible ahora mismo.')
+      else setAiError('No se pudo generar el contenido. Inténtalo de nuevo.')
+      void invalidateAiQuota()
+    } finally {
+      setAiLoading(false)
+    }
+  }
+
+  // Sincroniza los campos locales SOLO cuando cambia el negocio en sí (su id),
+  // no en cada refetch de React Query (p. ej. refetchOnWindowFocus). De lo
+  // contrario, un refetch con los datos antiguos pisaría ediciones locales o el
+  // contenido recién generado con IA, haciendo que "no se reemplace nada".
+  const syncedBusinessIdRef = useRef<number | string | null>(null)
   useEffect(() => {
+    if (syncedBusinessIdRef.current === business.id) return
+    syncedBusinessIdRef.current = business.id
     setName(business.name)
     setTagline(business.tagline ?? '')
     setAboutTitle(business.about_title ?? '')
@@ -106,7 +172,7 @@ export default function Editor() {
         title="Editar contenido"
         subtitle={
           <>
-            Nombre, tagline, descripción y datos de contacto de tu página pública.{' '}
+            Nombre, eslogan, descripción y datos de contacto de tu página pública.{' '}
             <Link to="/dashboard/diseno" className="lw-content-editor__design-link">
               <Icon name="palette" size={12} />
               ¿Quieres cambiar el diseño?
@@ -160,12 +226,13 @@ export default function Editor() {
 
         <ContentField
           inputId={`${formId}-tagline`}
-          label="Tagline"
+          label="Eslogan"
           optional
           icon="sparkle"
           focused={focused === 'tagline'}
           onFocus={() => setFocused('tagline')}
           hint="Una frase corta que resuma a qué te dedicas."
+          aiLoading={taglineImproving}
         >
           <input
             id={`${formId}-tagline`}
@@ -184,6 +251,7 @@ export default function Editor() {
                   field="tagline"
                   onResult={(text) => setTagline(text.slice(0, TAGLINE_MAX))}
                   disabled={mutation.isPending}
+                  onLoadingChange={setTaglineImproving}
                 />
               ) : null}
               <EditorCounter value={tagline.length} max={TAGLINE_MAX} />
@@ -191,62 +259,116 @@ export default function Editor() {
           </div>
         </ContentField>
 
-        <ContentField
-          inputId={`${formId}-about_title`}
-          label="Título de «Sobre nosotros»"
-          optional
-          icon="sparkle"
-          hint="Encabezado de la sección en tu web. Si lo dejas vacío, la plantilla usa un texto por defecto."
-          focused={focused === 'about_title'}
-          onFocus={() => setFocused('about_title')}
+        <div
+          className={`lw-content-editor__field lw-content-editor__field--group${
+            focused === 'about_title' || focused === 'description'
+              ? ' lw-content-editor__field--focused'
+              : ''
+          }${aiLoading ? ' lw-content-editor__field--ai-loading' : ''}`}
+          onClick={() => setFocused('description')}
         >
-          <input
-            id={`${formId}-about_title`}
-            className="lw-content-editor__input"
-            value={aboutTitle}
-            maxLength={ABOUT_TITLE_MAX}
-            onChange={(e) => setAboutTitle(e.target.value)}
-            onFocus={() => setFocused('about_title')}
-            disabled={mutation.isPending}
-            placeholder="Una casa con oficio, abierta desde 2026"
-          />
-          <div className="lw-content-editor__counter-row">
-            <EditorCounter value={aboutTitle.length} max={ABOUT_TITLE_MAX} />
-          </div>
-        </ContentField>
-
-        <ContentField
-          inputId={`${formId}-description`}
-          label="Descripción"
-          optional
-          icon="list"
-          focused={focused === 'description'}
-          onFocus={() => setFocused('description')}
-        >
-          <textarea
-            id={`${formId}-description`}
-            className="lw-content-editor__textarea"
-            value={description}
-            maxLength={DESCRIPTION_MAX}
-            onChange={(e) => setDescription(e.target.value)}
-            onFocus={() => setFocused('description')}
-            rows={5}
-            disabled={mutation.isPending}
-          />
-          <div className="lw-content-editor__counter-row">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'flex-end' }}>
-              {isPro ? (
-                <AiImproveButton
-                  value={description}
-                  field="description"
-                  onResult={(text) => setDescription(text.slice(0, DESCRIPTION_MAX))}
-                  disabled={mutation.isPending}
-                />
-              ) : null}
-              <EditorCounter value={description.length} max={DESCRIPTION_MAX} />
+          <div className="lw-content-editor__field-head">
+            <div className="lw-content-editor__field-icon">
+              <Icon name="list" size={16} stroke={2.2} />
+            </div>
+            <div className="lw-content-editor__field-labels">
+              <span className="lw-content-editor__field-label">Sobre nosotros</span>
+              <span className="lw-content-editor__pill lw-content-editor__pill--optional">Opcional</span>
             </div>
           </div>
-        </ContentField>
+
+          <div className="lw-content-editor__subfield">
+            <label htmlFor={`${formId}-about_title`} className="lw-content-editor__subfield-label">
+              Título
+            </label>
+            <input
+              id={`${formId}-about_title`}
+              className="lw-content-editor__input"
+              value={aboutTitle}
+              maxLength={ABOUT_TITLE_MAX}
+              onChange={(e) => setAboutTitle(e.target.value)}
+              onFocus={() => setFocused('about_title')}
+              disabled={mutation.isPending}
+              placeholder="Una casa con oficio, abierta desde 2026"
+            />
+            <div className="lw-content-editor__counter-row">
+              <EditorCounter value={aboutTitle.length} max={ABOUT_TITLE_MAX} />
+            </div>
+          </div>
+
+          <div className="lw-content-editor__subfield">
+            <label htmlFor={`${formId}-description`} className="lw-content-editor__subfield-label">
+              Descripción
+            </label>
+            <textarea
+              id={`${formId}-description`}
+              className="lw-content-editor__textarea"
+              value={description}
+              maxLength={DESCRIPTION_MAX}
+              onChange={(e) => setDescription(e.target.value)}
+              onFocus={() => setFocused('description')}
+              rows={5}
+              disabled={mutation.isPending}
+            />
+            <div className="lw-content-editor__counter-row">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'flex-end' }}>
+                {(aiEnabled || isPro) && (
+                  <span
+                    title={aiRemaining <= 0 ? 'Has alcanzado el límite mensual de IA.' : `Te quedan ${aiRemaining} generaciones este mes`}
+                    style={{ display: 'inline-flex' }}
+                  >
+                    <Btn
+                      type="button"
+                      kind="ghost"
+                      size="sm"
+                      icon="sparkle"
+                      disabled={mutation.isPending || aiLoading || aiRemaining <= 0}
+                      onClick={() => void handleGenerateAi()}
+                    >
+                      {aiLoading
+                        ? 'Generando…'
+                        : description.trim() || aboutTitle.trim()
+                          ? 'Regenerar con IA'
+                          : 'Generar con IA'}
+                    </Btn>
+                  </span>
+                )}
+                <EditorCounter value={description.length} max={DESCRIPTION_MAX} />
+              </div>
+            </div>
+
+            {aiError && (
+              <div role="alert" style={{ fontSize: 12, color: 'var(--lw-danger)', marginTop: 6 }}>
+                {aiError}
+              </div>
+            )}
+          </div>
+
+          <div className="lw-content-editor__hint">
+            <Icon name="info" size={13} style={{ marginTop: 2, flexShrink: 0 }} />
+            <span>
+              Encabezado y texto de la sección en tu web. Si dejas el título vacío, la plantilla usa un texto por defecto.
+            </span>
+          </div>
+        </div>
+
+        <ConfirmDialog
+          open={aiConfirmOpen}
+          onCancel={() => {
+            aiPendingRef.current = null
+            setAiConfirmOpen(false)
+          }}
+          onConfirm={() => {
+            const result = aiPendingRef.current
+            if (result) applyAiResult(result)
+            aiPendingRef.current = null
+            setAiConfirmOpen(false)
+          }}
+          title="¿Reemplazar el contenido actual?"
+          description="Tienes texto escrito en el título o la descripción de «Sobre nosotros». Si continúas, se sustituirán por el contenido generado con IA."
+          confirmLabel="Reemplazar"
+          cancelLabel="Cancelar"
+        />
 
         <ProAboutSectionsEditor
           isPro={isPro}
@@ -267,14 +389,16 @@ export default function Editor() {
             focused={focused === 'phone'}
             onFocus={() => setFocused('phone')}
           >
-            <input
-              id={`${formId}-phone`}
-              className="lw-content-editor__input"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+            <div
               onFocus={() => setFocused('phone')}
-              disabled={mutation.isPending}
-            />
+              className="lw-content-editor__phone-wrap"
+            >
+              <PhoneInput
+                value={phone}
+                disabled={mutation.isPending}
+                onChange={(val) => setPhone(val)}
+              />
+            </div>
           </ContentField>
 
           <ContentField

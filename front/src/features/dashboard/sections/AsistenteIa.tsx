@@ -100,7 +100,7 @@ export default function AsistenteIa() {
     onError: (err: unknown) => {
       clearTimers()
       const status = (err as { response?: { status?: number } })?.response?.status
-      if (status === 429) setError('Has alcanzado el límite diario de generaciones. Vuelve mañana.')
+      if (status === 429) setError('Has agotado tu cuota mensual de IA. Podrás volver a usarla el mes que viene.')
       else if (status === 503) setError('La generación con IA no está disponible ahora mismo.')
       else if (status === 403) setError('Esta función es solo para el plan Pro.')
       else if (status === 422) setError('No se ha podido procesar la solicitud. Revisa los datos.')

@@ -47,6 +47,8 @@ export type OnboardingPersistedV1 = {
   coverDataUrl?: string
   aboutDataUrl?: string
   galleryDataUrls?: string[]
+  /** En el onboarding la descripción solo se puede generar con IA una vez. */
+  aiDescriptionGenerated?: boolean
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | undefined
@@ -127,6 +129,7 @@ export function scheduleSaveOnboardingPersist(
         coverDataUrl: data.coverDataUrl ?? prev?.coverDataUrl,
         aboutDataUrl: data.aboutDataUrl ?? prev?.aboutDataUrl,
         galleryDataUrls: data.galleryDataUrls ?? prev?.galleryDataUrls,
+        aiDescriptionGenerated: data.aiDescriptionGenerated ?? prev?.aiDescriptionGenerated,
       }
       let str = JSON.stringify(merged)
       const MAX_JSON_CHARS = 4_200_000

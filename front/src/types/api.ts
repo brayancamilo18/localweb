@@ -273,6 +273,8 @@ export interface Business {
   /** ISO 8601; cuando el usuario ha completado el tour del dashboard. */
   dashboard_tour_completed_at?: string | null
   dashboard_pro_tour_completed_at?: string | null
+  /** ISO 8601; cuando el usuario ha visto el modal informativo de la cuota de IA. */
+  ai_intro_seen_at?: string | null
   tagline: string | null
   description: string | null
   /** Título personalizable de la sección «Sobre nosotros» (p. ej. plantilla La República Vintage). */

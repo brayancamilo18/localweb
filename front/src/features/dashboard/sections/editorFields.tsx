@@ -41,6 +41,7 @@ export function ContentField({
   icon,
   focused,
   onFocus,
+  aiLoading,
   children,
 }: {
   inputId: string
@@ -50,11 +51,12 @@ export function ContentField({
   icon: string
   focused: boolean
   onFocus: () => void
+  aiLoading?: boolean
   children: ReactNode
 }) {
   return (
     <div
-      className={`lw-content-editor__field${focused ? ' lw-content-editor__field--focused' : ''}`}
+      className={`lw-content-editor__field${focused ? ' lw-content-editor__field--focused' : ''}${aiLoading ? ' lw-content-editor__field--ai-loading' : ''}`}
       onClick={onFocus}
     >
       <div className="lw-content-editor__field-head">

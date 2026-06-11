@@ -13,8 +13,10 @@ import {
   updateAboutSection,
   uploadAboutSectionPhoto,
 } from '../../api/aboutSections'
+import { generateAboutBlockDescription } from '../../api/ai'
 import { keys } from '../../api/queryKeys'
 import { useApiError } from '../../hooks/useApiError'
+import { useAiQuota, useInvalidateAiQuota } from './useAiQuota'
 import type { Business, BusinessAboutSection } from '../../types/api'
 
 const MAX_TOTAL = 5
@@ -98,6 +100,30 @@ export default function ProAboutSectionsEditor({
   const [form, setForm] = useState<FormState>(emptyForm)
   const [error, setError] = useState<string | null>(null)
   const [extraFocus, setExtraFocus] = useState<ExtraFieldFocus>(null)
+
+  const { data: aiQuota } = useAiQuota()
+  const invalidateAiQuota = useInvalidateAiQuota()
+  const aiEnabled = aiQuota?.enabled ?? false
+  const aiRemaining = aiQuota?.remaining?.about_block_description ?? 0
+
+  const aiBlockMut = useMutation({
+    mutationFn: () =>
+      generateAboutBlockDescription({ block_title: form.title.trim() || undefined }),
+    onSuccess: (data) => {
+      setForm((f) => ({
+        title: data.title?.trim() ? data.title.trim() : f.title,
+        description: data.description,
+      }))
+      void invalidateAiQuota()
+    },
+    onError: (err: unknown) => {
+      const status = (err as { response?: { status?: number } })?.response?.status
+      if (status === 429) setError('Has agotado tu cuota mensual de IA. Podrás volver a usarla el mes que viene.')
+      else if (status === 503) setError('La generación con IA no está disponible ahora mismo.')
+      else setError('No se pudo generar el texto con IA. Inténtalo de nuevo.')
+      void invalidateAiQuota()
+    },
+  })
 
   const sectionsQuery = useQuery({
     queryKey: keys.dashboard.aboutSections,
@@ -303,6 +329,7 @@ export default function ProAboutSectionsEditor({
         icon="sparkle"
         focused={extraFocus === 'title'}
         onFocus={() => setExtraFocus('title')}
+        aiLoading={aiBlockMut.isPending}
       >
         <input
           id={titleInputId}
@@ -325,6 +352,7 @@ export default function ProAboutSectionsEditor({
         icon="list"
         focused={extraFocus === 'description'}
         onFocus={() => setExtraFocus('description')}
+        aiLoading={aiBlockMut.isPending}
       >
         <textarea
           id={descInputId}
@@ -337,7 +365,30 @@ export default function ProAboutSectionsEditor({
           onFocus={() => setExtraFocus('description')}
         />
         <div className="lw-content-editor__counter-row">
-          <EditorCounter value={form.description.length} max={DESC_MAX} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'flex-end' }}>
+            {aiEnabled && (
+              <span
+                title={
+                  aiRemaining <= 0
+                    ? 'Has alcanzado el límite mensual de generaciones con IA.'
+                    : `Te quedan ${aiRemaining} generaciones este mes`
+                }
+                style={{ display: 'inline-flex' }}
+              >
+                <Btn
+                  type="button"
+                  kind="ghost"
+                  size="sm"
+                  icon="sparkle"
+                  disabled={busy || aiBlockMut.isPending || aiRemaining <= 0}
+                  onClick={() => aiBlockMut.mutate()}
+                >
+                  {aiBlockMut.isPending ? 'Generando…' : 'Generar con IA'}
+                </Btn>
+              </span>
+            )}
+            <EditorCounter value={form.description.length} max={DESC_MAX} />
+          </div>
         </div>
       </ContentField>
       <div className="lw-content-editor__about-extras-actions">
@@ -384,6 +435,29 @@ export default function ProAboutSectionsEditor({
           disabled={busy}
           onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
         />
+        {aiEnabled && (
+          <div style={{ marginTop: 8, display: 'flex', justifyContent: 'flex-end' }}>
+            <span
+              title={
+                aiRemaining <= 0
+                  ? 'Has alcanzado el límite mensual de generaciones con IA.'
+                  : `Te quedan ${aiRemaining} generaciones este mes`
+              }
+              style={{ display: 'inline-flex' }}
+            >
+              <Btn
+                type="button"
+                kind="ghost"
+                size="sm"
+                icon="sparkle"
+                disabled={busy || aiBlockMut.isPending || aiRemaining <= 0}
+                onClick={() => aiBlockMut.mutate()}
+              >
+                {aiBlockMut.isPending ? 'Generando…' : 'Generar con IA'}
+              </Btn>
+            </span>
+          </div>
+        )}
       </Field>
       <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
         <Btn kind="primary" size="sm" type="button" disabled={busy} onClick={submitForm}>
