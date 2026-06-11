@@ -28,6 +28,14 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         Cashier::ignoreRoutes();
+
+        $this->app->bind(\App\Services\Ai\AiProviderContract::class, function () {
+            return new \App\Services\Ai\ClaudeProvider(
+                apiKey: config('ai.claude_api_key'),
+                model: config('ai.model'),
+                timeoutSeconds: config('ai.timeout_seconds'),
+            );
+        });
     }
 
     /**

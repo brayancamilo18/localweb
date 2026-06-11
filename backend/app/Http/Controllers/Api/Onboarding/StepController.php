@@ -6,6 +6,7 @@ use App\Enums\ImageSection;
 use App\Enums\Plan;
 use App\Exceptions\Auth\GeocodingException;
 use App\Http\Controllers\Api\BaseApiController;
+use App\Jobs\GenerateBusinessSeoMeta;
 use App\Models\Business;
 use App\Models\User;
 use App\Services\BusinessSectorService;
@@ -658,6 +659,12 @@ class StepController extends BaseApiController
         }
 
         $service->publish($business);
+
+        // SEO con IA: solo Pro, en background. Silencioso: si la IA está apagada
+        // o el job falla, SeoMetaBuilder tiene fallback en runtime.
+        if ($business->plan !== Plan::Free) {
+            GenerateBusinessSeoMeta::dispatch($business->id)->afterCommit();
+        }
 
         // Para Free no hay paso 9 (extras Pro), así que cerramos el onboarding aquí mismo.
         // Para Pro/Pending lo difiere `completeOnboarding()` (POST /onboarding/finalize),

@@ -105,6 +105,7 @@ function DashSidebar({
     { icon: 'list', t: 'Servicios', to: '/dashboard/services', dataTour: 'servicios' },
     { icon: 'arrowUpRight', t: 'Enlaces Pro', to: '/dashboard/enlaces', dataTour: 'enlaces-pro' },
     { icon: 'barChart', t: 'Estadísticas', to: '/dashboard/stats', dataTour: 'estadisticas' },
+    { icon: 'sparkle', t: 'Asistente IA', to: '/dashboard/asistente-ia', dataTour: 'asistente-ia' },
     { icon: 'user', t: 'Cuenta', to: '/dashboard/account', dataTour: 'cuenta' },
   ] as const
   return (
