@@ -1,6 +1,7 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { logout as logoutApi } from '../../api/auth'
 import { getBillingStatus, postCheckout } from '../../api/billing'
 import type { Business } from '../../types/api'
@@ -296,12 +297,34 @@ function Dashboard({ pro, business, children }: DashboardProps) {
     setMenuOpen(false)
   }, [location.pathname])
 
+  // Leaflet crea capas con z-index altos; al abrir el menú móvil forzamos el mapa
+  // por debajo del drawer (portal en body + esta clase de respaldo).
+  useEffect(() => {
+    document.body.classList.toggle('lw-dashboard-nav-open', menuOpen)
+    return () => document.body.classList.remove('lw-dashboard-nav-open')
+  }, [menuOpen])
+
+  const mobileNav = (
+    <>
+      <div
+        className={`lw-dashboard-overlay${menuOpen ? ' is-open' : ''}`}
+        onClick={() => setMenuOpen(false)}
+        aria-hidden={!menuOpen}
+      />
+      <div className={`lw-dashboard-drawer${menuOpen ? ' is-open' : ''}`}>
+        <DashSidebar
+          variant="mobile"
+          pro={pro}
+          businessName={business?.name}
+          onNavigateItem={() => setMenuOpen(false)}
+        />
+      </div>
+    </>
+  )
+
   return (
     <div className="lw-dashboard-shell">
-      <div className={`lw-dashboard-overlay${menuOpen ? ' is-open' : ''}`} onClick={() => setMenuOpen(false)} />
-      <div className={`lw-dashboard-drawer${menuOpen ? ' is-open' : ''}`}>
-        <DashSidebar variant="mobile" pro={pro} businessName={business?.name} onNavigateItem={() => setMenuOpen(false)} />
-      </div>
+      {createPortal(mobileNav, document.body)}
       <div className="lw-dashboard-desktop-sidebar">
         <DashSidebar variant="desktop" pro={pro} businessName={business?.name} />
       </div>
