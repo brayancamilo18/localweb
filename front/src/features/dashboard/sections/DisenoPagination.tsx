@@ -27,9 +27,10 @@ type Props = {
   page: number
   totalPages: number
   onPageChange: (page: number) => void
+  ariaLabel?: string
 }
 
-export default function DisenoPagination({ page, totalPages, onPageChange }: Props) {
+export default function DisenoPagination({ page, totalPages, onPageChange, ariaLabel = 'Paginación' }: Props) {
   const pages = useMemo(() => buildPages(page, totalPages), [page, totalPages])
 
   if (totalPages <= 1) return null
@@ -39,7 +40,7 @@ export default function DisenoPagination({ page, totalPages, onPageChange }: Pro
   }
 
   return (
-    <nav className="lw-diseno-pagination" aria-label="Paginación de plantillas">
+    <nav className="lw-diseno-pagination" aria-label={ariaLabel}>
       <div className="lw-diseno-pagination__pill">
         <button
           type="button"

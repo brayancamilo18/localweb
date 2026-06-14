@@ -1,7 +1,11 @@
+import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, Icon } from '../../../../components/primitives/primitives'
 import { getAiUsage, type AiUsageHistoryEntry } from '../../../../api/ai'
 import { keys } from '../../../../api/queryKeys'
+import DisenoPagination from '../DisenoPagination'
+
+const HISTORY_PAGE_SIZE = 10
 
 // ─── helpers de formato ───────────────────────────────────────
 
@@ -149,6 +153,21 @@ export default function AccountTabIa() {
     retry: false,
   })
 
+  const history = data?.history ?? []
+  const [historyPage, setHistoryPage] = useState(1)
+  const totalHistoryPages = Math.max(1, Math.ceil(history.length / HISTORY_PAGE_SIZE))
+
+  useEffect(() => {
+    if (historyPage > totalHistoryPages) {
+      setHistoryPage(totalHistoryPages)
+    }
+  }, [historyPage, totalHistoryPages])
+
+  const paginatedHistory = useMemo(() => {
+    const start = (historyPage - 1) * HISTORY_PAGE_SIZE
+    return history.slice(start, start + HISTORY_PAGE_SIZE)
+  }, [history, historyPage])
+
   if (isLoading) {
     return (
       <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--lw-text-3)', fontSize: 14 }}>
@@ -183,7 +202,7 @@ export default function AccountTabIa() {
     )
   }
 
-  const { used, limit, remaining, resets_at, history } = data
+  const { used, limit, remaining, resets_at } = data
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -302,9 +321,22 @@ export default function AccountTabIa() {
           </div>
         ) : (
           <div>
-            {history.map((entry, i) => (
-              <HistoryRow key={i} entry={entry} />
+            {paginatedHistory.map((entry, i) => (
+              <HistoryRow
+                key={`${entry.created_at}-${entry.feature}-${(historyPage - 1) * HISTORY_PAGE_SIZE + i}`}
+                entry={entry}
+              />
             ))}
+            {history.length > HISTORY_PAGE_SIZE && (
+              <div style={{ marginTop: 12 }}>
+                <DisenoPagination
+                  page={historyPage}
+                  totalPages={totalHistoryPages}
+                  onPageChange={setHistoryPage}
+                  ariaLabel="Paginación del historial de IA"
+                />
+              </div>
+            )}
           </div>
         )}
       </Card>
