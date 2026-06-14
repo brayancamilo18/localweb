@@ -487,10 +487,6 @@
     margin-top:.75rem;
     line-height:1.12;
   }
-  @media (max-width:920px){
-    .rep-about-extra.about-grid--text-first .about-figure{ order:-1; }
-    .rep-about-extra.about-grid--photo-first .about-figure{ order:-1; }
-  }
   .about-figure{ position: relative; }
   .about-figure .vphoto{ aspect-ratio: 4/5; box-shadow: 0 0 0 6px var(--burgundy), 0 0 0 7.5px var(--gold); }
   .about-figure .seal{ position: absolute; right: -22px; bottom: -22px; background: var(--burgundy); border-radius: 50%; }
@@ -647,6 +643,10 @@
     .burger{ display: inline-flex; margin-left: auto; }
     .menu-grid{ grid-template-columns: 1fr; gap: 0; }
     .about-grid{ grid-template-columns: 1fr; }
+    #nosotros .about-grid .about-body,
+    .rep-about-extra .about-body{ order: 1; }
+    #nosotros .about-grid .about-figure,
+    .rep-about-extra .about-figure{ order: 2; }
     .about-figure .vphoto{ max-width: 420px; margin-inline: auto; }
     .schedule-wrap{ grid-template-columns: 1fr; }
     .contact-cards{ grid-template-columns: 1fr; }
