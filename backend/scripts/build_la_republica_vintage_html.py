@@ -146,7 +146,6 @@ function renderRepublicaGallery(urls) {
     return;
   }
   root.innerHTML = list
-    .slice(0, 6)
     .map(function (src) {
       var esc = escapeRepAttr(src);
       return (

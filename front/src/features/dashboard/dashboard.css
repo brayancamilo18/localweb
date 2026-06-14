@@ -124,7 +124,8 @@
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.35);
-    z-index: 39;
+    /* Por encima de Leaflet (pane ~400, controles ~1000); por debajo de modales (~10060). */
+    z-index: 10050;
   }
 
   .lw-dashboard-overlay.is-open {
@@ -137,8 +138,10 @@
     width: min(88vw, 280px);
     transform: translateX(-105%);
     transition: transform 0.2s ease;
-    z-index: 40;
+    z-index: 10051;
     display: block;
+    background: var(--lw-bg-elev);
+    box-shadow: 4px 0 24px rgba(11, 31, 26, 0.12);
   }
 
   .lw-dashboard-drawer.is-open {
@@ -148,6 +151,14 @@
   .lw-dashboard-drawer .lw-dashboard-sidebar {
     width: 100% !important;
     height: 100%;
+  }
+
+  /* Leaflet pinta tiles/controles con z-index 400–1000 dentro de su propio
+   * stacking context. Al abrir el menú, el contenedor del mapa queda por
+   * debajo del drawer (portal en document.body). */
+  body.lw-dashboard-nav-open .lw-dashboard-main .leaflet-container {
+    z-index: 0 !important;
+    pointer-events: none;
   }
 
   .lw-mipagina-stats-grid {
