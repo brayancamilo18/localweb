@@ -650,8 +650,7 @@
     .about-figure .vphoto{ max-width: 420px; margin-inline: auto; }
     .schedule-wrap{ grid-template-columns: 1fr; }
     .contact-cards{ grid-template-columns: 1fr; }
-    /* Galería móvil: carrusel horizontal. Fotos grandes, altura fija
-       (una sola fila), sin apilar ni alargar la página en vertical. */
+    /* Galería móvil: carrusel horizontal; marco = tamaño de cada foto */
     #galeria .container{
       width: 100%;
       max-width: 100%;
@@ -665,7 +664,7 @@
     .gallery{
       display: flex;
       flex-wrap: nowrap;
-      align-items: stretch;
+      align-items: center;
       overflow-x: auto;
       overflow-y: hidden;
       scroll-snap-type: x mandatory;
@@ -689,10 +688,12 @@
     .g-item:only-child{
       flex: 0 0 100%;
       scroll-snap-align: center;
-      aspect-ratio: 4 / 5;
+      height: auto;
       min-width: 0;
       max-width: none;
-      width: auto;
+      width: 100%;
+      overflow: visible;
+      line-height: 0;
       grid-column: unset !important;
       grid-row: unset !important;
       justify-self: unset;
@@ -767,7 +768,22 @@
   .vphoto.has-photo .ph{display:none!important}
   .vphoto.has-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:sepia(.18) saturate(.92)}
   .g-item.has-photo .ph{display:none!important}
-  .g-item.has-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;filter:sepia(.22) saturate(.9) contrast(.98)}
+  .g-item.has-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;filter:sepia(.22) saturate(.9) contrast(.98)  }
+</style>
+<style id="lw-gallery-mobile">
+  @media (max-width: 920px){
+    .g-item img,
+    .g-item.has-photo img{
+      position: static !important;
+      inset: auto !important;
+      display: block;
+      width: 100% !important;
+      height: auto !important;
+      max-height: min(72vh, 520px);
+      object-fit: contain;
+      object-position: center;
+    }
+  }
 </style>
 <style id="lw-gallery-desktop">
   /* Escritorio: mosaico original, sin solapamiento, marco = foto */
