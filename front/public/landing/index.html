@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>ONEZ — La web profesional de tu negocio, lista hoy</title>
-<meta name="description" content="Crea la web profesional de tu negocio local en minutos. Galería, horarios, mapa y reservas por WhatsApp. Sin programar, sin diseñador. Los 50 primeros tienen un mes de Pro gratis." />
-<meta property="og:title" content="ONEZ — La web profesional de tu negocio, lista hoy" />
-<meta property="og:description" content="Crea la web profesional de tu negocio local en minutos. Sin programar. Los 50 primeros tienen un mes de Pro gratis." />
+<title>ONEZ — Tu web profesional en 10 minutos · Mes gratis para piloto</title>
+<meta name="description" content="ONEZ crea la web de tu negocio local en 10 minutos. Galería, horarios, mapa, WhatsApp y reservas. Únete al piloto: 50 plazas. Tu primer mes Pro es gratis con el código ONEZ-PILOTO." />
+<meta property="og:title" content="ONEZ — Tu web profesional en 10 minutos" />
+<meta property="og:description" content="Programa piloto. 50 plazas. Tu primer mes del Plan Pro gratis con el código ONEZ-PILOTO." />
 <meta property="og:type" content="website" />
 <meta property="og:locale" content="es_ES" />
 <meta name="twitter:card" content="summary_large_image" />
@@ -34,7 +34,7 @@
   "name": "ONEZ",
   "url": "https://onez.es",
   "email": "contacto@onez.es",
-  "telephone": "+34 625 015 090",
+  "telephone": "+34 685 28 27 42",
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "Madrid",
@@ -339,6 +339,25 @@
   /* Code-y mono caption */
   .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: .02em; color: #888780; }
 
+  /* Código piloto */
+  .code-card {
+    background: #fff;
+    border: 1px solid #E8E6E1;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(11,31,26,.06), 0 4px 12px rgba(11,31,26,.04);
+    padding: 24px;
+  }
+  .code-card--dark { background: #fff; }
+  .copy-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 600; color: #2C2C2A;
+    border: 1px solid #E8E6E1; border-radius: 10px;
+    padding: 8px 12px; transition: color .15s ease, border-color .15s ease;
+  }
+  .copy-btn:hover { color: #0F6E56; border-color: #0F6E56; }
+  .copy-btn.is-copied { color: #0F6E56; border-color: #0F6E56; }
+  .hero-stat { letter-spacing: -0.03em; }
+
   /* Selection */
   ::selection { background: #5DCAA5; color: #0B1F1A; }
 
@@ -504,7 +523,7 @@
       <!-- CTA principal EDITAR: /register?ref=ONEZ-PILOTO -->
       <a href="/register?ref=ONEZ-PILOTO" data-cta="header"
          class="btn-primary size-sm focus-ring">
-        Empieza Pro gratis 30 días
+        Únete al piloto
       </a>
       <button id="menuBtn" class="md:hidden inline-flex items-center justify-center w-10 h-10 rounded focus-ring" aria-label="Abrir menú" aria-expanded="false">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
@@ -519,7 +538,7 @@
     <a href="#free-vs-pro" class="block px-3 py-2.5 text-[15px] text-ink2 rounded hover:bg-alt">Precio</a>
     <a href="#faq" class="block px-3 py-2.5 text-[15px] text-ink2 rounded hover:bg-alt">FAQ</a>
     <a href="/login" class="block px-3 py-2.5 text-[15px] text-ink2 rounded hover:bg-alt">Entrar</a>
-    <a href="/register?ref=ONEZ-PILOTO" data-cta="header-mobile" class="btn-primary size-md w-full mt-2 focus-ring">Empieza Pro gratis 30 días</a>
+    <a href="/register?ref=ONEZ-PILOTO" data-cta="header-mobile" class="btn-primary size-md w-full mt-2 focus-ring">Únete al piloto</a>
   </div>
 </header>
 
@@ -538,18 +557,34 @@
       <!-- Copy -->
       <div class="reveal">
         <div class="eyebrow mb-5 inline-flex items-center gap-2">
-          <span class="inline-block w-1.5 h-1.5 rounded-full bg-mint"></span>
-          Oferta de lanzamiento · 50 primeros con mes gratis
+          <span class="inline-block w-1.5 h-1.5 rounded-full bg-mint animate-pulse"></span>
+          Programa piloto · 50 plazas · Mes Pro gratis
         </div>
 
         <h1 class="h-display text-[clamp(40px,7vw,72px)]">
           La web profesional de tu negocio,<br class="hidden sm:block" />
-          <span class="text-brand">lista hoy.</span>
+          pruébala un mes <span class="text-brand">gratis</span>.
         </h1>
 
         <p class="mt-6 text-[17px] sm:text-[18px] text-ink2 max-w-[560px]">
           Asistente paso a paso. Una tarde, sin programadores. Plantilla a medida, fotos, horarios, mapa y WhatsApp. Publica en tu subdominio (<span class="mono text-ink3">tunegocio.onez.es</span>).
         </p>
+
+        <!-- Código piloto -->
+        <div class="mt-8 code-card max-w-[520px] reveal">
+          <div class="text-[12px] uppercase tracking-[0.08em] text-ink3 font-semibold">Código piloto</div>
+          <div class="mt-2 flex items-center justify-between gap-4 flex-wrap">
+            <div class="font-mono text-[22px] sm:text-[24px] font-semibold text-ink tracking-tight">ONEZ-PILOTO</div>
+            <button type="button" data-copy="ONEZ-PILOTO" class="copy-btn focus-ring" aria-label="Copiar código ONEZ-PILOTO">
+              <svg class="ico-copy" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span class="copy-label">Copiar código</span>
+            </button>
+          </div>
+          <div class="border-t border-line my-4"></div>
+          <p class="text-[14px] text-ink2 leading-relaxed">
+            Aplícalo al activar Pro y tu <strong class="text-ink font-medium">primer mes es totalmente gratis</strong> (solo los 50 primeros). El enlace de registro ya lo incluye.
+          </p>
+        </div>
 
         <div class="mt-8 flex flex-wrap items-center gap-3 sm:gap-4">
           <!-- CTA EDITAR: /register?ref=ONEZ-PILOTO -->
@@ -564,8 +599,24 @@
         </div>
 
         <p class="mt-4 text-ink3 text-[13px]">
-          Sin permanencia. Cancelas con un clic. El <strong class="text-ink2 font-medium">primer mes de Pro es gratis solo para los 50 primeros registros</strong>; a partir del n.º 51, Pro se factura desde el primer día (te avisamos antes). ¿Solo quieres lo básico? También tienes <a href="#free-vs-pro" class="text-brand hover:underline focus-ring rounded">un plan gratis</a>.
+          Sin permanencia · Cancela con un clic · Te avisamos antes de cobrar · Soporte por WhatsApp. ¿Solo quieres lo básico? También tienes <a href="#free-vs-pro" class="text-brand hover:underline focus-ring rounded">un plan gratis</a>.
         </p>
+
+        <!-- Stats piloto -->
+        <div class="mt-10 grid grid-cols-3 gap-4 max-w-[520px] pt-6 border-t border-line">
+          <div>
+            <div class="hero-stat text-[26px] sm:text-[32px] font-bold text-ink">10 min</div>
+            <div class="text-[13px] text-ink3 mt-1">para tener tu web online</div>
+          </div>
+          <div class="border-l border-line pl-4">
+            <div class="hero-stat text-[26px] sm:text-[32px] font-bold text-ink">50 plazas</div>
+            <div class="text-[13px] text-ink3 mt-1">mes gratis con código</div>
+          </div>
+          <div class="border-l border-line pl-4">
+            <div class="hero-stat text-[26px] sm:text-[32px] font-bold text-brand">0€</div>
+            <div class="text-[13px] text-ink3 mt-1">el primer mes Pro</div>
+          </div>
+        </div>
 
         <!-- Sellos de confianza -->
         <div class="mt-8 grid grid-cols-2 sm:flex sm:flex-wrap gap-x-6 gap-y-3 pt-6 border-t border-line max-w-[560px]">
@@ -1135,7 +1186,7 @@
     <div class="max-w-[720px] mx-auto text-center mb-12 reveal">
       <div class="eyebrow mb-3">Planes</div>
       <h2 class="h-section text-[clamp(30px,4.5vw,44px)]">Los 50 primeros tienen un mes de Pro gratis</h2>
-      <p class="mt-4 text-ink2 text-[17px]">Free sigue siendo gratis para siempre. Pro desbloquea las herramientas para traer clientes — y si entras entre los 50 primeros, el primer mes corre de nuestra cuenta.</p>
+      <p class="mt-4 text-ink2 text-[17px]">Free sigue siendo gratis para siempre. Pro desbloquea las herramientas para traer clientes — y si entras entre los 50 primeros con el código <span class="font-mono text-ink font-medium">ONEZ-PILOTO</span>, el primer mes corre de nuestra cuenta.</p>
     </div>
 
     <div class="grid md:grid-cols-2 gap-6 reveal">
@@ -1218,6 +1269,19 @@
           <span class="text-[15px] text-ink2">si eres de los 50 primeros</span>
         </div>
         <p class="mt-1.5 text-[14px] text-ink3">Después <span class="line-through">8,99€</span> <span class="text-ink font-semibold">precio piloto/mes</span>. A partir del registro n.º 51, Pro se factura desde el primer día. Sin permanencia.</p>
+
+        <div class="mt-5 code-card p-4">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <div class="text-[11px] uppercase tracking-[0.08em] text-ink3 font-semibold">Código</div>
+              <div class="font-mono text-[18px] font-semibold text-ink mt-0.5">ONEZ-PILOTO</div>
+            </div>
+            <button type="button" data-copy="ONEZ-PILOTO" class="copy-btn focus-ring text-[12px] py-1.5 px-2.5" aria-label="Copiar código ONEZ-PILOTO">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span class="copy-label">Copiar</span>
+            </button>
+          </div>
+        </div>
 
         <ul class="mt-7 space-y-3">
           <li class="flex items-start gap-3 text-[14.5px] text-ink2">
@@ -1311,13 +1375,13 @@
   <div class="max-w-[1180px] mx-auto px-5 sm:px-6 lg:px-8 py-20 sm:py-28">
     <div class="grid lg:grid-cols-[1fr_1.1fr] gap-12 items-center">
       <div class="reveal">
-        <div class="eyebrow mb-3">Oferta de lanzamiento</div>
-        <h2 class="h-section text-[clamp(30px,4.5vw,44px)]">Un mes de Pro gratis para quien llegue primero</h2>
+        <div class="eyebrow mb-3">Programa piloto</div>
+        <h2 class="h-section text-[clamp(30px,4.5vw,44px)]">Los 50 primeros: un mes de Pro gratis</h2>
         <p class="mt-5 text-ink2 text-[17px]">
           ONEZ está abierto a cualquier negocio. Queremos agradecer a quien confía en nosotros desde el principio: <strong class="text-ink font-medium">los 50 primeros en activar Pro no pagan el primer mes</strong>.
         </p>
         <div class="mt-6 inline-flex items-center gap-3 bg-alt border border-line rounded-[12px] px-4 py-3">
-          <span class="inline-block w-2 h-2 rounded-full bg-brand"></span>
+          <span class="inline-block w-2 h-2 rounded-full bg-brand animate-pulse"></span>
           <span class="text-[14.5px] text-ink"><span class="font-semibold">50 primeros registros · 1 mes de Pro gratis.</span> No cerramos inscripciones después.</span>
         </div>
       </div>
@@ -1367,6 +1431,19 @@
     </div>
 
     <div class="reveal">
+      <!-- Q: código piloto -->
+      <details class="faq py-5 group" data-faq="codigo-piloto">
+        <summary class="flex items-center justify-between gap-4">
+          <span class="text-ink font-semibold text-[17px] sm:text-[18px] tracking-[-0.01em]">¿Cómo uso el código ONEZ-PILOTO?</span>
+          <span class="chev inline-flex items-center justify-center w-7 h-7 rounded-full bg-alt text-ink2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </span>
+        </summary>
+        <div class="answer text-ink2 text-[15.5px] pt-3 pr-10">
+          Si entras desde los botones de esta página, el código ya va incluido en el enlace. Si te registras por otro sitio, usa <span class="font-mono text-ink font-medium">ONEZ-PILOTO</span> al activar Pro. Solo los <span class="text-ink font-medium">50 primeros</span> en activar Pro tienen el primer mes a 0€.
+        </div>
+      </details>
+
       <!-- Q: tarjeta (obligatoria) -->
       <details class="faq py-5 group" data-faq="tarjeta">
         <summary class="flex items-center justify-between gap-4">
@@ -1376,7 +1453,7 @@
           </span>
         </summary>
         <div class="answer text-ink2 text-[15.5px] pt-3 pr-10">
-          Sí, para activar Pro — pero <span class="text-ink font-medium">solo los 50 primeros registros tienen el primer mes gratis</span>. Te avisamos por email antes de cualquier cobro. Cancelas en un clic, sin permanencia. El pago se procesa con Stripe.
+          Sí, para activar Pro — pero <span class="text-ink font-medium">solo los 50 primeros registros tienen el primer mes gratis con el código ONEZ-PILOTO</span>. Te avisamos por email antes de cualquier cobro. Cancelas en un clic, sin permanencia. El pago se procesa con Stripe.
         </div>
       </details>
 
@@ -1472,7 +1549,7 @@
           </span>
         </summary>
         <div class="answer text-ink2 text-[15.5px] pt-3 pr-10">
-          Por WhatsApp al 625 015 090 o por email a <a href="mailto:contacto@onez.es" class="text-brand hover:underline focus-ring rounded">contacto@onez.es</a>. Te responde directamente quien construye ONEZ.
+          Por WhatsApp al 685 28 27 42 o por email a <a href="mailto:contacto@onez.es" class="text-brand hover:underline focus-ring rounded">contacto@onez.es</a>. Te responde directamente quien construye ONEZ.
         </div>
       </details>
     </div>
@@ -1490,13 +1567,26 @@
 
   <div class="relative max-w-[1180px] mx-auto px-5 sm:px-6 lg:px-8 py-20 sm:py-28 text-center">
     <div class="reveal max-w-[760px] mx-auto">
-      <div class="eyebrow mb-4" style="color:#5DCAA5;">Oferta de lanzamiento · 50 primeros con mes gratis</div>
+      <div class="eyebrow mb-4" style="color:#5DCAA5;">Programa piloto · 50 plazas · Mes Pro gratis</div>
       <h2 class="h-display text-white text-[clamp(36px,6vw,60px)]">
-        Tu web profesional,<br/> lista hoy.
+        ¿Listo para tener tu web online esta noche?
       </h2>
       <p class="mt-6 text-white/75 text-[17px] sm:text-[18px]">
         Tarda menos en publicar tu web que en preparar un café. En serio.
       </p>
+
+      <div class="mt-10 max-w-[520px] mx-auto code-card text-left">
+        <div class="text-[12px] uppercase tracking-[0.08em] text-ink3 font-semibold">Código piloto</div>
+        <div class="mt-2 flex items-center justify-between gap-4 flex-wrap">
+          <div class="font-mono text-[22px] sm:text-[24px] font-semibold text-ink tracking-tight">ONEZ-PILOTO</div>
+          <button type="button" data-copy="ONEZ-PILOTO" class="copy-btn focus-ring" aria-label="Copiar código ONEZ-PILOTO">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span class="copy-label">Copiar código</span>
+          </button>
+        </div>
+        <div class="border-t border-line my-4"></div>
+        <p class="text-[14px] text-ink2 leading-relaxed">Aplícalo al activar Pro y tu primer mes es totalmente gratis.</p>
+      </div>
 
       <div class="mt-9 flex flex-wrap items-center justify-center gap-4">
         <a href="/register?ref=ONEZ-PILOTO" data-cta="cierre" class="btn-inverse size-xl focus-ring">
@@ -1506,7 +1596,7 @@
       </div>
 
       <p class="mt-5 text-white/65 text-[13.5px]">
-        Mes gratis para los 50 primeros · Te avisamos antes de cobrar · Cancela cuando quieras · Pago seguro con Stripe
+        Código ONEZ-PILOTO · Mes gratis para los 50 primeros · Te avisamos antes de cobrar · Cancela cuando quieras
       </p>
     </div>
   </div>
@@ -1552,7 +1642,7 @@
           <!-- EDITAR: dirección de email -->
           <li><a class="text-ink2 hover:text-ink focus-ring rounded" href="mailto:contacto@onez.es">contacto@onez.es</a></li>
           <!-- EDITAR: número de WhatsApp -->
-          <li><a class="text-ink2 hover:text-ink focus-ring rounded" href="https://wa.me/34625015090">WhatsApp · 625 01 50 90</a></li>
+          <li><a class="text-ink2 hover:text-ink focus-ring rounded" href="https://wa.me/34685282742">WhatsApp · 685 28 27 42</a></li>
           <li><a class="text-ink2 hover:text-ink focus-ring rounded" href="/login">Entrar</a></li>
         </ul>
       </div>
@@ -1802,6 +1892,42 @@
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && tplModal && !tplModal.hidden) closeTplModal();
   });
+
+  // ---- Copiar código piloto ----
+  document.querySelectorAll('[data-copy]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var code = btn.getAttribute('data-copy');
+      var label = btn.querySelector('.copy-label');
+      var original = label ? label.textContent : '';
+      function onCopied() {
+        if (label) label.textContent = '¡Copiado!';
+        btn.classList.add('is-copied');
+        track('pilot_code_copy', { code: code });
+        setTimeout(function () {
+          if (label) label.textContent = original;
+          btn.classList.remove('is-copied');
+        }, 2000);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(onCopied).catch(function () {
+          var ta = document.createElement('textarea');
+          ta.value = code;
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand('copy'); onCopied(); } catch (_) {}
+          document.body.removeChild(ta);
+        });
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = code;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); onCopied(); } catch (_) {}
+        document.body.removeChild(ta);
+      }
+    });
+  });
+
 })();
 </script>
 </body>
