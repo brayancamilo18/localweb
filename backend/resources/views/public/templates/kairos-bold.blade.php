@@ -269,7 +269,47 @@
     margin-bottom: 26px;
     will-change: transform;
   }
-  .stack-card .sc-photo{ position: relative; border-right: var(--bd) solid var(--ink); min-height: 240px; }
+  /* Service card accent — bloque de color (los servicios no llevan foto) */
+  .sc-accent{
+    position: relative;
+    border-right: var(--bd) solid var(--ink);
+    min-height: 240px;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+  }
+  .sc-accent--o{ background: var(--orange); }
+  .sc-accent--c{ background: var(--cream); }
+  .sc-accent--b{ background: var(--brown); }
+  .sc-accent::before{
+    content: "";
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(
+      -38deg,
+      rgba(26,20,16,.08) 0 2px,
+      transparent 2px 16px
+    );
+  }
+  .sc-accent-mark{
+    position: relative; z-index: 1;
+    font-family: var(--display);
+    font-size: clamp(3.2rem, 10vw, 6rem);
+    line-height: 1;
+    opacity: .28;
+    color: var(--ink);
+    user-select: none;
+  }
+  .sc-accent--b .sc-accent-mark{ color: var(--cream); opacity: .22; }
+  .sc-accent-glyph{
+    position: absolute;
+    bottom: 12%;
+    right: 10%;
+    font-family: var(--display);
+    font-size: 1.6rem;
+    color: var(--ink);
+    opacity: .45;
+  }
+  .sc-accent--b .sc-accent-glyph{ color: var(--cream); }
   .stack-card:nth-child(4n+1){ background: var(--cream); }
   .stack-card:nth-child(4n+2){ background: var(--white); }
   .stack-card:nth-child(4n+3){ background: var(--orange); }
@@ -430,7 +470,7 @@
     .hero-photos{ grid-template-columns: 1fr 1fr; }
     .hero-photo.p1{ grid-row: span 1; grid-column: span 2; aspect-ratio: 16/9; }
     .stack-card{ grid-template-columns: 1fr; }
-    .stack-card .sc-photo{ border-right: 0; border-bottom: var(--bd) solid var(--ink); aspect-ratio: 16/10; min-height: 0; }
+    .stack-card .sc-accent{ border-right: 0; border-bottom: var(--bd) solid var(--ink); aspect-ratio: 16/10; min-height: 0; }
     .about-stats{ grid-template-columns: 1fr; }
     .contact-extra{ grid-template-columns: 1fr; }
     .gallery{ grid-template-columns: repeat(2,1fr); grid-auto-rows: 130px; }
@@ -465,8 +505,8 @@
   body.kairos-preview #aboutExtraBlocks .reveal{visibility:visible!important}
 </style>
 <style id="lw-photo-overrides">
-  .hero-photo.has-photo .ph,.about-photo.has-photo .ph,.stack-card .sc-photo.has-photo .ph,.g-item.has-photo .ph{display:none!important}
-  .hero-photo.has-photo img,.about-photo.has-photo img,.stack-card .sc-photo.has-photo img,.g-item.has-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .hero-photo.has-photo .ph,.about-photo.has-photo .ph,.g-item.has-photo .ph{display:none!important}
+  .hero-photo.has-photo img,.about-photo.has-photo img,.g-item.has-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 </style>
 
 
@@ -594,10 +634,13 @@
     </div>
     <div class="stack" id="stack">
 
-@php $kairosPh = ['o','c','b','o','c']; $kairosEmoji = ['🍔','🍕','🌮','🥗','🍩']; @endphp
+@php $kairosAccent = ['o','c','b','o','c']; $kairosGlyph = ['●','▲','★','●','▲']; @endphp
 @foreach($services as $i => $service)
     <article class="stack-card pop in">
-      <div class="sc-photo"><div class="ph {{ $kairosPh[$i % count($kairosPh)] }}" role="img" aria-hidden="true"><span class="emoji" aria-hidden="true">{{ $kairosEmoji[$i % count($kairosEmoji)] }}</span><span class="ph-label">FOTO PLATO</span></div></div>
+      <div class="sc-accent sc-accent--{{ $kairosAccent[$i % count($kairosAccent)] }}" aria-hidden="true">
+        <span class="sc-accent-mark">{{ str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) }}</span>
+        <span class="sc-accent-glyph">{{ $kairosGlyph[$i % count($kairosGlyph)] }}</span>
+      </div>
       <div class="sc-body">
         <div class="sc-top"><span class="sc-num">N° {{ str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) }}</span></div>
         <h3 class="sc-name">{{ $service['name'] }}</h3>
@@ -1093,8 +1136,8 @@ var KAIROS_DEFAULT_GALLERY =
   '<figure class="g-item"><div class="ph b" role="img"><span class="emoji" aria-hidden="true">🥤</span><span class="ph-label">FOTO · 05</span></div></figure>' +
   '<figure class="g-item"><div class="ph o" role="img"><span class="emoji" aria-hidden="true">🍩</span><span class="ph-label">FOTO · 06</span></div></figure>';
 
-var KAIROS_STACK_PH = ['o', 'c', 'b', 'o', 'c'];
-var KAIROS_STACK_EMOJI = ['🍔', '🍕', '🌮', '🥗', '🍩'];
+var KAIROS_STACK_ACCENT = ['o', 'c', 'b', 'o', 'c'];
+var KAIROS_STACK_GLYPH = ['●', '▲', '★', '●', '▲'];
 
 var KAIROS_DEMO_SERVICES = [
   { name: 'Smash burger clásica', price: 11, description: 'Doble carne, cheddar fundido y salsa de la casa.' },
@@ -1295,14 +1338,14 @@ function renderKairosStack(services) {
   stack.innerHTML = list
     .map(function (m, i) {
       var n = (i + 1 < 10 ? '0' : '') + (i + 1);
-      var ph = KAIROS_STACK_PH[i % KAIROS_STACK_PH.length];
-      var emoji = KAIROS_STACK_EMOJI[i % KAIROS_STACK_EMOJI.length];
+      var accent = KAIROS_STACK_ACCENT[i % KAIROS_STACK_ACCENT.length];
+      var glyph = KAIROS_STACK_GLYPH[i % KAIROS_STACK_GLYPH.length];
       var tag = m.tag || (m.highlight ? 'TOP' : '');
       return (
         '<article class="stack-card pop">' +
-        '<div class="sc-photo"><div class="ph ' + ph + '" role="img" aria-hidden="true">' +
-        '<span class="emoji" aria-hidden="true">' + emoji + '</span>' +
-        '<span class="ph-label">FOTO PLATO</span></div></div>' +
+        '<div class="sc-accent sc-accent--' + accent + '" aria-hidden="true">' +
+        '<span class="sc-accent-mark">' + n + '</span>' +
+        '<span class="sc-accent-glyph">' + glyph + '</span></div>' +
         '<div class="sc-body">' +
         '<div class="sc-top"><span class="sc-num">N° ' + n + '</span>' +
         (tag
