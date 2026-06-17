@@ -934,10 +934,13 @@ ABOUT_STATS_WILD = """        <div class="about-stats num" data-stagger>
         </div>"""
 
 SERVICES_KAIROS = """
-@php $kairosPh = ['o','c','b','o','c']; $kairosEmoji = ['🍔','🍕','🌮','🥗','🍩']; @endphp
+@php $kairosAccent = ['o','c','b','o','c']; $kairosGlyph = ['●','▲','★','●','▲']; @endphp
 @foreach($services as $i => $service)
     <article class="stack-card pop">
-      <div class="sc-photo"><div class="ph {{ $kairosPh[$i % count($kairosPh)] }}" role="img" aria-hidden="true"><span class="emoji" aria-hidden="true">{{ $kairosEmoji[$i % count($kairosEmoji)] }}</span><span class="ph-label">FOTO PLATO</span></div></div>
+      <div class="sc-accent sc-accent--{{ $kairosAccent[$i % count($kairosAccent)] }}" aria-hidden="true">
+        <span class="sc-accent-mark">{{ str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) }}</span>
+        <span class="sc-accent-glyph">{{ $kairosGlyph[$i % count($kairosGlyph)] }}</span>
+      </div>
       <div class="sc-body">
         <div class="sc-top"><span class="sc-num">N° {{ str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) }}</span></div>
         <h3 class="sc-name">{{ $service['name'] }}</h3>

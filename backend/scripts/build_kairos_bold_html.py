@@ -22,8 +22,8 @@ INTEGRATION_CSS = """
   .brand.brand-has-img .nav-brand-img{display:block;height:calc(38px * var(--lw-logo-scale,1));width:auto;max-width:calc(200px * var(--lw-logo-scale,1));object-fit:contain}
 </style>
 <style id="lw-photo-overrides">
-  .hero-photo.has-photo .ph,.about-photo.has-photo .ph,.stack-card .sc-photo.has-photo .ph,.g-item.has-photo .ph{display:none!important}
-  .hero-photo.has-photo img,.about-photo.has-photo img,.stack-card .sc-photo.has-photo img,.g-item.has-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .hero-photo.has-photo .ph,.about-photo.has-photo .ph,.g-item.has-photo .ph{display:none!important}
+  .hero-photo.has-photo img,.about-photo.has-photo img,.g-item.has-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 </style>
 """
 
@@ -59,8 +59,8 @@ var KAIROS_DEFAULT_GALLERY =
   '<figure class="g-item"><div class="ph b" role="img"><span class="emoji" aria-hidden="true">🥤</span><span class="ph-label">FOTO · 05</span></div></figure>' +
   '<figure class="g-item"><div class="ph o" role="img"><span class="emoji" aria-hidden="true">🍩</span><span class="ph-label">FOTO · 06</span></div></figure>';
 
-var KAIROS_STACK_PH = ['o', 'c', 'b', 'o', 'c'];
-var KAIROS_STACK_EMOJI = ['🍔', '🍕', '🌮', '🥗', '🍩'];
+var KAIROS_STACK_ACCENT = ['o', 'c', 'b', 'o', 'c'];
+var KAIROS_STACK_GLYPH = ['●', '▲', '★', '●', '▲'];
 
 var kairosPreviewMap = null;
 var kairosPreviewMarker = null;
@@ -182,14 +182,14 @@ function renderKairosStack(services) {
   stack.innerHTML = list
     .map(function (m, i) {
       var n = (i + 1 < 10 ? '0' : '') + (i + 1);
-      var ph = KAIROS_STACK_PH[i % KAIROS_STACK_PH.length];
-      var emoji = KAIROS_STACK_EMOJI[i % KAIROS_STACK_EMOJI.length];
+      var accent = KAIROS_STACK_ACCENT[i % KAIROS_STACK_ACCENT.length];
+      var glyph = KAIROS_STACK_GLYPH[i % KAIROS_STACK_GLYPH.length];
       var tag = m.tag || (m.highlight ? 'TOP' : '');
       return (
         '<article class="stack-card pop">' +
-        '<div class="sc-photo"><div class="ph ' + ph + '" role="img" aria-hidden="true">' +
-        '<span class="emoji" aria-hidden="true">' + emoji + '</span>' +
-        '<span class="ph-label">FOTO PLATO</span></div></div>' +
+        '<div class="sc-accent sc-accent--' + accent + '" aria-hidden="true">' +
+        '<span class="sc-accent-mark">' + n + '</span>' +
+        '<span class="sc-accent-glyph">' + glyph + '</span></div>' +
         '<div class="sc-body">' +
         '<div class="sc-top"><span class="sc-num">N° ' + n + '</span>' +
         (tag
