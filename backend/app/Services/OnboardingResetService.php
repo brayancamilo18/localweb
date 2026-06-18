@@ -8,6 +8,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
+/** @see ProPlanReconciliationService Usuarios con suscripción activa no deben perder Pro al cerrar sesión. */
+
 /**
  * Vuelve el onboarding al paso 1 (elegir plantilla) sin borrar datos del registro
  * (nombre, sector, ciudad, país).
@@ -16,18 +18,32 @@ class OnboardingResetService
 {
     public function __construct(
         private readonly ImageService $imageService,
+        private readonly ProPlanReconciliationService $planReconciliation,
     ) {}
 
-    public function resetForUser(User $user): void
+    /**
+     * @return bool true si se reinició el negocio incompleto; false si se omitió (p. ej. ya pagó Pro).
+     */
+    public function resetForUser(User $user): bool
     {
+        $user->loadMissing(['business', 'subscriptions']);
+
+        if ($this->planReconciliation->hasPaidAccess($user)) {
+            $this->clearDraftCacheAndStorage($user->id);
+
+            return false;
+        }
+
         $this->clearDraftCacheAndStorage($user->id);
 
         $business = $user->business;
         if ($business === null || $business->onboarding_completed_at !== null) {
-            return;
+            return false;
         }
 
         $this->resetIncompleteBusiness($business);
+
+        return true;
     }
 
     private function clearDraftCacheAndStorage(int $userId): void

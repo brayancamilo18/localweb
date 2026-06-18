@@ -20,6 +20,14 @@ export async function postCheckout(): Promise<string> {
   return res.data.data.checkout_url
 }
 
+/** Tras volver de Stripe con ?billing=success&session_id=… confirma pending → pro. */
+export async function confirmBillingCheckout(sessionId: string): Promise<{ plan: string }> {
+  const res = await apiClient.post<ApiResponse<{ ok: boolean; plan: string }>>('/billing/confirm-checkout', {
+    session_id: sessionId,
+  })
+  return { plan: res.data.data.plan }
+}
+
 export async function postPortal(): Promise<string> {
   const res = await apiClient.post<ApiResponse<{ portal_url: string }>>('/billing/portal')
   return res.data.data.portal_url

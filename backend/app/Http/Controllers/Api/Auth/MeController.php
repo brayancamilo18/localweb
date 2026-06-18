@@ -6,16 +6,24 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Resources\BusinessResource;
 use App\Http\Resources\UserResource;
 use App\Models\Referral;
+use App\Services\ProPlanReconciliationService;
 use Illuminate\Http\Request;
 
 class MeController extends BaseApiController
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request, ProPlanReconciliationService $planReconciliation)
     {
         $user = $request->user()->load([
             'business.template',
             'business.images',
             'referralAsReferred.referrer',
+            'subscriptions',
+        ]);
+
+        $planReconciliation->reconcile($user);
+        $user->load([
+            'business.template',
+            'business.images',
         ]);
 
         $data = [

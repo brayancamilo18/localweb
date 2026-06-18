@@ -41,8 +41,12 @@ vi.mock('../../../store/authStore', () => ({
   ),
 }))
 
-vi.mock('../../../api/auth', () => ({
-  me: vi.fn().mockResolvedValue({ user: { id: 1 }, business: null }),
+vi.mock('../../../api/billing', () => ({
+  confirmBillingCheckout: vi.fn().mockResolvedValue({ plan: 'pro' }),
+}))
+
+vi.mock('../../../components/ui/Toast', () => ({
+  useToast: () => ({ showToast: vi.fn() }),
 }))
 
 let queryClient: QueryClient
@@ -120,6 +124,36 @@ describe('useOnboarding', () => {
 
     expect(result.current.currentStep).toBe(1)
     expect(result.current.errors.message).toBe('Template inválido')
+  })
+
+  it('getStatus con step 9 (Pro publicado) → currentStep es 9 aunque falte template en borrador', async () => {
+    vi.mocked(onboardingApi.getStatus).mockResolvedValue({
+      is_complete: false,
+      step: 9,
+      draft: { business_name: 'Test', subdomain: 'mi-negocio' },
+    })
+    const { result } = renderHook(() => useOnboarding(), { wrapper })
+    await waitFor(() => expect(result.current.isPendingStatus).toBe(false))
+    expect(result.current.currentStep).toBe(9)
+  })
+
+  it('getStatus con step 8 y borrador completo → currentStep es 8 (re-login tras pago)', async () => {
+    vi.mocked(onboardingApi.getStatus).mockResolvedValue({
+      is_complete: false,
+      step: 8,
+      draft: {
+        template_id: 1,
+        cover_path: '__synced__',
+        business_name: 'Test',
+        gallery_paths: ['__synced__'],
+        schedule: { mon: { open: '09:00', close: '18:00', closed: false } },
+        address: 'Calle 1',
+        phone: '600000000',
+      },
+    })
+    const { result } = renderHook(() => useOnboarding(), { wrapper })
+    await waitFor(() => expect(result.current.isPendingStatus).toBe(false))
+    expect(result.current.currentStep).toBe(8)
   })
 
   it('billing=success en URL → aterriza en step 8 (publicar)', async () => {

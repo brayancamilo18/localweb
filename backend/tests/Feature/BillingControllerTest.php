@@ -34,6 +34,27 @@ it('returns 422 on POST /api/v1/billing/checkout when the business is already Pr
         ->assertJsonPath('message', 'Ya tienes el plan Pro activo');
 });
 
+it('confirm checkout promotes pending business to pro in testing', function () {
+    $business = Business::create([
+        'name' => 'Pending Biz',
+        'subdomain' => 'mi-negocio',
+        'subdomain_type' => 'custom',
+        'sector' => 'otros',
+        'plan' => 'pending',
+        'is_published' => false,
+    ]);
+    $user = User::factory()->create(['business_id' => $business->id]);
+
+    test()->actingAs($user)
+        ->postJson('/api/v1/billing/confirm-checkout', [
+            'session_id' => 'cs_test_confirm_pending',
+        ])
+        ->assertOk()
+        ->assertJsonPath('data.plan', 'pro');
+
+    expect($business->fresh()->plan->value)->toBe('pro');
+});
+
 it('returns a valid checkout_url in testing environment on POST /api/v1/billing/checkout', function () {
     expect(app()->environment('testing'))->toBeTrue();
 

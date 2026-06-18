@@ -80,10 +80,22 @@ describe('LoginPage', () => {
     expect(await screen.findByText('Credenciales incorrectas')).toBeInTheDocument()
   })
 
-  it('navega a /dashboard tras login exitoso sin 2FA', async () => {
+  it('navega a /onboarding tras login exitoso con plan pro sin onboarding completado', async () => {
     vi.spyOn(authApi, 'login').mockResolvedValue({
       user: { id: 1, name: 'A', email: 'a@a.com', email_verified_at: '2026-05-01T00:00:00Z' },
-      business: { plan: 'pro' } as never,
+      business: { plan: 'pro', onboarding_completed_at: null } as never,
+    })
+    renderPage()
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'a@a.com' } })
+    fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: '12345678' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Iniciar sesión' }))
+    await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/onboarding'))
+  })
+
+  it('navega a /dashboard tras login cuando onboarding ya esta completado', async () => {
+    vi.spyOn(authApi, 'login').mockResolvedValue({
+      user: { id: 1, name: 'A', email: 'a@a.com', email_verified_at: '2026-05-01T00:00:00Z' },
+      business: { plan: 'pro', onboarding_completed_at: '2026-05-01T00:00:00Z' } as never,
     })
     renderPage()
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'a@a.com' } })

@@ -9,12 +9,13 @@ use App\Http\Resources\BusinessResource;
 use App\Http\Resources\UserResource;
 use App\Models\SecurityEvent;
 use App\Services\AuthService;
+use App\Services\ProPlanReconciliationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class LoginController extends BaseApiController
 {
-    public function __invoke(Request $request, AuthService $authService)
+    public function __invoke(Request $request, AuthService $authService, ProPlanReconciliationService $planReconciliation)
     {
         $request->validate([
             'email' => ['required', 'email'],
@@ -46,6 +47,8 @@ class LoginController extends BaseApiController
 
         SecurityEvent::record($user, SecurityEvent::TYPE_LOGIN, $request);
 
+        $user->load(['business.template', 'business.images', 'subscriptions']);
+        $planReconciliation->reconcile($user);
         $user->load(['business.template', 'business.images']);
 
         return $this->success([

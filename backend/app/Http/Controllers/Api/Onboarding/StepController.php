@@ -693,7 +693,12 @@ class StepController extends BaseApiController
             return $this->error('Business no encontrado', [], 404);
         }
 
-        if (! $service->isOnboardingDataComplete($business)) {
+        // Pro ya publicó en step 8: los extras (step 9) no deben bloquearse por campos
+        // perdidos en un reset antiguo (p. ej. template_id null tras cerrar sesión).
+        $publishedPro = $business->is_published
+            && in_array($business->plan, [Plan::Pro, Plan::Pending], true);
+
+        if (! $publishedPro && ! $service->isOnboardingDataComplete($business)) {
             return response()->json([
                 'message' => 'Faltan datos del onboarding para publicar',
                 'missing' => $service->onboardingMissingFields($business),

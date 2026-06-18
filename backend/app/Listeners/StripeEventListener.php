@@ -2,13 +2,14 @@
 
 namespace App\Listeners;
 
+use App\Enums\Plan;
 use App\Mail\ReferrerReachedTemplateGift;
 use App\Mail\WelcomeProOnez;
 use App\Models\Business;
 use App\Models\ProcessedStripeEvent;
 use App\Models\Referral;
 use App\Models\User;
-use App\Services\OnboardingMediaFinalizeService;
+use App\Services\ProPlanActivationService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Cashier\Events\WebhookReceived;
@@ -71,38 +72,22 @@ class StripeEventListener
             return;
         }
 
-        $updates = [
-            'plan' => 'pro',
-            'plan_activated_at' => now(),
-        ];
-
-        // Conservar la visibilidad de negocios Free ya publicados; los que aún
-        // no estaban publicados (onboarding Pro directo) siguen su flujo normal
-        // de publicación en step 8/9.
-        if (! $business->is_published) {
-            $updates['is_published'] = false;
-        }
-
-        if (($business->subdomain_type === 'random') && ! empty($metadata['subdomain'])) {
-            $updates['subdomain'] = $metadata['subdomain'];
-        }
-
-        $business->update($updates);
-
         $userId = isset($metadata['user_id']) ? (int) $metadata['user_id'] : null;
         $user = $userId ? User::find($userId) : null;
-        if ($user) {
-            try {
-                app(OnboardingMediaFinalizeService::class)->finalizeFromCache($user, $business->fresh());
-            } catch (\Throwable $e) {
-                Log::error('Onboarding media finalize after Stripe checkout failed', [
-                    'user_id' => $user->id,
-                    'business_id' => $business->id,
-                    'exception' => $e->getMessage(),
-                ]);
-            }
+        $user ??= $business->owner;
 
-            $this->sendWelcomeProEmail($user, $business->fresh(), $object);
+        if ($user === null) {
+            Log::warning('Stripe checkout completed without resolvable user', [
+                'business_id' => $business->id,
+            ]);
+
+            return;
+        }
+
+        $business = app(ProPlanActivationService::class)->activatePro($business, $user, $metadata);
+
+        if ($user) {
+            $this->sendWelcomeProEmail($user, $business, $object);
         }
 
         Log::info('Stripe checkout completed and business upgraded', [
@@ -255,6 +240,18 @@ class StripeEventListener
                 'user_id' => $user->id,
                 'business_id' => $user->business->id,
                 'status' => $status,
+            ]);
+
+            return;
+        }
+
+        if ($status === 'active' && in_array($user->business->plan, [Plan::Pending, Plan::Free], true)) {
+            app(ProPlanActivationService::class)->activatePro($user->business, $user, []);
+
+            Log::info('Stripe subscription active, business promoted to pro', [
+                'user_id' => $user->id,
+                'business_id' => $user->business->id,
+                'previous_plan' => $previousStatus,
             ]);
 
             return;
