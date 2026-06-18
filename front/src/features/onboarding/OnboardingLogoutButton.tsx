@@ -12,14 +12,20 @@ export function OnboardingLogoutButton() {
   const qc = useQueryClient()
   const clearAuth = useAuthStore((s) => s.clearAuth)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const business = useAuthStore((s) => s.business)
 
   const logoutM = useMutation({
     retry: false,
     mutationFn: async () => {
-      try {
-        await resetOnboarding()
-      } catch {
-        /* si falla el reset, igualmente cerramos sesión */
+      const plan = business?.plan
+      const paidDuringOnboarding =
+        business?.is_pro === true || plan === 'pro' || plan === 'pending'
+      if (!paidDuringOnboarding) {
+        try {
+          await resetOnboarding()
+        } catch {
+          /* si falla el reset, igualmente cerramos sesión */
+        }
       }
       try {
         await logoutApi()

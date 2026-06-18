@@ -159,6 +159,7 @@ export default function OnboardingPage() {
   const [previewMapLng, setPreviewMapLng] = useState<number | undefined>(undefined)
   const [proSetupPhase, setProSetupPhase] = useState<Step9SetupPhase>('services')
   const [proOffersServices, setProOffersServices] = useState(true)
+  const prevWizardStepRef = useRef(currentStep)
   /** Servicios para el iframe; se actualiza al mutar la API y al cambiar la caché de React Query. */
   const [previewServices, setPreviewServices] = useState<TemplateServicePayload[]>([])
   const queryClient = useQueryClient()
@@ -174,6 +175,7 @@ export default function OnboardingPage() {
   const templates = useMemo(() => (Array.isArray(data) ? data : EMPTY_TEMPLATES), [data])
   const businessIsPro = useAuthStore((s) => s.business?.is_pro ?? false)
   const businessPlan = useAuthStore((s) => s.business?.plan)
+  const isProOnboarding = businessIsPro || businessPlan === 'pending' || businessPlan === 'pro'
   const step3Pro = businessIsPro || businessPlan === 'pending'
   const galleryProExperience = businessIsPro || businessPlan === 'pending' || postCheckoutProGallery
   const step8OrLater = currentStep >= 8
@@ -439,10 +441,12 @@ export default function OnboardingPage() {
   }, [persistUserId])
 
   useEffect(() => {
-    if (currentStep !== 9) {
+    const prev = prevWizardStepRef.current
+    if (prev === 9 && currentStep !== 9) {
       setProSetupPhase('services')
       setProOffersServices(true)
     }
+    prevWizardStepRef.current = currentStep
   }, [currentStep])
 
   useEffect(() => {
@@ -527,6 +531,20 @@ export default function OnboardingPage() {
       setStep1PreviewVariant(p.step1PreviewVariant as Step1PreviewVariant)
     }
 
+    const savedPhase = p?.proSetupPhase
+    if (savedPhase === 'services' || savedPhase === 'brand' || savedPhase === 'extras') {
+      setProSetupPhase(savedPhase)
+    }
+
+    const draftTemplateId =
+      typeof d.template_id === 'number' && d.template_id > 0 ? d.template_id : Number(d.template_id)
+    if (Number.isFinite(draftTemplateId) && draftTemplateId > 0) {
+      const match = templates.find((t) => t.id === draftTemplateId)
+      if (match) {
+        setStep1PreviewVariant(resolveStep1PreviewVariant(match))
+      }
+    }
+
     if (
       typeof p?.step1LogoScale === 'number' &&
       Number.isFinite(p.step1LogoScale) &&
@@ -579,6 +597,34 @@ export default function OnboardingPage() {
     authBusinessCity,
     authBusinessCountry,
     authBusinessCountryCode,
+    templates,
+  ])
+
+  /** Sincroniza la variante de preview con la plantilla del negocio (API / borrador). */
+  useEffect(() => {
+    const fromSnap = businessSnapQuery.data?.template
+    if (fromSnap?.slug) {
+      setStep1PreviewVariant(resolveStep1PreviewVariant(fromSnap))
+      return
+    }
+    const fromAuth = authBusiness?.template
+    if (fromAuth?.slug) {
+      setStep1PreviewVariant(resolveStep1PreviewVariant(fromAuth))
+      return
+    }
+    const rawId = serverDraft?.template_id ?? businessSnapQuery.data?.template_id
+    const tid = typeof rawId === 'number' ? rawId : Number(rawId)
+    if (!Number.isFinite(tid) || tid <= 0) return
+    const match = templates.find((t) => t.id === tid)
+    if (match) {
+      setStep1PreviewVariant(resolveStep1PreviewVariant(match))
+    }
+  }, [
+    templates,
+    serverDraft?.template_id,
+    businessSnapQuery.data?.template,
+    businessSnapQuery.data?.template_id,
+    authBusiness?.template,
   ])
 
   /** Al entrar en el paso 4, cargar la galería guardada en un solo listado editable. */
@@ -655,6 +701,7 @@ export default function OnboardingPage() {
     if (isPendingStatus || !wizardHydratedRef.current || persistUserId == null) return
     scheduleSaveOnboardingPersist(persistUserId, {
       step: currentStep,
+      proSetupPhase: currentStep === 9 ? proSetupPhase : undefined,
       previewName,
       previewTagline,
       previewPhone,
@@ -682,6 +729,7 @@ export default function OnboardingPage() {
     isPendingStatus,
     persistUserId,
     currentStep,
+    proSetupPhase,
     previewName,
     previewTagline,
     previewPhone,
@@ -861,7 +909,11 @@ export default function OnboardingPage() {
                 void goNext(payload)
               }}
             >
-              {currentStep === 8 ? 'Ir a mi dashboard' : 'Continuar'}
+              {currentStep === 8
+                ? isProOnboarding
+                  ? 'Publicar y continuar'
+                  : 'Ir a mi dashboard'
+                : 'Continuar'}
             </Btn>
           </>
         ),
@@ -875,6 +927,7 @@ export default function OnboardingPage() {
       registerContinueHandler,
       registerContinueEnabled,
       planContinueOk,
+      isProOnboarding,
     ],
   )
 
@@ -1143,14 +1196,8 @@ export default function OnboardingPage() {
     step1LogoScale,
   ])
 
-  useEffect(() => {
-    if (templates.length === 0) return
-    setStep1PreviewVariant(resolveStep1PreviewVariant(templates[0]))
-  }, [templates])
-
   // El aviso de cuota de IA es solo para Pro y salta al entrar en el paso 9
   // (configurar servicios, color de marca, etc.), no al inicio del onboarding.
-  const isProOnboarding = businessIsPro || businessPlan === 'pending' || businessPlan === 'pro'
   const showAiIntro =
     currentStep === 9 &&
     isProOnboarding &&

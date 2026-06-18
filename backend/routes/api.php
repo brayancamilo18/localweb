@@ -82,6 +82,7 @@ Route::prefix('v1')->group(function (): void {
         })->middleware('throttle:6,60')->name('verification.send');
 
         Route::post('/billing/checkout', [BillingController::class, 'checkout'])->middleware('throttle:60,1');
+        Route::post('/billing/confirm-checkout', [BillingController::class, 'confirmCheckout'])->middleware('throttle:120,1');
         Route::post('/billing/portal', [BillingController::class, 'portal'])->middleware('throttle:60,1');
         Route::get('/billing/status', [BillingController::class, 'status'])->middleware('throttle:60,1');
         Route::get('/billing/invoices', [BillingController::class, 'invoices'])->middleware('throttle:60,1');
@@ -152,10 +153,10 @@ Route::prefix('v1')->group(function (): void {
             // Cierra el onboarding (set onboarding_completed_at). Lo dispara Step9 al
             // pulsar «Ir a mi dashboard» en planes Pro/Pending; para Free lo hace step8.
             Route::post('/finalize', [StepController::class, 'completeOnboarding'])
-                ->middleware('throttle:30,1');
+                ->middleware('throttle:120,1');
         });
 
-        Route::prefix('dashboard')->middleware(['verified.api', 'business.complete', 'throttle:60,1'])->group(function (): void {
+        Route::prefix('dashboard')->middleware(['verified.api', 'business.complete', 'throttle:300,1'])->group(function (): void {
             Route::get('/business', [DashboardBusinessController::class, 'show']);
             Route::put('/business', [DashboardBusinessController::class, 'update']);
             Route::put('/location', [DashboardBusinessController::class, 'updateLocation']);

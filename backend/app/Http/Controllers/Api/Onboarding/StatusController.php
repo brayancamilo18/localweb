@@ -7,14 +7,17 @@ use App\Enums\Plan;
 use App\Http\Controllers\Api\BaseApiController;
 use App\Models\Business;
 use App\Models\BusinessImage;
+use App\Services\ProPlanReconciliationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class StatusController extends BaseApiController
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request, ProPlanReconciliationService $planReconciliation)
     {
-        $user = $request->user()->load('business');
+        $user = $request->user()->load(['business', 'subscriptions']);
+        $planReconciliation->reconcile($user);
+        $user->load('business');
 
         if ($user->business && $user->business->onboarding_completed_at) {
             return $this->success([
@@ -30,13 +33,16 @@ class StatusController extends BaseApiController
             $draft = $this->mergeDraftFromBusinessAndCache($user->business, $cacheDraft);
 
             $step = $this->resolveStepFromDraft($draft);
-            // Tras pagar Pro el usuario debe publicar (paso 8); el plan ya es Pro pero aún no está publicado.
-            if (
-                $user->business->onboarding_completed_at === null
-                && ! $user->business->is_published
-                && $user->business->plan === Plan::Pro
-            ) {
-                $step = max($step, 8);
+            $paidIncomplete = $user->business->onboarding_completed_at === null
+                && $planReconciliation->hasPaidAccess($user, $user->business);
+
+            // Tras pagar Pro: paso 8 si aún no publicó; paso 9 si ya publicó pero faltan extras Pro.
+            if ($paidIncomplete) {
+                if ($user->business->is_published) {
+                    $step = max($step, 9);
+                } else {
+                    $step = max($step, 8);
+                }
             }
 
             return $this->success([

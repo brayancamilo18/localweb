@@ -2,13 +2,21 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { isOnboardingPreviewWithoutAuth } from '../../config/devFlags'
+import { confirmBillingCheckout } from '../../api/billing'
 import { me } from '../../api/auth'
 import { getStatus, step1, step2, step3, step4, step5, step6, step7, step8 } from '../../api/onboarding'
 import { keys } from '../../api/queryKeys'
 import { useAuthStore } from '../../store/authStore'
-import type { Schedule } from '../../types/api'
+import { useToast } from '../../components/ui/Toast'
+import type { Business, Schedule } from '../../types/api'
 import { clearOnboardingPersistForUser, loadOnboardingPersist } from './onboardingPersist'
 import { clearSignupPrefill } from '../../lib/signupPrefill'
+
+/** Pro / checkout pendiente: debe pasar por publicar (8) y extras (9), no ir al dashboard tras step 8. */
+function isProOnboardingBusiness(b: Business | null | undefined): boolean {
+  if (!b) return false
+  return b.is_pro === true || b.plan === 'pro' || b.plan === 'pending'
+}
 
 /** Paso visible en el wizard (1–8) a partir del borrador guardado en servidor. */
 function resolveOnboardingUiStep(draft: Record<string, unknown> | undefined): number {
@@ -67,6 +75,7 @@ export function useOnboarding(): UseOnboardingResult {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const queryClient = useQueryClient()
+  const { showToast } = useToast()
   const persistUserId = useAuthStore((s) => s.user?.id)
   const [currentStep, setCurrentStep] = useState(1)
   const [isPendingStatus, setIsPendingStatus] = useState(true)
@@ -95,7 +104,6 @@ export function useOnboarding(): UseOnboardingResult {
       typeof window !== 'undefined' &&
       new URLSearchParams(window.location.search).get('billing') === 'success'
     setIsPendingStatus(true)
-    if (!isBillingSuccess) setCurrentStep(1)
     setServerDraft(undefined)
     getStatus()
       .then((status) => {
@@ -116,9 +124,14 @@ export function useOnboarding(): UseOnboardingResult {
         const fromServer = Math.min(9, Math.max(resolved, serverStep))
         const persisted = loadOnboardingPersist(persistUserId)
         const pStep = typeof persisted?.step === 'number' ? persisted.step : 0
-        // Sin plantilla elegida → siempre paso 1 (p. ej. tras cerrar sesión y volver a entrar).
+        const hasTemplate = Boolean(draft?.template_id && Number(draft.template_id) > 0)
+        // El backend fuerza 8/9 en flujo Pro; no dejar que un borrador incompleto baje el paso.
         const step =
-          fromServer <= 1 ? 1 : Math.min(9, Math.max(fromServer, pStep))
+          serverStep >= 8
+            ? Math.min(9, Math.max(serverStep, pStep))
+            : !hasTemplate && fromServer <= 1
+              ? 1
+              : Math.min(9, Math.max(fromServer, pStep))
         setCurrentStep(step)
       })
       .catch(() => {
@@ -146,8 +159,27 @@ export function useOnboarding(): UseOnboardingResult {
 
     void (async () => {
       try {
+        const sessionId = searchParams.get('session_id')
+        if (sessionId) {
+          try {
+            await confirmBillingCheckout(sessionId)
+          } catch (err: unknown) {
+            const message =
+              (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+              'No pudimos confirmar el pago. Recarga la página en unos segundos o contacta con soporte si el cargo ya aparece en tu banco.'
+            showToast({
+              type: 'error',
+              title: 'Pago pendiente de confirmar',
+              description: message,
+            })
+          }
+        }
         const fresh = await me()
         useAuthStore.getState().setAuth(fresh.user, fresh.business)
+        queryClient.setQueryData(keys.auth.me, fresh)
+        if (fresh.business) {
+          queryClient.setQueryData(keys.dashboard.business, fresh.business)
+        }
         await queryClient.invalidateQueries({ queryKey: keys.auth.me })
         const status = await getStatus()
         if (status.is_complete) {
@@ -163,7 +195,7 @@ export function useOnboarding(): UseOnboardingResult {
       setErrors({})
       setCurrentStep(8)
     })()
-  }, [isPendingStatus, queryClient, searchParams, setSearchParams, navigate])
+  }, [isPendingStatus, queryClient, searchParams, setSearchParams, navigate, showToast])
 
   const jumpToStep = useCallback((step: number, opts?: { allowForward?: boolean }) => {
     setErrors({})
@@ -337,7 +369,7 @@ export function useOnboarding(): UseOnboardingResult {
             if (fresh.business) {
               queryClient.setQueryData(keys.dashboard.business, fresh.business)
             }
-            if (fresh.business?.is_pro) {
+            if (isProOnboardingBusiness(fresh.business)) {
               setProExtrasSource('publish')
               setCurrentStep(9)
               window.scrollTo({ top: 0, behavior: 'smooth' })

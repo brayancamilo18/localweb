@@ -55,28 +55,29 @@ export default function Step9ProSetup({
     if (finishing) return
     setFinishing(true)
     try {
-      try {
-        await finalizeOnboarding()
-      } catch {
-        // Si ya estaba cerrado o falla puntualmente seguimos: el usuario ya pulsó publicar.
+      await finalizeOnboarding()
+      const fresh = await me()
+      qc.setQueryData(keys.auth.me, fresh)
+      if (fresh.business) {
+        qc.setQueryData(keys.dashboard.business, fresh.business)
       }
-      try {
-        const fresh = await me()
-        qc.setQueryData(keys.auth.me, fresh)
-        if (fresh.business) {
-          qc.setQueryData(keys.dashboard.business, fresh.business)
-        }
-        setAuth(fresh.user, fresh.business)
-      } catch {
-        // /auth/me caído: dejamos que ProtectedRoute decida con la cache que haya.
-      }
+      setAuth(fresh.user, fresh.business)
       if (userId != null) clearOnboardingPersistForUser(userId)
       onFinishToDashboard?.()
       navigate('/dashboard')
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        'No se pudo cerrar el onboarding. Revisa que tu negocio tenga todos los datos guardados.'
+      showToast({
+        type: 'error',
+        title: 'No pudimos ir al panel',
+        description: message,
+      })
     } finally {
       setFinishing(false)
     }
-  }, [finishing, qc, setAuth, userId, navigate, onFinishToDashboard])
+  }, [finishing, qc, setAuth, userId, navigate, onFinishToDashboard, showToast])
 
   const handleBrandChange = useCallback(
     (color: string | null) => {

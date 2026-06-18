@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Resources\BusinessResource;
 use App\Services\ReferralCheckoutService;
+use App\Services\StripeCheckoutConfirmationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Laravel\Cashier\Exceptions\InvalidInvoice;
@@ -52,6 +54,42 @@ class BillingController extends BaseApiController
         $session = $subscription->checkout($checkoutOptions);
 
         return $this->success(['checkout_url' => $session->url]);
+    }
+
+    /**
+     * Confirma el checkout al volver de Stripe (success_url) y promueve pending → pro
+     * sin esperar al webhook (útil en local o si el webhook tarda unos segundos).
+     */
+    public function confirmCheckout(Request $request, StripeCheckoutConfirmationService $confirmation): JsonResponse
+    {
+        $data = $request->validate([
+            'session_id' => ['required', 'string', 'max:255'],
+        ], [
+            'session_id.required' => 'Falta el identificador de la sesión de pago.',
+        ]);
+
+        $user = $request->user()->load(['business.template', 'business.images', 'subscriptions']);
+        $business = $confirmation->confirmForUser($user, $data['session_id']);
+
+        if ($business === null) {
+            return $this->error('No se pudo confirmar el pago.', [], 422);
+        }
+
+        $planValue = $business->plan instanceof \App\Enums\Plan ? $business->plan->value : (string) $business->plan;
+
+        if ($planValue === 'pending') {
+            return $this->error(
+                'El pago aún no se ha reflejado. Espera unos segundos y recarga la página.',
+                ['plan' => $planValue],
+                422,
+            );
+        }
+
+        return $this->success([
+            'ok' => true,
+            'plan' => $planValue,
+            'business' => new BusinessResource($business->loadMissing(['template', 'images'])),
+        ]);
     }
 
     /**

@@ -49,6 +49,8 @@ export type OnboardingPersistedV1 = {
   galleryDataUrls?: string[]
   /** En el onboarding la descripción solo se puede generar con IA una vez. */
   aiDescriptionGenerated?: boolean
+  /** Sub-fase del paso 9 Pro (servicios → marca → enlaces). */
+  proSetupPhase?: 'services' | 'brand' | 'extras'
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | undefined
@@ -130,6 +132,7 @@ export function scheduleSaveOnboardingPersist(
         aboutDataUrl: data.aboutDataUrl ?? prev?.aboutDataUrl,
         galleryDataUrls: data.galleryDataUrls ?? prev?.galleryDataUrls,
         aiDescriptionGenerated: data.aiDescriptionGenerated ?? prev?.aiDescriptionGenerated,
+        proSetupPhase: data.proSetupPhase ?? prev?.proSetupPhase,
       }
       let str = JSON.stringify(merged)
       const MAX_JSON_CHARS = 4_200_000

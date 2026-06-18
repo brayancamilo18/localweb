@@ -547,6 +547,29 @@ it('finalize endpoint sets onboarding_completed_at and is idempotent', function 
     expect($business->onboarding_completed_at?->toIso8601String())->toBe($first?->toIso8601String());
 });
 
+it('finalize allows published pro business even when template_id was cleared', function () {
+    $business = Business::create([
+        'name' => 'Published Pro',
+        'subdomain' => 'pub-pro-'.substr(sha1((string) random_int(0, PHP_INT_MAX)), 0, 6),
+        'subdomain_type' => 'custom',
+        'sector' => 'otros',
+        'template_id' => null,
+        'city' => 'Madrid',
+        'country_code' => 'ES',
+        'plan' => Plan::Pro,
+        'is_published' => true,
+        'onboarding_completed_at' => null,
+    ]);
+    $user = User::factory()->create(['business_id' => $business->id]);
+
+    test()->actingAs($user)
+        ->postJson('/api/v1/onboarding/finalize')
+        ->assertOk()
+        ->assertJsonPath('data.ok', true);
+
+    expect($business->fresh()->onboarding_completed_at)->not->toBeNull();
+});
+
 it('finalize endpoint returns 404 when user has no business', function () {
     $user = User::factory()->create();
     test()->actingAs($user)

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Api\Auth\Social;
 
-use App\Enums\Plan;
 use App\Models\User;
+use App\Services\ProPlanReconciliationService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -86,20 +86,19 @@ class GoogleCallbackController extends Controller
             return $frontend.'/register/social';
         }
 
-        $user->loadMissing('business');
+        $user->loadMissing(['business', 'subscriptions']);
+        app(ProPlanReconciliationService::class)->reconcile($user);
+        $user->load('business');
         $business = $user->business;
 
         if ($business === null) {
             return $frontend.'/register/social';
         }
 
-        $plan = $business->plan;
-        $planValue = $plan instanceof Plan ? $plan->value : (string) $plan;
-
-        if ($planValue === Plan::Pending->value || $business->onboarding_completed_at === null) {
-            return $frontend.'/onboarding';
+        if ($business->onboarding_completed_at !== null) {
+            return $frontend.'/dashboard';
         }
 
-        return $frontend.'/dashboard';
+        return $frontend.'/onboarding';
     }
 }

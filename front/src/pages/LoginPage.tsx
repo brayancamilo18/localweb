@@ -12,12 +12,7 @@ import { useAuthStore } from '../store/authStore'
 import { useApiError } from '../hooks/useApiError'
 import { usePasswordReveal } from '../hooks/usePasswordReveal'
 
-function nextRouteFromBusiness(plan?: string | null) {
-  if (!plan || plan === 'pending') return '/onboarding'
-  return '/dashboard'
-}
-
-/** Ruta interna tras login (evita open redirect). */
+import { postAuthDestination } from '../lib/authRouting'
 function safeNextPath(raw: string | null): string | null {
   if (!raw || !raw.startsWith('/') || raw.startsWith('//')) return null
   return raw
@@ -63,7 +58,13 @@ export default function LoginPage() {
         navigate('/verify-email')
         return
       }
-      navigate(nextRouteFromBusiness(data.business?.plan))
+      navigate(
+        postAuthDestination(
+          data.user,
+          data.business,
+          useAuthStore.getState().hasCompletedOnboarding,
+        ),
+      )
     },
   })
 
