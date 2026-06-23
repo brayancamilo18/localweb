@@ -130,11 +130,26 @@ def placeholder_to_blade(key: str) -> str:
 
 
 def convert_placeholders(text: str) -> str:
-    return re.sub(
+    comments: list[str] = []
+
+    def stash_comment(m: re.Match) -> str:
+        # En comentarios HTML no generar Blade: horario/galeria son arrays y rompen htmlspecialchars.
+        comments.append(re.sub(
+            r"\{\{([a-zA-Z0-9_áéíóúñ]+)\}\}",
+            lambda pm: pm.group(1),
+            m.group(0),
+        ))
+        return f"__LW_HTML_COMMENT_{len(comments) - 1}__"
+
+    text = re.sub(r"<!--.*?-->", stash_comment, text, flags=re.DOTALL)
+    text = re.sub(
         r"\{\{([a-zA-Z0-9_áéíóúñ]+)\}\}",
         lambda m: placeholder_to_blade(m.group(1)),
         text,
     )
+    for i, comment in enumerate(comments):
+        text = text.replace(f"__LW_HTML_COMMENT_{i}__", comment)
+    return text
 
 
 def extract_parts(html: str) -> tuple[str, str, str, str]:
