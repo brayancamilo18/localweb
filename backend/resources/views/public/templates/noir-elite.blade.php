@@ -1,6 +1,25 @@
 @extends('public.layouts.tenant')
 
 @push('head-extras')
+<style id="lw-responsive-safety">
+  html,body{overflow-x:clip;max-width:100%}
+  @media (max-width:880px){
+    .nav-inner{gap:10px;min-width:0;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+    .nav .brand,.brand,nav.top .brand,nav.top .logo{min-width:0;flex:1 1 auto;max-width:calc(100% - 118px)}
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo,nav.top .brand.brand-has-img .nav-brand-img{
+      width:auto!important;height:auto!important;max-width:min(140px,38vw)!important;
+      max-height:calc(44px * var(--lw-logo-scale,1.35))!important;object-fit:contain!important
+    }
+    .nav-actions,.nav .nav-right,nav.top .actions{flex-shrink:0;gap:8px}
+    .nav-cta,nav.top .nav-cta{white-space:nowrap;font-size:clamp(9px,2.8vw,11px);padding:7px 10px}
+    .menu-toggle{flex-shrink:0}
+  }
+  @media (max-width:480px){
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo{
+      max-width:min(120px,34vw)!important;max-height:calc(38px * var(--lw-logo-scale,1.35))!important
+    }
+  }
+</style>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500&display=swap"/>
@@ -10,7 +29,7 @@
   if (p.get('thumb') === '1') return;
   var l = document.createElement('link');
   l.rel = 'stylesheet';
-  l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  l.href = 'https://unpkg.com/leaflet@' + '1.9.4/dist/leaflet.css';
   l.crossOrigin = '';
   document.head.appendChild(l);
 })();
@@ -148,17 +167,36 @@
     overflow:hidden; isolation:isolate;
   }
   .hero-bg{
-    position:absolute; inset:-10% -2% -2% -2%;
-    background-image:url("https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1800&q=80");
-    background-size:cover; background-position:center;
-    will-change:transform;
+    position:absolute; inset:0;
+    overflow:hidden;
+    background:var(--bg);
     z-index:-2;
   }
+  .hero-bg-media{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    object-fit:cover; object-position:center center;
+    will-change:transform;
+  }
+  /* Portadas verticales (típico móvil): en pantallas anchas mostrar la foto entera en altura */
+  .hero-bg.is-portrait .hero-bg-media{
+    width:auto; height:100%; max-width:none;
+    left:50%; right:auto;
+    transform:translateX(-50%);
+  }
   .hero-bg::after{
-    content:""; position:absolute; inset:0;
+    content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
     background:
       radial-gradient(ellipse at center, rgba(0,0,0,.25) 0%, rgba(0,0,0,.55) 55%, rgba(0,0,0,.95) 100%),
       linear-gradient(180deg, rgba(10,10,10,.6) 0%, rgba(10,10,10,.2) 30%, rgba(10,10,10,.85) 100%);
+  }
+  @media (min-width:981px){
+    .hero-bg::after{
+      background:
+        radial-gradient(ellipse at center, rgba(0,0,0,.1) 0%, rgba(0,0,0,.28) 58%, rgba(0,0,0,.68) 100%),
+        linear-gradient(180deg, rgba(10,10,10,.38) 0%, rgba(10,10,10,.06) 34%, rgba(10,10,10,.48) 100%);
+    }
+    .hero-bg.is-landscape .hero-bg-media{ object-position:center 38%; }
   }
   canvas#particles{ position:absolute; inset:0; z-index:-1; pointer-events:none; }
   .hero-inner{
@@ -628,7 +666,6 @@
     .about-meta{ flex-direction:column; gap:16px; }
   }
 
-  /* ───── REDUCED MOTION ─────────────────────────────── */
   @media(max-width:780px){
     nav.top.scrolled{
       backdrop-filter:none;
@@ -636,6 +673,7 @@
       background:rgba(10,10,10,.92);
     }
   }
+  /* ───── REDUCED MOTION ─────────────────────────────── */
   @media (prefers-reduced-motion:reduce){
     *, *::before, *::after{
       animation-duration:.01ms !important; animation-iteration-count:1 !important;
@@ -656,8 +694,9 @@
   @media (max-width:654px){ .lw-gallery-lightbox-close{top:8px;right:8px} }
 </style>
 @endverbatim
+<!-- BRAND_OVERRIDE_PLACEHOLDER:gold -->
+<script src="/templates/brand-apply.js?v=1"></script>
 
-@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
 
 @endpush
 
@@ -710,7 +749,10 @@
 
 <!-- ═══ 1. PORTADA (foto + nombre + tagline + CTAs) ═════ -->
 <header class="hero" id="portada">
-  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-bg" id="heroBg">
+    <img class="hero-bg-media" id="heroBgMedia" alt="" decoding="async" fetchpriority="high"
+      src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1800&q=80"/>
+  </div>
   <canvas id="particles"></canvas>
   <div class="hero-inner" id="heroInner">
     <div class="h-line short"></div>
@@ -755,7 +797,7 @@
         <span class="badge" id="aboutTeamBadge">Equipo</span>
       </div>
     </div>
-    @include('public.partials.about-extra-blocks-noir-elite')
+    <div id="aboutExtraBlocks" class="noir-about-extras" data-main-text-first="1"></div>
   </div>
 </section>
 
@@ -816,7 +858,7 @@
 
 
 
-{{-- ═══ 4. HORARIO (array $horario + estado abierto/cerrado) ═ --}}
+<!-- ═══ 4. HORARIO ({{ $horario }} + estado abierto/cerrado) ═ -->
 <section id="horario">
   <div class="wrap" id="schedSec">
     <div class="section-head">
@@ -839,7 +881,7 @@
   </div>
 </section>
 
-<!-- ═══ 5. FOOTER (datos + redes + ONEZ) ════════════ -->
+<!-- ═══ 5. FOOTER (datos + redes + LocalWeb) ════════════ -->
 <footer id="contacto">
   <div class="easter" id="easter"><span id="easterBrand">{{ $nombre }}</span> · est. 2014 <span class="stars">✦</span></div>
   <div class="wrap foot-map-block">
@@ -878,7 +920,7 @@
     </div>
     <div class="foot-bottom">
       <span id="footBottomBrand">{{ $nombre }}</span>
-      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://onez.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
+      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
     </div>
   </div>
 </footer>
@@ -922,16 +964,9 @@ function lwTrackClick(kind) {
 (function () {
   var p = new URLSearchParams(location.search);
   if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
-  if (window.__LW_LEAFLET_LOADER_STARTED) return;
-  window.__LW_LEAFLET_LOADER_STARTED = true;
   var s = document.createElement('script');
   s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
   s.crossOrigin = '';
-  s.onload = function () {
-    if (typeof lwBootTenantMap === 'function') {
-      lwBootTenantMap(window.__lwMapAddress || '');
-    }
-  };
   document.head.appendChild(s);
 })();
 </script>
@@ -1026,6 +1061,98 @@ html.lw-preview-inert a[href^="#"] {
 })();
 </script>
 <script>
+/**
+ * Aplica teléfono y enlaces WhatsApp en plantillas HTML (iframe público / onboarding).
+ * - Actualiza [data-wa-link], cualquier <a href*="wa.me"> y placeholders {{ $whatsapp }}
+ * - Abre WhatsApp en nueva pestaña (necesario dentro del iframe del SPA)
+ */
+(function initThumbScrollLock() {
+  if (new URLSearchParams(window.location.search).get('thumb') !== '1') return;
+  var id = 'lw-thumb-scroll-lock';
+  if (document.getElementById(id)) return;
+  var style = document.createElement('style');
+  style.id = id;
+  style.textContent =
+    'html,body{overflow:hidden!important;height:100%!important;max-height:100%!important;' +
+    'overscroll-behavior:none!important;touch-action:none!important;' +
+    'position:fixed!important;width:100%!important;margin:0!important;}';
+  (document.head || document.documentElement).appendChild(style);
+})();
+
+(function (global) {
+  function digitsFrom(raw, key) {
+    if (!raw || raw[key] == null) return '';
+    return String(raw[key]).replace(/\D/g, '');
+  }
+
+  function resolvePhone(raw) {
+    raw = raw || {};
+    var phoneRaw = raw.telefono != null ? String(raw.telefono).trim() : '';
+    var phoneWa = phoneRaw.replace(/\D/g, '');
+    if (!phoneWa) {
+      phoneWa = digitsFrom(raw, 'whatsapp');
+    }
+    return { phoneRaw: phoneRaw, phoneWa: phoneWa };
+  }
+
+  function applyContactLinks(raw) {
+    var phones = resolvePhone(raw);
+    var phoneRaw = phones.phoneRaw;
+    var phoneWa = phones.phoneWa;
+    var waUrl = phoneWa ? 'https://wa.me/' + phoneWa : 'https://wa.me/';
+    var telHref = phoneWa ? 'tel:+' + phoneWa : 'tel:';
+
+    document
+      .querySelectorAll('a[data-wa-link], a[href*="wa.me"], a[href*="{{ $whatsapp }}"]')
+      .forEach(function (el) {
+        if (!(el instanceof HTMLAnchorElement)) return;
+        el.href = waUrl;
+        el.target = '_blank';
+        el.rel = 'noopener noreferrer';
+      });
+
+    document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+      if (!(el instanceof HTMLAnchorElement)) return;
+      el.href = telHref;
+    });
+
+    document.querySelectorAll('[data-phone-display]').forEach(function (el) {
+      el.textContent = phoneRaw || 'Tu teléfono';
+    });
+
+    bindContactClickTracking();
+  }
+
+  function bindContactClickTracking() {
+    function bindOnce(el, kind) {
+      if (!(el instanceof HTMLAnchorElement)) return;
+      if (el.dataset.lwTrackBound === '1') return;
+      el.dataset.lwTrackBound = '1';
+      el.addEventListener('click', function () {
+        try {
+          window.parent.postMessage({ type: 'lw:track-click', kind: kind }, '*');
+        } catch (_) {
+          /* ignore */
+        }
+      });
+    }
+
+    document
+      .querySelectorAll('a[data-wa-link], a[href*="wa.me"], a[href*="{{ $whatsapp }}"]')
+      .forEach(function (el) {
+        bindOnce(el, 'whatsapp_click');
+      });
+
+    document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+      bindOnce(el, 'phone_click');
+    });
+  }
+
+  global.lwApplyContactLinks = applyContactLinks;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
 (function () {
   var p = new URLSearchParams(window.location.search);
   if (p.get('embed') === '1' || p.get('preview') === '1' || p.get('parentOrigin')) {
@@ -1097,9 +1224,17 @@ var NOIR_DEFAULT_GALLERY_INNER =
   '<a class="photo" data-cursor="lg"><img src="https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?auto=format&fit=crop&w=900&q=70" alt=""/><div class="glass"><span>+</span></div></a>' +
   '<a class="photo" data-cursor="lg"><img src="https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=900&q=70" alt=""/><div class="glass"><span>+</span></div></a>';
 
+function noirApplyHeroAspect(heroBg, img) {
+  if (!heroBg || !img || !img.naturalWidth) return;
+  var portrait = img.naturalHeight > img.naturalWidth * 1.04;
+  heroBg.classList.toggle('is-portrait', portrait);
+  heroBg.classList.toggle('is-landscape', !portrait);
+}
+
 function updateNoirHeroSlider(raw) {
   var heroBg = document.getElementById('heroBg');
   if (!heroBg) return;
+  var heroMedia = document.getElementById('heroBgMedia');
   var hasPortada = raw && Object.prototype.hasOwnProperty.call(raw, 'portada');
   if (!hasPortada) return;
   var heroCover = (raw && raw.portada ? String(raw.portada).trim() : '');
@@ -1114,11 +1249,30 @@ function updateNoirHeroSlider(raw) {
       withCacheBust = heroCover;
     }
   }
-  var cssUrl = withCacheBust ? withCacheBust.replace(/"/g, '\\"') : '';
   heroBg.style.opacity = '1';
   heroBg.style.transform = '';
   heroBg.style.transition = '';
-  heroBg.style.backgroundImage = cssUrl ? 'url("' + cssUrl + '")' : '';
+  heroBg.style.backgroundImage = '';
+
+  if (!heroMedia) {
+    var cssUrl = withCacheBust ? withCacheBust.replace(/"/g, '\\"') : '';
+    heroBg.style.backgroundImage = cssUrl ? 'url("' + cssUrl + '")' : '';
+    return;
+  }
+
+  if (!withCacheBust) {
+    heroMedia.removeAttribute('src');
+    heroBg.classList.remove('is-portrait', 'is-landscape');
+    return;
+  }
+
+  heroMedia.onload = function () { noirApplyHeroAspect(heroBg, heroMedia); };
+  heroMedia.onerror = function () { heroBg.classList.remove('is-portrait', 'is-landscape'); };
+  heroMedia.src = withCacheBust;
+  heroMedia.alt = '';
+  if (heroMedia.complete && heroMedia.naturalWidth) {
+    noirApplyHeroAspect(heroBg, heroMedia);
+  }
 }
 
 var noirGallerySliderTimer = null;
@@ -1265,15 +1419,10 @@ function updatePreviewMapEmbed(lat, lon, addressLine) {
     if (ph) ph.hidden = false;
     return;
   }
-  if (window.__LW_SKIP_LEAFLET) return;
+  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
+
   shell.hidden = false;
   if (ph) ph.hidden = true;
-  if (typeof L === 'undefined') {
-    if (typeof lwWhenLeafletReady === 'function') {
-      lwWhenLeafletReady(function () { updatePreviewMapEmbed(lat, lon, addressLine); });
-    }
-    return;
-  }
 
   function applyMap() {
     if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
@@ -1508,9 +1657,9 @@ function syncNoirTemplateExtensions(raw) {
   }
 
   var LW_DEFAULT_SOCIAL = {
-    instagram: 'https://www.instagram.com/onez.es',
-    tiktok: 'https://www.tiktok.com/@onez',
-    facebook: 'https://www.facebook.com/onez'
+    instagram: 'https://www.instagram.com/localweb.es',
+    tiktok: 'https://www.tiktok.com/@localweb',
+    facebook: 'https://www.facebook.com/localweb'
   };
   function noirResolveSocialHref(raw, key, fallback) {
     var u = (raw[key] || '').trim();
@@ -1544,7 +1693,7 @@ function applyLivePreviewData(raw, opts){
   const direccion = (raw?.direccion || '').trim();
   const correo = (raw?.correo || '').trim();
 
-  document.title = `${name} — ONEZ`;
+  document.title = `${name} — LocalWeb`;
 
   const logoUrl = (raw?.logo_url || '').trim();
   var navTopEl = document.querySelector('nav.top');
@@ -1672,6 +1821,7 @@ function applyLivePreviewData(raw, opts){
 <script>
 (function initLivePreviewFromQuery() {
   const params = new URLSearchParams(window.location.search);
+  if (params.get('landingDemo') === '1') return;
   if (!params.has('preview')) return;
   applyLivePreviewData({
     nombre: params.get('nombre') || '',
@@ -1700,6 +1850,15 @@ function onScroll(){
 }
 window.addEventListener('scroll', onScroll, { passive:true });
 onScroll();
+
+(function initNoirHeroAspect(){
+  var heroBg = document.getElementById('heroBg');
+  var heroMedia = document.getElementById('heroBgMedia');
+  if (!heroBg || !heroMedia || !heroMedia.getAttribute('src')) return;
+  function run(){ noirApplyHeroAspect(heroBg, heroMedia); }
+  if (heroMedia.complete && heroMedia.naturalWidth) run();
+  else heroMedia.addEventListener('load', run, { once: true });
+})();
 
 /* ───── BURGER ────────────────────────────────────────── */
 const burger = document.getElementById('burger');
@@ -1921,6 +2080,7 @@ setInterval(renderSchedule, 60_000);
 })();
 </script>
 
+<script src="/templates/lw-landing-demo.js?v=2"></script>
 
 @endverbatim
 
@@ -1930,7 +2090,6 @@ setInterval(renderSchedule, 60_000);
     if (typeof applyLivePreviewData === 'function') {
       applyLivePreviewData({
         logo_url: @json($logo_url),
-        logo_scale: @json($logo_scale ?? null),
         nombre: @json($nombre),
         tagline: @json($tagline),
         telefono: @json($telefono),
@@ -1939,8 +2098,6 @@ setInterval(renderSchedule, 60_000);
         portada_2: @json($portada_2),
         portada_3: @json($portada_3),
         descripcion: @json($descripcion),
-        about_title: @json($about_title),
-        about_sections: @json($about_sections),
         foto_equipo: @json($foto_equipo),
         direccion: @json($direccion),
         correo: @json($correo),
@@ -1970,6 +2127,10 @@ setInterval(renderSchedule, 60_000);
       else if (typeof updateNoirPreviewMap === 'function') updateNoirPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateSleekPreviewMap === 'function') updateSleekPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateBloomPreviewMap === 'function') updateBloomPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateGraphitePreviewMap === 'function') updateGraphitePreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateWildPreviewMap === 'function') updateWildPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateRepublicaPreviewMap === 'function') updateRepublicaPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateKairosPreviewMap === 'function') updateKairosPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
     }
     if (typeof window.tvAnimationsRefresh === 'function') {
       requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
