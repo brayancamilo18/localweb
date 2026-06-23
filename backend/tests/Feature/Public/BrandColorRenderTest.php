@@ -106,6 +106,24 @@ it('tenant page sanitizes invalid hex', function () {
         ->and($html)->not->toContain('<style>:root{');
 });
 
+it('noir-elite tenant page renders with schedule array (horario is not echoed in HTML comments)', function () {
+    $template = brandRenderTemplate('noir-elite');
+    $business = publishedBusinessForBrandRender($template, [
+        'brand_color' => '#d4b570',
+        'schedule' => [
+            'mon' => ['open' => '09:00', 'close' => '18:00', 'closed' => false],
+            'tue' => ['open' => '09:00', 'close' => '18:00', 'closed' => false],
+            'wed' => ['open' => '09:00', 'close' => '18:00', 'closed' => false],
+            'thu' => ['open' => '09:00', 'close' => '18:00', 'closed' => false],
+            'fri' => ['open' => '09:00', 'close' => '18:00', 'closed' => false],
+            'sat' => ['open' => '10:00', 'close' => '14:00', 'closed' => false],
+            'sun' => ['open' => '09:00', 'close' => '18:00', 'closed' => true],
+        ],
+    ]);
+
+    test()->get(tenantUrl($business))->assertOk();
+});
+
 it('each supported template injects the correct CSS variable name', function (string $slug, string $cssVariable, string $brandColor) {
     $template = brandRenderTemplate($slug);
     $business = publishedBusinessForBrandRender($template, ['brand_color' => $brandColor]);

@@ -801,7 +801,7 @@
   </div>
 </section>
 
-<!-- ═══ 3. GALERÍA ({{ '' }}) ══════════════════════════ -->
+<!-- ═══ 3. GALERÍA (galería) ══════════════════════════ -->
 <section id="galeria">
   <div class="wrap" id="gallerySec">
     <div class="section-head">
@@ -858,7 +858,7 @@
 
 
 
-<!-- ═══ 4. HORARIO ({{ $horario }} + estado abierto/cerrado) ═ -->
+<!-- ═══ 4. HORARIO (horario + estado abierto/cerrado) ═ -->
 <section id="horario">
   <div class="wrap" id="schedSec">
     <div class="section-head">
