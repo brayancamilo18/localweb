@@ -172,20 +172,49 @@
     background:var(--bg);
     z-index:-2;
   }
+  /* Misma foto difuminada: rellena los laterales en portadas verticales (desktop) */
+  .hero-bg-fill{
+    position:absolute; inset:-10%;
+    width:120%; height:120%;
+    object-fit:cover; object-position:center center;
+    filter:blur(36px) saturate(1.12) brightness(0.48);
+    transform:scale(1.06);
+    z-index:0;
+    pointer-events:none;
+    opacity:0;
+  }
+  .hero-bg.is-portrait .hero-bg-fill{ opacity:1; }
   .hero-bg-media{
     position:absolute; inset:0;
     width:100%; height:100%;
     object-fit:cover; object-position:center center;
+    z-index:1;
     will-change:transform;
   }
-  /* Portadas verticales (típico móvil): en pantallas anchas mostrar la foto entera en altura */
-  .hero-bg.is-portrait .hero-bg-media{
-    width:auto; height:100%; max-width:none;
-    left:50%; right:auto;
-    transform:translateX(-50%);
+  /* Desktop + vertical: foto nítida entera al centro; laterales = fill difuminado (sin franjas negras) */
+  @media (min-width:981px){
+    .hero-bg.is-portrait .hero-bg-media{
+      width:auto; height:100%; max-width:min(100%, 960px);
+      left:50%; right:auto;
+      transform:translateX(-50%);
+      object-fit:contain;
+      object-position:center center;
+    }
+    .hero-bg.is-landscape .hero-bg-media{ object-position:center 38%; }
+    .hero-bg.is-landscape .hero-bg-fill{ opacity:0; }
+  }
+  /* Móvil: cover a pantalla completa (como antes) */
+  @media (max-width:980px){
+    .hero-bg.is-portrait .hero-bg-media{
+      width:100%; height:100%;
+      left:0; transform:none;
+      object-fit:cover;
+      object-position:center 32%;
+    }
+    .hero-bg.is-portrait .hero-bg-fill{ opacity:0; }
   }
   .hero-bg::after{
-    content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
+    content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
     background:
       radial-gradient(ellipse at center, rgba(0,0,0,.25) 0%, rgba(0,0,0,.55) 55%, rgba(0,0,0,.95) 100%),
       linear-gradient(180deg, rgba(10,10,10,.6) 0%, rgba(10,10,10,.2) 30%, rgba(10,10,10,.85) 100%);
@@ -750,6 +779,8 @@
 <!-- ═══ 1. PORTADA (foto + nombre + tagline + CTAs) ═════ -->
 <header class="hero" id="portada">
   <div class="hero-bg" id="heroBg">
+    <img class="hero-bg-fill" id="heroBgFill" alt="" aria-hidden="true" decoding="async"
+      src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1800&q=80"/>
     <img class="hero-bg-media" id="heroBgMedia" alt="" decoding="async" fetchpriority="high"
       src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1800&q=80"/>
   </div>
@@ -773,7 +804,7 @@
   <div class="scroll-cue">Scroll</div>
 </header>
 
-<!-- ═══ 2. SOBRE NOSOTROS ({{ $descripcion }} + foto + tel) ═ -->
+<!-- ═══ 2. SOBRE NOSOTROS (descripcion + foto + tel) ═ -->
 <section id="sobre-nosotros">
   <div class="wrap" id="aboutSec">
     <div class="about-grid">
@@ -1231,10 +1262,29 @@ function noirApplyHeroAspect(heroBg, img) {
   heroBg.classList.toggle('is-landscape', !portrait);
 }
 
+function noirSetHeroCoverSrc(heroBg, heroMedia, heroFill, src) {
+  if (!heroMedia) return;
+  if (!src) {
+    heroMedia.removeAttribute('src');
+    if (heroFill) heroFill.removeAttribute('src');
+    heroBg.classList.remove('is-portrait', 'is-landscape');
+    return;
+  }
+  heroMedia.onload = function () { noirApplyHeroAspect(heroBg, heroMedia); };
+  heroMedia.onerror = function () { heroBg.classList.remove('is-portrait', 'is-landscape'); };
+  heroMedia.src = src;
+  heroMedia.alt = '';
+  if (heroFill) heroFill.src = src;
+  if (heroMedia.complete && heroMedia.naturalWidth) {
+    noirApplyHeroAspect(heroBg, heroMedia);
+  }
+}
+
 function updateNoirHeroSlider(raw) {
   var heroBg = document.getElementById('heroBg');
   if (!heroBg) return;
   var heroMedia = document.getElementById('heroBgMedia');
+  var heroFill = document.getElementById('heroBgFill');
   var hasPortada = raw && Object.prototype.hasOwnProperty.call(raw, 'portada');
   if (!hasPortada) return;
   var heroCover = (raw && raw.portada ? String(raw.portada).trim() : '');
@@ -1260,19 +1310,7 @@ function updateNoirHeroSlider(raw) {
     return;
   }
 
-  if (!withCacheBust) {
-    heroMedia.removeAttribute('src');
-    heroBg.classList.remove('is-portrait', 'is-landscape');
-    return;
-  }
-
-  heroMedia.onload = function () { noirApplyHeroAspect(heroBg, heroMedia); };
-  heroMedia.onerror = function () { heroBg.classList.remove('is-portrait', 'is-landscape'); };
-  heroMedia.src = withCacheBust;
-  heroMedia.alt = '';
-  if (heroMedia.complete && heroMedia.naturalWidth) {
-    noirApplyHeroAspect(heroBg, heroMedia);
-  }
+  noirSetHeroCoverSrc(heroBg, heroMedia, heroFill, withCacheBust);
 }
 
 var noirGallerySliderTimer = null;
@@ -1854,10 +1892,14 @@ onScroll();
 (function initNoirHeroAspect(){
   var heroBg = document.getElementById('heroBg');
   var heroMedia = document.getElementById('heroBgMedia');
+  var heroFill = document.getElementById('heroBgFill');
   if (!heroBg || !heroMedia || !heroMedia.getAttribute('src')) return;
   function run(){ noirApplyHeroAspect(heroBg, heroMedia); }
   if (heroMedia.complete && heroMedia.naturalWidth) run();
   else heroMedia.addEventListener('load', run, { once: true });
+  if (heroFill && !heroFill.getAttribute('src') && heroMedia.getAttribute('src')) {
+    heroFill.src = heroMedia.getAttribute('src');
+  }
 })();
 
 /* ───── BURGER ────────────────────────────────────────── */
