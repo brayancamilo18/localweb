@@ -224,3 +224,97 @@ it('deleting image from other business returns 403', function () {
         ->deleteJson("/api/v1/dashboard/images/{$imageB->id}")
         ->assertStatus(403);
 });
+
+it('updates cover focal point for owned cover image', function () {
+    $template = Template::create([
+        'name' => 'Focal Template',
+        'slug' => 'tpl-focal-ok',
+        'primary_color' => '#111111',
+        'is_active' => true,
+        'requires_pro' => false,
+        'hero_photo_slots' => 1,
+        'hero_cover_focal' => true,
+    ]);
+    $business = Business::create([
+        'name' => 'Focal Biz',
+        'subdomain' => 'foc-aaaa-bbbb',
+        'subdomain_type' => 'random',
+        'sector' => 'otros',
+        'plan' => 'pro',
+        'is_published' => true,
+        'onboarding_completed_at' => now(),
+        'template_id' => $template->id,
+    ]);
+    $user = User::factory()->create(['business_id' => $business->id]);
+    $cover = BusinessImage::create([
+        'business_id' => $business->id,
+        'path' => 'businesses/1/cover/test.webp',
+        'section' => 'cover',
+        'display_order' => 0,
+        'focal_x' => 50,
+        'focal_y' => 50,
+    ]);
+
+    test()->actingAs($user)
+        ->patchJson("/api/v1/dashboard/images/{$cover->id}/focal", [
+            'focal_x' => 62,
+            'focal_y' => 28,
+        ])
+        ->assertOk()
+        ->assertJsonPath('data.focal_x', 62)
+        ->assertJsonPath('data.focal_y', 28);
+
+    $cover->refresh();
+    expect($cover->focal_x)->toBe(62)->and($cover->focal_y)->toBe(28);
+});
+
+it('rejects focal update for gallery images', function () {
+    $business = Business::create(['name' => 'Gal', 'subdomain' => 'gal-aaaa-bbbb', 'subdomain_type' => 'random', 'sector' => 'otros']);
+    $user = User::factory()->create(['business_id' => $business->id]);
+    $gallery = BusinessImage::create([
+        'business_id' => $business->id,
+        'path' => 'x.webp',
+        'section' => 'gallery',
+        'display_order' => 0,
+    ]);
+
+    test()->actingAs($user)
+        ->patchJson("/api/v1/dashboard/images/{$gallery->id}/focal", [
+            'focal_x' => 40,
+            'focal_y' => 40,
+        ])
+        ->assertStatus(422);
+});
+
+it('rejects focal update when template does not support cover focal', function () {
+    $template = Template::create([
+        'name' => 'Split Template',
+        'slug' => 'tpl-focal-no',
+        'primary_color' => '#111111',
+        'is_active' => true,
+        'requires_pro' => false,
+        'hero_photo_slots' => 1,
+        'hero_cover_focal' => false,
+    ]);
+    $business = Business::create([
+        'name' => 'No Focal',
+        'subdomain' => 'nof-aaaa-bbbb',
+        'subdomain_type' => 'random',
+        'sector' => 'otros',
+        'template_id' => $template->id,
+    ]);
+    $user = User::factory()->create(['business_id' => $business->id]);
+    $cover = BusinessImage::create([
+        'business_id' => $business->id,
+        'path' => 'businesses/1/cover/test.webp',
+        'section' => 'cover',
+        'display_order' => 0,
+    ]);
+
+    test()->actingAs($user)
+        ->patchJson("/api/v1/dashboard/images/{$cover->id}/focal", [
+            'focal_x' => 40,
+            'focal_y' => 40,
+        ])
+        ->assertStatus(422);
+});

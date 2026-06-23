@@ -16,6 +16,8 @@ class BusinessImageResource extends JsonResource
             'display_order' => $this->display_order,
             'width' => $this->width,
             'height' => $this->height,
+            'focal_x' => (int) ($this->focal_x ?? 50),
+            'focal_y' => (int) ($this->focal_y ?? 50),
         ];
     }
 }

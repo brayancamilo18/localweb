@@ -49,6 +49,40 @@ class ImagesController extends BaseApiController
         return $this->success(new BusinessImageResource($image));
     }
 
+    public function updateFocal(Request $request, BusinessImage $image)
+    {
+        if ($image->business_id !== $request->user()->business_id) {
+            return response()->json(['message' => 'No tienes permiso para realizar esta acción.'], 403);
+        }
+
+        if ($image->section !== ImageSection::Cover->value) {
+            return $this->error('Solo se puede ajustar el encuadre de fotos de portada.', [], 422);
+        }
+
+        $business = $request->user()->business()->with('template')->first();
+        $template = $business?->template;
+        if (! $template?->hero_cover_focal || (int) ($template->hero_photo_slots ?? 1) !== 1) {
+            return $this->error('Tu plantilla no permite ajustar el encuadre de portada.', [], 422);
+        }
+
+        $data = $request->validate([
+            'focal_x' => ['required', 'numeric', 'min:0', 'max:100'],
+            'focal_y' => ['required', 'numeric', 'min:0', 'max:100'],
+        ], [
+            'focal_x.required' => 'Indica la posición horizontal del encuadre.',
+            'focal_y.required' => 'Indica la posición vertical del encuadre.',
+        ]);
+
+        $image->forceFill([
+            'focal_x' => (int) round((float) $data['focal_x']),
+            'focal_y' => (int) round((float) $data['focal_y']),
+        ])->save();
+
+        PublicPageCache::forget($request->user()->business);
+
+        return $this->success(new BusinessImageResource($image->fresh()));
+    }
+
     public function destroy(Request $request, BusinessImage $image, ImageService $images)
     {
         if ($image->business_id !== $request->user()->business_id) {

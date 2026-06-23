@@ -51,6 +51,8 @@ class ImageService
 
         $this->persistToR2($image, $preserveTransparency, $path);
 
+        [$focalX, $focalY] = $this->defaultFocalForImage($image, $section);
+
         return BusinessImage::create([
             'business_id' => $business->id,
             'path' => $path,
@@ -58,7 +60,27 @@ class ImageService
             'display_order' => $order,
             'width' => $image->width(),
             'height' => $image->height(),
+            'focal_x' => $focalX,
+            'focal_y' => $focalY,
         ]);
+    }
+
+    /**
+     * Punto focal por defecto: portadas verticales encuadran un poco más arriba (rostros / escenario).
+     *
+     * @return array{0: int, 1: int}
+     */
+    private function defaultFocalForImage(ImageInterface $image, ImageSection $section): array
+    {
+        if ($section !== ImageSection::Cover) {
+            return [50, 50];
+        }
+
+        if ($image->height() > (int) ($image->width() * 1.04)) {
+            return [50, 35];
+        }
+
+        return [50, 50];
     }
 
     public function deleteImage(BusinessImage $image): void

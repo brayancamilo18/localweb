@@ -2,7 +2,7 @@ import { useCallback, useRef, useState, type DragEvent, type ReactNode, type Ref
 import axios from 'axios'
 import { useQueryClient } from '@tanstack/react-query'
 import { Btn, Icon } from '../../../components/primitives/primitives'
-import { deleteBusinessLogo, deleteImage, uploadBusinessLogo, uploadImage } from '../../../api/dashboard'
+import { deleteBusinessLogo, deleteImage, updateCoverFocal, uploadBusinessLogo, uploadImage } from '../../../api/dashboard'
 import {
   prepareImageForUpload,
   prepareImagesForUpload,
@@ -17,6 +17,7 @@ import {
 import { useToast } from '../../../components/ui/Toast'
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
 import FaviconUploader from '../../shared/FaviconUploader'
+import CoverFocalEditor from '../../shared/CoverFocalEditor'
 import { keys } from '../../../api/queryKeys'
 import { useDashboard } from '../context/DashboardContext'
 import type { BusinessImage } from '../../../types/api'
@@ -468,7 +469,9 @@ export default function Imagenes() {
   const isPro = business?.is_pro === true || business?.plan === 'pro'
   const galleryLimit = isPro ? 20 : 3
   const galleryFull = gallery.length >= galleryLimit
-  const heroPhotoSlots = (business as { template?: { hero_photo_slots?: number } })?.template?.hero_photo_slots ?? 1
+  const heroPhotoSlots = business.template?.hero_photo_slots ?? 1
+  const heroCoverFocal = business.template?.hero_cover_focal === true
+  const showCoverFocal = heroCoverFocal && heroPhotoSlots === 1 && cover.length > 0
 
   const reportUploadFailure = useCallback(
     (area: ImageUploadArea, err: unknown, retry?: () => void) => {
@@ -806,43 +809,71 @@ export default function Imagenes() {
         </div>
       ) : null}
 
-      <div
-        className={`lw-images-page__two-col${heroPhotoSlots > 1 ? ' lw-images-page__two-col--stacked' : ''}`}
-      >
-        <DropZone
-          title={
-            heroPhotoSlots > 1
-              ? cover.length > 0
-                ? 'Añadir foto'
-                : 'Subir portada'
-              : cover.length > 0
-                ? 'Cambiar portada'
-                : 'Subir portada'
-          }
-          sectionTitle={coverTitle}
-          sectionSubtitle="Imagen principal del hero. Arrastra una imagen o elige archivo."
-          sectionIcon="star"
-          heroPhotoSlots={heroPhotoSlots}
-          meta={
-            cover.length > 0 ? (
-              <Pill tone="ok">
-                <Icon name="check" size={12} />
-                Configurada
-              </Pill>
-            ) : undefined
-          }
-          section="cover"
-          busy={busySection === 'cover'}
-          progress={busySection === 'cover' ? progress : null}
-          images={cover}
-          onPick={(s, f) => void handleFiles(s, f)}
-          onDeleteImage={handleDeleteImage}
-          deletingImageId={deletingImageId}
-          atLimit={heroPhotoSlots > 1 && cover.length >= heroPhotoSlots}
-          galleryLimit={galleryLimit}
-          uploadAreaRef={coverUploadRef}
-          inlineError={inlineErrors.cover}
-        />
+      <div className="lw-images-cover-block">
+        <div
+          className={`lw-images-cover-focal-row${!showCoverFocal || heroPhotoSlots > 1 ? ' lw-images-cover-focal-row--stacked' : ''}`}
+        >
+          <DropZone
+            title={
+              heroPhotoSlots > 1
+                ? cover.length > 0
+                  ? 'Añadir foto'
+                  : 'Subir portada'
+                : cover.length > 0
+                  ? 'Cambiar portada'
+                  : 'Subir portada'
+            }
+            sectionTitle={coverTitle}
+            sectionSubtitle={
+              heroCoverFocal && heroPhotoSlots === 1
+                ? 'Imagen principal del hero. Arrastra una imagen o elige archivo. En ordenador puedes ajustar el encuadre.'
+                : 'Imagen principal del hero. Arrastra una imagen o elige archivo.'
+            }
+            sectionIcon="star"
+            heroPhotoSlots={heroPhotoSlots}
+            meta={
+              cover.length > 0 ? (
+                <Pill tone="ok">
+                  <Icon name="check" size={12} />
+                  Configurada
+                </Pill>
+              ) : undefined
+            }
+            section="cover"
+            busy={busySection === 'cover'}
+            progress={busySection === 'cover' ? progress : null}
+            images={cover}
+            onPick={(s, f) => void handleFiles(s, f)}
+            onDeleteImage={handleDeleteImage}
+            deletingImageId={deletingImageId}
+            atLimit={heroPhotoSlots > 1 && cover.length >= heroPhotoSlots}
+            galleryLimit={galleryLimit}
+            uploadAreaRef={coverUploadRef}
+            inlineError={inlineErrors.cover}
+          />
+          {showCoverFocal && cover[0] ? (
+            <section className="lw-images-section lw-images-section--focal">
+              <CoverFocalEditor
+                imageUrl={cover[0].url}
+                focalX={cover[0].focal_x ?? 50}
+                focalY={cover[0].focal_y ?? 50}
+                onFocalChange={() => {}}
+                disabled={busySection === 'cover'}
+                onSave={async (focalX, focalY) => {
+                  try {
+                    await updateCoverFocal(cover[0].id, focalX, focalY)
+                    await refetch()
+                    qc.invalidateQueries({ queryKey: keys.dashboard.business })
+                    showToast({ type: 'success', title: 'Encuadre guardado' })
+                  } catch (err) {
+                    reportUploadFailure('cover', err)
+                    throw err
+                  }
+                }}
+              />
+            </section>
+          ) : null}
+        </div>
         <DropZone
           title={about.length > 0 ? 'Cambiar imagen' : 'Subir imagen'}
           sectionTitle="Sobre nosotros"

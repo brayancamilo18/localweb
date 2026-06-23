@@ -28,6 +28,12 @@ class TenantViewPayload
             'portada' => $this->coverUrl($business, 0),
             'portada_2' => $this->coverUrl($business, 1),
             'portada_3' => $this->coverUrl($business, 2),
+            'portada_focal_x' => $this->coverFocal($business, 0, 'x'),
+            'portada_focal_y' => $this->coverFocal($business, 0, 'y'),
+            'portada_2_focal_x' => $this->coverFocal($business, 1, 'x'),
+            'portada_2_focal_y' => $this->coverFocal($business, 1, 'y'),
+            'portada_3_focal_x' => $this->coverFocal($business, 2, 'x'),
+            'portada_3_focal_y' => $this->coverFocal($business, 2, 'y'),
             'descripcion' => $business->description ?? '',
             'about_title' => $business->about_title ?? '',
             'about_sections_count' => (int) ($business->about_sections_count ?? 1),
@@ -77,6 +83,19 @@ class TenantViewPayload
         $cover = $this->imagesGrouped($business)->get('cover', collect())->values();
 
         return (string) ($cover->get($index)?->url ?? '');
+    }
+
+    private function coverFocal(Business $business, int $index, string $axis): int
+    {
+        $cover = $this->imagesGrouped($business)->get('cover', collect())->values();
+        $image = $cover->get($index);
+        if ($image === null) {
+            return 50;
+        }
+
+        $value = $axis === 'y' ? $image->focal_y : $image->focal_x;
+
+        return is_numeric($value) ? max(0, min(100, (int) $value)) : 50;
     }
 
     private function aboutUrl(Business $business, int $index): string
