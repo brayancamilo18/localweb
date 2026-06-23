@@ -16,6 +16,7 @@ class TemplateResource extends JsonResource
             'primary_color' => $this->primary_color,
             'requires_pro' => (bool) $this->requires_pro,
             'hero_photo_slots' => (int) ($this->hero_photo_slots ?? 1),
+            'hero_cover_focal' => (bool) ($this->hero_cover_focal ?? false),
             'thumbnail_url' => $this->publicThumbnailUrl(),
             'category' => $this->category,
             'suitable_sectors' => (array) ($this->suitable_sectors ?: []),

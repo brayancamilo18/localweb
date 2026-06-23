@@ -23,6 +23,8 @@ export type HtmlTemplatePreviewPayload = {
   portada: string
   portada_2: string
   portada_3: string
+  portada_focal_x?: number
+  portada_focal_y?: number
   descripcion: string
   about_title: string
   about_sections: Array<{ title: string; description: string; image_url: string | null }>
@@ -75,9 +77,9 @@ export function resolveTemplateSocialUrls(
   }
 }
 
-function imageList(section: unknown): Array<{ url?: string }> {
+function imageList(section: unknown): Array<{ url?: string; focal_x?: number; focal_y?: number }> {
   if (!Array.isArray(section)) return []
-  return section as Array<{ url?: string }>
+  return section as Array<{ url?: string; focal_x?: number; focal_y?: number }>
 }
 
 function phoneForTemplate(b: PublicBusiness): string {
@@ -159,6 +161,8 @@ export function publicBusinessToTemplatePayload(business: PublicBusiness): HtmlT
     portada: cover[0]?.url ?? '',
     portada_2: cover[1]?.url ?? '',
     portada_3: cover[2]?.url ?? '',
+    portada_focal_x: cover[0]?.focal_x ?? 50,
+    portada_focal_y: cover[0]?.focal_y ?? 50,
     descripcion: business.description ?? '',
     about_title: (business.about_title ?? '').trim(),
     about_sections: Array.isArray(business.about_sections)

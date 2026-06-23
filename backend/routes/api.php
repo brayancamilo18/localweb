@@ -170,6 +170,7 @@ Route::prefix('v1')->group(function (): void {
             Route::get('/brand-color', [BrandColorController::class, 'show']);
             Route::put('/brand-color', [BrandColorController::class, 'update'])->middleware('pro.features');
             Route::post('/images', [ImagesController::class, 'store']);
+            Route::patch('/images/{image}/focal', [ImagesController::class, 'updateFocal']);
             Route::delete('/images/{image}', [ImagesController::class, 'destroy']);
             Route::put('/images/reorder', [ImagesController::class, 'reorder']);
             Route::post('/logo', [ImagesController::class, 'storeLogo']);

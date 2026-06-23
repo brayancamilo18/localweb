@@ -178,6 +178,18 @@ export async function deleteImage(id: number): Promise<void> {
   await apiClient.delete(`/dashboard/images/${id}`)
 }
 
+export async function updateCoverFocal(
+  imageId: number,
+  focalX: number,
+  focalY: number,
+): Promise<BusinessImage> {
+  const response = await apiClient.patch<ApiResponse<BusinessImage>>(
+    `/dashboard/images/${imageId}/focal`,
+    { focal_x: focalX, focal_y: focalY },
+  )
+  return response.data.data
+}
+
 export async function reorderImages(ids: number[]): Promise<void> {
   await apiClient.put('/dashboard/images/reorder', { ids })
 }

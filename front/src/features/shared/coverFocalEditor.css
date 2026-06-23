@@ -1,0 +1,72 @@
+.lw-cover-focal {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--lw-images-hairline, rgba(0, 0, 0, 0.08));
+}
+
+.lw-cover-focal__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.lw-cover-focal__title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--lw-images-ink, #111);
+}
+
+.lw-cover-focal__hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--lw-images-muted, #666);
+  max-width: none;
+}
+
+.lw-cover-focal__frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: crosshair;
+  touch-action: none;
+  background: #0a0a0a;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.lw-cover-focal__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  user-select: none;
+  pointer-events: none;
+}
+
+.lw-cover-focal__reticle {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+.lw-cover-focal__reticle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 999px;
+  background: #fff;
+}

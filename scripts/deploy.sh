@@ -133,6 +133,7 @@ find "$BACKEND/bootstrap/cache" -type d -exec chmod 775 {} \;
 sudo -u www-data php artisan down --render="errors::503" || true
 sudo -u www-data composer install --no-dev --optimize-autoloader --no-interaction
 sudo -u www-data php artisan migrate --force
+sudo -u www-data php artisan db:seed --class=TemplateSeeder --force
 sudo -u www-data php artisan storage:link || true
 sudo -u www-data php artisan config:cache
 sudo -u www-data php artisan route:cache

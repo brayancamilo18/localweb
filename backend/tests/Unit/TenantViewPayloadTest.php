@@ -40,6 +40,8 @@ it('builds payload with all required keys', function () {
         'portada',
         'portada_2',
         'portada_3',
+        'portada_focal_x',
+        'portada_focal_y',
         'descripcion',
         'foto_equipo',
         'direccion',

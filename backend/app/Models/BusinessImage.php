@@ -16,7 +16,17 @@ class BusinessImage extends Model
         'display_order',
         'width',
         'height',
+        'focal_x',
+        'focal_y',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'focal_x' => 'integer',
+            'focal_y' => 'integer',
+        ];
+    }
 
     public function business(): BelongsTo
     {

@@ -195,6 +195,8 @@ export interface Template {
   primary_color: string
   requires_pro: boolean
   hero_photo_slots: number
+  /** Hero con una sola foto a pantalla completa; permite ajustar encuadre en dashboard. */
+  hero_cover_focal?: boolean
   thumbnail_url: string | null
   category: string | null
   suitable_sectors: string[]
@@ -219,6 +221,10 @@ export interface BusinessImage {
   url: string
   section: 'cover' | 'gallery' | 'about'
   display_order: number
+  width?: number | null
+  height?: number | null
+  focal_x?: number
+  focal_y?: number
 }
 
 export interface BusinessService {

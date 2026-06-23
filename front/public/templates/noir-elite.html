@@ -183,48 +183,17 @@
     position:absolute; inset:0;
     overflow:hidden;
     background:var(--bg);
+    --hero-focal-x:50%;
+    --hero-focal-y:50%;
     z-index:-2;
   }
-  /* Misma foto difuminada: rellena los laterales en portadas verticales (desktop) */
-  .hero-bg-fill{
-    position:absolute; inset:-10%;
-    width:120%; height:120%;
-    object-fit:cover; object-position:center center;
-    filter:blur(36px) saturate(1.12) brightness(0.48);
-    transform:scale(1.06);
-    z-index:0;
-    pointer-events:none;
-    opacity:0;
-  }
-  .hero-bg.is-portrait .hero-bg-fill{ opacity:1; }
   .hero-bg-media{
     position:absolute; inset:0;
     width:100%; height:100%;
-    object-fit:cover; object-position:center center;
+    object-fit:cover;
+    object-position:var(--hero-focal-x) var(--hero-focal-y);
     z-index:1;
     will-change:transform;
-  }
-  /* Desktop + vertical: foto nítida entera al centro; laterales = fill difuminado (sin franjas negras) */
-  @media (min-width:981px){
-    .hero-bg.is-portrait .hero-bg-media{
-      width:auto; height:100%; max-width:min(100%, 960px);
-      left:50%; right:auto;
-      transform:translateX(-50%);
-      object-fit:contain;
-      object-position:center center;
-    }
-    .hero-bg.is-landscape .hero-bg-media{ object-position:center 38%; }
-    .hero-bg.is-landscape .hero-bg-fill{ opacity:0; }
-  }
-  /* Móvil: cover a pantalla completa (como antes) */
-  @media (max-width:980px){
-    .hero-bg.is-portrait .hero-bg-media{
-      width:100%; height:100%;
-      left:0; transform:none;
-      object-fit:cover;
-      object-position:center 32%;
-    }
-    .hero-bg.is-portrait .hero-bg-fill{ opacity:0; }
   }
   .hero-bg::after{
     content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
@@ -235,10 +204,9 @@
   @media (min-width:981px){
     .hero-bg::after{
       background:
-        radial-gradient(ellipse at center, rgba(0,0,0,.1) 0%, rgba(0,0,0,.28) 58%, rgba(0,0,0,.68) 100%),
-        linear-gradient(180deg, rgba(10,10,10,.38) 0%, rgba(10,10,10,.06) 34%, rgba(10,10,10,.48) 100%);
+        radial-gradient(ellipse at center, rgba(0,0,0,.35) 0%, rgba(0,0,0,.62) 55%, rgba(0,0,0,.92) 100%),
+        linear-gradient(180deg, rgba(10,10,10,.58) 0%, rgba(10,10,10,.28) 32%, rgba(10,10,10,.82) 100%);
     }
-    .hero-bg.is-landscape .hero-bg-media{ object-position:center 38%; }
   }
   canvas#particles{ position:absolute; inset:0; z-index:-1; pointer-events:none; }
   .hero-inner{
@@ -784,9 +752,7 @@
 
 <!-- ═══ 1. PORTADA (foto + nombre + tagline + CTAs) ═════ -->
 <header class="hero" id="portada">
-  <div class="hero-bg" id="heroBg">
-    <img class="hero-bg-fill" id="heroBgFill" alt="" aria-hidden="true" decoding="async"
-      src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1800&q=80"/>
+  <div class="hero-bg" id="heroBg" style="--hero-focal-x: {{portada_focal_x}}%; --hero-focal-y: {{portada_focal_y}}%;">
     <img class="hero-bg-media" id="heroBgMedia" alt="" decoding="async" fetchpriority="high"
       src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1800&q=80"/>
   </div>
@@ -1120,36 +1086,34 @@ var NOIR_DEFAULT_GALLERY_INNER =
   '<a class="photo" data-cursor="lg"><img src="https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?auto=format&fit=crop&w=900&q=70" alt=""/><div class="glass"><span>+</span></div></a>' +
   '<a class="photo" data-cursor="lg"><img src="https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=900&q=70" alt=""/><div class="glass"><span>+</span></div></a>';
 
-function noirApplyHeroAspect(heroBg, img) {
-  if (!heroBg || !img || !img.naturalWidth) return;
-  var portrait = img.naturalHeight > img.naturalWidth * 1.04;
-  heroBg.classList.toggle('is-portrait', portrait);
-  heroBg.classList.toggle('is-landscape', !portrait);
+function noirClampFocal(value, fallback) {
+  var n = Number(value);
+  if (!isFinite(n)) return fallback;
+  return Math.max(0, Math.min(100, n));
 }
 
-function noirSetHeroCoverSrc(heroBg, heroMedia, heroFill, src) {
+function noirApplyHeroFocal(heroBg, raw) {
+  if (!heroBg) return;
+  var fx = noirClampFocal(raw && raw.portada_focal_x, 50);
+  var fy = noirClampFocal(raw && raw.portada_focal_y, 50);
+  heroBg.style.setProperty('--hero-focal-x', fx + '%');
+  heroBg.style.setProperty('--hero-focal-y', fy + '%');
+}
+
+function noirSetHeroCoverSrc(heroBg, heroMedia, src) {
   if (!heroMedia) return;
   if (!src) {
     heroMedia.removeAttribute('src');
-    if (heroFill) heroFill.removeAttribute('src');
-    heroBg.classList.remove('is-portrait', 'is-landscape');
     return;
   }
-  heroMedia.onload = function () { noirApplyHeroAspect(heroBg, heroMedia); };
-  heroMedia.onerror = function () { heroBg.classList.remove('is-portrait', 'is-landscape'); };
   heroMedia.src = src;
   heroMedia.alt = '';
-  if (heroFill) heroFill.src = src;
-  if (heroMedia.complete && heroMedia.naturalWidth) {
-    noirApplyHeroAspect(heroBg, heroMedia);
-  }
 }
 
 function updateNoirHeroSlider(raw) {
   var heroBg = document.getElementById('heroBg');
   if (!heroBg) return;
   var heroMedia = document.getElementById('heroBgMedia');
-  var heroFill = document.getElementById('heroBgFill');
   var hasPortada = raw && Object.prototype.hasOwnProperty.call(raw, 'portada');
   if (!hasPortada) return;
   var heroCover = (raw && raw.portada ? String(raw.portada).trim() : '');
@@ -1168,6 +1132,7 @@ function updateNoirHeroSlider(raw) {
   heroBg.style.transform = '';
   heroBg.style.transition = '';
   heroBg.style.backgroundImage = '';
+  noirApplyHeroFocal(heroBg, raw);
 
   if (!heroMedia) {
     var cssUrl = withCacheBust ? withCacheBust.replace(/"/g, '\\"') : '';
@@ -1175,7 +1140,7 @@ function updateNoirHeroSlider(raw) {
     return;
   }
 
-  noirSetHeroCoverSrc(heroBg, heroMedia, heroFill, withCacheBust);
+  noirSetHeroCoverSrc(heroBg, heroMedia, withCacheBust);
 }
 
 var noirGallerySliderTimer = null;
@@ -1790,19 +1755,6 @@ function onScroll(){
 }
 window.addEventListener('scroll', onScroll, { passive:true });
 onScroll();
-
-(function initNoirHeroAspect(){
-  var heroBg = document.getElementById('heroBg');
-  var heroMedia = document.getElementById('heroBgMedia');
-  var heroFill = document.getElementById('heroBgFill');
-  if (!heroBg || !heroMedia || !heroMedia.getAttribute('src')) return;
-  function run(){ noirApplyHeroAspect(heroBg, heroMedia); }
-  if (heroMedia.complete && heroMedia.naturalWidth) run();
-  else heroMedia.addEventListener('load', run, { once: true });
-  if (heroFill && !heroFill.getAttribute('src') && heroMedia.getAttribute('src')) {
-    heroFill.src = heroMedia.getAttribute('src');
-  }
-})();
 
 /* ───── BURGER ────────────────────────────────────────── */
 const burger = document.getElementById('burger');
