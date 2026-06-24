@@ -1,0 +1,21 @@
+# Fragmento para el vhost de app.onez.es.
+#
+# El panel React admin usa rutas /admin/* (SPA). Filament quedó en /filament.
+# Si nginx envía /admin a PHP, Laravel responde con index.html (routes/web.php).
+# Alternativa recomendada: servir el SPA directamente y solo pasar /api y /filament a PHP:
+#
+#   root /var/www/onez/prod/frontend;
+#   index index.html;
+#
+#   location ^~ /api/ {
+#       proxy_pass http://127.0.0.1:...;  # o fastcgi al backend Laravel
+#   }
+#
+#   location ^~ /filament {
+#       try_files $uri $uri/ /index.php?$query_string;
+#       # fastcgi_pass ...
+#   }
+#
+#   location / {
+#       try_files $uri $uri/ /index.html;
+#   }

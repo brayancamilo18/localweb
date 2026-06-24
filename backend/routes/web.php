@@ -73,3 +73,14 @@ Route::prefix(config('cashier.path', 'stripe'))->name('cashier.')->group(functio
 // Se registra fuera del grupo anterior para que no pase por ResolveTenantForWeb
 Route::get('/sitemap-index.xml', [PublicSitemapController::class, 'master'])
     ->name('sitemap.master');
+
+// Panel React admin (SPA): en producción nginx puede enviar /admin/* a Laravel.
+// Filament vive en /filament; aquí devolvemos index.html para que refresh funcione.
+Route::get('/admin/{spaPath?}', function () {
+    $index = config('app.frontend_dist_index');
+    if (! is_string($index) || ! is_file($index)) {
+        abort(404);
+    }
+
+    return response()->file($index, ['Content-Type' => 'text/html; charset=UTF-8']);
+})->where('spaPath', '.*')->name('spa.admin');
