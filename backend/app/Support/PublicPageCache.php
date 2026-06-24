@@ -26,7 +26,7 @@ class PublicPageCache
     /**
      * Incrementar al cambiar Blade/HTML de plantillas publicas para invalidar HTML cacheado.
      */
-    public const HTML_CACHE_VERSION = 2;
+    public const HTML_CACHE_VERSION = 3;
 
     /**
      * TTL del HTML renderizado en segundos.
