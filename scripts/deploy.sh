@@ -159,6 +159,9 @@ sudo -u www-data php artisan route:cache
 sudo -u www-data php artisan view:cache
 sudo -u www-data php artisan event:cache
 
+echo "==> Limpiando cache (paginas publicas tenant tras cambios de plantilla)..."
+sudo -u www-data php artisan cache:clear
+
 echo "==> Restart servicios..."
 systemctl reload php8.4-fpm
 systemctl restart "onez-queue@$ENV"
