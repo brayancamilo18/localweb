@@ -24,15 +24,25 @@ class PublicPageCache
     public const HTML_KEY_PREFIX = 'public_html:';
 
     /**
+     * Incrementar al cambiar Blade/HTML de plantillas publicas para invalidar HTML cacheado.
+     */
+    public const HTML_CACHE_VERSION = 2;
+
+    /**
      * TTL del HTML renderizado en segundos.
      * Más alto que el JSON del API (300s) porque el HTML cambia menos
      * frecuentemente y regenerarlo es más costoso (renderizado Blade completo).
      */
     public const HTML_TTL = 900;
 
+    public static function htmlCacheKey(string $subdomain): string
+    {
+        return self::HTML_KEY_PREFIX.self::HTML_CACHE_VERSION.':'.$subdomain;
+    }
+
     public static function getHtml(string $subdomain): ?string
     {
-        $value = Cache::get(self::HTML_KEY_PREFIX.$subdomain);
+        $value = Cache::get(self::htmlCacheKey($subdomain));
 
         return is_string($value) ? $value : null;
     }
@@ -40,7 +50,7 @@ class PublicPageCache
     public static function putHtml(string $subdomain, string $html): void
     {
         Cache::put(
-            self::HTML_KEY_PREFIX.$subdomain,
+            self::htmlCacheKey($subdomain),
             $html,
             self::HTML_TTL
         );
@@ -48,7 +58,7 @@ class PublicPageCache
 
     public static function forgetHtml(string $subdomain): void
     {
-        Cache::forget(self::HTML_KEY_PREFIX.$subdomain);
+        Cache::forget(self::htmlCacheKey($subdomain));
     }
 
     /**
@@ -76,6 +86,7 @@ class PublicPageCache
         if (is_string($subdomain) && $subdomain !== '') {
             Cache::forget(self::KEY_PREFIX.$subdomain);
             Cache::forget(self::HTML_KEY_PREFIX.$subdomain);
+            self::forgetHtml($subdomain);
         }
     }
 }
