@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Business;
 use App\Models\Template;
+use App\Support\PublicPageCache;
 use Illuminate\Database\Seeder;
 
 class TemplateSeeder extends Seeder
@@ -224,5 +225,10 @@ class TemplateSeeder extends Seeder
                 ->whereIn('id', $idsToRemove)
                 ->delete();
         }
+
+        Business::query()
+            ->whereNotNull('subdomain')
+            ->pluck('subdomain')
+            ->each(fn (string $subdomain) => PublicPageCache::forgetAll($subdomain));
     }
 }
