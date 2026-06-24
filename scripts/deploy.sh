@@ -67,6 +67,25 @@ rsync -a --delete \
     --exclude='.puppeteer' \
     "$REPO_DIR/backend/" "$BACKEND/"
 
+echo "==> Sincronizando assets estáticos de plantillas..."
+TEMPLATE_ASSETS=(
+    brand-apply.js
+    lw-about-extras.css
+    lw-about-extras.js
+    lw-contact-links.js
+    lw-landing-demo.js
+    lw-schedule.js
+)
+mkdir -p "$BACKEND/public/templates"
+for asset in "${TEMPLATE_ASSETS[@]}"; do
+    src="$REPO_DIR/front/public/templates/$asset"
+    if [[ -f "$src" ]]; then
+        cp "$src" "$BACKEND/public/templates/$asset"
+    else
+        echo "ADVERTENCIA: falta $src"
+    fi
+done
+
 echo "==> Building frontend..."
 BUILD_TMP=$(mktemp -d "$APP_DIR/.front-build.XXXXXX")
 trap 'rm -rf "$BUILD_TMP"' EXIT

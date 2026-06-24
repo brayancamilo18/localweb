@@ -1,6 +1,7 @@
 import type { Schedule } from '../../types/api'
 import { Btn, Badge, Icon, MiniMap, Placeholder } from '../../components/primitives/primitives'
 import { useTrackContactClicks } from './useTrackContactClicks'
+import { formatScheduleHoursRange } from '../../lib/schedule/scheduleTime'
 import { isOpenNow } from './utils/isOpenNow'
 
 // ONEZ — Public business pages (3 plantillas)
@@ -54,7 +55,7 @@ function scheduleRows(schedule: Schedule | null) {
     return {
       key: k,
       label: DAY_LABEL[k],
-      line: closed ? 'Cerrado' : `${d?.open ?? '—'} – ${d?.close ?? '—'}`,
+      line: closed ? 'Cerrado' : formatScheduleHoursRange(d.open, d.close),
       closed,
       isToday: JS_TO_KEY[new Date().getDay()] === k,
     }

@@ -823,8 +823,10 @@ function updateBoldHeroPhoto(raw) {
     img.style.display = 'none';
     return;
   }
-  var withCacheBust = src;
-  if (/^https?:\/\//i.test(src)) {
+  if (img.src && typeof window.lwIsEmbedPreview === 'function' && !window.lwIsEmbedPreview()
+      && typeof window.lwSameImage === 'function' && window.lwSameImage(img.src, src)) return;
+  var withCacheBust = typeof window.lwTenantHeroSrc === 'function' ? window.lwTenantHeroSrc(src, '') : src;
+  if (withCacheBust === src && /^https?:\/\//i.test(src) && typeof window.lwIsEmbedPreview === 'function' && window.lwIsEmbedPreview()) {
     var sep = src.indexOf('?') >= 0 ? '&' : '?';
     withCacheBust = src + sep + 'lwts=' + Date.now();
   }

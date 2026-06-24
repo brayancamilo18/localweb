@@ -102,6 +102,46 @@ MAP_VARS = """<script>
 </script>
 """
 
+LW_MEDIA_HELPERS = """<script>
+window.lwIsEmbedPreview = function () {
+  return document.body.classList.contains('embed-preview')
+    || document.body.classList.contains('urban-preview')
+    || document.body.classList.contains('noir-preview')
+    || document.body.classList.contains('bloom-preview')
+    || document.body.classList.contains('sleek-preview');
+};
+window.lwImageBase = function (u) {
+  if (!u) return '';
+  try {
+    var p = new URL(u, location.href);
+    return p.origin + p.pathname;
+  } catch (e) {
+    return String(u).split('?')[0].split('#')[0];
+  }
+};
+window.lwSameImage = function (a, b) {
+  return window.lwImageBase(a) === window.lwImageBase(b);
+};
+window.lwTenantHeroSrc = function (src, sampleUrl) {
+  src = src ? String(src).trim() : '';
+  if (!src) return '';
+  if (window.lwIsEmbedPreview() && /^https?:\\/\\//i.test(src) && sampleUrl && src !== sampleUrl) {
+    return src + (src.indexOf('?') >= 0 ? '&' : '?') + 'lwts=' + Date.now();
+  }
+  return src;
+};
+window.lwGalleryMatchesDom = function (root, list) {
+  if (!root || !list || !list.length) return false;
+  var imgs = root.querySelectorAll('img');
+  if (imgs.length !== list.length) return false;
+  for (var i = 0; i < list.length; i++) {
+    if (!window.lwSameImage(imgs[i].src, list[i])) return false;
+  }
+  return true;
+};
+</script>
+"""
+
 
 def placeholder_to_blade(key: str) -> str:
     m = re.fullmatch(r"servicio_(\d+)", key)
@@ -277,6 +317,10 @@ def apply_common_body(body: str, slug: str) -> str:
         else:
             body = apply_pro_hero_three(body)
 
+    body = apply_single_hero_img_ssr(body)
+    body = apply_about_photo_img_ssr(body)
+    body = apply_sleek_about_photo_ssr(body)
+
     return body
 
 
@@ -351,6 +395,11 @@ def apply_kairos_hero_three(body: str) -> str:
 
 
 def apply_pro_hero_three(body: str) -> str:
+    return apply_single_hero_img_ssr(body)
+
+
+def apply_single_hero_img_ssr(body: str) -> str:
+    """SSR for heroPhotoImg family (urban, craft, coastal, trust, …)."""
     patterns = [
         (r'<img id="heroPhotoImg"[^>]*/>', "heroPhotoImg", "portada"),
         (r'<img id="heroPhotoImg2"[^>]*/>', "heroPhotoImg2", "portada_2"),
@@ -359,11 +408,220 @@ def apply_pro_hero_three(body: str) -> str:
         (r'<img id="heroTphoto3"[^>]*/>', "heroTphoto3", "portada_3"),
     ]
     for pat, eid, var in patterns:
+        if f"@if(${var})" in body and f'id="{eid}"' in body:
+            continue
         repl = (
             f"@if(${var})\n      <img id=\"{eid}\" src=\"{{{{ ${var} }}}}\" alt=\"{{{{ $nombre }}}}\" decoding=\"async\"/>\n"
             f"      @else\n      <img id=\"{eid}\" src=\"\" alt=\"\" hidden style=\"display:none\"/>\n      @endif"
         )
         body = re.sub(pat, repl, body, count=1)
+    return body
+
+
+def apply_about_photo_img_ssr(body: str) -> str:
+    if "@if($foto_equipo)" in body and 'id="aboutPhotoImg"' in body:
+        return body
+    pat = (
+        r'<div class="about-img" id="aboutPhotoWrap">\s*'
+        r'<img id="aboutPhotoImg"[^>]*/>\s*</div>'
+    )
+    repl = (
+        '<div class="about-img" id="aboutPhotoWrap">\n'
+        "        @if($foto_equipo)\n"
+        '        <img id="aboutPhotoImg" src="{{ $foto_equipo }}" alt="{{ $nombre }}" decoding="async"/>\n'
+        "        @else\n"
+        '        <img id="aboutPhotoImg" src="" alt="" hidden style="display:none"/>\n'
+        "        @endif\n"
+        "      </div>"
+    )
+    return re.sub(pat, repl, body, count=1, flags=re.DOTALL)
+
+
+def apply_sleek_about_photo_ssr(body: str) -> str:
+    if 'id="sleekAboutPhotoImg"' in body and "@if($foto_equipo)" in body:
+        return body
+    pat = (
+        r'<div class="about-photo is-empty" id="sleekAboutPhotoWrap">\s*'
+        r'<img id="sleekAboutPhotoImg" src="" alt=""/>'
+    )
+    repl = (
+        '<div class="about-photo@if(!$foto_equipo) is-empty@endif" id="sleekAboutPhotoWrap">\n'
+        "        @if($foto_equipo)\n"
+        '        <img id="sleekAboutPhotoImg" src="{{ $foto_equipo }}" alt="{{ $nombre }}"/>\n'
+        "        @else\n"
+        '        <img id="sleekAboutPhotoImg" src="" alt="" hidden style="display:none"/>\n'
+        "        @endif"
+    )
+    return re.sub(pat, repl, body, count=1, flags=re.DOTALL)
+
+
+def strip_unsplash_demo_css(css: str) -> str:
+    """Remove Unsplash placeholders from tenant CSS so first paint never shows demo stock."""
+    css = re.sub(
+        r"var\((--[a-z0-9-]+),url\(['\"]https://images\.unsplash\.com/[^'\"]+['\"]\)\)",
+        r"var(\1,none)",
+        css,
+        flags=re.IGNORECASE,
+    )
+    css = re.sub(
+        r'background-image:\s*url\(["\']?https://images\.unsplash\.com/[^"\')]+["\']?\)[^;]*;',
+        "background-image:none;",
+        css,
+    )
+    css = re.sub(
+        r'background:\s*url\(["\']?https://images\.unsplash\.com/[^"\')]+["\']?\)\s*center/cover;',
+        "background:transparent;",
+        css,
+    )
+    css = re.sub(
+        r'--[a-z0-9-]+:url\(["\']?https://images\.unsplash\.com/[^"\')]+["\']?\)',
+        "background-image:none",
+        css,
+        flags=re.IGNORECASE,
+    )
+    css = re.sub(
+        r"url\(['\"]?https://images\.unsplash\.com/[^'\")]+\)['\"]?",
+        "none",
+        css,
+    )
+    return css
+
+
+def apply_hero_bg_media_ssr(body: str) -> str:
+    if 'id="heroBgMedia"' in body and "@if($portada)" in body:
+        return body
+    pat = r'<img class="hero-bg-media" id="heroBgMedia"[^>]*/>'
+    repl = (
+        "@if($portada)\n"
+        '    <img class="hero-bg-media" id="heroBgMedia" alt="" decoding="async" fetchpriority="high" '
+        'src="{{ $portada }}"/>\n'
+        "    @else\n"
+        '    <img class="hero-bg-media" id="heroBgMedia" alt="" decoding="async" hidden style="display:none"/>\n'
+        "    @endif"
+    )
+    return re.sub(pat, repl, body, count=1)
+
+
+def apply_div_photo_bg_ssr(body: str, div_id: str, var: str) -> str:
+    pat = rf'(<div[^>]*\sid="{div_id}"[^>]*)(>)'
+
+    def inject(m: re.Match) -> str:
+        tag = m.group(1)
+        if f"${var}" in tag or "@if($" in tag:
+            return m.group(0)
+        return f"{tag}@if(${var}) style=\"background-image:url('{{{{ ${var} }}}}')\" @endif{m.group(2)}"
+
+    return re.sub(pat, inject, body, count=1)
+
+
+def apply_sleek_hero_ssr(body: str) -> str:
+    if 'id="sleekHeroBg"' in body and "@if($portada)" in body:
+        return body
+    pat = r'<div class="hero-bg is-empty" id="sleekHeroBg"></div>'
+    repl = (
+        '<div class="hero-bg@if(!$portada) is-empty@endif" id="sleekHeroBg"'
+        "@if($portada) style=\"background-image:url('{{ $portada }}')\" @endif></div>"
+    )
+    return body.replace(pat, repl, 1)
+
+
+def replace_empty_gallery_container(body: str, element_id: str, replacement: str) -> str:
+    if f'id="{element_id}"' not in body:
+        return body
+    pat = rf'<div[^>]*\sid="{element_id}"[^>]*>\s*</div>'
+    if not re.search(pat, body):
+        return body
+    return re.sub(pat, replacement, body, count=1)
+
+
+def apply_tenant_image_ssr(body: str, slug: str) -> str:
+    body = apply_hero_bg_media_ssr(body)
+    body = apply_div_photo_bg_ssr(body, "heroBg", "portada")
+    body = apply_div_photo_bg_ssr(body, "aboutPhotoBg", "foto_equipo")
+    body = apply_sleek_hero_ssr(body)
+
+    if slug == "noir-elite":
+        body = replace_empty_gallery_container(body, "galleryLive", GALLERY_NOIR)
+    elif slug == "bloom-studio":
+        body = replace_empty_gallery_container(body, "galleryLiveBloom", GALLERY_BLOOM)
+    elif slug == "tech-sleek":
+        body = replace_empty_gallery_container(body, "sleekGalleryList", GALLERY_SLEEK)
+    elif slug == "trust-clinic":
+        body = replace_empty_gallery_container(body, "galleryLive", GALLERY_TRUST)
+
+    if slug in {"mono-edito", "luxe-atelier", "versa-studio"}:
+        body = apply_editorial_image_ssr(body, slug)
+
+    body = strip_unsplash_demo_html(body)
+
+    return body
+
+
+def strip_unsplash_demo_html(body: str) -> str:
+    """Remove Unsplash URLs from tenant HTML (body only; scripts are separate)."""
+    body = re.sub(
+        r'background-image:url\((["\']?)https://images\.unsplash\.com/[^)\'"]+\1\)',
+        "background-image:none",
+        body,
+    )
+    body = re.sub(
+        r'background-image:url\(&quot;https://images\.unsplash\.com/[^&]+&quot;\)',
+        "background-image:none",
+        body,
+    )
+    body = re.sub(
+        r'\s*data-lightbox-src="https://images\.unsplash\.com/[^"]*"',
+        "",
+        body,
+    )
+    return body
+
+
+def apply_editorial_image_ssr(body: str, slug: str) -> str:
+    for eid, var in (
+        ("heroPhoto1", "portada"),
+        ("heroPhoto2", "portada_2"),
+        ("heroPhoto3", "portada_3"),
+        ("heroTphoto1", "portada"),
+        ("heroTphoto2", "portada_2"),
+        ("heroTphoto3", "portada_3"),
+    ):
+        body = apply_div_photo_bg_ssr(body, eid, var)
+
+    for eid in ("aboutPhoto", "aboutPhoto1"):
+        body = apply_div_photo_bg_ssr(body, eid, "foto_equipo")
+
+    for eid, var in (("ppic1Img", "portada"), ("ppic2Img", "portada_2"), ("ppic3Img", "portada_3")):
+        pat = rf'(<div class="pimg" id="{eid}")(>)'
+        body = re.sub(
+            pat,
+            rf'\1@if(${var}) style="background-image:url(\'{{{{ ${var} }}}}\')" @endif\2',
+            body,
+            count=1,
+        )
+
+    if slug == "mono-edito":
+        body = re.sub(
+            r'<div class="gallery-grid" id="galleryGrid">[\s\S]*?</div>\s*</section>',
+            GALLERY_MONO_GRID + "\n</section>",
+            body,
+            count=1,
+        )
+    elif slug == "luxe-atelier":
+        body = re.sub(
+            r'<div class="gallery" id="galleryGrid">[\s\S]*?</div>\s*</section>',
+            GALLERY_LUXE_GRID + "\n</section>",
+            body,
+            count=1,
+        )
+    elif slug == "versa-studio":
+        body = re.sub(
+            r'<div class="gallery-scroll" id="gscroll">[\s\S]*?</div>\s*\n\s*</div>',
+            GALLERY_VERSA_SCROLL + "\n    </div>",
+            body,
+            count=1,
+        )
+
     return body
 
 
@@ -481,10 +739,11 @@ def apply_urban_like_transforms(body: str, slug: str = "") -> str:
         body = body.replace('<div class="schedule" id="schedule"></div>', schedule_blade)
 
     gallery_blade = GALLERY_URBAN
-    if '<div class="gallery" id="galleryLive"></div>' in body:
-        body = body.replace('<div class="gallery" id="galleryLive"></div>', gallery_blade)
-    if '<div class="gallery-grid" id="galleryLive"></div>' in body:
-        body = body.replace('<div class="gallery-grid" id="galleryLive"></div>', GALLERY_GRID)
+    if slug not in {"noir-elite", "bloom-studio", "tech-sleek", "trust-clinic"}:
+        if re.search(r'<div class="gallery-grid"[^>]*\sid="galleryLive"[^>]*>\s*</div>', body):
+            body = replace_empty_gallery_container(body, "galleryLive", GALLERY_GRID)
+        elif re.search(r'<div[^>]*\sid="galleryLive"[^>]*>\s*</div>', body):
+            body = replace_empty_gallery_container(body, "galleryLive", gallery_blade)
 
     services_blade = SERVICES_GRAPHITE if slug == "graphite-soft" else SERVICES_URBAN
     if slug == "wild-pet":
@@ -908,6 +1167,61 @@ GALLERY_GRID = """  <div class="gallery-grid" id="galleryLive">
 @empty
 @endforelse
   </div>"""
+
+GALLERY_NOIR = """<div class="gallery reveal-up delay-2" id="galleryLive">
+@forelse($galeria as $imgUrl)
+    <a class="photo" data-cursor="lg" data-lightbox-src="{{ $imgUrl }}" role="button" tabindex="0" aria-label="Ver imagen"><img src="{{ $imgUrl }}" alt="" decoding="async"/><div class="glass" aria-hidden="true"><span>+</span></div></a>
+@empty
+@endforelse
+  </div>"""
+
+GALLERY_BLOOM = """<div class="grid" id="galleryLiveBloom">
+@forelse($galeria as $imgUrl)
+    <div class="photo"><img src="{{ $imgUrl }}" alt=""/></div>
+@empty
+@endforelse
+  </div>"""
+
+GALLERY_SLEEK = """<div class="gallery-grid" id="sleekGalleryList">
+@forelse($galeria as $imgUrl)
+@php
+  $cls = '';
+  if ($loop->count >= 4 && $loop->first) { $cls = ' sleek-gallery-wide'; }
+  elseif ($loop->count >= 4 && $loop->iteration === 3) { $cls = ' sleek-gallery-tall'; }
+  elseif ($loop->count >= 6 && $loop->iteration === 6) { $cls = ' sleek-gallery-wide'; }
+@endphp
+    <div class="gallery-item{{ $cls }}"><img src="{{ $imgUrl }}" alt=""/></div>
+@empty
+@endforelse
+  </div>"""
+
+GALLERY_TRUST = """<div class="trust-gal-grid" id="galleryLive">
+@forelse($galeria as $imgUrl)
+    <div><img src="{{ $imgUrl }}" alt=""/></div>
+@empty
+@endforelse
+  </div>"""
+
+GALLERY_MONO_GRID = """<div class="gallery-grid" id="galleryGrid">
+@forelse($galeria as $imgUrl)
+    <div class="gimg"><div class="gimg-bg" style="background-image:url('{{ $imgUrl }}')"></div></div>
+@empty
+@endforelse
+  </div>"""
+
+GALLERY_LUXE_GRID = """<div class="gallery" id="galleryGrid">
+@forelse($galeria as $imgUrl)
+    <div class="gimg" data-lightbox-src="{{ $imgUrl }}"><div class="gimg-bg" style="background-image:url('{{ $imgUrl }}')"></div></div>
+@empty
+@endforelse
+  </div>"""
+
+GALLERY_VERSA_SCROLL = """      <div class="gallery-scroll" id="gscroll">
+@forelse($galeria as $imgUrl)
+        <div class="gimg"><div class="gimg-bg" style="background-image:url('{{ $imgUrl }}')"></div><div class="gimg-overlay"><small>{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</small><strong>Tu galería</strong></div></div>
+@empty
+@endforelse
+      </div>"""
 
 SERVICES_URBAN = """
 @foreach($services as $service)
@@ -1385,6 +1699,7 @@ def convert_slug(slug: str) -> Path:
 
     inline_style = inline_style.replace("<style>\n", "@verbatim\n<style>\n", 1)
     inline_style = inline_style.replace("</style>\n", "</style>\n@endverbatim\n", 1)
+    inline_style = strip_unsplash_demo_css(inline_style)
     head_links = head_links.replace(
         "https://unpkg.com/leaflet@1.9.4/",
         "https://unpkg.com/leaflet@' + '1.9.4/",
@@ -1405,6 +1720,7 @@ def convert_slug(slug: str) -> Path:
     body_main = apply_graphite_hero_title(body_main, slug)
     body_main = apply_wild_hero_title(body_main, slug)
     body_main = apply_graphite_footer(body_main, slug)
+    body_main = apply_tenant_image_ssr(body_main, slug)
     if slug not in {"versa-studio", "mono-edito", "luxe-atelier"}:
         body_main = apply_urban_like_transforms(body_main, slug)
 
@@ -1450,6 +1766,7 @@ def convert_slug(slug: str) -> Path:
 
 @push('body-end')
 {MAP_VARS}
+{LW_MEDIA_HELPERS}
 {TRACKING_SCRIPT}
 
 @verbatim

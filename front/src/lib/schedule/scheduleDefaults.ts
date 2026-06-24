@@ -1,4 +1,5 @@
 import type { Schedule } from '../../types/api'
+import { scheduleSlotDurationMinutes, toScheduleMinutes } from './scheduleTime'
 
 export const DEFAULT_SCHEDULE: Schedule = {
   mon: { open: '09:00', close: '20:00', closed: false },
@@ -84,10 +85,7 @@ export function scheduleToPreviewRows(s: Schedule) {
   }))
 }
 
-export function toScheduleMinutes(t: string): number {
-  const [h, m] = t.split(':').map(Number)
-  return h * 60 + (m || 0)
-}
+export { toScheduleMinutes } from './scheduleTime'
 
 export function formatScheduleHours(min: number): string {
   const h = Math.floor(min / 60)
@@ -98,7 +96,7 @@ export function formatScheduleHours(min: number): string {
 export function scheduleSummary(schedule: Schedule) {
   const open = DAY_KEYS.filter((k) => !schedule[k].closed)
   const totalMin = open.reduce(
-    (acc, k) => acc + Math.max(0, toScheduleMinutes(schedule[k].close) - toScheduleMinutes(schedule[k].open)),
+    (acc, k) => acc + scheduleSlotDurationMinutes(schedule[k].open, schedule[k].close),
     0,
   )
   return { openDays: open.length, totalMin, totalLabel: formatScheduleHours(totalMin) }

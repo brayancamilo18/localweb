@@ -1,6 +1,25 @@
 @extends('public.layouts.tenant')
 
 @push('head-extras')
+<style id="lw-responsive-safety">
+  html,body{overflow-x:clip;max-width:100%}
+  @media (max-width:880px){
+    .nav-inner{gap:10px;min-width:0;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+    .nav .brand,.brand,nav.top .brand,nav.top .logo{min-width:0;flex:1 1 auto;max-width:calc(100% - 118px)}
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo,nav.top .brand.brand-has-img .nav-brand-img{
+      width:auto!important;height:auto!important;max-width:min(140px,38vw)!important;
+      max-height:calc(44px * var(--lw-logo-scale,1.35))!important;object-fit:contain!important
+    }
+    .nav-actions,.nav .nav-right,nav.top .actions{flex-shrink:0;gap:8px}
+    .nav-cta,nav.top .nav-cta{white-space:nowrap;font-size:clamp(9px,2.8vw,11px);padding:7px 10px}
+    .menu-toggle{flex-shrink:0}
+  }
+  @media (max-width:480px){
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo{
+      max-width:min(120px,34vw)!important;max-height:calc(38px * var(--lw-logo-scale,1.35))!important
+    }
+  }
+</style>
 <meta name="description" content="Plantilla editorial para tienda, boutique y conceptstore." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -195,29 +214,28 @@ header.hero,#servicios,#sobre-nosotros,#galeria,#horario,#contacto,#opiniones,#m
 .about-photo cap{position:absolute;left:18px;bottom:18px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cream);letter-spacing:.15em;text-transform:uppercase;background:rgba(31,29,26,.6);backdrop-filter:blur(8px);padding:6px 10px;border-radius:999px}
 @media(max-width:880px){.about-grid{grid-template-columns:1fr;gap:54px}.about-text{position:static}}
 
-
-  /* ABOUT EXTRAS (graphite-soft) */
-  .graphite-about-extras{display:flex;flex-direction:column;gap:64px;margin-top:64px;padding-top:48px;border-top:1px solid var(--line);max-width:1320px;margin-left:auto;margin-right:auto;padding-left:54px;padding-right:54px;box-sizing:border-box}
-  .graphite-about-extra.about-grid{align-items:start}
-  .graphite-about-extra--text-first .about-text{order:1}
-  .graphite-about-extra--text-first .about-photos{order:2}
-  .graphite-about-extra--photo-first .about-photos{order:1}
-  .graphite-about-extra--photo-first .about-text{order:2}
-  .graphite-about-extra .about-text h3{margin-bottom:24px}
-  @media (max-width:880px){.graphite-about-extras{padding:0 20px}.graphite-about-extra.about-grid{grid-template-columns:1fr}.graphite-about-extra .about-photos{order:-1!important}}
-  body.embed-preview .graphite-about-extra.about-grid,
-  body.graphite-preview .graphite-about-extra.about-grid{grid-template-columns:1fr 1fr!important;gap:48px!important}
-  body.embed-preview .graphite-about-extra--text-first .about-text,
-  body.graphite-preview .graphite-about-extra--text-first .about-text{order:1!important}
-  body.embed-preview .graphite-about-extra--text-first .about-photos,
-  body.graphite-preview .graphite-about-extra--text-first .about-photos{order:2!important}
-  body.embed-preview .graphite-about-extra--photo-first .about-photos,
-  body.graphite-preview .graphite-about-extra--photo-first .about-photos{order:1!important}
-  body.embed-preview .graphite-about-extra--photo-first .about-text,
-  body.graphite-preview .graphite-about-extra--photo-first .about-text{order:2!important}
-  body.embed-preview .graphite-about-extra .about-text,
-  body.graphite-preview .graphite-about-extra .about-text{position:static!important}
-
+/* ABOUT EXTRAS (graphite-soft) */
+.graphite-about-extras{display:flex;flex-direction:column;gap:64px;margin-top:64px;padding-top:48px;border-top:1px solid var(--line);max-width:1320px;margin-left:auto;margin-right:auto;padding-left:54px;padding-right:54px;box-sizing:border-box}
+.graphite-about-extra.about-grid{align-items:start}
+.graphite-about-extra--text-first .about-text{order:1}
+.graphite-about-extra--text-first .about-photos{order:2}
+.graphite-about-extra--photo-first .about-photos{order:1}
+.graphite-about-extra--photo-first .about-text{order:2}
+.graphite-about-extra .about-text h3{margin-bottom:24px}
+@media (max-width:880px){.graphite-about-extras{padding:0 20px}.graphite-about-extra.about-grid{grid-template-columns:1fr}.graphite-about-extra .about-photos{order:-1!important}}
+/* Preview dashboard: mantener 2 columnas y alternancia (iframe suele ser estrecho) */
+body.embed-preview .graphite-about-extra.about-grid,
+body.graphite-preview .graphite-about-extra.about-grid{grid-template-columns:1fr 1fr!important;gap:48px!important}
+body.embed-preview .graphite-about-extra--text-first .about-text,
+body.graphite-preview .graphite-about-extra--text-first .about-text{order:1!important}
+body.embed-preview .graphite-about-extra--text-first .about-photos,
+body.graphite-preview .graphite-about-extra--text-first .about-photos{order:2!important}
+body.embed-preview .graphite-about-extra--photo-first .about-photos,
+body.graphite-preview .graphite-about-extra--photo-first .about-photos{order:1!important}
+body.embed-preview .graphite-about-extra--photo-first .about-text,
+body.graphite-preview .graphite-about-extra--photo-first .about-text{order:2!important}
+body.embed-preview .graphite-about-extra .about-text,
+body.graphite-preview .graphite-about-extra .about-text{position:static!important}
 
 /* Gallery — al bajar: fotos fijas en pantalla y avance horizontal (desktop, pin con JS) */
 .gallery-h{position:relative;width:100%}
@@ -344,8 +362,9 @@ footer{background:var(--bg);color:var(--muted);padding:clamp(56px,8vh,80px) clam
 }
 </style>
 @endverbatim
+<!-- BRAND_OVERRIDE_PLACEHOLDER:accent -->
+<script src="/templates/brand-apply.js?v=1"></script>
 
-@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
 
 @endpush
 
@@ -457,7 +476,7 @@ footer{background:var(--bg);color:var(--muted);padding:clamp(56px,8vh,80px) clam
       </div>
     </div>
   </div>
-    @include('public.partials.about-extra-blocks-graphite-soft')
+    <div id="aboutExtraBlocks" class="graphite-about-extras" data-main-text-first="1"></div>
 </section>
 
 <!-- 6 GALERIA horizontal -->
@@ -575,16 +594,54 @@ footer{background:var(--bg);color:var(--muted);padding:clamp(56px,8vh,80px) clam
   </div>
   <div class="foot-bottom">
     <span id="footBottomBrand">© {{ date('Y') }} · {{ $nombre }}</span>
-    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://onez.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
+    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
   </div>
 </footer>
 @endsection
 
 @push('body-end')
-
 <script>
   window.__lwLat = {{ is_numeric($map_lat) ? $map_lat : 'null' }};
   window.__lwLon = {{ is_numeric($map_lon) ? $map_lon : 'null' }};
+</script>
+
+<script>
+window.lwIsEmbedPreview = function () {
+  return document.body.classList.contains('embed-preview')
+    || document.body.classList.contains('urban-preview')
+    || document.body.classList.contains('noir-preview')
+    || document.body.classList.contains('bloom-preview')
+    || document.body.classList.contains('sleek-preview');
+};
+window.lwImageBase = function (u) {
+  if (!u) return '';
+  try {
+    var p = new URL(u, location.href);
+    return p.origin + p.pathname;
+  } catch (e) {
+    return String(u).split('?')[0].split('#')[0];
+  }
+};
+window.lwSameImage = function (a, b) {
+  return window.lwImageBase(a) === window.lwImageBase(b);
+};
+window.lwTenantHeroSrc = function (src, sampleUrl) {
+  src = src ? String(src).trim() : '';
+  if (!src) return '';
+  if (window.lwIsEmbedPreview() && /^https?:\/\//i.test(src) && sampleUrl && src !== sampleUrl) {
+    return src + (src.indexOf('?') >= 0 ? '&' : '?') + 'lwts=' + Date.now();
+  }
+  return src;
+};
+window.lwGalleryMatchesDom = function (root, list) {
+  if (!root || !list || !list.length) return false;
+  var imgs = root.querySelectorAll('img');
+  if (imgs.length !== list.length) return false;
+  for (var i = 0; i < list.length; i++) {
+    if (!window.lwSameImage(imgs[i].src, list[i])) return false;
+  }
+  return true;
+};
 </script>
 
 <script>
@@ -631,6 +688,19 @@ function lwTrackClick(kind) {
  * - Actualiza [data-wa-link], cualquier <a href*="wa.me"> y placeholders {{ $whatsapp }}
  * - Abre WhatsApp en nueva pestaña (necesario dentro del iframe del SPA)
  */
+(function initThumbScrollLock() {
+  if (new URLSearchParams(window.location.search).get('thumb') !== '1') return;
+  var id = 'lw-thumb-scroll-lock';
+  if (document.getElementById(id)) return;
+  var style = document.createElement('style');
+  style.id = id;
+  style.textContent =
+    'html,body{overflow:hidden!important;height:100%!important;max-height:100%!important;' +
+    'overscroll-behavior:none!important;touch-action:none!important;' +
+    'position:fixed!important;width:100%!important;margin:0!important;}';
+  (document.head || document.documentElement).appendChild(style);
+})();
+
 (function (global) {
   function digitsFrom(raw, key) {
     if (!raw || raw[key] == null) return '';
@@ -710,8 +780,9 @@ function lwTrackClick(kind) {
   if (params.get('embed') === '1' || params.get('preview') === '1' || params.get('parentOrigin') || window.self !== window.top) {
     document.documentElement.classList.add('embed-preview-root');
     document.body.classList.add('embed-preview');
+    document.body.classList.add('graphite-preview');
   }
-  if (params.get('preview') === '1' || params.get('thumb') === '1') {
+  if (params.get('thumb') === '1') {
     document.body.classList.add('graphite-preview');
   }
 })();
@@ -1122,7 +1193,7 @@ var GRAPHITE_PREVIEW_SAMPLE = {
   portada: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80',
   portada_2: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1000&q=80',
   portada_3: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1000&q=80',
-  foto_equipo: 'https://images.unsplash.com/photo-1445205170230-47b010092166?auto=format&fit=crop&w=1000&q=80',
+  foto_equipo: 'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1000&q=80',
 };
 
 var GRAPHITE_DEFAULT_GALLERY_URLS = [
@@ -1131,7 +1202,7 @@ var GRAPHITE_DEFAULT_GALLERY_URLS = [
   'https://images.unsplash.com/photo-1521577352947-9bb58764b69a?auto=format&fit=crop&w=900&q=75',
   'https://images.unsplash.com/photo-1535868463750-c78d9543614f?auto=format&fit=crop&w=700&q=75',
   'https://images.unsplash.com/photo-1605812860427-4024433a70fd?auto=format&fit=crop&w=700&q=75',
-  'https://images.unsplash.com/photo-1483986768654-2b1cf773a3e6?auto=format&fit=crop&w=700&q=75',
+  'https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&w=700&q=75',
 ];
 
 var GRAPHITE_PREVIEW_COPY = {
@@ -1511,9 +1582,9 @@ function resolveGraphitePhoneDisplay(raw) {
 }
 
 var LW_DEFAULT_SOCIAL_GRAPHITE = {
-  instagram: 'https://www.instagram.com/onez.es',
-  tiktok: 'https://www.tiktok.com/@onez',
-  facebook: 'https://www.facebook.com/onez',
+  instagram: 'https://www.instagram.com/localweb.es',
+  tiktok: 'https://www.tiktok.com/@localweb',
+  facebook: 'https://www.facebook.com/localweb',
 };
 
 function graphiteResolveSocialHref(raw, key, fallback) {
@@ -1802,6 +1873,7 @@ function applyLivePreviewData(raw, opts) {
 
 (function initLivePreviewFromQuery() {
   var params = new URLSearchParams(window.location.search);
+  if (params.get('landingDemo') === '1') return;
   if (!params.has('preview')) {
     syncGraphiteScheduleFromPreview(null);
     renderSchedule();
@@ -1850,6 +1922,7 @@ renderSchedule();
 setInterval(renderSchedule, 60000);
 </script>
 
+<script src="/templates/lw-landing-demo.js?v=2"></script>
 
 @endverbatim
 
@@ -1859,7 +1932,6 @@ setInterval(renderSchedule, 60000);
     if (typeof applyLivePreviewData === 'function') {
       applyLivePreviewData({
         logo_url: @json($logo_url),
-        logo_scale: @json($logo_scale ?? null),
         nombre: @json($nombre),
         tagline: @json($tagline),
         telefono: @json($telefono),
@@ -1867,9 +1939,9 @@ setInterval(renderSchedule, 60000);
         portada: @json($portada),
         portada_2: @json($portada_2),
         portada_3: @json($portada_3),
+        portada_focal_x: @json($portada_focal_x),
+        portada_focal_y: @json($portada_focal_y),
         descripcion: @json($descripcion),
-        about_title: @json($about_title),
-        about_sections: @json($about_sections),
         foto_equipo: @json($foto_equipo),
         direccion: @json($direccion),
         correo: @json($correo),
@@ -1901,6 +1973,8 @@ setInterval(renderSchedule, 60000);
       else if (typeof updateBloomPreviewMap === 'function') updateBloomPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateGraphitePreviewMap === 'function') updateGraphitePreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateWildPreviewMap === 'function') updateWildPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateRepublicaPreviewMap === 'function') updateRepublicaPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateKairosPreviewMap === 'function') updateKairosPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
     }
     if (typeof window.tvAnimationsRefresh === 'function') {
       requestAnimationFrame(function () { window.tvAnimationsRefresh(); });

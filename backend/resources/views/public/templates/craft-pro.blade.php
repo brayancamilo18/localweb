@@ -1,6 +1,25 @@
 @extends('public.layouts.tenant')
 
 @push('head-extras')
+<style id="lw-responsive-safety">
+  html,body{overflow-x:clip;max-width:100%}
+  @media (max-width:880px){
+    .nav-inner{gap:10px;min-width:0;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+    .nav .brand,.brand,nav.top .brand,nav.top .logo{min-width:0;flex:1 1 auto;max-width:calc(100% - 118px)}
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo,nav.top .brand.brand-has-img .nav-brand-img{
+      width:auto!important;height:auto!important;max-width:min(140px,38vw)!important;
+      max-height:calc(44px * var(--lw-logo-scale,1.35))!important;object-fit:contain!important
+    }
+    .nav-actions,.nav .nav-right,nav.top .actions{flex-shrink:0;gap:8px}
+    .nav-cta,nav.top .nav-cta{white-space:nowrap;font-size:clamp(9px,2.8vw,11px);padding:7px 10px}
+    .menu-toggle{flex-shrink:0}
+  }
+  @media (max-width:480px){
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo{
+      max-width:min(120px,34vw)!important;max-height:calc(38px * var(--lw-logo-scale,1.35))!important
+    }
+  }
+</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -10,7 +29,7 @@
   if (p.get('thumb') === '1') return;
   var l = document.createElement('link');
   l.rel = 'stylesheet';
-  l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  l.href = 'https://unpkg.com/leaflet@' + '1.9.4/dist/leaflet.css';
   l.crossOrigin = '';
   document.head.appendChild(l);
 })();
@@ -29,7 +48,7 @@
   html{scroll-behavior:smooth}
   body{background:var(--bg);color:var(--ink);font-family:"Inter",system-ui,sans-serif;font-size:15.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
   section[id],a[id]{scroll-margin-top:80px}
-  ::selection{background:var(--orange);color:#fff}
+  ::selection{background:var(--orange);color:var(--orange-on,#fff)}
   a{color:inherit;text-decoration:none}
   button{font-family:inherit;cursor:pointer;border:none;background:none}
   img{display:block;max-width:100%}
@@ -42,7 +61,7 @@
   .nav{position:sticky;top:0;z-index:9000;background:var(--ink);color:#fff;border-bottom:3px solid var(--orange)}
   .nav-inner{max-width:1280px;margin:0 auto;padding:14px 46px;display:flex;justify-content:space-between;align-items:center;gap:20px}
   .brand{display:flex;align-items:center;gap:14px}
-  .brand-mark{width:48px;height:48px;background:var(--orange);color:#fff;display:grid;place-items:center;font-family:"Barlow Condensed",sans-serif;font-size:24px;font-weight:800;letter-spacing:-.01em;flex-shrink:0;clip-path:polygon(0 0,100% 0,100% 78%,82% 100%,0 100%)}
+  .brand-mark{width:48px;height:48px;background:var(--orange);color:var(--orange-on,#fff);display:grid;place-items:center;font-family:"Barlow Condensed",sans-serif;font-size:24px;font-weight:800;letter-spacing:-.01em;flex-shrink:0;clip-path:polygon(0 0,100% 0,100% 78%,82% 100%,0 100%)}
   .brand-name{display:flex;flex-direction:column;line-height:1.1}
   .brand-name strong{font-family:"Barlow Condensed",sans-serif;font-size:24px;color:#fff;font-weight:700;letter-spacing:.005em;text-transform:uppercase}
   .brand-name small{font-size:11px;color:#9A9D9F;text-transform:uppercase;letter-spacing:.12em;font-weight:500;margin-top:1px}
@@ -57,7 +76,7 @@
   .nav ul a:hover::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:2px;background:var(--orange)}
   .nav ul a.is-active{color:var(--orange)}
   .nav ul a.is-active::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:2px;background:var(--orange)}
-  .nav-cta{display:inline-flex;align-items:center;gap:10px;padding:11px 22px;background:var(--orange);color:#fff;font-family:"Inter";font-size:14px;font-weight:700;letter-spacing:.005em;transition:background .15s}
+  .nav-cta{display:inline-flex;align-items:center;gap:10px;padding:11px 22px;background:var(--orange);color:var(--orange-on,#fff);font-family:"Inter";font-size:14px;font-weight:700;letter-spacing:.005em;transition:background .15s}
   .nav-cta:hover{background:var(--orange-hover, var(--orange-2))}
   .nav-actions{display:flex;align-items:center;gap:14px}
   .menu-toggle{display:none;width:44px;height:44px;background:transparent;border:1.5px solid #fff;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0}
@@ -80,7 +99,7 @@
   .hero h1 span{color:var(--orange)}
   .hero-tag{font-size:18px;line-height:1.6;color:var(--ink-2);max-width:520px;margin-bottom:50px;font-weight:400}
   .hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:48px}
-  .btn-p{display:inline-flex;align-items:center;gap:12px;padding:18px 46px;background:var(--orange);color:#fff;font-family:"Barlow Condensed";font-size:17px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;transition:background .15s;border:2px solid var(--orange)}
+  .btn-p{display:inline-flex;align-items:center;gap:12px;padding:18px 46px;background:var(--orange);color:var(--orange-on,#fff);font-family:"Barlow Condensed";font-size:17px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;transition:background .15s;border:2px solid var(--orange)}
   .btn-p:hover{background:var(--orange-hover, var(--orange-2));border-color:var(--orange-hover, var(--orange-2))}
   .btn-g{display:inline-flex;align-items:center;gap:10px;padding:18px 28px;background:transparent;color:var(--ink);font-family:"Barlow Condensed";font-size:17px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;border:2px solid var(--ink);transition:background .15s,color .15s}
   .btn-g:hover{background:var(--ink);color:#fff}
@@ -185,7 +204,7 @@
   .map-leaflet{height:min(354px,50vh);min-height:220px;width:100%;background:var(--ink)}
   .map-shell .leaflet-container{font-family:"Inter";background:var(--ink)}
   .map-shell .leaflet-control-zoom a{display:flex;align-items:center;justify-content:center;width:50px;height:50px;padding:0;line-height:1;font-size:22px;text-align:center;text-decoration:none;background:var(--ink);color:var(--orange);border:2px solid var(--orange);border-radius:0!important;font-weight:700}
-  .map-shell .leaflet-control-zoom a:hover{background:var(--orange);color:#fff}
+  .map-shell .leaflet-control-zoom a:hover{background:var(--orange);color:var(--orange-on,#fff)}
   .map-shell .leaflet-bar{border:none;box-shadow:none}
   .map-shell .leaflet-control-attribution{background:var(--ink)!important;color:#666!important;font-size:10px!important}
   .map-shell .leaflet-control-attribution a{color:var(--orange)!important}
@@ -211,7 +230,7 @@
   .vcard-strip small{font-size:11px;color:#888;display:block;margin-top:4px;letter-spacing:.02em}
 
   /* CTA (craft-pro original with diagonal hatching) */
-  .cta-section{background:var(--orange);color:#fff;padding:96px 0;position:relative;overflow:hidden}
+  .cta-section{background:var(--orange);color:var(--orange-on,#fff);padding:96px 0;position:relative;overflow:hidden}
   .cta-section::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent 0,transparent 60px,rgba(0,0,0,.03) 60px,rgba(0,0,0,.03) 61px);pointer-events:none}
   .cta-inner{max-width:1280px;margin:0 auto;padding:0 46px;text-align:center;position:relative}
   .cta-section h2{font-family:"Barlow Condensed";font-size:clamp(48px,6vw,96px);font-weight:800;line-height:.92;letter-spacing:-.005em;text-transform:uppercase;margin-bottom:50px}
@@ -357,8 +376,9 @@
   @media (max-width:654px){.lw-gallery-lightbox-close{top:8px;right:8px}}
 </style>
 @endverbatim
+<!-- BRAND_OVERRIDE_PLACEHOLDER:orange -->
+<script src="/templates/brand-apply.js?v=1"></script>
 
-@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
 
 @endpush
 
@@ -408,7 +428,11 @@
         </div>
           </div>
     <div class="hero-photo" id="heroPhotoWrap">
+      @if($portada)
+      <img id="heroPhotoImg" src="{{ $portada }}" alt="{{ $nombre }}" decoding="async"/>
+      @else
       <img id="heroPhotoImg" src="" alt="" hidden style="display:none"/>
+      @endif
     </div>
   </div>
 </section>
@@ -460,12 +484,12 @@
       </div>
       <div>
         <span class="eyebrow">Sobre nosotros</span>
-        <h2 class="cond" id="aboutTitle">{{ filled($about_title) ? $about_title : 'Sobre nosotros.' }}</h2>
-        <p id="aboutDescripcion">{{ $descripcion }}</p>
+        <h2 class="cond" id="aboutTitle">Sobre nosotros.</h2>
+        <p id="aboutDescripcion">Descripción del negocio: quiénes sois, qué hacéis y por qué importa.</p>
       </div>
     </div>
-    @include('public.partials.about-extra-blocks-craft-pro')
-</div>
+    <div id="aboutExtraBlocks" class="craft-about-extras"></div>
+  </div>
 </section>
 
 <!-- GALLERY -->
@@ -522,7 +546,7 @@
         </div>
       </div>
     </div>
-  <div class="map-section @if(!is_numeric($map_lat) || !is_numeric($map_lon)) bold-map-empty @endif" id="mapSection">
+  <div class="map-section bold-map-empty" id="mapSection">
     <div class="map-shell">
       <div id="mapLeafletContainer" class="map-leaflet" role="img" aria-label="Mapa del negocio"></div>
   </div>
@@ -590,16 +614,54 @@
     </div>
   <div class="foot-bottom">
     <span id="footBottomBrand">© 2026 · Tu negocio</span>
-    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://onez.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
+    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
   </div>
 </footer>
 @endsection
 
 @push('body-end')
-<script src="/templates/lw-about-extras.js?v=2"></script>
 <script>
   window.__lwLat = {{ is_numeric($map_lat) ? $map_lat : 'null' }};
   window.__lwLon = {{ is_numeric($map_lon) ? $map_lon : 'null' }};
+</script>
+
+<script>
+window.lwIsEmbedPreview = function () {
+  return document.body.classList.contains('embed-preview')
+    || document.body.classList.contains('urban-preview')
+    || document.body.classList.contains('noir-preview')
+    || document.body.classList.contains('bloom-preview')
+    || document.body.classList.contains('sleek-preview');
+};
+window.lwImageBase = function (u) {
+  if (!u) return '';
+  try {
+    var p = new URL(u, location.href);
+    return p.origin + p.pathname;
+  } catch (e) {
+    return String(u).split('?')[0].split('#')[0];
+  }
+};
+window.lwSameImage = function (a, b) {
+  return window.lwImageBase(a) === window.lwImageBase(b);
+};
+window.lwTenantHeroSrc = function (src, sampleUrl) {
+  src = src ? String(src).trim() : '';
+  if (!src) return '';
+  if (window.lwIsEmbedPreview() && /^https?:\/\//i.test(src) && sampleUrl && src !== sampleUrl) {
+    return src + (src.indexOf('?') >= 0 ? '&' : '?') + 'lwts=' + Date.now();
+  }
+  return src;
+};
+window.lwGalleryMatchesDom = function (root, list) {
+  if (!root || !list || !list.length) return false;
+  var imgs = root.querySelectorAll('img');
+  if (imgs.length !== list.length) return false;
+  for (var i = 0; i < list.length; i++) {
+    if (!window.lwSameImage(imgs[i].src, list[i])) return false;
+  }
+  return true;
+};
 </script>
 
 <script>
@@ -634,16 +696,9 @@ function lwTrackClick(kind) {
 (function () {
   var p = new URLSearchParams(location.search);
   if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
-  if (window.__LW_LEAFLET_LOADER_STARTED) return;
-  window.__LW_LEAFLET_LOADER_STARTED = true;
   var s = document.createElement('script');
   s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
   s.crossOrigin = '';
-  s.onload = function () {
-    if (typeof lwBootTenantMap === 'function') {
-      lwBootTenantMap(window.__lwMapAddress || '');
-    }
-  };
   document.head.appendChild(s);
 })();
 </script>
@@ -736,6 +791,99 @@ html.lw-preview-inert a[href^="#"] {
     e.stopPropagation();
   }, true);
 })();
+</script>
+<script src="/templates/lw-about-extras.js?v=2"></script>
+<script>
+/**
+ * Aplica teléfono y enlaces WhatsApp en plantillas HTML (iframe público / onboarding).
+ * - Actualiza [data-wa-link], cualquier <a href*="wa.me"> y placeholders {{ $whatsapp }}
+ * - Abre WhatsApp en nueva pestaña (necesario dentro del iframe del SPA)
+ */
+(function initThumbScrollLock() {
+  if (new URLSearchParams(window.location.search).get('thumb') !== '1') return;
+  var id = 'lw-thumb-scroll-lock';
+  if (document.getElementById(id)) return;
+  var style = document.createElement('style');
+  style.id = id;
+  style.textContent =
+    'html,body{overflow:hidden!important;height:100%!important;max-height:100%!important;' +
+    'overscroll-behavior:none!important;touch-action:none!important;' +
+    'position:fixed!important;width:100%!important;margin:0!important;}';
+  (document.head || document.documentElement).appendChild(style);
+})();
+
+(function (global) {
+  function digitsFrom(raw, key) {
+    if (!raw || raw[key] == null) return '';
+    return String(raw[key]).replace(/\D/g, '');
+  }
+
+  function resolvePhone(raw) {
+    raw = raw || {};
+    var phoneRaw = raw.telefono != null ? String(raw.telefono).trim() : '';
+    var phoneWa = phoneRaw.replace(/\D/g, '');
+    if (!phoneWa) {
+      phoneWa = digitsFrom(raw, 'whatsapp');
+    }
+    return { phoneRaw: phoneRaw, phoneWa: phoneWa };
+  }
+
+  function applyContactLinks(raw) {
+    var phones = resolvePhone(raw);
+    var phoneRaw = phones.phoneRaw;
+    var phoneWa = phones.phoneWa;
+    var waUrl = phoneWa ? 'https://wa.me/' + phoneWa : 'https://wa.me/';
+    var telHref = phoneWa ? 'tel:+' + phoneWa : 'tel:';
+
+    document
+      .querySelectorAll('a[data-wa-link], a[href*="wa.me"], a[href*="{{ $whatsapp }}"]')
+      .forEach(function (el) {
+        if (!(el instanceof HTMLAnchorElement)) return;
+        el.href = waUrl;
+        el.target = '_blank';
+        el.rel = 'noopener noreferrer';
+      });
+
+    document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+      if (!(el instanceof HTMLAnchorElement)) return;
+      el.href = telHref;
+    });
+
+    document.querySelectorAll('[data-phone-display]').forEach(function (el) {
+      el.textContent = phoneRaw || 'Tu teléfono';
+    });
+
+    bindContactClickTracking();
+  }
+
+  function bindContactClickTracking() {
+    function bindOnce(el, kind) {
+      if (!(el instanceof HTMLAnchorElement)) return;
+      if (el.dataset.lwTrackBound === '1') return;
+      el.dataset.lwTrackBound = '1';
+      el.addEventListener('click', function () {
+        try {
+          window.parent.postMessage({ type: 'lw:track-click', kind: kind }, '*');
+        } catch (_) {
+          /* ignore */
+        }
+      });
+    }
+
+    document
+      .querySelectorAll('a[data-wa-link], a[href*="wa.me"], a[href*="{{ $whatsapp }}"]')
+      .forEach(function (el) {
+        bindOnce(el, 'whatsapp_click');
+      });
+
+    document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+      bindOnce(el, 'phone_click');
+    });
+  }
+
+  global.lwApplyContactLinks = applyContactLinks;
+})(typeof window !== 'undefined' ? window : globalThis);
+
 </script>
 <script>
 (function initBoldPreviewModeClasses() {
@@ -868,8 +1016,11 @@ function updateBoldHeroPhoto(raw) {
     img.style.display = 'none';
     return;
   }
-  var withCacheBust = src;
-  if (/^https?:\/\//i.test(src) && src !== BOLD_PREVIEW_SAMPLE.portada) {
+  if (!shouldUseBoldSampleMedia() && img.src && typeof window.lwSameImage === 'function' && window.lwSameImage(img.src, src)) return;
+  var withCacheBust = typeof window.lwTenantHeroSrc === 'function'
+    ? window.lwTenantHeroSrc(src, BOLD_PREVIEW_SAMPLE.portada)
+    : src;
+  if (withCacheBust === src && /^https?:\/\//i.test(src) && src !== BOLD_PREVIEW_SAMPLE.portada && shouldUseBoldSampleMedia()) {
     var sep = src.indexOf('?') >= 0 ? '&' : '?';
     withCacheBust = src + sep + 'lwts=' + Date.now();
   }
@@ -964,14 +1115,8 @@ function updateBoldPreviewMap(lat, lon) {
     sec.classList.add('bold-map-empty');
     return;
   }
-  if (window.__LW_SKIP_LEAFLET) return;
+  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
   sec.classList.remove('bold-map-empty');
-  if (typeof L === 'undefined') {
-    if (typeof lwWhenLeafletReady === 'function') {
-      lwWhenLeafletReady(function () { updateBoldPreviewMap(lat, lon); });
-    }
-    return;
-  }
 
   function applyMap() {
     if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
@@ -1197,9 +1342,9 @@ function syncBoldTemplateExtensions(raw) {
   }
 
   var LW_DEFAULT_SOCIAL_BOLD = {
-    instagram: 'https://www.instagram.com/onez.es',
-    tiktok: 'https://www.tiktok.com/@onez',
-    facebook: 'https://www.facebook.com/onez'
+    instagram: 'https://www.instagram.com/localweb.es',
+    tiktok: 'https://www.tiktok.com/@localweb',
+    facebook: 'https://www.facebook.com/localweb'
   };
   function boldResolveSocialHref(raw, key, fallback) {
     var u = (raw[key] || '').trim();
@@ -1490,6 +1635,7 @@ function applyLivePreviewData(raw, opts) {
 
 (function initLivePreviewFromQuery() {
   var params = new URLSearchParams(window.location.search);
+  if (params.get('landingDemo') === '1') return;
   if (!params.has('preview')) {
     syncBoldScheduleFromPreview(null);
     renderBoldSchedule();
@@ -1820,6 +1966,7 @@ setInterval(renderBoldSchedule, 60000);
 })();
 </script>
 
+<script src="/templates/lw-landing-demo.js?v=2"></script>
 
 @endverbatim
 
@@ -1829,7 +1976,6 @@ setInterval(renderBoldSchedule, 60000);
     if (typeof applyLivePreviewData === 'function') {
       applyLivePreviewData({
         logo_url: @json($logo_url),
-        logo_scale: @json($logo_scale ?? null),
         nombre: @json($nombre),
         tagline: @json($tagline),
         telefono: @json($telefono),
@@ -1837,9 +1983,9 @@ setInterval(renderBoldSchedule, 60000);
         portada: @json($portada),
         portada_2: @json($portada_2),
         portada_3: @json($portada_3),
+        portada_focal_x: @json($portada_focal_x),
+        portada_focal_y: @json($portada_focal_y),
         descripcion: @json($descripcion),
-        about_title: @json($about_title),
-        about_sections: @json($about_sections),
         foto_equipo: @json($foto_equipo),
         direccion: @json($direccion),
         correo: @json($correo),
@@ -1873,6 +2019,10 @@ setInterval(renderBoldSchedule, 60000);
       else if (typeof updateNoirPreviewMap === 'function') updateNoirPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateSleekPreviewMap === 'function') updateSleekPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateBloomPreviewMap === 'function') updateBloomPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateGraphitePreviewMap === 'function') updateGraphitePreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateWildPreviewMap === 'function') updateWildPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateRepublicaPreviewMap === 'function') updateRepublicaPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateKairosPreviewMap === 'function') updateKairosPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
     }
     if (typeof window.tvAnimationsRefresh === 'function') {
       requestAnimationFrame(function () { window.tvAnimationsRefresh(); });

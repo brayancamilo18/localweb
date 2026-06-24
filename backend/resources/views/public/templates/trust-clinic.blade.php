@@ -1,6 +1,25 @@
 @extends('public.layouts.tenant')
 
 @push('head-extras')
+<style id="lw-responsive-safety">
+  html,body{overflow-x:clip;max-width:100%}
+  @media (max-width:880px){
+    .nav-inner{gap:10px;min-width:0;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+    .nav .brand,.brand,nav.top .brand,nav.top .logo{min-width:0;flex:1 1 auto;max-width:calc(100% - 118px)}
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo,nav.top .brand.brand-has-img .nav-brand-img{
+      width:auto!important;height:auto!important;max-width:min(140px,38vw)!important;
+      max-height:calc(44px * var(--lw-logo-scale,1.35))!important;object-fit:contain!important
+    }
+    .nav-actions,.nav .nav-right,nav.top .actions{flex-shrink:0;gap:8px}
+    .nav-cta,nav.top .nav-cta{white-space:nowrap;font-size:clamp(9px,2.8vw,11px);padding:7px 10px}
+    .menu-toggle{flex-shrink:0}
+  }
+  @media (max-width:480px){
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo{
+      max-width:min(120px,34vw)!important;max-height:calc(38px * var(--lw-logo-scale,1.35))!important
+    }
+  }
+</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -10,7 +29,7 @@
   if (p.get('thumb') === '1') return;
   var l = document.createElement('link');
   l.rel = 'stylesheet';
-  l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  l.href = 'https://unpkg.com/leaflet@' + '1.9.4/dist/leaflet.css';
   l.crossOrigin = '';
   document.head.appendChild(l);
 })();
@@ -36,7 +55,7 @@
   html{scroll-behavior:smooth}
   body{background:var(--bg);color:var(--ink);font-family:"Inter",-apple-system,sans-serif;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
   section[id],a[id]{scroll-margin-top:80px}
-  ::selection{background:var(--accent);color:#fff}
+  ::selection{background:var(--accent);color:var(--accent-on,#fff)}
   a{color:inherit;text-decoration:none}
   button{font-family:inherit;cursor:pointer;border:none;background:none}
   img{display:block;max-width:100%}
@@ -50,7 +69,7 @@
   .nav.scrolled{box-shadow:0 1px 0 var(--line-2),0 8px 24px -16px rgba(14,31,26,.08)}
   .nav-inner{display:flex;justify-content:space-between;align-items:center;padding:18px 46px;max-width:1280px;margin:0 auto}
   .brand{display:flex;align-items:center;gap:14px}
-  .brand-mark{width:54px;height:54px;background:var(--accent);color:#fff;display:grid;place-items:center;font-family:"Source Serif 4",serif;font-size:20px;font-weight:600;letter-spacing:-0.01em}
+  .brand-mark{width:54px;height:54px;background:var(--accent);color:var(--accent-on,#fff);display:grid;place-items:center;font-family:"Source Serif 4",serif;font-size:20px;font-weight:600;letter-spacing:-0.01em}
   .brand-name{display:flex;flex-direction:column;line-height:1.15}
   .brand-name strong{font-family:"Source Serif 4",serif;font-size:19px;font-weight:600;letter-spacing:-0.01em;color:var(--ink)}
   .brand-name small{font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.12em;font-weight:500;margin-top:2px}
@@ -64,7 +83,7 @@
   .nav ul a:hover{color:var(--accent);border-color:var(--accent)}
   .nav ul a.is-active{color:var(--accent);border-color:var(--accent)}
   .nav-actions{display:flex;align-items:center;gap:14px}
-  .nav-cta{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;background:var(--accent);color:#fff;font-size:13.5px;font-weight:500;letter-spacing:0.005em;transition:background .15s}
+  .nav-cta{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;background:var(--accent);color:var(--accent-on,#fff);font-size:13.5px;font-weight:500;letter-spacing:0.005em;transition:background .15s}
   .nav-cta:hover{background:var(--ink)}
   .menu-toggle{display:none;width:42px;height:42px;background:transparent;border:1px solid var(--line);flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0}
   .menu-toggle span{display:block;width:18px;height:1.5px;background:var(--ink);transition:transform .25s,opacity .15s}
@@ -83,7 +102,7 @@
   .hero h1 em{font-style:italic;color:var(--accent);font-weight:400}
   .hero-tag{font-size:17px;line-height:1.65;color:var(--ink-2);max-width:520px;margin-bottom:54px}
   .hero-cta{display:flex;gap:14px;margin-bottom:48px;flex-wrap:wrap}
-  .btn-p{display:inline-flex;align-items:center;gap:10px;padding:15px 28px;background:var(--accent);color:#fff;font-size:14px;font-weight:500;transition:background .15s,transform .15s}
+  .btn-p{display:inline-flex;align-items:center;gap:10px;padding:15px 28px;background:var(--accent);color:var(--accent-on,#fff);font-size:14px;font-weight:500;transition:background .15s,transform .15s}
   .btn-p:hover{background:var(--ink);transform:translateY(-1px)}
   .btn-g{display:inline-flex;align-items:center;gap:10px;padding:15px 24px;background:transparent;color:var(--ink);font-size:14px;font-weight:500;border:1px solid var(--line-2);transition:border-color .15s,color .15s}
   .btn-g:hover{border-color:var(--accent);color:var(--accent)}
@@ -127,16 +146,7 @@
   .trust-content h2 em{font-style:italic;color:var(--accent);font-weight:400}
   .trust-content > p{font-size:16px;line-height:1.7;color:var(--ink-2);margin-bottom:20px;max-width:520px}
 
-
-  /* ABOUT EXTRAS (trust-clinic) */
-  .trust-about-extras{display:flex;flex-direction:column;gap:80px;margin-top:64px;padding-top:48px;border-top:1px solid var(--line)}
-  .trust-about-extra--text-first .trust-about-extra__photo{order:2}
-  .trust-about-extra--text-first .trust-content{order:1}
-  .trust-about-extra--photo-first .trust-about-extra__photo{order:1}
-  .trust-about-extra--photo-first .trust-content{order:2}
-  .trust-about-extra .trust-content h3{font-family:"Source Serif 4",serif;font-size:clamp(36px,3.5vw,46px);font-weight:500;line-height:1.1;letter-spacing:-0.02em;margin:18px 0 28px}
-  @media (max-width:900px){.trust-about-extra.trust-grid{grid-template-columns:1fr;gap:40px}.trust-about-extra .trust-about-extra__photo{order:-1!important}}
-
+/* ABOUT EXTRAS (trust-clinic) */
   .trust-about-extras{display:flex;flex-direction:column;gap:80px;margin-top:64px;padding-top:48px;border-top:1px solid var(--line)}
   .trust-about-extra--text-first .trust-about-extra__photo{order:2}
   .trust-about-extra--text-first .trust-content{order:1}
@@ -173,7 +183,7 @@
   .contact-list a{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);font-size:14.5px;font-weight:500;transition:padding .15s}
   .contact-list a:last-child{border-bottom:none}
   .contact-list a:hover{padding-left:6px}
-  .contact-list .icon{width:50px;height:50px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:14px;flex-shrink:0}
+  .contact-list .icon{width:50px;height:50px;background:var(--accent);color:var(--accent-on,#fff);display:grid;place-items:center;font-size:14px;flex-shrink:0}
 
   /* ─── MAP ─── */
   .map-section{max-width:1280px;margin:0 auto;border:1px solid var(--line);border-top:none;overflow:hidden}
@@ -182,7 +192,7 @@
   .map-leaflet{height:min(354px,50vh);min-height:220px;width:100%;background:var(--line)}
   .map-shell .leaflet-container{font-family:"Inter";background:var(--line)}
   .map-shell .leaflet-control-zoom a{display:flex;align-items:center;justify-content:center;width:50px;height:50px;padding:0;line-height:1;font-size:22px;text-align:center;text-decoration:none;background:var(--paper);color:var(--accent);border:1px solid var(--line);font-weight:600}
-  .map-shell .leaflet-control-zoom a:hover{background:var(--accent);color:#fff}
+  .map-shell .leaflet-control-zoom a:hover{background:var(--accent);color:var(--accent-on,#fff)}
   .map-shell .leaflet-bar{border:none;box-shadow:none}
   .map-shell .leaflet-control-attribution{background:var(--paper)!important;color:var(--ink-3)!important;font-size:10px!important}
   .map-shell .leaflet-control-attribution a{color:var(--accent)!important}
@@ -214,7 +224,7 @@
   .cta-strip h2 em{font-style:italic;color:#A8C9BC}
   .cta-actions{display:flex;flex-direction:column;gap:14px}
   .cta-actions .btn-p{background:var(--paper);color:var(--ink);justify-content:center;padding:18px 24px;font-weight:600}
-  .cta-actions .btn-p:hover{background:var(--accent);color:#fff}
+  .cta-actions .btn-p:hover{background:var(--accent);color:var(--accent-on,#fff)}
   .cta-actions .btn-g{border-color:rgba(255,255,255,.2);color:#fff;justify-content:center;padding:18px 24px}
   .cta-actions .btn-g:hover{border-color:#fff;color:#fff;background:rgba(255,255,255,.05)}
 
@@ -367,8 +377,9 @@
   }
 </style>
 @endverbatim
+<!-- BRAND_OVERRIDE_PLACEHOLDER:accent -->
+<script src="/templates/brand-apply.js?v=1"></script>
 
-@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
 
 @endpush
 
@@ -419,7 +430,11 @@
           </div>
       <div class="hero-card" id="heroPhotoWrap">
         <div class="hero-portrait" id="heroPortrait" role="img"></div>
-        <img id="heroPhotoImg" src="" alt="" hidden style="display:none"/>
+        @if($portada)
+      <img id="heroPhotoImg" src="{{ $portada }}" alt="{{ $nombre }}" decoding="async"/>
+      @else
+      <img id="heroPhotoImg" src="" alt="" hidden style="display:none"/>
+      @endif
       </div>
     </div>
   </div>
@@ -472,7 +487,7 @@
           </div>
     </div>
   </div>
-    @include('public.partials.about-extra-blocks-trust-clinic')
+    <div id="aboutExtraBlocks" class="trust-about-extras"></div>
 </section>
 
 <!-- ═══════════════════ GALLERY ═══════════════════ -->
@@ -485,7 +500,12 @@
       </div>
       <p class="desc">Espacios pensados para la comodidad de cada consulta.</p>
     </div>
-    <div class="trust-gal-grid" id="galleryLive"></div>
+    <div class="trust-gal-grid" id="galleryLive">
+@forelse($galeria as $imgUrl)
+    <div><img src="{{ $imgUrl }}" alt=""/></div>
+@empty
+@endforelse
+  </div>
   </div>
 </section>
 
@@ -521,7 +541,7 @@
         </div>
       </div>
     </div>
-  <div class="map-section @if(!is_numeric($map_lat) || !is_numeric($map_lon)) bold-map-empty @endif" id="mapSection">
+  <div class="map-section bold-map-empty" id="mapSection">
     <div class="map-shell">
       <div id="mapLeafletContainer" class="map-leaflet" role="img" aria-label="Mapa del negocio"></div>
     </div>
@@ -599,7 +619,7 @@
     </div>
     <div class="foot-bottom">
       <span id="footBottomBrand">© 2026 · Tu negocio</span>
-      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Web creada con <a href="https://onez.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
+      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Web creada con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
     </div>
   </div>
 </footer>
@@ -609,6 +629,45 @@
 <script>
   window.__lwLat = {{ is_numeric($map_lat) ? $map_lat : 'null' }};
   window.__lwLon = {{ is_numeric($map_lon) ? $map_lon : 'null' }};
+</script>
+
+<script>
+window.lwIsEmbedPreview = function () {
+  return document.body.classList.contains('embed-preview')
+    || document.body.classList.contains('urban-preview')
+    || document.body.classList.contains('noir-preview')
+    || document.body.classList.contains('bloom-preview')
+    || document.body.classList.contains('sleek-preview');
+};
+window.lwImageBase = function (u) {
+  if (!u) return '';
+  try {
+    var p = new URL(u, location.href);
+    return p.origin + p.pathname;
+  } catch (e) {
+    return String(u).split('?')[0].split('#')[0];
+  }
+};
+window.lwSameImage = function (a, b) {
+  return window.lwImageBase(a) === window.lwImageBase(b);
+};
+window.lwTenantHeroSrc = function (src, sampleUrl) {
+  src = src ? String(src).trim() : '';
+  if (!src) return '';
+  if (window.lwIsEmbedPreview() && /^https?:\/\//i.test(src) && sampleUrl && src !== sampleUrl) {
+    return src + (src.indexOf('?') >= 0 ? '&' : '?') + 'lwts=' + Date.now();
+  }
+  return src;
+};
+window.lwGalleryMatchesDom = function (root, list) {
+  if (!root || !list || !list.length) return false;
+  var imgs = root.querySelectorAll('img');
+  if (imgs.length !== list.length) return false;
+  for (var i = 0; i < list.length; i++) {
+    if (!window.lwSameImage(imgs[i].src, list[i])) return false;
+  }
+  return true;
+};
 </script>
 
 <script>
@@ -643,16 +702,9 @@ function lwTrackClick(kind) {
 (function () {
   var p = new URLSearchParams(location.search);
   if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
-  if (window.__LW_LEAFLET_LOADER_STARTED) return;
-  window.__LW_LEAFLET_LOADER_STARTED = true;
   var s = document.createElement('script');
   s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
   s.crossOrigin = '';
-  s.onload = function () {
-    if (typeof lwBootTenantMap === 'function') {
-      lwBootTenantMap(window.__lwMapAddress || '');
-    }
-  };
   document.head.appendChild(s);
 })();
 </script>
@@ -745,6 +797,98 @@ html.lw-preview-inert a[href^="#"] {
     e.stopPropagation();
   }, true);
 })();
+</script>
+<script>
+/**
+ * Aplica teléfono y enlaces WhatsApp en plantillas HTML (iframe público / onboarding).
+ * - Actualiza [data-wa-link], cualquier <a href*="wa.me"> y placeholders {{ $whatsapp }}
+ * - Abre WhatsApp en nueva pestaña (necesario dentro del iframe del SPA)
+ */
+(function initThumbScrollLock() {
+  if (new URLSearchParams(window.location.search).get('thumb') !== '1') return;
+  var id = 'lw-thumb-scroll-lock';
+  if (document.getElementById(id)) return;
+  var style = document.createElement('style');
+  style.id = id;
+  style.textContent =
+    'html,body{overflow:hidden!important;height:100%!important;max-height:100%!important;' +
+    'overscroll-behavior:none!important;touch-action:none!important;' +
+    'position:fixed!important;width:100%!important;margin:0!important;}';
+  (document.head || document.documentElement).appendChild(style);
+})();
+
+(function (global) {
+  function digitsFrom(raw, key) {
+    if (!raw || raw[key] == null) return '';
+    return String(raw[key]).replace(/\D/g, '');
+  }
+
+  function resolvePhone(raw) {
+    raw = raw || {};
+    var phoneRaw = raw.telefono != null ? String(raw.telefono).trim() : '';
+    var phoneWa = phoneRaw.replace(/\D/g, '');
+    if (!phoneWa) {
+      phoneWa = digitsFrom(raw, 'whatsapp');
+    }
+    return { phoneRaw: phoneRaw, phoneWa: phoneWa };
+  }
+
+  function applyContactLinks(raw) {
+    var phones = resolvePhone(raw);
+    var phoneRaw = phones.phoneRaw;
+    var phoneWa = phones.phoneWa;
+    var waUrl = phoneWa ? 'https://wa.me/' + phoneWa : 'https://wa.me/';
+    var telHref = phoneWa ? 'tel:+' + phoneWa : 'tel:';
+
+    document
+      .querySelectorAll('a[data-wa-link], a[href*="wa.me"], a[href*="{{ $whatsapp }}"]')
+      .forEach(function (el) {
+        if (!(el instanceof HTMLAnchorElement)) return;
+        el.href = waUrl;
+        el.target = '_blank';
+        el.rel = 'noopener noreferrer';
+      });
+
+    document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+      if (!(el instanceof HTMLAnchorElement)) return;
+      el.href = telHref;
+    });
+
+    document.querySelectorAll('[data-phone-display]').forEach(function (el) {
+      el.textContent = phoneRaw || 'Tu teléfono';
+    });
+
+    bindContactClickTracking();
+  }
+
+  function bindContactClickTracking() {
+    function bindOnce(el, kind) {
+      if (!(el instanceof HTMLAnchorElement)) return;
+      if (el.dataset.lwTrackBound === '1') return;
+      el.dataset.lwTrackBound = '1';
+      el.addEventListener('click', function () {
+        try {
+          window.parent.postMessage({ type: 'lw:track-click', kind: kind }, '*');
+        } catch (_) {
+          /* ignore */
+        }
+      });
+    }
+
+    document
+      .querySelectorAll('a[data-wa-link], a[href*="wa.me"], a[href*="{{ $whatsapp }}"]')
+      .forEach(function (el) {
+        bindOnce(el, 'whatsapp_click');
+      });
+
+    document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+      bindOnce(el, 'phone_click');
+    });
+  }
+
+  global.lwApplyContactLinks = applyContactLinks;
+})(typeof window !== 'undefined' ? window : globalThis);
+
 </script>
 <script>
 (function initTrustPreviewModeClasses() {
@@ -863,8 +1007,10 @@ function updateBoldHeroPhoto(raw) {
     img.style.display = 'none';
     return;
   }
-  var withCacheBust = src;
-  if (/^https?:\/\//i.test(src)) {
+  if (img.src && typeof window.lwIsEmbedPreview === 'function' && !window.lwIsEmbedPreview()
+      && typeof window.lwSameImage === 'function' && window.lwSameImage(img.src, src)) return;
+  var withCacheBust = typeof window.lwTenantHeroSrc === 'function' ? window.lwTenantHeroSrc(src, '') : src;
+  if (withCacheBust === src && /^https?:\/\//i.test(src) && typeof window.lwIsEmbedPreview === 'function' && window.lwIsEmbedPreview()) {
     var sep = src.indexOf('?') >= 0 ? '&' : '?';
     withCacheBust = src + sep + 'lwts=' + Date.now();
   }
@@ -956,14 +1102,8 @@ function updateBoldPreviewMap(lat, lon) {
     sec.classList.add('bold-map-empty');
     return;
   }
-  if (window.__LW_SKIP_LEAFLET) return;
+  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
   sec.classList.remove('bold-map-empty');
-  if (typeof L === 'undefined') {
-    if (typeof lwWhenLeafletReady === 'function') {
-      lwWhenLeafletReady(function () { updateBoldPreviewMap(lat, lon); });
-    }
-    return;
-  }
 
   function applyMap() {
     if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
@@ -1177,9 +1317,9 @@ function syncBoldTemplateExtensions(raw) {
   }
 
   var LW_DEFAULT_SOCIAL_BOLD = {
-    instagram: 'https://www.instagram.com/onez.es',
-    tiktok: 'https://www.tiktok.com/@onez',
-    facebook: 'https://www.facebook.com/onez'
+    instagram: 'https://www.instagram.com/localweb.es',
+    tiktok: 'https://www.tiktok.com/@localweb',
+    facebook: 'https://www.facebook.com/localweb'
   };
   function boldResolveSocialHref(raw, key, fallback) {
     var u = (raw[key] || '').trim();
@@ -1465,6 +1605,7 @@ function applyLivePreviewData(raw, opts) {
 /* ───── INIT FROM QUERY (fallback dev) ──────────────── */
 (function initLivePreviewFromQuery() {
   var params = new URLSearchParams(window.location.search);
+  if (params.get('landingDemo') === '1') return;
   if (!params.has('preview')) {
     syncBoldScheduleFromPreview(null);
     renderBoldSchedule();
@@ -1971,6 +2112,7 @@ setInterval(renderBoldSchedule, 60000);
 })();
 </script>
 
+<script src="/templates/lw-landing-demo.js?v=2"></script>
 
 @endverbatim
 
@@ -1980,7 +2122,6 @@ setInterval(renderBoldSchedule, 60000);
     if (typeof applyLivePreviewData === 'function') {
       applyLivePreviewData({
         logo_url: @json($logo_url),
-        logo_scale: @json($logo_scale ?? null),
         nombre: @json($nombre),
         tagline: @json($tagline),
         telefono: @json($telefono),
@@ -1988,9 +2129,9 @@ setInterval(renderBoldSchedule, 60000);
         portada: @json($portada),
         portada_2: @json($portada_2),
         portada_3: @json($portada_3),
+        portada_focal_x: @json($portada_focal_x),
+        portada_focal_y: @json($portada_focal_y),
         descripcion: @json($descripcion),
-        about_title: @json($about_title),
-        about_sections: @json($about_sections),
         foto_equipo: @json($foto_equipo),
         direccion: @json($direccion),
         correo: @json($correo),
@@ -2024,6 +2165,10 @@ setInterval(renderBoldSchedule, 60000);
       else if (typeof updateNoirPreviewMap === 'function') updateNoirPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateSleekPreviewMap === 'function') updateSleekPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateBloomPreviewMap === 'function') updateBloomPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateGraphitePreviewMap === 'function') updateGraphitePreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateWildPreviewMap === 'function') updateWildPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateRepublicaPreviewMap === 'function') updateRepublicaPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateKairosPreviewMap === 'function') updateKairosPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
     }
     if (typeof window.tvAnimationsRefresh === 'function') {
       requestAnimationFrame(function () { window.tvAnimationsRefresh(); });

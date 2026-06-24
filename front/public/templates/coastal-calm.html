@@ -762,8 +762,11 @@ function updateBoldHeroPhoto(raw) {
     img.style.display = 'none';
     return;
   }
-  var withCacheBust = src;
-  if (/^https?:\/\//i.test(src) && src !== COASTAL_PREVIEW_SAMPLE.portada) {
+  if (!shouldUseCoastalSampleMedia() && img.src && typeof window.lwSameImage === 'function' && window.lwSameImage(img.src, src)) return;
+  var withCacheBust = typeof window.lwTenantHeroSrc === 'function'
+    ? window.lwTenantHeroSrc(src, COASTAL_PREVIEW_SAMPLE.portada)
+    : src;
+  if (withCacheBust === src && /^https?:\/\//i.test(src) && src !== COASTAL_PREVIEW_SAMPLE.portada && shouldUseCoastalSampleMedia()) {
     var sep = src.indexOf('?') >= 0 ? '&' : '?';
     withCacheBust = src + sep + 'lwts=' + Date.now();
   }

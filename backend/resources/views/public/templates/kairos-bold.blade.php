@@ -341,7 +341,6 @@
   .about-stat .n{ font-family: var(--display); font-size: 1.4rem; line-height: 1.2; word-break: break-word; }
   .about-stat .l{ font-size: .82rem; margin-top: .4rem; font-weight: 700; opacity: .85; }
 
-
   /* ABOUT EXTRAS (kairos-bold) */
   .kairos-about-extras{display:flex;flex-direction:column;gap:clamp(2rem,5vw,4rem);margin-top:clamp(2rem,5vw,4rem);padding-top:clamp(1.5rem,4vw,2rem)}
   .kairos-about-extra--text-first .kairos-about-extra__photo{order:2}
@@ -351,6 +350,7 @@
   .kairos-about-extra .about-body h3{font-size:clamp(2rem,4vw,3rem);margin-top:1rem}
   .kairos-about-extras .reveal{opacity:1;transform:none}
   @media (max-width:768px){.kairos-about-extra.about-grid{grid-template-columns:1fr}.kairos-about-extra .kairos-about-extra__photo{order:-1!important;max-width:440px;margin:0 auto}}
+
   /* ===== GALERIA ===== */
   .gallery{ display: grid; grid-template-columns: repeat(12,1fr); grid-auto-rows: 120px; gap: clamp(.8rem,1.6vw,1.2rem); }
   .g-item{ position: relative; overflow: hidden; border: var(--bd) solid var(--ink); border-radius: 20px; box-shadow: var(--shadow); background: var(--cream); }
@@ -636,7 +636,7 @@
 
 @php $kairosAccent = ['o','c','b','o','c']; $kairosGlyph = ['●','▲','★','●','▲']; @endphp
 @foreach($services as $i => $service)
-    <article class="stack-card pop in">
+    <article class="stack-card pop">
       <div class="sc-accent sc-accent--{{ $kairosAccent[$i % count($kairosAccent)] }}" aria-hidden="true">
         <span class="sc-accent-mark">{{ str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) }}</span>
         <span class="sc-accent-glyph">{{ $kairosGlyph[$i % count($kairosGlyph)] }}</span>
@@ -647,7 +647,7 @@
         @if(!empty($service['description']))<p class="sc-desc">{{ $service['description'] }}</p>@endif
         <div class="sc-foot">
           <span class="sc-price num">@if($service['price'] !== null){{ number_format($service['price'], 0, ',', '.') }} €@else Consultar @endif</span>
-          <a class="btn btn-ink btn-sm" href="{{ $whatsapp ? 'https://wa.me/'.$whatsapp : '#' }}" data-wa-link>Pide este</a>
+          <a class="btn btn-ink btn-sm" href="{{ $whatsapp ? 'https://wa.me/'.$whatsapp : '#' }}" data-wa-link>Pedí este</a>
         </div>
       </div>
     </article>
@@ -668,22 +668,22 @@
       </figure>
       <div class="about-body">
         <span class="cap reveal">★ Nosotros</span>
-        <h2 id="aboutTitle" class="reveal">{{ filled($about_title) ? $about_title : 'Sobre nosotros.' }}</h2>
+        <h2 id="aboutTitle" class="reveal">Gente con hambre de hacerlo rico</h2>
         <p class="lede reveal" id="aboutLede">{{ $descripcion }}</p>
         <div class="about-stats reveal" data-stagger>
           <div class="about-stat">
-            <div class="n" id="aboutPhoneValue" data-phone-display>{{ $telefono ?: '+00 000 000 000' }}</div>
+            <div class="n" id="aboutPhoneValue" data-phone-display>+00 000 000 000</div>
             <div class="l">Teléfono</div>
           </div>
           <div class="about-stat">
-            <div class="n" id="aboutAddressValue">{{ $direccion ?: ($ciudad ?: 'Calle Ejemplo, 00 · Ciudad') }}</div>
+            <div class="n" id="aboutAddressValue">Calle Ejemplo, 00 · Ciudad</div>
             <div class="l">Dirección</div>
           </div>
         </div>
       </div>
     </div>
   </div>
-    @include('public.partials.about-extra-blocks-kairos-bold')
+    <div class="container"><div id="aboutExtraBlocks" class="kairos-about-extras"></div></div>
 </section>
 
 <!-- ====================== 6. GALERÍA ====================== -->
@@ -873,15 +873,15 @@
       <div>
         <h4>Contacto</h4>
         <ul class="foot-contact">
-          <li id="footPhoneRow"@if(!$telefono) hidden @endif><a href="{{ $whatsapp ? 'tel:+'.$whatsapp : 'tel:' }}" data-tel-link><span id="footPhoneDisplay" data-phone-display>{{ $telefono }}</span></a></li>
-          <li id="footEmailRow"@if(!$correo) hidden @endif><a id="footEmailLink" href="mailto:{{ $correo }}"><span id="footEmailDisplay">{{ $correo }}</span></a></li>
-          <li id="footAddressRow"@if(!$direccion && !$ciudad) hidden @endif><a href="{{ $google_maps_url ?: '#mapa' }}" id="footAddressLink"@if($google_maps_url) target="_blank" rel="noopener noreferrer"@endif><span id="footAddressText">{{ $direccion ?: $ciudad }}</span></a></li>
+          <li id="footPhoneRow" hidden><a href="tel:+00000000000" data-tel-link><span id="footPhoneDisplay" data-phone-display></span></a></li>
+          <li id="footEmailRow" hidden><a href="mailto:hola@ejemplo.com" id="footEmailLink"><span id="footEmailDisplay"></span></a></li>
+          <li id="footAddressRow" hidden><a href="#mapa" id="footAddressLink"><span id="footAddressText"></span></a></li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© <span id="year"></span> <span id="footCopyName">{{ $nombre }}</span> · Todos los derechos reservados · <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span></span>
-      <span><a href="{{ rtrim(config('app.frontend_url'), '/') }}/aviso-legal" target="_blank" rel="noopener noreferrer">Aviso legal</a> · <a href="{{ rtrim(config('app.frontend_url'), '/') }}/privacidad" target="_blank" rel="noopener noreferrer">Privacidad</a> · <a href="{{ rtrim(config('app.frontend_url'), '/') }}/cookies" target="_blank" rel="noopener noreferrer">Cookies</a></span>
+      <span>© <span id="year"></span> <span id="footCopyName">Tu negocio</span> · Todos los derechos reservados · <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span></span>
+      <span><a href="/aviso-legal" target="_blank" rel="noopener noreferrer">Aviso legal</a> · <a href="/privacidad" target="_blank" rel="noopener noreferrer">Privacidad</a> · <a href="/cookies" target="_blank" rel="noopener noreferrer">Cookies</a></span>
     </div>
   </div>
 </footer>
@@ -891,6 +891,45 @@
 <script>
   window.__lwLat = {{ is_numeric($map_lat) ? $map_lat : 'null' }};
   window.__lwLon = {{ is_numeric($map_lon) ? $map_lon : 'null' }};
+</script>
+
+<script>
+window.lwIsEmbedPreview = function () {
+  return document.body.classList.contains('embed-preview')
+    || document.body.classList.contains('urban-preview')
+    || document.body.classList.contains('noir-preview')
+    || document.body.classList.contains('bloom-preview')
+    || document.body.classList.contains('sleek-preview');
+};
+window.lwImageBase = function (u) {
+  if (!u) return '';
+  try {
+    var p = new URL(u, location.href);
+    return p.origin + p.pathname;
+  } catch (e) {
+    return String(u).split('?')[0].split('#')[0];
+  }
+};
+window.lwSameImage = function (a, b) {
+  return window.lwImageBase(a) === window.lwImageBase(b);
+};
+window.lwTenantHeroSrc = function (src, sampleUrl) {
+  src = src ? String(src).trim() : '';
+  if (!src) return '';
+  if (window.lwIsEmbedPreview() && /^https?:\/\//i.test(src) && sampleUrl && src !== sampleUrl) {
+    return src + (src.indexOf('?') >= 0 ? '&' : '?') + 'lwts=' + Date.now();
+  }
+  return src;
+};
+window.lwGalleryMatchesDom = function (root, list) {
+  if (!root || !list || !list.length) return false;
+  var imgs = root.querySelectorAll('img');
+  if (imgs.length !== list.length) return false;
+  for (var i = 0; i < list.length; i++) {
+    if (!window.lwSameImage(imgs[i].src, list[i])) return false;
+  }
+  return true;
+};
 </script>
 
 <script>
@@ -1024,6 +1063,19 @@ function lwTrackClick(kind) {
  * - Actualiza [data-wa-link], cualquier <a href*="wa.me"> y placeholders {{ $whatsapp }}
  * - Abre WhatsApp en nueva pestaña (necesario dentro del iframe del SPA)
  */
+(function initThumbScrollLock() {
+  if (new URLSearchParams(window.location.search).get('thumb') !== '1') return;
+  var id = 'lw-thumb-scroll-lock';
+  if (document.getElementById(id)) return;
+  var style = document.createElement('style');
+  style.id = id;
+  style.textContent =
+    'html,body{overflow:hidden!important;height:100%!important;max-height:100%!important;' +
+    'overscroll-behavior:none!important;touch-action:none!important;' +
+    'position:fixed!important;width:100%!important;margin:0!important;}';
+  (document.head || document.documentElement).appendChild(style);
+})();
+
 (function (global) {
   function digitsFrom(raw, key) {
     if (!raw || raw[key] == null) return '';
@@ -1123,7 +1175,7 @@ var SCHEDULE = KAIROS_SCHEDULE_DEFAULT.map(function (r) {
 
 var KAIROS_PREVIEW_SAMPLE = {
   portada: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=900&q=80',
-  portada_2: 'https://images.unsplash.com/photo-1572802419224-296b0aeee0df?auto=format&fit=crop&w=900&q=80',
+  portada_2: 'https://images.unsplash.com/photo-1576107232684-1279f390859f?auto=format&fit=crop&w=900&q=80',
   portada_3: 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=80',
   foto_equipo: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=900&q=80',
 };
@@ -1545,7 +1597,8 @@ function syncKairosTemplateExtensions(raw) {
   var branding = document.getElementById('tpl-platform-branding');
   if (branding) branding.style.display = isPro ? 'none' : '';
 
-  renderKairosStack(kairosResolveServicesList(raw));
+  var services = kairosResolveServicesList(raw);
+  renderKairosStack(services);
 
   var gUrl = (raw.google_business_url || '').trim();
   var opSec = document.getElementById('opiniones');
@@ -1752,6 +1805,9 @@ function applyLivePreviewData(raw, opts) {
     destroyKairosPreviewMap();
   }
 }
+</script>
+<script src="/templates/lw-about-extras.js?v=2"></script>
+<script>
 
 (function initLivePreviewFromQuery() {
   var params = new URLSearchParams(window.location.search);
@@ -1761,6 +1817,7 @@ function applyLivePreviewData(raw, opts) {
     renderKairosSchedule();
     applyKairosStatus();
     setInterval(applyKairosStatus, 60000);
+    syncKairosTemplateExtensions({});
     return;
   }
   applyLivePreviewData(
@@ -1783,7 +1840,6 @@ function applyLivePreviewData(raw, opts) {
 })();
 
 </script>
-<script src="/templates/lw-about-extras.js?v=2"></script>
 <script src="/templates/lw-landing-demo.js?v=2"></script>
 
 <!--
@@ -1806,9 +1862,9 @@ Public: applyLivePreviewData, initLivePreviewFromQuery, initSecureMessageListene
         portada: @json($portada),
         portada_2: @json($portada_2),
         portada_3: @json($portada_3),
+        portada_focal_x: @json($portada_focal_x),
+        portada_focal_y: @json($portada_focal_y),
         descripcion: @json($descripcion),
-        about_title: @json($about_title),
-        about_sections: @json($about_sections),
         foto_equipo: @json($foto_equipo),
         direccion: @json($direccion),
         correo: @json($correo),
@@ -1829,7 +1885,6 @@ Public: applyLivePreviewData, initLivePreviewFromQuery, initSecureMessageListene
         tiktok_url: @json($tiktok_url),
         facebook_url: @json($facebook_url)
       });
-      if (typeof kairosShowStackCards === 'function') kairosShowStackCards();
     }
     if (typeof syncKairosScheduleFromPreview === 'function') syncKairosScheduleFromPreview(@json($horario));
     if (typeof renderKairosSchedule === 'function') renderKairosSchedule();

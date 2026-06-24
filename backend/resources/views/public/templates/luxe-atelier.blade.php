@@ -1,6 +1,25 @@
 @extends('public.layouts.tenant')
 
 @push('head-extras')
+<style id="lw-responsive-safety">
+  html,body{overflow-x:clip;max-width:100%}
+  @media (max-width:880px){
+    .nav-inner{gap:10px;min-width:0;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+    .nav .brand,.brand,nav.top .brand,nav.top .logo{min-width:0;flex:1 1 auto;max-width:calc(100% - 118px)}
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo,nav.top .brand.brand-has-img .nav-brand-img{
+      width:auto!important;height:auto!important;max-width:min(140px,38vw)!important;
+      max-height:calc(44px * var(--lw-logo-scale,1.35))!important;object-fit:contain!important
+    }
+    .nav-actions,.nav .nav-right,nav.top .actions{flex-shrink:0;gap:8px}
+    .nav-cta,nav.top .nav-cta{white-space:nowrap;font-size:clamp(9px,2.8vw,11px);padding:7px 10px}
+    .menu-toggle{flex-shrink:0}
+  }
+  @media (max-width:480px){
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo{
+      max-width:min(120px,34vw)!important;max-height:calc(38px * var(--lw-logo-scale,1.35))!important
+    }
+  }
+</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
@@ -10,7 +29,7 @@
   if (p.get('thumb') === '1') return;
   var l = document.createElement('link');
   l.rel = 'stylesheet';
-  l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  l.href = 'https://unpkg.com/leaflet@' + '1.9.4/dist/leaflet.css';
   l.crossOrigin = '';
   document.head.appendChild(l);
 })();
@@ -103,9 +122,9 @@
   .hero.in .tphoto::before{transform:scaleX(0)}
   .hero.in .tphoto:nth-child(2)::before{transition-delay:.2s}
   .hero.in .tphoto:nth-child(3)::before{transition-delay:.4s}
-  .tphoto.t1{aspect-ratio:3/4;margin-top:48px;background-image:var(--img-1,url('https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=600&q=75'))}
-  .tphoto.t2{aspect-ratio:4/5;background-image:var(--img-2,url('https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&w=700&q=75'))}
-  .tphoto.t3{aspect-ratio:3/4;margin-top:96px;background-image:var(--img-3,url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=600&q=75'))}
+  .tphoto.t1{aspect-ratio:3/4;margin-top:48px;background-image:var(--img-1,none)}
+  .tphoto.t2{aspect-ratio:4/5;background-image:var(--img-2,none)}
+  .tphoto.t3{aspect-ratio:3/4;margin-top:96px;background-image:var(--img-3,none)}
   .tphoto.fallback{background:linear-gradient(135deg,var(--champagne-soft),var(--bg-2));position:relative}
   .tphoto.fallback::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,var(--champagne),transparent 70%);opacity:.4}
   .tphoto.fallback.t2{background:linear-gradient(135deg,var(--ink),var(--ink-2))}
@@ -159,7 +178,7 @@
   .about-mosaic{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;max-width:1280px;margin:0 auto;padding:0 54px}
   .about-photos{position:relative;width:100%;aspect-ratio:4/5;max-height:654px;border-radius:2px;overflow:hidden}
   .aphoto{overflow:hidden;background:var(--paper);background-size:cover;background-position:center}
-  .aphoto.a1{position:relative;width:100%;height:100%;min-height:480px;background-image:var(--about-1,url('https://images.unsplash.com/photo-1777628530456-bb93d3a03faf?auto=format&fit=crop&w=1000&q=75'))}
+  .aphoto.a1{position:relative;width:100%;height:100%;min-height:480px;background-image:var(--about-1,none)}
   .aphoto::after{content:"";position:absolute;inset:0;background:rgba(21,17,12,.05);transition:background .5s}
   .aphoto:hover::after{background:rgba(21,17,12,0)}
   .about-text h2{font-family:"Cormorant Garamond",serif;font-size:clamp(54px,5.5vw,72px);font-weight:400;line-height:1.04;letter-spacing:-.015em;margin:24px 0 46px}
@@ -167,19 +186,19 @@
   .about-text p{font-size:17px;line-height:1.8;color:var(--ink-2);margin-bottom:22px;max-width:520px;font-weight:300}
   .about-text p em{font-family:"Cormorant Garamond",serif;font-style:italic;color:var(--champagne);font-size:1.05em}
   .about-sig{margin-top:54px;padding-top:46px;border-top:1px solid var(--line-2);display:flex;align-items:center;gap:20px}
-  .about-sig-img{width:60px;height:60px;border-radius:50%;background:var(--bg-2) center/cover;background-image:var(--sig-img,url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=75'));flex-shrink:0}
+  .about-sig-img{width:60px;height:60px;border-radius:50%;background:var(--bg-2) center/cover;background-image:var(--sig-img,none);flex-shrink:0}
   .about-sig-text strong{display:block;font-family:"Cormorant Garamond",serif;font-size:22px;font-weight:400;font-style:italic;color:var(--ink)}
   .about-sig-text small{font-size:11px;color:var(--ink-3);letter-spacing:.24em;text-transform:uppercase;display:block;margin-top:4px;font-weight:400}
 
-
-  /* ABOUT EXTRAS (luxe-atelier) */
+/* ABOUT EXTRAS (luxe-atelier) */
   .luxe-about-extras{display:flex;flex-direction:column;gap:80px;margin-top:80px;padding-top:56px;border-top:1px solid var(--line-2);max-width:1280px;margin-left:auto;margin-right:auto;padding:0 54px;box-sizing:border-box}
-  .luxe-about-extra.about-mosaic{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:stretch;max-width:100%}
+  .luxe-about-extra.about-mosaic{max-width:100%}
   .luxe-about-extra--text-first .about-photos{order:2}
   .luxe-about-extra--text-first .about-text{order:1}
   .luxe-about-extra--photo-first .about-photos{order:1}
   .luxe-about-extra--photo-first .about-text{order:2}
   .luxe-about-extra .about-text h3{font-family:"Cormorant Garamond",serif;font-size:clamp(44px,4.5vw,60px);font-weight:400;line-height:1.04;margin:24px 0 32px}
+  .luxe-about-extra.about-mosaic{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:stretch}
   .luxe-about-extra .about-photos{aspect-ratio:3/4;max-height:580px;min-height:0}
   .luxe-about-extra .aphoto.a1{min-height:0;height:100%}
   .luxe-about-extra__photo.has-photo{background-size:cover;background-position:center 55%}
@@ -333,6 +352,7 @@
   html.embed-preview-root,body.embed-preview{overflow:auto!important;height:auto!important;min-height:100%}
   body.embed-preview .nav{position:sticky}
   body.embed-preview .slide-up,body.embed-preview .fade-in{opacity:1!important;transform:none!important}
+  body.luxe-preview .slide-up,body.luxe-preview .fade-in{opacity:1!important;transform:none!important}
   body.embed-preview #aboutExtraBlocks .slide-up,
   body.luxe-preview #aboutExtraBlocks .slide-up{opacity:1!important;transform:none!important}
   .nav{--lw-logo-scale:1}
@@ -364,8 +384,9 @@
   }
 </style>
 @endverbatim
+<!-- BRAND_OVERRIDE_PLACEHOLDER:champagne -->
+<script src="/templates/brand-apply.js?v=1"></script>
 
-@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
 
 @endpush
 
@@ -423,9 +444,9 @@
     </h1>
 
     <div class="hero-triptych">
-      <div class="tphoto t1" id="heroTphoto1"><div class="tphoto-caption"><small>I</small><strong>Maison</strong></div></div>
-      <div class="tphoto t2" id="heroTphoto2"><div class="tphoto-caption"><small>II</small><strong>Atelier</strong></div></div>
-      <div class="tphoto t3" id="heroTphoto3"><div class="tphoto-caption"><small>III</small><strong>Pieza</strong></div></div>
+      <div class="tphoto t1" id="heroTphoto1"@if($portada) style="background-image:url('{{ $portada }}')" @endif><div class="tphoto-caption"><small>I</small><strong>Maison</strong></div></div>
+      <div class="tphoto t2" id="heroTphoto2"@if($portada_2) style="background-image:url('{{ $portada_2 }}')" @endif><div class="tphoto-caption"><small>II</small><strong>Atelier</strong></div></div>
+      <div class="tphoto t3" id="heroTphoto3"@if($portada_3) style="background-image:url('{{ $portada_3 }}')" @endif><div class="tphoto-caption"><small>III</small><strong>Pieza</strong></div></div>
     </div>
 
     <div class="hero-bottom">
@@ -469,26 +490,12 @@
       <a class="svc-row" data-svc>
         <div class="svc-num">I</div>
         <div class="svc-name serif">{{ ($services[0]['name'] ?? '') }}<small>{{ ($services[0]['description'] ?? '') }}</small></div>
-        <div class="svc-price">
-            @if(isset($services[0]) && $services[0]['price'] !== null)
-            {{ number_format($services[0]['price'], 2, ",", ".") }}
-            @else
-            Consultar
-            @endif
-            <small>Desde</small>
-          </div>
+        <div class="svc-price">@if(isset($services[0]) && $services[0]['price'] !== null){{ number_format($services[0]['price'], 2, ',', '.') }}@else@endif<small>Desde</small></div>
       </a>
       <a class="svc-row" data-svc>
         <div class="svc-num">II</div>
         <div class="svc-name serif">{{ ($services[1]['name'] ?? '') }}<small>{{ ($services[1]['description'] ?? '') }}</small></div>
-        <div class="svc-price">
-            @if(isset($services[1]) && $services[1]['price'] !== null)
-            {{ number_format($services[1]['price'], 2, ",", ".") }}
-            @else
-            Consultar
-            @endif
-            <small>Por sesión</small>
-          </div>
+        <div class="svc-price">@if(isset($services[1]) && $services[1]['price'] !== null){{ number_format($services[1]['price'], 2, ',', '.') }}@else@endif<small>Por sesión</small></div>
       </a>
       <a class="svc-row" data-svc>
         <div class="svc-num">III</div>
@@ -503,7 +510,7 @@
 <section id="sobre-nosotros" class="about">
   <div class="about-mosaic">
     <div class="about-photos slide-up">
-      <div class="aphoto a1" id="aboutPhoto1"></div>
+      <div class="aphoto a1" id="aboutPhoto1"@if($foto_equipo) style="background-image:url('{{ $foto_equipo }}')" @endif></div>
     </div>
     <div class="about-text slide-up" data-d="1">
       <span class="eyebrow">La maison</span>
@@ -511,7 +518,7 @@
       <div id="aboutBody"><p>{{ $descripcion }}</p></div>
     </div>
   </div>
-    @include('public.partials.about-extra-blocks-luxe-atelier')
+    <div id="aboutExtraBlocks" class="luxe-about-extras"></div>
 </section>
 
 <!-- 6. GALERÍA · bento -->
@@ -523,12 +530,10 @@
     </div>
   </div>
   <div class="gallery" id="galleryGrid">
-    <div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=75"><div class="gimg-bg" style="background-image:url(&quot;https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=75&quot;)"></div></div>
-    <div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&w=900&q=75"><div class="gimg-bg" style="background-image:url(&quot;https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&w=900&q=75&quot;)"></div></div>
-    <div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1521577352947-9bb58764b69a?auto=format&fit=crop&w=900&q=75"><div class="gimg-bg" style="background-image:url(&quot;https://images.unsplash.com/photo-1521577352947-9bb58764b69a?auto=format&fit=crop&w=900&q=75&quot;)"></div></div>
-    <div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1535868463750-c78d9543614f?auto=format&fit=crop&w=600&q=75"><div class="gimg-bg" style="background-image:url(&quot;https://images.unsplash.com/photo-1535868463750-c78d9543614f?auto=format&fit=crop&w=600&q=75&quot;)"></div></div>
-    <div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1605812860427-4024433a70fd?auto=format&fit=crop&w=600&q=75"><div class="gimg-bg" style="background-image:url(&quot;https://images.unsplash.com/photo-1605812860427-4024433a70fd?auto=format&fit=crop&w=600&q=75&quot;)"></div></div>
-    <div class="gimg" data-lightbox-src="https://images.unsplash.com/photo-1777628530456-bb93d3a03faf?auto=format&fit=crop&w=600&q=75"><div class="gimg-bg" style="background-image:url(&quot;https://images.unsplash.com/photo-1777628530456-bb93d3a03faf?auto=format&fit=crop&w=600&q=75&quot;)"></div></div>
+@forelse($galeria as $imgUrl)
+    <div class="gimg" data-lightbox-src="{{ $imgUrl }}"><div class="gimg-bg" style="background-image:url('{{ $imgUrl }}')"></div></div>
+@empty
+@endforelse
   </div>
 </section>
 
@@ -544,32 +549,14 @@
     <div class="hours-card slide-up">
       <span class="eyebrow">Atelier abierto</span>
       <h3 class="serif">Horarios <em id="hoursTitleName">{{ $nombre }}</em></h3>
-      @php
-  $scheduleDays = [
-    ['mon', 'Lunes', 1],
-    ['tue', 'Martes', 2],
-    ['wed', 'Miércoles', 3],
-    ['thu', 'Jueves', 4],
-    ['fri', 'Viernes', 5],
-    ['sat', 'Sábado', 6],
-    ['sun', 'Domingo', 0],
-  ];
-  $todayIdx = (int) now()->dayOfWeek;
-@endphp
       <div id="schedule">
-@foreach($scheduleDays as [$key, $dayName, $idx])
-@php
-  $row = is_array($horario) ? ($horario[$key] ?? null) : null;
-  $closed = !$row || !empty($row['closed']);
-  $open = !$closed && !empty($row['open']);
-  $isToday = $idx === $todayIdx;
-@endphp
-        <div class="schedule-row{{ $isToday ? ' today' : '' }}" data-day="{{ $idx }}"><span class="day">{{ $dayName }}</span><span class="time{{ !$open ? ' closed' : '' }}">@if($open)
-{{ $row["open"] }} — {{ $row["close"] }}
-@else
-Cerrado
-@endif</span></div>
-@endforeach
+        <div class="schedule-row" data-day="1"><span class="day">Lunes</span><span class="time">{{ $lunes ?? '' }}</span></div>
+        <div class="schedule-row" data-day="2"><span class="day">Martes</span><span class="time">{{ $martes ?? '' }}</span></div>
+        <div class="schedule-row" data-day="3"><span class="day">Miércoles</span><span class="time">{{ $miercoles ?? '' }}</span></div>
+        <div class="schedule-row" data-day="4"><span class="day">Jueves</span><span class="time">{{ $jueves ?? '' }}</span></div>
+        <div class="schedule-row" data-day="5"><span class="day">Viernes</span><span class="time">{{ $viernes ?? '' }}</span></div>
+        <div class="schedule-row" data-day="6"><span class="day">Sábado</span><span class="time">{{ $sabado ?? '' }}</span></div>
+        <div class="schedule-row" data-day="0"><span class="day">Domingo</span><span class="time closed">Con cita previa</span></div>
       </div>
     </div>
     <aside id="contacto" class="hours-card slide-up" data-d="1">
@@ -686,7 +673,7 @@ Cerrado
   </div>
   <div class="foot-bot">
     <span>© {{ date('Y') }} {{ $nombre }}</span>
-    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Hecho con <a href="https://onez.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
+    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Hecho con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
   </div>
 </footer>
 @endsection
@@ -695,6 +682,45 @@ Cerrado
 <script>
   window.__lwLat = {{ is_numeric($map_lat) ? $map_lat : 'null' }};
   window.__lwLon = {{ is_numeric($map_lon) ? $map_lon : 'null' }};
+</script>
+
+<script>
+window.lwIsEmbedPreview = function () {
+  return document.body.classList.contains('embed-preview')
+    || document.body.classList.contains('urban-preview')
+    || document.body.classList.contains('noir-preview')
+    || document.body.classList.contains('bloom-preview')
+    || document.body.classList.contains('sleek-preview');
+};
+window.lwImageBase = function (u) {
+  if (!u) return '';
+  try {
+    var p = new URL(u, location.href);
+    return p.origin + p.pathname;
+  } catch (e) {
+    return String(u).split('?')[0].split('#')[0];
+  }
+};
+window.lwSameImage = function (a, b) {
+  return window.lwImageBase(a) === window.lwImageBase(b);
+};
+window.lwTenantHeroSrc = function (src, sampleUrl) {
+  src = src ? String(src).trim() : '';
+  if (!src) return '';
+  if (window.lwIsEmbedPreview() && /^https?:\/\//i.test(src) && sampleUrl && src !== sampleUrl) {
+    return src + (src.indexOf('?') >= 0 ? '&' : '?') + 'lwts=' + Date.now();
+  }
+  return src;
+};
+window.lwGalleryMatchesDom = function (root, list) {
+  if (!root || !list || !list.length) return false;
+  var imgs = root.querySelectorAll('img');
+  if (imgs.length !== list.length) return false;
+  for (var i = 0; i < list.length; i++) {
+    if (!window.lwSameImage(imgs[i].src, list[i])) return false;
+  }
+  return true;
+};
 </script>
 
 <script>
@@ -729,16 +755,9 @@ function lwTrackClick(kind) {
 (function () {
   var p = new URLSearchParams(location.search);
   if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
-  if (window.__LW_LEAFLET_LOADER_STARTED) return;
-  window.__LW_LEAFLET_LOADER_STARTED = true;
   var s = document.createElement('script');
   s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
   s.crossOrigin = '';
-  s.onload = function () {
-    if (typeof lwBootTenantMap === 'function') {
-      lwBootTenantMap(window.__lwMapAddress || '');
-    }
-  };
   document.head.appendChild(s);
 })();
 </script>
@@ -831,6 +850,98 @@ html.lw-preview-inert a[href^="#"] {
     e.stopPropagation();
   }, true);
 })();
+</script>
+<script>
+/**
+ * Aplica teléfono y enlaces WhatsApp en plantillas HTML (iframe público / onboarding).
+ * - Actualiza [data-wa-link], cualquier <a href*="wa.me"> y placeholders {{ $whatsapp }}
+ * - Abre WhatsApp en nueva pestaña (necesario dentro del iframe del SPA)
+ */
+(function initThumbScrollLock() {
+  if (new URLSearchParams(window.location.search).get('thumb') !== '1') return;
+  var id = 'lw-thumb-scroll-lock';
+  if (document.getElementById(id)) return;
+  var style = document.createElement('style');
+  style.id = id;
+  style.textContent =
+    'html,body{overflow:hidden!important;height:100%!important;max-height:100%!important;' +
+    'overscroll-behavior:none!important;touch-action:none!important;' +
+    'position:fixed!important;width:100%!important;margin:0!important;}';
+  (document.head || document.documentElement).appendChild(style);
+})();
+
+(function (global) {
+  function digitsFrom(raw, key) {
+    if (!raw || raw[key] == null) return '';
+    return String(raw[key]).replace(/\D/g, '');
+  }
+
+  function resolvePhone(raw) {
+    raw = raw || {};
+    var phoneRaw = raw.telefono != null ? String(raw.telefono).trim() : '';
+    var phoneWa = phoneRaw.replace(/\D/g, '');
+    if (!phoneWa) {
+      phoneWa = digitsFrom(raw, 'whatsapp');
+    }
+    return { phoneRaw: phoneRaw, phoneWa: phoneWa };
+  }
+
+  function applyContactLinks(raw) {
+    var phones = resolvePhone(raw);
+    var phoneRaw = phones.phoneRaw;
+    var phoneWa = phones.phoneWa;
+    var waUrl = phoneWa ? 'https://wa.me/' + phoneWa : 'https://wa.me/';
+    var telHref = phoneWa ? 'tel:+' + phoneWa : 'tel:';
+
+    document
+      .querySelectorAll('a[data-wa-link], a[href*="wa.me"], a[href*="{{ $whatsapp }}"]')
+      .forEach(function (el) {
+        if (!(el instanceof HTMLAnchorElement)) return;
+        el.href = waUrl;
+        el.target = '_blank';
+        el.rel = 'noopener noreferrer';
+      });
+
+    document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+      if (!(el instanceof HTMLAnchorElement)) return;
+      el.href = telHref;
+    });
+
+    document.querySelectorAll('[data-phone-display]').forEach(function (el) {
+      el.textContent = phoneRaw || 'Tu teléfono';
+    });
+
+    bindContactClickTracking();
+  }
+
+  function bindContactClickTracking() {
+    function bindOnce(el, kind) {
+      if (!(el instanceof HTMLAnchorElement)) return;
+      if (el.dataset.lwTrackBound === '1') return;
+      el.dataset.lwTrackBound = '1';
+      el.addEventListener('click', function () {
+        try {
+          window.parent.postMessage({ type: 'lw:track-click', kind: kind }, '*');
+        } catch (_) {
+          /* ignore */
+        }
+      });
+    }
+
+    document
+      .querySelectorAll('a[data-wa-link], a[href*="wa.me"], a[href*="{{ $whatsapp }}"]')
+      .forEach(function (el) {
+        bindOnce(el, 'whatsapp_click');
+      });
+
+    document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+      bindOnce(el, 'phone_click');
+    });
+  }
+
+  global.lwApplyContactLinks = applyContactLinks;
+})(typeof window !== 'undefined' ? window : globalThis);
+
 </script>
 <script>
 (function initLuxePreviewModeClasses() {
@@ -1122,13 +1233,7 @@ function destroyLuxePreviewMap() {
 
 function updateLuxePreviewMap(lat, lon, label) {
   var el = document.getElementById('map');
-  if (!el || window.__LW_SKIP_LEAFLET) return;
-  if (typeof L === 'undefined') {
-    if (typeof lwWhenLeafletReady === 'function') {
-      lwWhenLeafletReady(function () { updateLuxePreviewMap(lat, lon, label); });
-    }
-    return;
-  }
+  if (!el || window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
     destroyLuxePreviewMap();
     return;
@@ -1466,6 +1571,7 @@ function applyLivePreviewData(raw, opts) {
 
 (function initLivePreviewFromQuery() {
   var params = new URLSearchParams(window.location.search);
+  if (params.get('landingDemo') === '1') return;
   if (!params.has('preview')) {
     syncLuxeScheduleFromPreview(null);
     renderLuxeSchedule();
@@ -1528,7 +1634,7 @@ function applyLivePreviewData(raw, opts) {
     if (hero) hero.classList.add('in');
   });
 
-  if (document.body.classList.contains('embed-preview') || document.body.classList.contains('luxe-preview')) {
+  if (document.body.classList.contains('embed-preview')) {
     revealLuxeScrollAnimations();
   } else {
     var io = new IntersectionObserver(function (es) {
@@ -1599,6 +1705,13 @@ function applyLivePreviewData(raw, opts) {
   if (closeBtn) closeBtn.addEventListener('click', closeLb);
 })();
 </script>
+<!--
+LW-CONTRACT-VERSION: 1
+Public: applyLivePreviewData, initLivePreviewFromQuery, initSecureMessageListener
+-->
+<script src="/templates/lw-landing-demo.js?v=2"></script>
+
+
 @endverbatim
 
 <script>
@@ -1607,7 +1720,6 @@ function applyLivePreviewData(raw, opts) {
     if (typeof applyLivePreviewData === 'function') {
       applyLivePreviewData({
         logo_url: @json($logo_url),
-        logo_scale: @json($logo_scale ?? null),
         nombre: @json($nombre),
         tagline: @json($tagline),
         telefono: @json($telefono),
@@ -1615,9 +1727,9 @@ function applyLivePreviewData(raw, opts) {
         portada: @json($portada),
         portada_2: @json($portada_2),
         portada_3: @json($portada_3),
+        portada_focal_x: @json($portada_focal_x),
+        portada_focal_y: @json($portada_focal_y),
         descripcion: @json($descripcion),
-        about_title: @json($about_title),
-        about_sections: @json($about_sections),
         foto_equipo: @json($foto_equipo),
         direccion: @json($direccion),
         correo: @json($correo),
@@ -1644,6 +1756,10 @@ function applyLivePreviewData(raw, opts) {
       else if (typeof updateNoirPreviewMap === 'function') updateNoirPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateSleekPreviewMap === 'function') updateSleekPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateBloomPreviewMap === 'function') updateBloomPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateGraphitePreviewMap === 'function') updateGraphitePreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateWildPreviewMap === 'function') updateWildPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateRepublicaPreviewMap === 'function') updateRepublicaPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateKairosPreviewMap === 'function') updateKairosPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
     }
     if (typeof window.tvAnimationsRefresh === 'function') {
       requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
