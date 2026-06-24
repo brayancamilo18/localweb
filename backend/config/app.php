@@ -55,6 +55,7 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
     'domain' => env('APP_DOMAIN', 'localhost'),
     'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
+    'frontend_dist_index' => env('FRONTEND_DIST_INDEX', dirname(base_path()).'/frontend/index.html'),
 
     /*
     |--------------------------------------------------------------------------
