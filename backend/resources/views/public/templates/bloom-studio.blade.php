@@ -1,6 +1,25 @@
 @extends('public.layouts.tenant')
 
 @push('head-extras')
+<style id="lw-responsive-safety">
+  html,body{overflow-x:clip;max-width:100%}
+  @media (max-width:880px){
+    .nav-inner{gap:10px;min-width:0;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+    .nav .brand,.brand,nav.top .brand,nav.top .logo{min-width:0;flex:1 1 auto;max-width:calc(100% - 118px)}
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo,nav.top .brand.brand-has-img .nav-brand-img{
+      width:auto!important;height:auto!important;max-width:min(140px,38vw)!important;
+      max-height:calc(44px * var(--lw-logo-scale,1.35))!important;object-fit:contain!important
+    }
+    .nav-actions,.nav .nav-right,nav.top .actions{flex-shrink:0;gap:8px}
+    .nav-cta,nav.top .nav-cta{white-space:nowrap;font-size:clamp(9px,2.8vw,11px);padding:7px 10px}
+    .menu-toggle{flex-shrink:0}
+  }
+  @media (max-width:480px){
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo{
+      max-width:min(120px,34vw)!important;max-height:calc(38px * var(--lw-logo-scale,1.35))!important
+    }
+  }
+</style>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=DM+Sans:wght@400;500;700&display=swap"/>
@@ -10,7 +29,7 @@
   if (p.get('thumb') === '1') return;
   var l = document.createElement('link');
   l.rel = 'stylesheet';
-  l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  l.href = 'https://unpkg.com/leaflet@' + '1.9.4/dist/leaflet.css';
   l.crossOrigin = '';
   document.head.appendChild(l);
 })();
@@ -33,7 +52,7 @@
     overflow-x:hidden;
     -webkit-font-smoothing:antialiased;
   }
-  ::selection{ background:var(--coral); color:#fff; }
+  ::selection{ background:var(--coral); color:var(--coral-on,#fff); }
   a{ color:inherit; text-decoration:none; }
   img{ display:block; max-width:100%; }
 
@@ -113,7 +132,7 @@
   .btn:hover::before{ transform:translateY(0); }
   .btn:active{ transform:scale(.97); }
 
-  .btn.coral{ background:var(--coral); color:#fff; }
+  .btn.coral{ background:var(--coral); color:var(--coral-on,#fff); }
   .btn.coral::before{ background:var(--ink); }
   .btn.cream{ background:#fff; color:var(--coral); }
   .btn.cream::before{ background:var(--coral); }
@@ -153,7 +172,7 @@
   header.hero{ position:relative; height:100vh; height:100dvh; min-height:680px; overflow:hidden; isolation:isolate; padding-top:64px; }
   .hero-photo{
     position:absolute; inset:0; z-index:-3;
-    background:url("https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1800&q=80") center/cover;
+    background:transparent;
   }
   .hero-grad{
     position:absolute; inset:0; z-index:-2;
@@ -230,13 +249,13 @@
   }
   .about-photo{
     aspect-ratio:4/5; position:relative;
-    background:url("https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=900&q=80") center/cover;
+    background:transparent;
     border-radius:8px;
     clip-path:polygon(0 0, 96% 0, 100% 8%, 100% 100%, 4% 100%, 0 92%);
   }
   .about-photo .badge{
     position:absolute; left:-22px; bottom:30px;
-    background:var(--coral); color:#fff;
+    background:var(--coral); color:var(--coral-on,#fff);
     padding:14px 22px; border-radius:99px;
     font-weight:500; font-size:14px; box-shadow:0 14px 54px color-mix(in srgb, var(--coral) 35%, transparent);
     display:flex; align-items:center; gap:10px;
@@ -263,7 +282,7 @@
   .bloom-about-extra__img:not(.has-photo){background:linear-gradient(145deg,var(--bg-2),#e8e4df)}
   .pill-tel{
     display:inline-flex; align-items:center; gap:10px;
-    padding:14px 22px; border-radius:99px; background:var(--coral); color:#fff;
+    padding:14px 22px; border-radius:99px; background:var(--coral); color:var(--coral-on,#fff);
     font-weight:500; font-size:15px; box-shadow:0 12px 30px color-mix(in srgb, var(--coral) 25%, transparent);
     transition:transform .25s ease, box-shadow .3s ease;
   }
@@ -377,7 +396,7 @@
   .days .card .dhours{ font-family:var(--serif); font-size:18px; font-weight:500; }
   .days .card .dlabel{ font-size:11px; color:rgba(28,28,28,.5); margin-top:auto; }
   .days .card.today{
-    background:var(--coral); color:#fff; border-color:var(--coral);
+    background:var(--coral); color:var(--coral-on,#fff); border-color:var(--coral);
     box-shadow:0 18px 54px color-mix(in srgb, var(--coral) 30%, transparent);
     animation:todayPulse 2.6s ease-in-out infinite;
   }
@@ -413,7 +432,7 @@
     color:var(--light);
     transition:background .3s, color .3s, border-color .3s, transform .3s;
   }
-  .social a:hover{ background:var(--coral); color:#fff; border-color:var(--coral); transform:translateY(-2px); }
+  .social a:hover{ background:var(--coral); color:var(--coral-on,#fff); border-color:var(--coral); transform:translateY(-2px); }
   .foot-bottom{
     display:flex; justify-content:space-between; align-items:center;
     padding-top:24px; color:rgba(245,240,232,.45); font-size:13px;
@@ -585,8 +604,9 @@
   @media (max-width:654px){ .lw-gallery-lightbox-close{top:8px;right:8px} }
 </style>
 @endverbatim
+<!-- BRAND_OVERRIDE_PLACEHOLDER:coral -->
+<script src="/templates/brand-apply.js?v=1"></script>
 
-@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
 
 @endpush
 
@@ -638,7 +658,7 @@
 
 <!-- ═══ 1. PORTADA ═════════════════════════════════════ -->
 <header class="hero" id="portada">
-  <div class="hero-photo" id="heroBg"></div>
+  <div class="hero-photo" id="heroBg"@if($portada) style="background-image:url('{{ $portada }}')" @endif></div>
   <div class="hero-grad"></div>
   <div class="hero-darken"></div>
   <span class="shape s1"></span>
@@ -668,11 +688,10 @@
 <section id="sobre-nosotros">
   <div class="wrap" id="aboutSec">
     <div class="about">
-      <div class="about-photo r-left" id="aboutPhotoBg">
-      </div>
+      <div class="about-photo r-left" id="aboutPhotoBg"@if($foto_equipo) style="background-image:url('{{ $foto_equipo }}')" @endif></div>
       <div class="about-text r-right d-1">
         <span class="eyebrow-coral">Sobre nosotros</span>
-        <h2 id="aboutTitle">{{ filled($about_title) ? $about_title : 'Sobre nosotros.' }}</h2>
+        <h2 id="aboutTitle">Sobre nosotros.</h2>
         <p id="aboutDescripcion">{{ $descripcion }}</p>
 
         <div class="about-actions">
@@ -690,7 +709,7 @@
         </div>
       </div>
     </div>
-    @include('public.partials.about-extra-blocks-bloom-studio')
+    <div id="aboutExtraBlocks" class="bloom-about-extras"></div>
   </div>
 </section>
 
@@ -726,7 +745,12 @@
     <div class="gallery-head">
       <h2 class="r-left">Trabajos <em>recientes</em>.</h2>
     </div>
-    <div class="grid" id="galleryLiveBloom"></div>
+    <div class="grid" id="galleryLiveBloom">
+@forelse($galeria as $imgUrl)
+    <div class="photo"><img src="{{ $imgUrl }}" alt=""/></div>
+@empty
+@endforelse
+  </div>
   </div>
 </section>
 
@@ -770,7 +794,7 @@
       <div id="bloomMapShell" class="bloom-map-shell" hidden>
         <div id="bloomMapLeafletContainer" class="bloom-map-leaflet" role="img" aria-label="Mapa del negocio"></div>
       </div>
-      <p id="bloomMapPlaceholder" class="bloom-map-placeholder"@if(is_numeric($map_lat) && is_numeric($map_lon)) hidden @endif>En el asistente, escribe tu dirección y pulsa «Buscar» para ver el mapa aquí.</p>
+      <p id="bloomMapPlaceholder" class="bloom-map-placeholder">En el asistente, escribe tu dirección y pulsa «Buscar» para ver el mapa aquí.</p>
       <div id="tplMapsDirectionsRow" class="bloom-map-directions-row" style="display:none;">
         <a href="{{ $google_maps_url ?: '#' }}" id="tplMapsExternalLink" class="btn outline light sm" target="_blank" rel="noopener noreferrer">Abrir en Google Maps</a>
       </div>
@@ -796,21 +820,65 @@
       <div>
         <div class="foot-h">Legal</div>
         <ul>
-          <li><a href="{{ rtrim(config('app.frontend_url'), '/') }}/aviso-legal" target="_blank" rel="noopener noreferrer">Aviso legal</a></li>
-          <li><a href="{{ rtrim(config('app.frontend_url'), '/') }}/privacidad" target="_blank" rel="noopener noreferrer">Privacidad</a></li>
-          <li><a href="{{ rtrim(config('app.frontend_url'), '/') }}/cookies" target="_blank" rel="noopener noreferrer">Cookies</a></li>
+          <li><a href="/aviso-legal" target="_blank" rel="noopener noreferrer">Aviso legal</a></li>
+          <li><a href="/privacidad" target="_blank" rel="noopener noreferrer">Privacidad</a></li>
+          <li><a href="/cookies" target="_blank" rel="noopener noreferrer">Cookies</a></li>
         </ul>
       </div>
     </div>
     <div class="foot-bottom">
       <span>© 2026 · Salón Margarita</span>
-      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://onez.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
+      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
     </div>
   </div>
 </footer>
 @endsection
 
 @push('body-end')
+<script>
+  window.__lwLat = {{ is_numeric($map_lat) ? $map_lat : 'null' }};
+  window.__lwLon = {{ is_numeric($map_lon) ? $map_lon : 'null' }};
+</script>
+
+<script>
+window.lwIsEmbedPreview = function () {
+  return document.body.classList.contains('embed-preview')
+    || document.body.classList.contains('urban-preview')
+    || document.body.classList.contains('noir-preview')
+    || document.body.classList.contains('bloom-preview')
+    || document.body.classList.contains('sleek-preview');
+};
+window.lwImageBase = function (u) {
+  if (!u) return '';
+  try {
+    var p = new URL(u, location.href);
+    return p.origin + p.pathname;
+  } catch (e) {
+    return String(u).split('?')[0].split('#')[0];
+  }
+};
+window.lwSameImage = function (a, b) {
+  return window.lwImageBase(a) === window.lwImageBase(b);
+};
+window.lwTenantHeroSrc = function (src, sampleUrl) {
+  src = src ? String(src).trim() : '';
+  if (!src) return '';
+  if (window.lwIsEmbedPreview() && /^https?:\/\//i.test(src) && sampleUrl && src !== sampleUrl) {
+    return src + (src.indexOf('?') >= 0 ? '&' : '?') + 'lwts=' + Date.now();
+  }
+  return src;
+};
+window.lwGalleryMatchesDom = function (root, list) {
+  if (!root || !list || !list.length) return false;
+  var imgs = root.querySelectorAll('img');
+  if (imgs.length !== list.length) return false;
+  for (var i = 0; i < list.length; i++) {
+    if (!window.lwSameImage(imgs[i].src, list[i])) return false;
+  }
+  return true;
+};
+</script>
+
 <script>
 window.__lwTrackUrl = '{{ $api_base_url }}/api/v1/public/{{ $subdomain }}/track';
 function lwTrackClick(kind) {
@@ -843,16 +911,9 @@ function lwTrackClick(kind) {
 (function () {
   var p = new URLSearchParams(location.search);
   if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
-  if (window.__LW_LEAFLET_LOADER_STARTED) return;
-  window.__LW_LEAFLET_LOADER_STARTED = true;
   var s = document.createElement('script');
   s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
   s.crossOrigin = '';
-  s.onload = function () {
-    if (typeof lwBootTenantMap === 'function') {
-      lwBootTenantMap(window.__lwMapAddress || '');
-    }
-  };
   document.head.appendChild(s);
 })();
 </script>
@@ -947,6 +1008,98 @@ html.lw-preview-inert a[href^="#"] {
 })();
 </script>
 <script>
+/**
+ * Aplica teléfono y enlaces WhatsApp en plantillas HTML (iframe público / onboarding).
+ * - Actualiza [data-wa-link], cualquier <a href*="wa.me"> y placeholders {{ $whatsapp }}
+ * - Abre WhatsApp en nueva pestaña (necesario dentro del iframe del SPA)
+ */
+(function initThumbScrollLock() {
+  if (new URLSearchParams(window.location.search).get('thumb') !== '1') return;
+  var id = 'lw-thumb-scroll-lock';
+  if (document.getElementById(id)) return;
+  var style = document.createElement('style');
+  style.id = id;
+  style.textContent =
+    'html,body{overflow:hidden!important;height:100%!important;max-height:100%!important;' +
+    'overscroll-behavior:none!important;touch-action:none!important;' +
+    'position:fixed!important;width:100%!important;margin:0!important;}';
+  (document.head || document.documentElement).appendChild(style);
+})();
+
+(function (global) {
+  function digitsFrom(raw, key) {
+    if (!raw || raw[key] == null) return '';
+    return String(raw[key]).replace(/\D/g, '');
+  }
+
+  function resolvePhone(raw) {
+    raw = raw || {};
+    var phoneRaw = raw.telefono != null ? String(raw.telefono).trim() : '';
+    var phoneWa = phoneRaw.replace(/\D/g, '');
+    if (!phoneWa) {
+      phoneWa = digitsFrom(raw, 'whatsapp');
+    }
+    return { phoneRaw: phoneRaw, phoneWa: phoneWa };
+  }
+
+  function applyContactLinks(raw) {
+    var phones = resolvePhone(raw);
+    var phoneRaw = phones.phoneRaw;
+    var phoneWa = phones.phoneWa;
+    var waUrl = phoneWa ? 'https://wa.me/' + phoneWa : 'https://wa.me/';
+    var telHref = phoneWa ? 'tel:+' + phoneWa : 'tel:';
+
+    document
+      .querySelectorAll('a[data-wa-link], a[href*="wa.me"], a[href*="{{ $whatsapp }}"]')
+      .forEach(function (el) {
+        if (!(el instanceof HTMLAnchorElement)) return;
+        el.href = waUrl;
+        el.target = '_blank';
+        el.rel = 'noopener noreferrer';
+      });
+
+    document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+      if (!(el instanceof HTMLAnchorElement)) return;
+      el.href = telHref;
+    });
+
+    document.querySelectorAll('[data-phone-display]').forEach(function (el) {
+      el.textContent = phoneRaw || 'Tu teléfono';
+    });
+
+    bindContactClickTracking();
+  }
+
+  function bindContactClickTracking() {
+    function bindOnce(el, kind) {
+      if (!(el instanceof HTMLAnchorElement)) return;
+      if (el.dataset.lwTrackBound === '1') return;
+      el.dataset.lwTrackBound = '1';
+      el.addEventListener('click', function () {
+        try {
+          window.parent.postMessage({ type: 'lw:track-click', kind: kind }, '*');
+        } catch (_) {
+          /* ignore */
+        }
+      });
+    }
+
+    document
+      .querySelectorAll('a[data-wa-link], a[href*="wa.me"], a[href*="{{ $whatsapp }}"]')
+      .forEach(function (el) {
+        bindOnce(el, 'whatsapp_click');
+      });
+
+    document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+      bindOnce(el, 'phone_click');
+    });
+  }
+
+  global.lwApplyContactLinks = applyContactLinks;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
 (function () {
   var p = new URLSearchParams(window.location.search);
   if (p.get('embed') === '1' || p.get('preview') === '1' || p.get('parentOrigin')) {
@@ -966,11 +1119,17 @@ function updateBloomHeroSlider(raw) {
   var hasPortada = raw && Object.prototype.hasOwnProperty.call(raw, 'portada');
   if (!hasPortada) return;
   var heroCover = (raw && raw.portada ? String(raw.portada).trim() : '');
+  if (heroCover && typeof window.lwIsEmbedPreview === 'function' && !window.lwIsEmbedPreview()) {
+    var curBg = (heroBg.style.backgroundImage || '').replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
+    if (curBg && typeof window.lwSameImage === 'function' && window.lwSameImage(curBg, heroCover)) {
+      return;
+    }
+  }
   var withCacheBust = '';
   if (heroCover) {
-    /** Cache-bust solo para URLs HTTP(S) servidas (R2/storage). En `data:` el `?lwts=` rompe el URL
-     * (ERR_INVALID_URL) y en `blob:` invalida el lookup del object URL (hero queda en negro). */
-    if (/^https?:\/\//i.test(heroCover)) {
+    if (typeof window.lwTenantHeroSrc === 'function') {
+      withCacheBust = window.lwTenantHeroSrc(heroCover, '');
+    } else if (/^https?:\/\//i.test(heroCover)) {
       var sep = heroCover.indexOf('?') >= 0 ? '&' : '?';
       withCacheBust = heroCover + sep + 'lwts=' + Date.now();
     } else {
@@ -1044,15 +1203,21 @@ function renderBloomGallery(urls) {
   if (!root) return;
   var list = Array.isArray(urls) ? urls.filter(Boolean) : [];
   if (list.length === 0) {
-    root.innerHTML =
+    if (typeof window.lwIsEmbedPreview === 'function' && window.lwIsEmbedPreview()) {
+      root.innerHTML =
       '<div class="photo"><img src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Color</span></div>' +
       '<div class="photo tall"><img src="https://images.unsplash.com/photo-1605497788044-5a32c7078486?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Mechas balayage</span></div>' +
       '<div class="photo"><img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Corte recto</span></div>' +
       '<div class="photo"><img src="https://images.unsplash.com/photo-1492106087820-71f1a00d2b11?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Recogido</span></div>' +
       '<div class="photo"><img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Studio</span></div>' +
       '<div class="photo"><img src="https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Bob</span></div>' +
-      '<div class="photo"><img src="https://images.unsplash.com/photo-1595944100050-5d9ec0a82c4f?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Detalle</span></div>' +
+      '<div class="photo"><img src="https://images.unsplash.com/photo-1605497788044-5a32c7078486?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Detalle</span></div>' +
       '<div class="photo"><img src="https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Pelirrojo</span></div>';
+    }
+    return;
+  }
+  if (typeof window.lwIsEmbedPreview === 'function' && !window.lwIsEmbedPreview()
+      && typeof window.lwGalleryMatchesDom === 'function' && window.lwGalleryMatchesDom(root, list)) {
     return;
   }
   root.innerHTML = list
@@ -1178,13 +1343,7 @@ function updateBloomPreviewMap(lat, lon, addressLine) {
     if (ph) ph.hidden = false;
     return;
   }
-  if (window.__LW_SKIP_LEAFLET) return;
-  if (typeof L === 'undefined') {
-    if (typeof lwWhenLeafletReady === 'function') {
-      lwWhenLeafletReady(function () { updateBloomPreviewMap(lat, lon, addressLine); });
-    }
-    return;
-  }
+  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
 
   shell.hidden = false;
   if (ph) ph.hidden = true;
@@ -1421,9 +1580,9 @@ function syncBloomTemplateExtensions(raw) {
   }
 
   var LW_DEFAULT_SOCIAL_BLOOM = {
-    instagram: 'https://www.instagram.com/onez.es',
-    tiktok: 'https://www.tiktok.com/@onez',
-    facebook: 'https://www.facebook.com/onez'
+    instagram: 'https://www.instagram.com/localweb.es',
+    tiktok: 'https://www.tiktok.com/@localweb',
+    facebook: 'https://www.facebook.com/localweb'
   };
   function bloomResolveSocialHref(raw, key, fallback) {
     var u = (raw[key] || '').trim();
@@ -1459,7 +1618,7 @@ function applyLivePreviewData(raw, opts) {
   const aboutDefault =
     'Margarita abrió el estudio en 2014 y desde entonces somos cinco peluqueros enamorados del oficio. Trabajamos con cita previa, productos cuidados y conversaciones tranquilas.';
 
-  document.title = `${name} — ONEZ`;
+  document.title = `${name} — LocalWeb`;
 
   const logoUrlBloom = (raw?.logo_url || '').trim();
   var navTopBloom = document.querySelector('nav.top');
@@ -1516,17 +1675,10 @@ function applyLivePreviewData(raw, opts) {
   var bLon = raw?.map_lon;
   var latB = typeof bLat === 'number' ? bLat : parseFloat(bLat);
   var lonB = typeof bLon === 'number' ? bLon : parseFloat(bLon);
-  function bootBloomMapFromPreview() {
-    if (Number.isFinite(latB) && Number.isFinite(lonB)) {
-      updateBloomPreviewMap(latB, lonB, direccion || '');
-    } else {
-      updateBloomPreviewMap(NaN, NaN, direccion || '');
-    }
-  }
-  if (typeof lwWhenLeafletReady === 'function') {
-    lwWhenLeafletReady(bootBloomMapFromPreview);
+  if (Number.isFinite(latB) && Number.isFinite(lonB)) {
+    updateBloomPreviewMap(latB, lonB, direccion || '');
   } else {
-    bootBloomMapFromPreview();
+    updateBloomPreviewMap(NaN, NaN, direccion || '');
   }
 
   const aboutDescripcion = document.getElementById('aboutDescripcion');
@@ -1551,7 +1703,17 @@ function applyLivePreviewData(raw, opts) {
   updateBloomHeroSlider(raw || {});
 
   const aboutPhotoBg = document.getElementById('aboutPhotoBg');
-  if (aboutPhotoBg) aboutPhotoBg.style.backgroundImage = fotoEquipo ? `url("${fotoEquipo}")` : '';
+  if (aboutPhotoBg) {
+    var isPreview = typeof window.lwIsEmbedPreview === 'function' && window.lwIsEmbedPreview();
+    if (isPreview || !fotoEquipo) {
+      aboutPhotoBg.style.backgroundImage = fotoEquipo ? `url("${fotoEquipo}")` : '';
+    } else {
+      var curBg = (aboutPhotoBg.style.backgroundImage || '').replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
+      if (!curBg || (typeof window.lwSameImage === 'function' && !window.lwSameImage(curBg, fotoEquipo))) {
+        aboutPhotoBg.style.backgroundImage = `url("${fotoEquipo}")`;
+      }
+    }
+  }
 
   const galeria = Array.isArray(raw?.galeria) ? raw.galeria.filter(Boolean) : [];
   renderBloomGallery(galeria);
@@ -1565,6 +1727,7 @@ function applyLivePreviewData(raw, opts) {
 <script>
 (function initLivePreviewFromQuery() {
   const params = new URLSearchParams(window.location.search);
+  if (params.get('landingDemo') === '1') return;
   if (!params.has('preview')) return;
   applyLivePreviewData({
     nombre: params.get('nombre') || '',
@@ -1743,6 +1906,7 @@ setInterval(render, 60_000);
 })();
 </script>
 
+<script src="/templates/lw-landing-demo.js?v=2"></script>
 
 @endverbatim
 
@@ -1752,7 +1916,6 @@ setInterval(render, 60_000);
     if (typeof applyLivePreviewData === 'function') {
       applyLivePreviewData({
         logo_url: @json($logo_url),
-        logo_scale: @json($logo_scale ?? null),
         nombre: @json($nombre),
         tagline: @json($tagline),
         telefono: @json($telefono),
@@ -1760,9 +1923,9 @@ setInterval(render, 60_000);
         portada: @json($portada),
         portada_2: @json($portada_2),
         portada_3: @json($portada_3),
+        portada_focal_x: @json($portada_focal_x),
+        portada_focal_y: @json($portada_focal_y),
         descripcion: @json($descripcion),
-        about_title: @json($about_title),
-        about_sections: @json($about_sections),
         foto_equipo: @json($foto_equipo),
         direccion: @json($direccion),
         correo: @json($correo),
@@ -1784,10 +1947,15 @@ setInterval(render, 60_000);
         facebook_url: @json($facebook_url)
       });
     }
-    if (typeof lwWhenLeafletReady === 'function' && typeof lwBootTenantMap === 'function') {
-      lwWhenLeafletReady(function () { lwBootTenantMap(@json($direccion)); });
-    } else if (typeof window.__lwLat === 'number' && typeof window.__lwLon === 'number' && typeof updateBloomPreviewMap === 'function') {
-      updateBloomPreviewMap(window.__lwLat, window.__lwLon, @json($direccion));
+    if (typeof window.__lwLat === 'number' && typeof window.__lwLon === 'number') {
+      if (typeof updateBoldPreviewMap === 'function') updateBoldPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateNoirPreviewMap === 'function') updateNoirPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateSleekPreviewMap === 'function') updateSleekPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateBloomPreviewMap === 'function') updateBloomPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateGraphitePreviewMap === 'function') updateGraphitePreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateWildPreviewMap === 'function') updateWildPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateRepublicaPreviewMap === 'function') updateRepublicaPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateKairosPreviewMap === 'function') updateKairosPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
     }
     if (typeof window.tvAnimationsRefresh === 'function') {
       requestAnimationFrame(function () { window.tvAnimationsRefresh(); });

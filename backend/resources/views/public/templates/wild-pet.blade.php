@@ -1,6 +1,25 @@
 @extends('public.layouts.tenant')
 
 @push('head-extras')
+<style id="lw-responsive-safety">
+  html,body{overflow-x:clip;max-width:100%}
+  @media (max-width:880px){
+    .nav-inner{gap:10px;min-width:0;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+    .nav .brand,.brand,nav.top .brand,nav.top .logo{min-width:0;flex:1 1 auto;max-width:calc(100% - 118px)}
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo,nav.top .brand.brand-has-img .nav-brand-img{
+      width:auto!important;height:auto!important;max-width:min(140px,38vw)!important;
+      max-height:calc(44px * var(--lw-logo-scale,1.35))!important;object-fit:contain!important
+    }
+    .nav-actions,.nav .nav-right,nav.top .actions{flex-shrink:0;gap:8px}
+    .nav-cta,nav.top .nav-cta{white-space:nowrap;font-size:clamp(9px,2.8vw,11px);padding:7px 10px}
+    .menu-toggle{flex-shrink:0}
+  }
+  @media (max-width:480px){
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo{
+      max-width:min(120px,34vw)!important;max-height:calc(38px * var(--lw-logo-scale,1.35))!important
+    }
+  }
+</style>
 <meta name="description" content="Plantilla profesional, divertida y colorida para negocios pet con personalidad." />
 <script>
 (function () {
@@ -67,7 +86,11 @@
   body.embed-preview .sr,
   body.embed-preview [data-stagger],
   body.embed-preview .split,
-  body.embed-preview .pop{ opacity: 1 !important; transform: none !important; }
+  body.embed-preview .pop,
+  body.wild-preview .sr,
+  body.wild-preview [data-stagger],
+  body.wild-preview .split,
+  body.wild-preview .pop{ opacity: 1 !important; transform: none !important; }
   body.embed-preview #aboutExtraBlocks .sr,
   body.wild-preview #aboutExtraBlocks .sr,
   body.embed-preview #aboutExtraBlocks .wild-about-extra,
@@ -735,8 +758,6 @@
     100%{ opacity: 1; transform: scale(1) rotate(0deg); }
   }
 
-  /* ===== Gallery ===== */
-
   /* ABOUT EXTRAS (wild-pet) */
   .wild-about-extras{display:flex;flex-direction:column;gap:clamp(2rem,5vw,4rem);margin-top:clamp(2rem,5vw,4rem);padding-top:clamp(1.5rem,4vw,2.5rem);border-top:3px solid var(--ink)}
   .wild-about-extra.about-grid{align-items:center}
@@ -748,6 +769,8 @@
   .wild-about-extra .wild-about-extra__body p{font-size:1.1rem;margin-top:1.2rem;opacity:.8;max-width:56ch}
   .wild-about-extra .wild-about-extra__photo{max-width:100%}
   @media (max-width:768px){.wild-about-extra.about-grid{grid-template-columns:1fr}.wild-about-extra .wild-about-extra__photo{order:-1!important;max-width:320px;margin-inline:auto}}
+
+  /* ===== Gallery ===== */
   .gallery{
     display: grid;
     grid-template-columns: repeat(12, 1fr);
@@ -1259,11 +1282,11 @@
 <!-- 1. NAV -->
 <header class="nav" role="banner">
   <div class="nav-inner">
-    <a href="#top" class="brand @if($logo_url) brand-has-img @endif" id="navBrandWrap" aria-label="Inicio">
+    <a href="#top" class="brand" id="navBrandWrap" aria-label="Inicio">
       @if($logo_url)
-      <img id="navBrandLogo" class="nav-brand-img" src="{{ $logo_url }}" alt="{{ $nombre }}" width="168" height="36" decoding="async"/>
+      <img id="navBrandLogo" class="nav-brand-img" src="{{ $logo_url }}" alt="{{ $nombre }}" decoding="async"/>
       @else
-      <img id="navBrandLogo" class="nav-brand-img" alt="" width="168" height="36" decoding="async" hidden style="display:none"/>
+      <img id="navBrandLogo" class="nav-brand-img" alt="" hidden style="display:none"/>
       @endif
       <span class="brand-mark" id="navBrandMark" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><circle cx="6" cy="10" r="2"/><circle cx="10" cy="6" r="2"/><circle cx="14" cy="6" r="2"/><circle cx="18" cy="10" r="2"/><path d="M12 11c-3 0-6 2.5-6 5.5 0 2 1.5 3.5 3.5 3.5.9 0 1.6-.4 2.5-.4s1.6.4 2.5.4c2 0 3.5-1.5 3.5-3.5 0-3-3-5.5-6-5.5z"/></svg>
@@ -1421,7 +1444,7 @@
       </div>
     </div>
   </div>
-    @include('public.partials.about-extra-blocks-wild-pet')
+    <div class="container"><div id="aboutExtraBlocks" class="wild-about-extras"></div></div>
 </section>
 
 <!-- 6. GALERÍA -->
@@ -1433,26 +1456,17 @@
       <span class="eyebrow">Galería</span>
       <h2>Caras felices en cada foto</h2>
     </div>
-        <div class="gallery" data-stagger id="galleryLive">
+      <div class="gallery" id="galleryLive">
+@forelse($galeria as $imgUrl)
 @php
-  $wildDemoGallery = [
-    'https://images.unsplash.com/photo-1450778869180-41d0601e046e?auto=format&fit=crop&w=900&q=75',
-    'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=900&q=75',
-    'https://images.unsplash.com/photo-1561037404-61cd46aa615b?auto=format&fit=crop&w=900&q=75',
-    'https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=700&q=75',
-    'https://images.unsplash.com/photo-1546527868-ccb7ee7dfa6a?auto=format&fit=crop&w=700&q=75',
-    'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=700&q=75',
-    'https://images.unsplash.com/photo-1526336024174-e58f5cdd8e13?auto=format&fit=crop&w=700&q=75',
-  ];
+  $cls = '';
+  if ($loop->count > 1 && $loop->first) { $cls = ' tall'; }
+  elseif ($loop->count > 3 && $loop->iteration === 4) { $cls = ' wide'; }
 @endphp
-@forelse(($galeria ?? []) as $imgUrl)
-    <div class="g-item has-photo"><img class="g-photo" src="{{ $imgUrl }}" alt="" loading="lazy" decoding="async"></div>
+    <div class="gallery-item{{ $cls }}"><img src="{{ $imgUrl }}" alt=""/></div>
 @empty
-@foreach($wildDemoGallery as $imgUrl)
-    <div class="g-item has-photo"><img class="g-photo" src="{{ $imgUrl }}" alt="" loading="lazy" decoding="async"></div>
-@endforeach
 @endforelse
-    </div>
+  </div>
   </div>
 </section>
 
@@ -1661,17 +1675,55 @@
     </div>
     <div class="footer-bottom">
       <span id="footBottomBrand">© <span id="year"></span> · {{ $nombre }} · Todos los derechos reservados</span>
-      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://onez.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
+      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
     </div>
   </div>
 </footer>
 @endsection
 
 @push('body-end')
-
 <script>
   window.__lwLat = {{ is_numeric($map_lat) ? $map_lat : 'null' }};
   window.__lwLon = {{ is_numeric($map_lon) ? $map_lon : 'null' }};
+</script>
+
+<script>
+window.lwIsEmbedPreview = function () {
+  return document.body.classList.contains('embed-preview')
+    || document.body.classList.contains('urban-preview')
+    || document.body.classList.contains('noir-preview')
+    || document.body.classList.contains('bloom-preview')
+    || document.body.classList.contains('sleek-preview');
+};
+window.lwImageBase = function (u) {
+  if (!u) return '';
+  try {
+    var p = new URL(u, location.href);
+    return p.origin + p.pathname;
+  } catch (e) {
+    return String(u).split('?')[0].split('#')[0];
+  }
+};
+window.lwSameImage = function (a, b) {
+  return window.lwImageBase(a) === window.lwImageBase(b);
+};
+window.lwTenantHeroSrc = function (src, sampleUrl) {
+  src = src ? String(src).trim() : '';
+  if (!src) return '';
+  if (window.lwIsEmbedPreview() && /^https?:\/\//i.test(src) && sampleUrl && src !== sampleUrl) {
+    return src + (src.indexOf('?') >= 0 ? '&' : '?') + 'lwts=' + Date.now();
+  }
+  return src;
+};
+window.lwGalleryMatchesDom = function (root, list) {
+  if (!root || !list || !list.length) return false;
+  var imgs = root.querySelectorAll('img');
+  if (imgs.length !== list.length) return false;
+  for (var i = 0; i < list.length; i++) {
+    if (!window.lwSameImage(imgs[i].src, list[i])) return false;
+  }
+  return true;
+};
 </script>
 
 <script>
@@ -1850,6 +1902,19 @@ function lwTrackClick(kind) {
  * - Actualiza [data-wa-link], cualquier <a href*="wa.me"> y placeholders {{ $whatsapp }}
  * - Abre WhatsApp en nueva pestaña (necesario dentro del iframe del SPA)
  */
+(function initThumbScrollLock() {
+  if (new URLSearchParams(window.location.search).get('thumb') !== '1') return;
+  var id = 'lw-thumb-scroll-lock';
+  if (document.getElementById(id)) return;
+  var style = document.createElement('style');
+  style.id = id;
+  style.textContent =
+    'html,body{overflow:hidden!important;height:100%!important;max-height:100%!important;' +
+    'overscroll-behavior:none!important;touch-action:none!important;' +
+    'position:fixed!important;width:100%!important;margin:0!important;}';
+  (document.head || document.documentElement).appendChild(style);
+})();
+
 (function (global) {
   function digitsFrom(raw, key) {
     if (!raw || raw[key] == null) return '';
@@ -1933,8 +1998,9 @@ function lwTrackClick(kind) {
     if (params.get('embed') === '1' || params.get('preview') === '1' || params.get('parentOrigin') || window.self !== window.top) {
       document.documentElement.classList.add('embed-preview-root');
       document.body.classList.add('embed-preview');
+      document.body.classList.add('wild-preview');
     }
-    if (params.get('preview') === '1' || params.get('thumb') === '1') {
+    if (params.get('thumb') === '1') {
       document.body.classList.add('wild-preview');
     }
   })();
@@ -2807,6 +2873,7 @@ function lwTrackClick(kind) {
 
   (function initLivePreviewFromQuery() {
     var params = new URLSearchParams(window.location.search);
+    if (params.get('landingDemo') === '1') return;
     if (!params.has('preview')) {
       syncWildScheduleFromPreview(null);
       renderWildSchedule();
@@ -2883,10 +2950,10 @@ function lwTrackClick(kind) {
 })();
 
 </script>
+<script src="/templates/lw-about-extras.js?v=3"></script>
+<script src="/templates/lw-landing-demo.js?v=2"></script>
 
 @endverbatim
-
-<script src="/templates/lw-about-extras.js?v=3"></script>
 
 <script>
 (function bootWildPetTenantPage() {
@@ -2894,7 +2961,6 @@ function lwTrackClick(kind) {
     if (typeof applyLivePreviewData === 'function') {
       applyLivePreviewData({
         logo_url: @json($logo_url),
-        logo_scale: @json($logo_scale ?? null),
         nombre: @json($nombre),
         tagline: @json($tagline),
         telefono: @json($telefono),
@@ -2902,9 +2968,9 @@ function lwTrackClick(kind) {
         portada: @json($portada),
         portada_2: @json($portada_2),
         portada_3: @json($portada_3),
+        portada_focal_x: @json($portada_focal_x),
+        portada_focal_y: @json($portada_focal_y),
         descripcion: @json($descripcion),
-        about_title: @json($about_title),
-        about_sections: @json($about_sections),
         foto_equipo: @json($foto_equipo),
         direccion: @json($direccion),
         correo: @json($correo),

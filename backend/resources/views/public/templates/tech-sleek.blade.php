@@ -1,6 +1,25 @@
 @extends('public.layouts.tenant')
 
 @push('head-extras')
+<style id="lw-responsive-safety">
+  html,body{overflow-x:clip;max-width:100%}
+  @media (max-width:880px){
+    .nav-inner{gap:10px;min-width:0;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+    .nav .brand,.brand,nav.top .brand,nav.top .logo{min-width:0;flex:1 1 auto;max-width:calc(100% - 118px)}
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo,nav.top .brand.brand-has-img .nav-brand-img{
+      width:auto!important;height:auto!important;max-width:min(140px,38vw)!important;
+      max-height:calc(44px * var(--lw-logo-scale,1.35))!important;object-fit:contain!important
+    }
+    .nav-actions,.nav .nav-right,nav.top .actions{flex-shrink:0;gap:8px}
+    .nav-cta,nav.top .nav-cta{white-space:nowrap;font-size:clamp(9px,2.8vw,11px);padding:7px 10px}
+    .menu-toggle{flex-shrink:0}
+  }
+  @media (max-width:480px){
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo{
+      max-width:min(120px,34vw)!important;max-height:calc(38px * var(--lw-logo-scale,1.35))!important
+    }
+  }
+</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -10,7 +29,7 @@
   if (p.get('thumb') === '1') return;
   var l = document.createElement('link');
   l.rel = 'stylesheet';
-  l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  l.href = 'https://unpkg.com/leaflet@' + '1.9.4/dist/leaflet.css';
   l.crossOrigin = '';
   document.head.appendChild(l);
 })();
@@ -29,7 +48,7 @@
     --ink-3:#6E7796;
     --cyan:#5EEAD4;
     --violet:#8B7CF6;
-    --cyan-soft:var(--cyan-soft);
+    --cyan-soft:color-mix(in srgb, var(--cyan) 16%, transparent);
     --violet-soft:rgba(139,124,246,.18);
   }
   *{margin:0;padding:0;box-sizing:border-box}
@@ -158,8 +177,7 @@ body.menu-open .sheet{opacity:1;pointer-events:auto}
 .about-actions .btn-outline:hover{border-color:var(--cyan);background:rgba(0,229,255,.06)}
 .about-actions .btn-outline svg{width:16px;height:16px;flex-shrink:0}
 
-
-  /* ABOUT EXTRAS (tech-sleek) */
+/* ABOUT EXTRAS (tech-sleek) */
   .sleek-about-extras{display:flex;flex-direction:column;gap:64px;margin-top:64px;padding-top:48px;border-top:1px solid var(--line-2);max-width:1280px;margin-left:auto;margin-right:auto;padding:0 clamp(20px,4vw,46px);box-sizing:border-box}
   .sleek-about-extra.about-inner{align-items:center}
   .sleek-about-extra--text-first .about-text{order:1}
@@ -169,7 +187,6 @@ body.menu-open .sheet{opacity:1;pointer-events:auto}
   .sleek-about-extra .about-text h3{font-size:clamp(36px,3.5vw,46px);font-weight:600;letter-spacing:-.025em;line-height:1.1;margin:0}
   .sleek-about-extra .about-text h3 span{background:linear-gradient(135deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
   @media (max-width:768px){.sleek-about-extra.about-inner{grid-template-columns:1fr;gap:40px}.sleek-about-extra .about-photo-col{order:-1!important}}
-
 /* GALLERY */
 .gallery-grid{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
 .gallery-item{position:relative;border-radius:20px;overflow:hidden;border:1px solid var(--line);background:var(--bg-2);aspect-ratio:4/5;transition:border-color .25s,transform .25s}
@@ -436,8 +453,9 @@ body.sleek-preview #aboutExtraBlocks .tv-split{
   }
 </style>
 @endverbatim
+<!-- BRAND_OVERRIDE_PLACEHOLDER:cyan -->
+<script src="/templates/brand-apply.js?v=1"></script>
 
-@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
 
 @endpush
 
@@ -480,7 +498,7 @@ body.sleek-preview #aboutExtraBlocks .tv-split{
 
 <!-- HERO -->
 <header class="hero" id="portada">
-  <div class="hero-bg is-empty" id="sleekHeroBg"></div>
+  <div class="hero-bg@if(!$portada) is-empty@endif" id="sleekHeroBg"@if($portada) style="background-image:url('{{ $portada }}')" @endif></div>
   <div class="hero-inner">
     <div class="hero-status" id="sleekHeroStatus">
       <span class="dot"></span>
@@ -519,7 +537,7 @@ body.sleek-preview #aboutExtraBlocks .tv-split{
   <div class="about-inner">
     <div class="about-text">
       <span class="eyebrow">Sobre nosotros</span>
-      <h2><span id="sleekAboutTitle">{{ filled($about_title) ? $about_title : 'Sobre nosotros.' }}</span></h2>
+      <h2><span id="sleekAboutTitle">Tu negocio</span></h2>
       <p id="sleekAboutDescripcion">Descripción del negocio: quiénes sois, qué hacéis y por qué importa.</p>
       <div class="about-stats" id="sleekAboutStats" style="display:none;">
         <div class="about-stat"><span class="about-stat-value" id="sleekStatYears">—</span><span class="about-stat-label">Años</span></div>
@@ -538,13 +556,17 @@ body.sleek-preview #aboutExtraBlocks .tv-split{
       </div>
     </div>
     <div class="about-photo-col">
-      <div class="about-photo is-empty" id="sleekAboutPhotoWrap">
-        <img id="sleekAboutPhotoImg" src="" alt=""/>
+      <div class="about-photo@if(!$foto_equipo) is-empty@endif" id="sleekAboutPhotoWrap">
+        @if($foto_equipo)
+        <img id="sleekAboutPhotoImg" src="{{ $foto_equipo }}" alt="{{ $nombre }}"/>
+        @else
+        <img id="sleekAboutPhotoImg" src="" alt="" hidden style="display:none"/>
+        @endif
         <div class="about-photo-accent"></div>
     </div>
     </div>
   </div>
-    @include('public.partials.about-extra-blocks-tech-sleek')
+    <div id="aboutExtraBlocks" class="sleek-about-extras" data-main-text-first="1"></div>
 </section>
 
 <!-- GALLERY -->
@@ -555,7 +577,18 @@ body.sleek-preview #aboutExtraBlocks .tv-split{
       <h2>Trabajos<br/><span>recientes.</span></h2>
     </div>
   </div>
-  <div class="gallery-grid" id="sleekGalleryList"></div>
+  <div class="gallery-grid" id="sleekGalleryList">
+@forelse($galeria as $imgUrl)
+@php
+  $cls = '';
+  if ($loop->count >= 4 && $loop->first) { $cls = ' sleek-gallery-wide'; }
+  elseif ($loop->count >= 4 && $loop->iteration === 3) { $cls = ' sleek-gallery-tall'; }
+  elseif ($loop->count >= 6 && $loop->iteration === 6) { $cls = ' sleek-gallery-wide'; }
+@endphp
+    <div class="gallery-item{{ $cls }}"><img src="{{ $imgUrl }}" alt=""/></div>
+@empty
+@endforelse
+  </div>
 </section>
 
 <!-- HORARIO + CONTACTO -->
@@ -676,7 +709,7 @@ body.sleek-preview #aboutExtraBlocks .tv-split{
   </div>
   <div class="foot-bot">
     <span id="sleekFootBottomBrand">// © 2026 · Tu negocio</span>
-    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://onez.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
+    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
   </div>
 </footer>
 @endsection
@@ -685,6 +718,45 @@ body.sleek-preview #aboutExtraBlocks .tv-split{
 <script>
   window.__lwLat = {{ is_numeric($map_lat) ? $map_lat : 'null' }};
   window.__lwLon = {{ is_numeric($map_lon) ? $map_lon : 'null' }};
+</script>
+
+<script>
+window.lwIsEmbedPreview = function () {
+  return document.body.classList.contains('embed-preview')
+    || document.body.classList.contains('urban-preview')
+    || document.body.classList.contains('noir-preview')
+    || document.body.classList.contains('bloom-preview')
+    || document.body.classList.contains('sleek-preview');
+};
+window.lwImageBase = function (u) {
+  if (!u) return '';
+  try {
+    var p = new URL(u, location.href);
+    return p.origin + p.pathname;
+  } catch (e) {
+    return String(u).split('?')[0].split('#')[0];
+  }
+};
+window.lwSameImage = function (a, b) {
+  return window.lwImageBase(a) === window.lwImageBase(b);
+};
+window.lwTenantHeroSrc = function (src, sampleUrl) {
+  src = src ? String(src).trim() : '';
+  if (!src) return '';
+  if (window.lwIsEmbedPreview() && /^https?:\/\//i.test(src) && sampleUrl && src !== sampleUrl) {
+    return src + (src.indexOf('?') >= 0 ? '&' : '?') + 'lwts=' + Date.now();
+  }
+  return src;
+};
+window.lwGalleryMatchesDom = function (root, list) {
+  if (!root || !list || !list.length) return false;
+  var imgs = root.querySelectorAll('img');
+  if (imgs.length !== list.length) return false;
+  for (var i = 0; i < list.length; i++) {
+    if (!window.lwSameImage(imgs[i].src, list[i])) return false;
+  }
+  return true;
+};
 </script>
 
 <script>
@@ -719,16 +791,9 @@ function lwTrackClick(kind) {
 (function () {
   var p = new URLSearchParams(location.search);
   if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
-  if (window.__LW_LEAFLET_LOADER_STARTED) return;
-  window.__LW_LEAFLET_LOADER_STARTED = true;
   var s = document.createElement('script');
   s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
   s.crossOrigin = '';
-  s.onload = function () {
-    if (typeof lwBootTenantMap === 'function') {
-      lwBootTenantMap(window.__lwMapAddress || '');
-    }
-  };
   document.head.appendChild(s);
 })();
 </script>
@@ -821,6 +886,98 @@ html.lw-preview-inert a[href^="#"] {
     e.stopPropagation();
   }, true);
 })();
+</script>
+<script>
+/**
+ * Aplica teléfono y enlaces WhatsApp en plantillas HTML (iframe público / onboarding).
+ * - Actualiza [data-wa-link], cualquier <a href*="wa.me"> y placeholders {{ $whatsapp }}
+ * - Abre WhatsApp en nueva pestaña (necesario dentro del iframe del SPA)
+ */
+(function initThumbScrollLock() {
+  if (new URLSearchParams(window.location.search).get('thumb') !== '1') return;
+  var id = 'lw-thumb-scroll-lock';
+  if (document.getElementById(id)) return;
+  var style = document.createElement('style');
+  style.id = id;
+  style.textContent =
+    'html,body{overflow:hidden!important;height:100%!important;max-height:100%!important;' +
+    'overscroll-behavior:none!important;touch-action:none!important;' +
+    'position:fixed!important;width:100%!important;margin:0!important;}';
+  (document.head || document.documentElement).appendChild(style);
+})();
+
+(function (global) {
+  function digitsFrom(raw, key) {
+    if (!raw || raw[key] == null) return '';
+    return String(raw[key]).replace(/\D/g, '');
+  }
+
+  function resolvePhone(raw) {
+    raw = raw || {};
+    var phoneRaw = raw.telefono != null ? String(raw.telefono).trim() : '';
+    var phoneWa = phoneRaw.replace(/\D/g, '');
+    if (!phoneWa) {
+      phoneWa = digitsFrom(raw, 'whatsapp');
+    }
+    return { phoneRaw: phoneRaw, phoneWa: phoneWa };
+  }
+
+  function applyContactLinks(raw) {
+    var phones = resolvePhone(raw);
+    var phoneRaw = phones.phoneRaw;
+    var phoneWa = phones.phoneWa;
+    var waUrl = phoneWa ? 'https://wa.me/' + phoneWa : 'https://wa.me/';
+    var telHref = phoneWa ? 'tel:+' + phoneWa : 'tel:';
+
+    document
+      .querySelectorAll('a[data-wa-link], a[href*="wa.me"], a[href*="{{ $whatsapp }}"]')
+      .forEach(function (el) {
+        if (!(el instanceof HTMLAnchorElement)) return;
+        el.href = waUrl;
+        el.target = '_blank';
+        el.rel = 'noopener noreferrer';
+      });
+
+    document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+      if (!(el instanceof HTMLAnchorElement)) return;
+      el.href = telHref;
+    });
+
+    document.querySelectorAll('[data-phone-display]').forEach(function (el) {
+      el.textContent = phoneRaw || 'Tu teléfono';
+    });
+
+    bindContactClickTracking();
+  }
+
+  function bindContactClickTracking() {
+    function bindOnce(el, kind) {
+      if (!(el instanceof HTMLAnchorElement)) return;
+      if (el.dataset.lwTrackBound === '1') return;
+      el.dataset.lwTrackBound = '1';
+      el.addEventListener('click', function () {
+        try {
+          window.parent.postMessage({ type: 'lw:track-click', kind: kind }, '*');
+        } catch (_) {
+          /* ignore */
+        }
+      });
+    }
+
+    document
+      .querySelectorAll('a[data-wa-link], a[href*="wa.me"], a[href*="{{ $whatsapp }}"]')
+      .forEach(function (el) {
+        bindOnce(el, 'whatsapp_click');
+      });
+
+    document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+      bindOnce(el, 'phone_click');
+    });
+  }
+
+  global.lwApplyContactLinks = applyContactLinks;
+})(typeof window !== 'undefined' ? window : globalThis);
+
 </script>
 <script>
 (function initSleekPreviewModeClasses() {
@@ -978,7 +1135,10 @@ function renderSleekGallery(urls) {
   if (!root) return;
   var list = Array.isArray(urls) ? urls.filter(Boolean) : [];
   if (list.length === 0) {
-    root.innerHTML = SLEEK_DEFAULT_GALLERY_INNER;
+    if (shouldUseSleekSampleMedia()) root.innerHTML = SLEEK_DEFAULT_GALLERY_INNER;
+  } else if (typeof window.lwIsEmbedPreview === 'function' && !window.lwIsEmbedPreview()
+      && typeof window.lwGalleryMatchesDom === 'function' && window.lwGalleryMatchesDom(root, list)) {
+    /* SSR gallery already painted */
   } else {
     root.innerHTML = list.map(function (src, i) {
       var cls = '';
@@ -1001,10 +1161,13 @@ function updateSleekHeroPhoto(raw) {
   if (!hasPortada && !shouldUseSleekSampleMedia()) return;
   var src = sleekResolvePreviewPhotoSrc(raw && raw.portada, 'portada');
   if (!src) { bg.style.backgroundImage = ''; bg.classList.add('is-empty'); return; }
-  var bust = src;
-  if (/^https?:\/\//i.test(src) && src !== SLEEK_PREVIEW_SAMPLE.portada) {
-    bust = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'lwts=' + Date.now();
+  if (!shouldUseSleekSampleMedia()) {
+    var curBg = (bg.style.backgroundImage || '').replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
+    if (curBg && typeof window.lwSameImage === 'function' && window.lwSameImage(curBg, src)) return;
   }
+  var bust = typeof window.lwTenantHeroSrc === 'function'
+    ? window.lwTenantHeroSrc(src, SLEEK_PREVIEW_SAMPLE.portada)
+    : src;
   bg.style.backgroundImage = 'url("' + bust.replace(/"/g, '\\"') + '")';
   bg.classList.remove('is-empty');
 }
@@ -1016,6 +1179,7 @@ function updateSleekAboutPhoto(raw) {
   if (!hasFoto && !shouldUseSleekSampleMedia()) return;
   var src = sleekResolvePreviewPhotoSrc(raw && raw.foto_equipo, 'foto_equipo');
   if (!src) { img.removeAttribute('src'); wrap.classList.add('is-empty'); return; }
+  if (!shouldUseSleekSampleMedia() && img.src && typeof window.lwSameImage === 'function' && window.lwSameImage(img.src, src)) return;
   img.src = src;
   wrap.classList.remove('is-empty');
 }
@@ -1054,14 +1218,8 @@ function updateSleekPreviewMap(lat, lon) {
   if (!block || !container) return;
   var ok = typeof lat === 'number' && typeof lon === 'number' && isFinite(lat) && isFinite(lon);
   if (!ok) { destroySleekPreviewMap(); block.classList.remove('is-visible'); return; }
-  if (window.__LW_SKIP_LEAFLET) return;
+  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
   block.classList.add('is-visible');
-  if (typeof L === 'undefined') {
-    if (typeof lwWhenLeafletReady === 'function') {
-      lwWhenLeafletReady(function () { updateSleekPreviewMap(lat, lon); });
-    }
-    return;
-  }
   function applyMap() {
     if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
     if (!sleekPreviewMap) {
@@ -1145,7 +1303,7 @@ function syncSleekTemplateExtensions(raw) {
   if (rowEl) rowEl.classList.toggle('is-visible', hasReviews || hasVcard);
   if (secEl) secEl.style.display = (hasReviews || hasVcard) ? '' : 'none';
 
-  var SOCIAL = { instagram:'https://www.instagram.com/onez.es', tiktok:'https://www.tiktok.com/@onez', facebook:'https://www.facebook.com/onez' };
+  var SOCIAL = { instagram:'https://www.instagram.com/localweb.es', tiktok:'https://www.tiktok.com/@localweb', facebook:'https://www.facebook.com/localweb' };
   function r(key, fb) { var u = (raw[key] || '').trim(); return u || fb || '#'; }
   var igEl = document.getElementById('tplSocialInstagram'); if (igEl) igEl.href = r('instagram_url', SOCIAL.instagram);
   var ttEl = document.getElementById('tplSocialTiktok');    if (ttEl) ttEl.href = r('tiktok_url',    SOCIAL.tiktok);
@@ -1324,6 +1482,7 @@ function applyLivePreviewData(raw, opts) {
 
 (function initLivePreviewFromQuery() {
   var params = new URLSearchParams(window.location.search);
+  if (params.get('landingDemo') === '1') return;
   if (!params.has('preview')) {
     syncSleekScheduleFromPreview(null);
     renderSleekSchedule();
@@ -1716,6 +1875,7 @@ setInterval(renderSleekSchedule, 60000);
 })();
 </script>
 
+<script src="/templates/lw-landing-demo.js?v=2"></script>
 
 @endverbatim
 
@@ -1725,7 +1885,6 @@ setInterval(renderSleekSchedule, 60000);
     if (typeof applyLivePreviewData === 'function') {
       applyLivePreviewData({
         logo_url: @json($logo_url),
-        logo_scale: @json($logo_scale ?? null),
         nombre: @json($nombre),
         tagline: @json($tagline),
         telefono: @json($telefono),
@@ -1733,9 +1892,9 @@ setInterval(renderSleekSchedule, 60000);
         portada: @json($portada),
         portada_2: @json($portada_2),
         portada_3: @json($portada_3),
+        portada_focal_x: @json($portada_focal_x),
+        portada_focal_y: @json($portada_focal_y),
         descripcion: @json($descripcion),
-        about_title: @json($about_title),
-        about_sections: @json($about_sections),
         foto_equipo: @json($foto_equipo),
         direccion: @json($direccion),
         correo: @json($correo),
@@ -1767,6 +1926,10 @@ setInterval(renderSleekSchedule, 60000);
       else if (typeof updateNoirPreviewMap === 'function') updateNoirPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateSleekPreviewMap === 'function') updateSleekPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateBloomPreviewMap === 'function') updateBloomPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateGraphitePreviewMap === 'function') updateGraphitePreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateWildPreviewMap === 'function') updateWildPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateRepublicaPreviewMap === 'function') updateRepublicaPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateKairosPreviewMap === 'function') updateKairosPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
     }
     if (typeof window.tvAnimationsRefresh === 'function') {
       requestAnimationFrame(function () { window.tvAnimationsRefresh(); });

@@ -14,6 +14,10 @@ import {
   type DayKey,
   type SchedulePresetKind,
 } from '../../lib/schedule/scheduleDefaults'
+import {
+  isOvernightSlot,
+  scheduleSlotDurationMinutes,
+} from '../../lib/schedule/scheduleTime'
 import './scheduleEditor.css'
 
 export type ScheduleEditorProps = {
@@ -152,9 +156,11 @@ export default function ScheduleEditor({
         {DAY_KEYS.map((key) => {
           const row = schedule[key]
           const isOpen = !row.closed
-          const invalid = isOpen && toScheduleMinutes(row.close) <= toScheduleMinutes(row.open)
+          const overnight = isOpen && isOvernightSlot(row.open, row.close)
+          const sameInstant =
+            isOpen && toScheduleMinutes(row.close) === toScheduleMinutes(row.open)
           const hoursLabel = isOpen
-            ? formatScheduleHours(Math.max(0, toScheduleMinutes(row.close) - toScheduleMinutes(row.open)))
+            ? formatScheduleHours(scheduleSlotDurationMinutes(row.open, row.close))
             : 'Cerrado'
 
           return (
@@ -181,7 +187,7 @@ export default function ScheduleEditor({
                     <TimeField
                       value={row.open}
                       disabled={disabled}
-                      invalid={invalid}
+                      invalid={sameInstant}
                       ariaLabel={`${DAY_LABEL_ES[key]}: apertura`}
                       onChange={(open) => updateDay(key, { open })}
                     />
@@ -189,10 +195,15 @@ export default function ScheduleEditor({
                     <TimeField
                       value={row.close}
                       disabled={disabled}
-                      invalid={invalid}
+                      invalid={sameInstant}
                       ariaLabel={`${DAY_LABEL_ES[key]}: cierre`}
                       onChange={(close) => updateDay(key, { close })}
                     />
+                    {overnight ? (
+                      <span className="lw-schedule-editor__overnight-tag" title="Cierra en la madrugada del día siguiente">
+                        +1 día
+                      </span>
+                    ) : null}
                   </>
                 ) : (
                   <span className="lw-schedule-editor__closed-label">Sin horario</span>
@@ -205,10 +216,15 @@ export default function ScheduleEditor({
                 onChange={(open) => updateDay(key, { closed: !open })}
               />
 
-              {invalid ? (
+              {sameInstant ? (
                 <div className="lw-schedule-editor__invalid" role="alert">
                   <Icon name="alert" size={12} color="var(--lw-schedule-danger)" />
-                  El cierre debe ser posterior a la apertura
+                  La apertura y el cierre no pueden ser la misma hora
+                </div>
+              ) : null}
+              {overnight && !sameInstant ? (
+                <div className="lw-schedule-editor__overnight-hint">
+                  Cierra a las {row.close} del día siguiente
                 </div>
               ) : null}
             </div>

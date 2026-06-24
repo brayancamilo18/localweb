@@ -1,6 +1,25 @@
 @extends('public.layouts.tenant')
 
 @push('head-extras')
+<style id="lw-responsive-safety">
+  html,body{overflow-x:clip;max-width:100%}
+  @media (max-width:880px){
+    .nav-inner{gap:10px;min-width:0;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+    .nav .brand,.brand,nav.top .brand,nav.top .logo{min-width:0;flex:1 1 auto;max-width:calc(100% - 118px)}
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo,nav.top .brand.brand-has-img .nav-brand-img{
+      width:auto!important;height:auto!important;max-width:min(140px,38vw)!important;
+      max-height:calc(44px * var(--lw-logo-scale,1.35))!important;object-fit:contain!important
+    }
+    .nav-actions,.nav .nav-right,nav.top .actions{flex-shrink:0;gap:8px}
+    .nav-cta,nav.top .nav-cta{white-space:nowrap;font-size:clamp(9px,2.8vw,11px);padding:7px 10px}
+    .menu-toggle{flex-shrink:0}
+  }
+  @media (max-width:480px){
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo{
+      max-width:min(120px,34vw)!important;max-height:calc(38px * var(--lw-logo-scale,1.35))!important
+    }
+  }
+</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -10,7 +29,7 @@
   if (p.get('thumb') === '1') return;
   var l = document.createElement('link');
   l.rel = 'stylesheet';
-  l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  l.href = 'https://unpkg.com/leaflet@' + '1.9.4/dist/leaflet.css';
   l.crossOrigin = '';
   document.head.appendChild(l);
 })();
@@ -36,7 +55,7 @@
   *{margin:0;padding:0;box-sizing:border-box}
   html{scroll-behavior:smooth}
   body{background:var(--bg);color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,sans-serif;font-weight:400;font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;font-feature-settings:"kern","ss01","tnum"}
-  ::selection{background:var(--warm);color:var(--bg)}
+  ::selection{background:var(--warm);color:var(--warm-on,var(--bg))}
   a{color:inherit;text-decoration:none}
   img{display:block;max-width:100%}
   .display{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:600;letter-spacing:-.025em;line-height:.96}
@@ -127,9 +146,9 @@
   .ppic.p1{top:0;left:10%;width:62%;transform:rotate(-5deg);z-index:1}
   .ppic.p2{top:14%;right:0;width:54%;transform:rotate(3deg);z-index:3}
   .ppic.p3{bottom:0;left:0;width:60%;transform:rotate(-2deg);z-index:2}
-  .ppic.p1 .pimg{background-image:var(--img-1,url('https://images.unsplash.com/photo-1763990897241-c40923908537?auto=format&fit=crop&w=600&q=70'))}
-  .ppic.p2 .pimg{background-image:var(--img-2,url('https://images.unsplash.com/photo-1552364708-8a19ac4e8923?auto=format&fit=crop&w=600&q=70'))}
-  .ppic.p3 .pimg{background-image:var(--img-3,url('https://images.unsplash.com/photo-1693620714112-a79a7d27308b?auto=format&fit=crop&w=600&q=70'))}
+  .ppic.p1 .pimg{background-image:var(--img-1,none)}
+  .ppic.p2 .pimg{background-image:var(--img-2,none)}
+  .ppic.p3 .pimg{background-image:var(--img-3,none)}
   .ppic.fallback .pimg{background:linear-gradient(135deg,var(--warm-soft),var(--warm));position:relative}
   .ppic.fallback .pimg::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.4),transparent 60%)}
   .ppic.fallback.p2 .pimg{background:linear-gradient(135deg,var(--bg-2),var(--ink-4))}
@@ -171,7 +190,7 @@
   .about{padding:120px 0;background:var(--bg-2)}
   .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
   .about-img-wrap{aspect-ratio:4/5;border-radius:46px;overflow:hidden;background:var(--bg-3);position:relative}
-  .about-img{position:absolute;inset:0;background:var(--bg-3) center/cover;background-image:var(--about-img,url('https://images.unsplash.com/photo-1632178151697-fd971baa906f?auto=format&fit=crop&w=700&q=70'));transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}
+  .about-img{position:absolute;inset:0;background:var(--bg-3) center/cover;background-image:var(--about-img,none);transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}
   .about-img-wrap:hover .about-img{transform:scale(1.05)}
   .about-img-tag{position:absolute;left:24px;bottom:24px;display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);border-radius:999px;font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:500;color:var(--ink);z-index:2}
   .about-img-tag .dot{width:8px;height:8px;border-radius:50%;background:var(--warm)}
@@ -180,12 +199,11 @@
   .about-text p{font-size:16px;line-height:1.7;color:var(--ink-2);margin-bottom:18px;max-width:520px}
   .about-text p strong{color:var(--ink);font-weight:600}
   .about-sig{margin-top:50px;padding-top:28px;border-top:1px solid var(--line-2);display:flex;align-items:center;gap:18px}
-  .about-sig-img{width:56px;height:56px;border-radius:50%;background:var(--bg-3) center/cover;background-image:var(--sig-img,url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=200&q=70'));flex-shrink:0}
+  .about-sig-img{width:56px;height:56px;border-radius:50%;background:var(--bg-3) center/cover;background-image:var(--sig-img,none);flex-shrink:0}
   .about-sig-text strong{display:block;font-family:"Bricolage Grotesque";font-size:18px;font-weight:600;color:var(--ink);letter-spacing:-.015em}
   .about-sig-text small{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-3);letter-spacing:.04em;margin-top:2px;display:block}
 
-
-  /* ABOUT EXTRAS (versa-studio) */
+/* ABOUT EXTRAS (versa-studio) */
   .versa-about-extras{display:flex;flex-direction:column;gap:80px;margin-top:80px;padding-top:56px;border-top:1px solid var(--line-2);max-width:1280px;margin-left:auto;margin-right:auto;padding:0 46px;box-sizing:border-box}
   .versa-about-extra--text-first .about-text{order:1}
   .versa-about-extra--text-first .about-img-wrap{order:2}
@@ -236,7 +254,7 @@
   .contact-link{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--bg-2);border-radius:16px;transition:background .25s,transform .15s}
   .contact-link:hover{background:var(--ink);color:var(--bg);transform:translateX(4px)}
   .contact-link .ico{width:52px;height:52px;border-radius:50%;background:var(--paper);color:var(--ink);display:grid;place-items:center;font-size:16px;flex-shrink:0;transition:background .25s,color .25s}
-  .contact-link:hover .ico{background:var(--warm);color:#fff}
+  .contact-link:hover .ico{background:var(--warm);color:var(--warm-on,#fff)}
   .contact-link strong{display:block;font-family:"Bricolage Grotesque";font-size:15.5px;font-weight:600;letter-spacing:-.005em;line-height:1.15}
   .contact-link small{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-3);letter-spacing:.04em;margin-top:2px;display:block;transition:color .25s}
   .contact-link:hover small{color:var(--bg-2)}
@@ -257,7 +275,7 @@
   .greviews{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--ink-4);letter-spacing:.06em;text-transform:uppercase;margin-bottom:20px}
   .gquote{font-family:"Bricolage Grotesque";font-size:22px;font-style:italic;color:rgba(250,250,247,.88);line-height:1.4;max-width:520px;margin:14px auto 26px;font-weight:500;letter-spacing:-.01em}
   .gbtn{display:inline-flex;align-items:center;gap:10px;padding:14px 26px;background:var(--bg);color:var(--ink);font-family:"Plus Jakarta Sans";font-size:14px;font-weight:600;border-radius:999px;transition:background .25s,color .25s}
-  .gbtn:hover{background:var(--warm);color:var(--bg)}
+  .gbtn:hover{background:var(--warm);color:var(--warm-on,var(--bg))}
 
   /* ─── VCARD ─── */
   .vcard{padding:72px 0;background:var(--bg-2)}
@@ -270,7 +288,7 @@
 
   /* ─── CTA FINAL · full-bleed con foto ─── */
   .cta-final{padding:0;position:relative;overflow:hidden;min-height:560px;display:grid;place-items:center}
-  .cta-final-bg{position:absolute;inset:0;z-index:0;background-color:var(--ink);background-image:var(--cta-img);background-position:center;background-size:cover;--cta-img:url("https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1400&q=70")}
+  .cta-final-bg{position:absolute;inset:0;z-index:0;background-color:var(--ink);background-image:var(--cta-img);background-position:center;background-size:cover;background-image:none}
   .cta-final-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(21,23,26,.7) 0%,rgba(21,23,26,.85) 100%)}
   .cta-inner{position:relative;text-align:center;padding:96px 46px;max-width:880px}
   .cta-inner .eyebrow{color:var(--warm-soft);justify-content:center}
@@ -278,7 +296,7 @@
   .cta-inner h2 em{font-style:italic;color:var(--warm);font-weight:500}
   .cta-inner p{font-size:18px;color:rgba(250,250,247,.85);line-height:1.6;max-width:520px;margin:0 auto 50px}
   .cta-inner .actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
-  .cta-inner .btn-p{background:var(--warm);color:var(--bg)}
+  .cta-inner .btn-p{background:var(--warm);color:var(--warm-on,var(--bg))}
   .cta-inner .btn-p::before{background:var(--bg)}
   .cta-inner .btn-p:hover{color:var(--ink)}
   .cta-inner .btn-g{color:var(--bg);border-color:rgba(250,250,247,.4)}
@@ -369,8 +387,9 @@
   @media (max-width:654px){ .lw-gallery-lightbox-close{top:8px;right:8px} }
 </style>
 @endverbatim
+<!-- BRAND_OVERRIDE_PLACEHOLDER:warm -->
+<script src="/templates/brand-apply.js?v=1"></script>
 
-@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
 
 @endpush
 
@@ -383,13 +402,11 @@
 <nav class="nav" id="nav">
   <div class="nav-inner">
     <a href="#" class="brand" id="navBrandWrap">
-            <span class="brand-mark" id="navBrandMark">
-        @if($logo_url)
-        <img id="navBrandLogo" class="nav-brand-img" src="{{ $logo_url }}" alt="{{ $nombre }}" decoding="async"/>
-        @else
-        <span id="navBrandInitial">{{ $inicial }}</span>
-        @endif
-      </span>
+      <span class="brand-mark" id="navBrandMark"><span id="navBrandInitial">{{ $inicial }}</span>@if($logo_url)
+      <img id="navBrandLogo" class="nav-brand-img" src="{{ $logo_url }}" alt="{{ $nombre }}" decoding="async"/>
+      @else
+      <img id="navBrandLogo" class="nav-brand-img" alt="" hidden style="display:none"/>
+      @endif</span>
       <strong id="navBrandName">{{ $nombre }}</strong>
     </a>
     <ul>
@@ -443,9 +460,9 @@
         </div>
       </div>
       <div class="hero-polaroids">
-        <div class="ppic p1"><span class="hero-tape"></span><div class="pimg" id="ppic1Img"></div><div class="pcap">— el sitio</div></div>
-        <div class="ppic p2"><div class="pimg" id="ppic2Img"></div><div class="pcap">— el detalle</div></div>
-        <div class="ppic p3"><div class="pimg" id="ppic3Img"></div><div class="pcap">— el momento</div></div>
+        <div class="ppic p1"><span class="hero-tape"></span><div class="pimg" id="ppic1Img"@if($portada) style="background-image:url(\'{{ $portada }}\')" @endif></div><div class="pcap">— el sitio</div></div>
+        <div class="ppic p2"><div class="pimg" id="ppic2Img"@if($portada_2) style="background-image:url(\'{{ $portada_2 }}\')" @endif></div><div class="pcap">— el detalle</div></div>
+        <div class="ppic p3"><div class="pimg" id="ppic3Img"@if($portada_3) style="background-image:url(\'{{ $portada_3 }}\')" @endif></div><div class="pcap">— el momento</div></div>
       </div>
     </div>
   </div>
@@ -482,14 +499,7 @@
         <h3>{{ ($services[0]['name'] ?? '') }}</h3>
         <p>{{ ($services[0]['description'] ?? '') }}</p>
         <div class="svc-foot">
-          <span class="svc-price">
-            @if(isset($services[0]) && $services[0]['price'] !== null)
-            {{ number_format($services[0]['price'], 2, ",", ".") }}€
-            @else
-            a consultar
-            @endif
-            <small>desde</small>
-          </span>
+          <span class="svc-price">@if(isset($services[0]) && $services[0]['price'] !== null){{ number_format($services[0]['price'], 2, ',', '.') }}@else@endif€<small>desde</small></span>
           <span class="svc-arrow">↗</span>
         </div>
       </article>
@@ -498,14 +508,7 @@
         <h3>{{ ($services[1]['name'] ?? '') }}</h3>
         <p>{{ ($services[1]['description'] ?? '') }}</p>
         <div class="svc-foot">
-          <span class="svc-price">
-            @if(isset($services[1]) && $services[1]['price'] !== null)
-            {{ number_format($services[1]['price'], 2, ",", ".") }}€
-            @else
-            a consultar
-            @endif
-            <small>por sesión</small>
-          </span>
+          <span class="svc-price">@if(isset($services[1]) && $services[1]['price'] !== null){{ number_format($services[1]['price'], 2, ',', '.') }}@else@endif€<small>por sesión</small></span>
           <span class="svc-arrow">↗</span>
         </div>
       </article>
@@ -537,7 +540,7 @@
       </div>
     </div>
   </div>
-    @include('public.partials.about-extra-blocks-versa-studio')
+    <div id="aboutExtraBlocks" class="versa-about-extras"></div>
 </section>
 
 <!-- 6. GALERÍA -->
@@ -554,14 +557,13 @@
     <button class="gallery-nav prev" id="gprev" aria-label="Anterior">←</button>
     <button class="gallery-nav next" id="gnext" aria-label="Siguiente">→</button>
     <div class="container">
-      <div class="gallery-scroll" id="gscroll">
-        <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1658476293101-4181a2afc8f4?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>01</small><strong>El viaje</strong></div></div>
-        <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1552364708-8a19ac4e8923?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>02</small><strong>Playa</strong></div></div>
-        <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1693620714112-a79a7d27308b?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>03</small><strong>Documentación</strong></div></div>
-        <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1632178151697-fd971baa906f?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>04</small><strong>La ruta</strong></div></div>
-        <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1768751350689-07f19551adbd?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>05</small><strong>Salidas</strong></div></div>
-        <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=700&q=70')"></div><div class="gimg-overlay"><small>06</small><strong>Destino</strong></div></div>
+            <div class="gallery-scroll" id="gscroll">
+@forelse($galeria as $imgUrl)
+        <div class="gimg"><div class="gimg-bg" style="background-image:url('{{ $imgUrl }}')"></div><div class="gimg-overlay"><small>{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</small><strong>Tu galería</strong></div></div>
+@empty
+@endforelse
       </div>
+    </div>
     </div>
   </div>
 </section>
@@ -580,32 +582,14 @@
       <div class="hours-grid">
         <div class="hours-card">
           <h3>Horario de la semana</h3>
-          @php
-  $scheduleDays = [
-    ['mon', 'Lunes', 1],
-    ['tue', 'Martes', 2],
-    ['wed', 'Miércoles', 3],
-    ['thu', 'Jueves', 4],
-    ['fri', 'Viernes', 5],
-    ['sat', 'Sábado', 6],
-    ['sun', 'Domingo', 0],
-  ];
-  $todayIdx = (int) now()->dayOfWeek;
-@endphp
           <div id="schedule">
-@foreach($scheduleDays as [$key, $dayName, $idx])
-@php
-  $row = is_array($horario) ? ($horario[$key] ?? null) : null;
-  $closed = !$row || !empty($row['closed']);
-  $open = !$closed && !empty($row['open']);
-  $isToday = $idx === $todayIdx;
-@endphp
-            <div class="schedule-row{{ $isToday ? ' today' : '' }}" data-day="{{ $idx }}"><span class="day">{{ $dayName }}</span><span class="dots"></span><span class="time{{ !$open ? ' closed' : '' }}">@if($open)
-{{ $row["open"] }} — {{ $row["close"] }}
-@else
-Cerrado
-@endif</span></div>
-@endforeach
+            <div class="schedule-row" data-day="1"><span class="day">Lunes</span><span class="dots"></span><span class="time">{{ $lunes ?? '' }}</span></div>
+            <div class="schedule-row" data-day="2"><span class="day">Martes</span><span class="dots"></span><span class="time">{{ $martes ?? '' }}</span></div>
+            <div class="schedule-row" data-day="3"><span class="day">Miércoles</span><span class="dots"></span><span class="time">{{ $miercoles ?? '' }}</span></div>
+            <div class="schedule-row" data-day="4"><span class="day">Jueves</span><span class="dots"></span><span class="time">{{ $jueves ?? '' }}</span></div>
+            <div class="schedule-row" data-day="5"><span class="day">Viernes</span><span class="dots"></span><span class="time">{{ $viernes ?? '' }}</span></div>
+            <div class="schedule-row" data-day="6"><span class="day">Sábado</span><span class="dots"></span><span class="time">{{ $sabado ?? '' }}</span></div>
+            <div class="schedule-row" data-day="0"><span class="day">Domingo</span><span class="dots"></span><span class="time closed">Cerrado</span></div>
           </div>
         </div>
         <aside id="contacto" class="hours-card">
@@ -673,7 +657,7 @@ Cerrado
 
 <!-- 12. CTA FINAL -->
 <section class="cta-final">
-  <div class="cta-final-bg" id="ctaFinalBg"@if($portada) style="--cta-img:url('{{ $portada }}')"@endif></div>
+  <div class="cta-final-bg" id="ctaFinalBg"></div>
   <div class="cta-inner">
     <span class="eyebrow slide-up">¿Vienes?</span>
     <h2 class="display slide-up" data-d="1">Te esperamos<br/><em>cuando quieras.</em></h2>
@@ -725,7 +709,7 @@ Cerrado
     </div>
     <div class="foot-bot">
       <span>© {{ date('Y') }} {{ $nombre }}</span>
-      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Hecho con <a href="https://onez.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
+      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Hecho con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
     </div>
   </div>
 </footer>
@@ -735,6 +719,45 @@ Cerrado
 <script>
   window.__lwLat = {{ is_numeric($map_lat) ? $map_lat : 'null' }};
   window.__lwLon = {{ is_numeric($map_lon) ? $map_lon : 'null' }};
+</script>
+
+<script>
+window.lwIsEmbedPreview = function () {
+  return document.body.classList.contains('embed-preview')
+    || document.body.classList.contains('urban-preview')
+    || document.body.classList.contains('noir-preview')
+    || document.body.classList.contains('bloom-preview')
+    || document.body.classList.contains('sleek-preview');
+};
+window.lwImageBase = function (u) {
+  if (!u) return '';
+  try {
+    var p = new URL(u, location.href);
+    return p.origin + p.pathname;
+  } catch (e) {
+    return String(u).split('?')[0].split('#')[0];
+  }
+};
+window.lwSameImage = function (a, b) {
+  return window.lwImageBase(a) === window.lwImageBase(b);
+};
+window.lwTenantHeroSrc = function (src, sampleUrl) {
+  src = src ? String(src).trim() : '';
+  if (!src) return '';
+  if (window.lwIsEmbedPreview() && /^https?:\/\//i.test(src) && sampleUrl && src !== sampleUrl) {
+    return src + (src.indexOf('?') >= 0 ? '&' : '?') + 'lwts=' + Date.now();
+  }
+  return src;
+};
+window.lwGalleryMatchesDom = function (root, list) {
+  if (!root || !list || !list.length) return false;
+  var imgs = root.querySelectorAll('img');
+  if (imgs.length !== list.length) return false;
+  for (var i = 0; i < list.length; i++) {
+    if (!window.lwSameImage(imgs[i].src, list[i])) return false;
+  }
+  return true;
+};
 </script>
 
 <script>
@@ -769,16 +792,9 @@ function lwTrackClick(kind) {
 (function () {
   var p = new URLSearchParams(location.search);
   if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
-  if (window.__LW_LEAFLET_LOADER_STARTED) return;
-  window.__LW_LEAFLET_LOADER_STARTED = true;
   var s = document.createElement('script');
   s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
   s.crossOrigin = '';
-  s.onload = function () {
-    if (typeof lwBootTenantMap === 'function') {
-      lwBootTenantMap(window.__lwMapAddress || '');
-    }
-  };
   document.head.appendChild(s);
 })();
 </script>
@@ -871,6 +887,98 @@ html.lw-preview-inert a[href^="#"] {
     e.stopPropagation();
   }, true);
 })();
+</script>
+<script>
+/**
+ * Aplica teléfono y enlaces WhatsApp en plantillas HTML (iframe público / onboarding).
+ * - Actualiza [data-wa-link], cualquier <a href*="wa.me"> y placeholders {{ $whatsapp }}
+ * - Abre WhatsApp en nueva pestaña (necesario dentro del iframe del SPA)
+ */
+(function initThumbScrollLock() {
+  if (new URLSearchParams(window.location.search).get('thumb') !== '1') return;
+  var id = 'lw-thumb-scroll-lock';
+  if (document.getElementById(id)) return;
+  var style = document.createElement('style');
+  style.id = id;
+  style.textContent =
+    'html,body{overflow:hidden!important;height:100%!important;max-height:100%!important;' +
+    'overscroll-behavior:none!important;touch-action:none!important;' +
+    'position:fixed!important;width:100%!important;margin:0!important;}';
+  (document.head || document.documentElement).appendChild(style);
+})();
+
+(function (global) {
+  function digitsFrom(raw, key) {
+    if (!raw || raw[key] == null) return '';
+    return String(raw[key]).replace(/\D/g, '');
+  }
+
+  function resolvePhone(raw) {
+    raw = raw || {};
+    var phoneRaw = raw.telefono != null ? String(raw.telefono).trim() : '';
+    var phoneWa = phoneRaw.replace(/\D/g, '');
+    if (!phoneWa) {
+      phoneWa = digitsFrom(raw, 'whatsapp');
+    }
+    return { phoneRaw: phoneRaw, phoneWa: phoneWa };
+  }
+
+  function applyContactLinks(raw) {
+    var phones = resolvePhone(raw);
+    var phoneRaw = phones.phoneRaw;
+    var phoneWa = phones.phoneWa;
+    var waUrl = phoneWa ? 'https://wa.me/' + phoneWa : 'https://wa.me/';
+    var telHref = phoneWa ? 'tel:+' + phoneWa : 'tel:';
+
+    document
+      .querySelectorAll('a[data-wa-link], a[href*="wa.me"], a[href*="{{ $whatsapp }}"]')
+      .forEach(function (el) {
+        if (!(el instanceof HTMLAnchorElement)) return;
+        el.href = waUrl;
+        el.target = '_blank';
+        el.rel = 'noopener noreferrer';
+      });
+
+    document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+      if (!(el instanceof HTMLAnchorElement)) return;
+      el.href = telHref;
+    });
+
+    document.querySelectorAll('[data-phone-display]').forEach(function (el) {
+      el.textContent = phoneRaw || 'Tu teléfono';
+    });
+
+    bindContactClickTracking();
+  }
+
+  function bindContactClickTracking() {
+    function bindOnce(el, kind) {
+      if (!(el instanceof HTMLAnchorElement)) return;
+      if (el.dataset.lwTrackBound === '1') return;
+      el.dataset.lwTrackBound = '1';
+      el.addEventListener('click', function () {
+        try {
+          window.parent.postMessage({ type: 'lw:track-click', kind: kind }, '*');
+        } catch (_) {
+          /* ignore */
+        }
+      });
+    }
+
+    document
+      .querySelectorAll('a[data-wa-link], a[href*="wa.me"], a[href*="{{ $whatsapp }}"]')
+      .forEach(function (el) {
+        bindOnce(el, 'whatsapp_click');
+      });
+
+    document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+      bindOnce(el, 'phone_click');
+    });
+  }
+
+  global.lwApplyContactLinks = applyContactLinks;
+})(typeof window !== 'undefined' ? window : globalThis);
+
 </script>
 <script>
 (function initVersaPreviewModeClasses() {
@@ -980,6 +1088,8 @@ function renderVersaAboutExtras(sections) {
     .join('');
   if (typeof window.versaObserveReveals === 'function') {
     window.versaObserveReveals(wrap);
+  } else if (typeof window.lwRefreshAboutExtrasReveal === 'function') {
+    window.lwRefreshAboutExtrasReveal();
   }
 }
 
@@ -1157,13 +1267,7 @@ function updatePreviewMapEmbed(lat, lon, addressLine) {
     destroyVersaPreviewMap();
     return;
   }
-  if (window.__LW_SKIP_LEAFLET) return;
-  if (typeof L === 'undefined') {
-    if (typeof lwWhenLeafletReady === 'function') {
-      lwWhenLeafletReady(function () { updatePreviewMapEmbed(lat, lon, addressLine); });
-    }
-    return;
-  }
+  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
   var name = (container.getAttribute('data-name') || '').trim() || 'Aquí estamos';
   var addr = (addressLine || container.getAttribute('data-addr') || '').trim();
   container.setAttribute('data-lat', String(lat));
@@ -1299,9 +1403,9 @@ function syncVersaTemplateExtensions(raw) {
   }
 
   var LW_DEFAULT_SOCIAL = {
-    instagram: 'https://www.instagram.com/onez.es',
-    tiktok: 'https://www.tiktok.com/@onez',
-    facebook: 'https://www.facebook.com/onez',
+    instagram: 'https://www.instagram.com/localweb.es',
+    tiktok: 'https://www.tiktok.com/@localweb',
+    facebook: 'https://www.facebook.com/localweb',
   };
   function versaSocialHref(key, fallback) {
     var u = (raw[key] || '').trim();
@@ -1651,6 +1755,7 @@ function applyLivePreviewData(raw, opts) {
 
 (function initLivePreviewFromQuery() {
   var params = new URLSearchParams(window.location.search);
+  if (params.get('landingDemo') === '1') return;
   if (!params.has('preview')) {
     syncVersaTemplateExtensions({});
     syncVersaFooter({});
@@ -1874,6 +1979,7 @@ function applyLivePreviewData(raw, opts) {
 })();
 </script>
 
+<script src="/templates/lw-landing-demo.js?v=2"></script>
 
 @endverbatim
 
@@ -1883,7 +1989,6 @@ function applyLivePreviewData(raw, opts) {
     if (typeof applyLivePreviewData === 'function') {
       applyLivePreviewData({
         logo_url: @json($logo_url),
-        logo_scale: @json($logo_scale ?? null),
         nombre: @json($nombre),
         tagline: @json($tagline),
         telefono: @json($telefono),
@@ -1891,9 +1996,9 @@ function applyLivePreviewData(raw, opts) {
         portada: @json($portada),
         portada_2: @json($portada_2),
         portada_3: @json($portada_3),
+        portada_focal_x: @json($portada_focal_x),
+        portada_focal_y: @json($portada_focal_y),
         descripcion: @json($descripcion),
-        about_title: @json($about_title),
-        about_sections: @json($about_sections),
         foto_equipo: @json($foto_equipo),
         direccion: @json($direccion),
         correo: @json($correo),
@@ -1920,6 +2025,10 @@ function applyLivePreviewData(raw, opts) {
       else if (typeof updateNoirPreviewMap === 'function') updateNoirPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateSleekPreviewMap === 'function') updateSleekPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateBloomPreviewMap === 'function') updateBloomPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateGraphitePreviewMap === 'function') updateGraphitePreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateWildPreviewMap === 'function') updateWildPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateRepublicaPreviewMap === 'function') updateRepublicaPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateKairosPreviewMap === 'function') updateKairosPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
     }
     if (typeof window.tvAnimationsRefresh === 'function') {
       requestAnimationFrame(function () { window.tvAnimationsRefresh(); });

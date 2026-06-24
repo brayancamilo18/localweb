@@ -273,7 +273,7 @@
   }
   .about-photo{
     position:relative; aspect-ratio:3/4;
-    background-image:url("https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=900&q=80");
+    background-image:none;
     background-size:cover; background-position:center;
     outline:1px solid var(--gold-line); outline-offset:12px;
   }
@@ -314,14 +314,17 @@
     column-count:3; column-gap:14px;
   }
   .gallery .photo{
+    display:inline-block; width:100%; vertical-align:top;
     break-inside:avoid; margin-bottom:14px;
     position:relative; overflow:hidden;
     cursor:zoom-in;
   }
   .gallery .photo img{
-    width:100%; height:auto;
+    display:block; width:100%; height:auto;
     transition:transform .6s cubic-bezier(.2,.7,.2,1);
     filter:saturate(.85) brightness(.92);
+    transform:translateZ(0);
+    -webkit-backface-visibility:hidden;
   }
   .gallery .photo::after{
     content:""; position:absolute; inset:0;
@@ -331,6 +334,7 @@
   .gallery .photo .glass{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
     opacity:0; transition:opacity .35s ease;
+    pointer-events:none;
   }
   .gallery .photo .glass span{
     width:54px; height:54px; border:1px solid var(--gold);
@@ -338,9 +342,15 @@
     color:var(--gold); background:rgba(10,10,10,.4);
     backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
   }
-  .gallery .photo:hover img{ transform:scale(1.06); }
+  .gallery .photo:hover img{ transform:scale(1.06) translateZ(0); }
   .gallery .photo:hover::after{ background:rgba(0,0,0,.55); }
   .gallery .photo:hover .glass{ opacity:1; }
+  @media (hover:none),(pointer:coarse){
+    .gallery .photo img{ filter:none; transform:none; }
+    .gallery .photo:hover img{ transform:none; }
+    .gallery .photo:hover::after{ background:transparent; }
+    .gallery .photo:hover .glass{ opacity:0; }
+  }
 
   /* Galería slider (modo Pro) */
   .gallery.gallery-slider{
@@ -362,6 +372,23 @@
     width:100%;
     height:clamp(280px, 52vw, 520px);
     object-fit:cover;
+    filter:none;
+  }
+  @media (max-width:980px){
+    .gallery.gallery-slider{
+      column-count:1;
+      column-gap:14px;
+      min-height:0;
+    }
+    .gallery.gallery-slider .photo{
+      display:block;
+      margin-bottom:14px;
+    }
+    .gallery.gallery-slider .photo img{
+      height:auto;
+      object-fit:initial;
+    }
+    .gallery.gallery-slider .gallery-nav-btn{ display:none; }
   }
   .gallery-nav-btn{
     position:absolute;
@@ -747,8 +774,11 @@
 <!-- ═══ 1. PORTADA (foto + nombre + tagline + CTAs) ═════ -->
 <header class="hero" id="portada">
   <div class="hero-bg" id="heroBg" style="--hero-focal-x: {{ $portada_focal_x }}%; --hero-focal-y: {{ $portada_focal_y }}%;">
-    <img class="hero-bg-media" id="heroBgMedia" alt="" decoding="async" fetchpriority="high"
-      src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1800&q=80"/>
+    @if($portada)
+    <img class="hero-bg-media" id="heroBgMedia" alt="" decoding="async" fetchpriority="high" src="{{ $portada }}"/>
+    @else
+    <img class="hero-bg-media" id="heroBgMedia" alt="" decoding="async" hidden style="display:none"/>
+    @endif
   </div>
   <canvas id="particles"></canvas>
   <div class="hero-inner" id="heroInner">
@@ -790,7 +820,7 @@
           <a href="{{ $vcard_download_url ?: '#' }}" id="tplVcardLink" class="btn outline sm" data-cursor="lg" download>Guardar contacto</a>
         </div>
       </div>
-      <div class="about-photo reveal-up delay-2" id="aboutPhotoBg">
+      <div class="about-photo reveal-up delay-2" id="aboutPhotoBg"@if($foto_equipo) style="background-image:url('{{ $foto_equipo }}')" @endif>
         <span class="badge" id="aboutTeamBadge">Equipo</span>
       </div>
     </div>
@@ -805,7 +835,12 @@
       <div class="h-line short reveal-up"></div>
       <span class="eyebrow reveal-up delay-1">— Galería</span>
     </div>
-    <div class="gallery reveal-up delay-2" id="galleryLive"></div>
+    <div class="gallery reveal-up delay-2" id="galleryLive">
+@forelse($galeria as $imgUrl)
+    <a class="photo" data-cursor="lg" data-lightbox-src="{{ $imgUrl }}" role="button" tabindex="0" aria-label="Ver imagen"><img src="{{ $imgUrl }}" alt="" decoding="async"/><div class="glass" aria-hidden="true"><span>+</span></div></a>
+@empty
+@endforelse
+  </div>
   </div>
 </section>
 
@@ -924,6 +959,45 @@
 <script>
   window.__lwLat = {{ is_numeric($map_lat) ? $map_lat : 'null' }};
   window.__lwLon = {{ is_numeric($map_lon) ? $map_lon : 'null' }};
+</script>
+
+<script>
+window.lwIsEmbedPreview = function () {
+  return document.body.classList.contains('embed-preview')
+    || document.body.classList.contains('urban-preview')
+    || document.body.classList.contains('noir-preview')
+    || document.body.classList.contains('bloom-preview')
+    || document.body.classList.contains('sleek-preview');
+};
+window.lwImageBase = function (u) {
+  if (!u) return '';
+  try {
+    var p = new URL(u, location.href);
+    return p.origin + p.pathname;
+  } catch (e) {
+    return String(u).split('?')[0].split('#')[0];
+  }
+};
+window.lwSameImage = function (a, b) {
+  return window.lwImageBase(a) === window.lwImageBase(b);
+};
+window.lwTenantHeroSrc = function (src, sampleUrl) {
+  src = src ? String(src).trim() : '';
+  if (!src) return '';
+  if (window.lwIsEmbedPreview() && /^https?:\/\//i.test(src) && sampleUrl && src !== sampleUrl) {
+    return src + (src.indexOf('?') >= 0 ? '&' : '?') + 'lwts=' + Date.now();
+  }
+  return src;
+};
+window.lwGalleryMatchesDom = function (root, list) {
+  if (!root || !list || !list.length) return false;
+  var imgs = root.querySelectorAll('img');
+  if (imgs.length !== list.length) return false;
+  for (var i = 0; i < list.length; i++) {
+    if (!window.lwSameImage(imgs[i].src, list[i])) return false;
+  }
+  return true;
+};
 </script>
 
 <script>
@@ -1207,6 +1281,18 @@ function syncNoirScheduleFromPreview(h) {
 function escapeGalleryAttr(s) {
   return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 }
+function noirGalleryPhotoHtml(src) {
+  var esc = escapeGalleryAttr(src);
+  return (
+    '<a class="photo" data-cursor="lg" data-lightbox-src="' +
+    esc +
+    '" role="button" tabindex="0" aria-label="Ver imagen">' +
+    '<img src="' +
+    esc +
+    '" alt="" decoding="async"/>' +
+    '<div class="glass" aria-hidden="true"><span>+</span></div></a>'
+  );
+}
 var NOIR_DEFAULT_GALLERY_INNER =
   '<a class="photo" data-cursor="lg"><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=900&q=70" alt=""/><div class="glass"><span>+</span></div></a>' +
   '<a class="photo" data-cursor="lg"><img src="https://images.unsplash.com/photo-1551218372-a8789b81b253?auto=format&fit=crop&w=900&q=70" alt=""/><div class="glass"><span>+</span></div></a>' +
@@ -1249,11 +1335,18 @@ function updateNoirHeroSlider(raw) {
   var hasPortada = raw && Object.prototype.hasOwnProperty.call(raw, 'portada');
   if (!hasPortada) return;
   var heroCover = (raw && raw.portada ? String(raw.portada).trim() : '');
+  if (heroCover && heroMedia && heroMedia.src && typeof window.lwIsEmbedPreview === 'function'
+      && !window.lwIsEmbedPreview() && typeof window.lwSameImage === 'function'
+      && window.lwSameImage(heroMedia.src, heroCover)) {
+    noirApplyHeroFocal(heroBg, raw);
+    return;
+  }
   var withCacheBust = '';
   if (heroCover) {
-    /** Cache-bust solo para URLs HTTP(S) servidas (R2/storage). En `data:` el `?lwts=` rompe el URL
-     * (ERR_INVALID_URL) y en `blob:` invalida el lookup del object URL (hero queda en negro). */
-    if (/^https?:\/\//i.test(heroCover)) {
+    /** Cache-bust solo en preview embebido. En tenant público el SSR ya sirve la URL correcta. */
+    if (typeof window.lwTenantHeroSrc === 'function') {
+      withCacheBust = window.lwTenantHeroSrc(heroCover, '');
+    } else if (/^https?:\/\//i.test(heroCover)) {
       var sep = heroCover.indexOf('?') >= 0 ? '&' : '?';
       withCacheBust = heroCover + sep + 'lwts=' + Date.now();
     } else {
@@ -1295,7 +1388,8 @@ function updateNoirGallerySlider(isPro) {
   root.querySelectorAll('.photo').forEach(function (el) { el.classList.remove('is-active'); });
 
   var photos = Array.prototype.slice.call(root.querySelectorAll('.photo'));
-  if (!isPro || photos.length <= 1) return;
+  var useSlider = isPro && photos.length > 1 && window.matchMedia('(min-width: 981px)').matches;
+  if (!useSlider) return;
 
   root.classList.add('gallery-slider');
   noirGallerySliderIndex = 0;
@@ -1335,18 +1429,27 @@ function renderNoirGallery(urls) {
   if (!root) return;
   var list = Array.isArray(urls) ? urls.filter(Boolean) : [];
   if (list.length === 0) {
-    root.innerHTML = NOIR_DEFAULT_GALLERY_INNER;
+    if (typeof window.lwIsEmbedPreview === 'function' && window.lwIsEmbedPreview()) {
+      root.innerHTML = NOIR_DEFAULT_GALLERY_INNER;
+    }
     return;
   }
-  root.innerHTML = list
-    .map(function (src) {
-      return (
-        '<a class="photo" data-cursor="lg"><img src="' +
-        escapeGalleryAttr(src) +
-        '" alt=""/><div class="glass"><span>+</span></div></a>'
-      );
-    })
-    .join('');
+  if (typeof window.lwIsEmbedPreview === 'function' && !window.lwIsEmbedPreview()
+      && typeof window.lwGalleryMatchesDom === 'function' && window.lwGalleryMatchesDom(root, list)) {
+    root.querySelectorAll('.photo').forEach(function (photo, i) {
+      if (!photo.getAttribute('data-lightbox-src') && list[i]) {
+        photo.setAttribute('data-lightbox-src', list[i]);
+      }
+    });
+    updateNoirGallerySlider(
+      typeof window.__lwNoirIsPro === 'boolean' ? window.__lwNoirIsPro : false
+    );
+    return;
+  }
+  root.innerHTML = list.map(noirGalleryPhotoHtml).join('');
+  updateNoirGallerySlider(
+    typeof window.__lwNoirIsPro === 'boolean' ? window.__lwNoirIsPro : false
+  );
 }
 
 function scrollEmbedPreviewToHash() {
@@ -1672,7 +1775,21 @@ function syncNoirTemplateExtensions(raw) {
   if (igEl) igEl.href = noirResolveSocialHref(raw, 'instagram_url', LW_DEFAULT_SOCIAL.instagram);
   if (ttEl) ttEl.href = noirResolveSocialHref(raw, 'tiktok_url', LW_DEFAULT_SOCIAL.tiktok);
   if (fbEl) fbEl.href = noirResolveSocialHref(raw, 'facebook_url', LW_DEFAULT_SOCIAL.facebook);
+
+  window.__lwNoirIsPro = isPro;
+  updateNoirGallerySlider(isPro);
 }
+
+(function initNoirGallerySliderResize() {
+  var timer = null;
+  window.addEventListener('resize', function () {
+    if (typeof window.__lwNoirIsPro !== 'boolean') return;
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      updateNoirGallerySlider(window.__lwNoirIsPro);
+    }, 120);
+  });
+})();
 
 function applyLivePreviewData(raw, opts){
   opts = opts || {};
@@ -1806,7 +1923,15 @@ function applyLivePreviewData(raw, opts){
 
   const aboutPhotoBg = document.getElementById('aboutPhotoBg');
   if (aboutPhotoBg) {
-    aboutPhotoBg.style.backgroundImage = fotoEquipo ? `url("${fotoEquipo}")` : '';
+    var isPreview = typeof window.lwIsEmbedPreview === 'function' && window.lwIsEmbedPreview();
+    if (isPreview || !fotoEquipo) {
+      aboutPhotoBg.style.backgroundImage = fotoEquipo ? `url("${fotoEquipo}")` : '';
+    } else {
+      var curBg = (aboutPhotoBg.style.backgroundImage || '').replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
+      if (!curBg || (typeof window.lwSameImage === 'function' && !window.lwSameImage(curBg, fotoEquipo))) {
+        aboutPhotoBg.style.backgroundImage = `url("${fotoEquipo}")`;
+      }
+    }
   }
 
   const galeria = Array.isArray(raw?.galeria) ? raw.galeria.filter(Boolean) : [];
@@ -1817,6 +1942,7 @@ function applyLivePreviewData(raw, opts){
   if (opts.alignToHash) scrollEmbedPreviewToHash();
 }
 </script>
+<script src="/templates/lw-schedule.js?v=1"></script>
 <script src="/templates/lw-about-extras.js?v=2"></script>
 <script>
 (function initLivePreviewFromQuery() {
@@ -1910,23 +2036,28 @@ function renderSchedule(){
   ordered.forEach(d => {
     const isToday = d.idx === today;
     const openDay = Boolean(d.open);
+    const hoursText = openDay
+      ? (typeof lwFormatScheduleHours === 'function'
+          ? lwFormatScheduleHours(d.open, d.close)
+          : d.open + ' — ' + d.close)
+      : 'Cerrado';
     const row = document.createElement('div');
     row.className = `row${isToday ? ' today' : ''}${openDay ? '' : ' closed'}`;
     row.innerHTML = `
       <span class="day">${d.name}</span>
-      <span class="hours">${openDay ? d.open + ' — ' + d.close : 'Cerrado'}</span>
+      <span class="hours">${hoursText}</span>
       <span class="label">${openDay ? 'Abierto' : 'Cerrado'}</span>
     `;
     wrap.appendChild(row);
   });
 
-  // status general del día actual (no por hora)
-  const todayD = SCHEDULE.find(d => d.idx === today);
-  const openToday = Boolean(todayD && todayD.open);
+  const openNow = typeof lwIsOpenNowFromIdxRows === 'function'
+    ? lwIsOpenNowFromIdxRows(SCHEDULE)
+    : Boolean(SCHEDULE.find(d => d.idx === today && d.open));
   const pill = document.getElementById('statusPill');
   const txt = document.getElementById('statusText');
-  pill.classList.toggle('open', openToday);
-  txt.textContent = openToday ? 'Abierto hoy' : 'Cerrado hoy';
+  pill.classList.toggle('open', openNow);
+  txt.textContent = openNow ? 'Abierto ahora' : 'Cerrado ahora';
 }
 renderSchedule();
 setInterval(renderSchedule, 60_000);
@@ -2041,6 +2172,20 @@ setInterval(renderSchedule, 60_000);
     var sec=document.getElementById('galeria');
     if(!sec||!sec.contains(e.target))return;
     if(e.target.closest('#lw-gallery-lightbox'))return;
+    var photo=e.target.closest('#galleryLive .photo,[data-lightbox-src].photo');
+    if(photo&&sec.contains(photo)){
+      var u=photo.getAttribute('data-lightbox-src');
+      if(!u){
+        var im=photo.querySelector('img');
+        u=im?(im.currentSrc||im.src):'';
+      }
+      if(u){
+        e.preventDefault();
+        e.stopPropagation();
+        openLb(u,photo.querySelector('img')?(photo.querySelector('img').alt||''):'');
+        return;
+      }
+    }
     var im=e.target.closest('img');
     if(im&&sec.contains(im)){
       e.preventDefault();
@@ -2057,11 +2202,15 @@ setInterval(renderSchedule, 60_000);
   document.addEventListener('keydown',function(e){
     if(e.key==='Escape'&&!lb.hidden)closeLb();
     if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.closest){
-      var t=e.target.closest('#galeria [data-lightbox-src]');
+      var t=e.target.closest('#galeria .photo[data-lightbox-src], #galeria [data-lightbox-src]');
       var g=document.getElementById('galeria');
       if(t&&g&&g.contains(t)){
         e.preventDefault();
         var u=t.getAttribute('data-lightbox-src');
+        if(!u){
+          var im=t.querySelector('img');
+          u=im?(im.currentSrc||im.src):'';
+        }
         if(u)openLb(u,'');
       }
     }

@@ -1,6 +1,25 @@
 @extends('public.layouts.tenant')
 
 @push('head-extras')
+<style id="lw-responsive-safety">
+  html,body{overflow-x:clip;max-width:100%}
+  @media (max-width:880px){
+    .nav-inner{gap:10px;min-width:0;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+    .nav .brand,.brand,nav.top .brand,nav.top .logo{min-width:0;flex:1 1 auto;max-width:calc(100% - 118px)}
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo,nav.top .brand.brand-has-img .nav-brand-img{
+      width:auto!important;height:auto!important;max-width:min(140px,38vw)!important;
+      max-height:calc(44px * var(--lw-logo-scale,1.35))!important;object-fit:contain!important
+    }
+    .nav-actions,.nav .nav-right,nav.top .actions{flex-shrink:0;gap:8px}
+    .nav-cta,nav.top .nav-cta{white-space:nowrap;font-size:clamp(9px,2.8vw,11px);padding:7px 10px}
+    .menu-toggle{flex-shrink:0}
+  }
+  @media (max-width:480px){
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo{
+      max-width:min(120px,34vw)!important;max-height:calc(38px * var(--lw-logo-scale,1.35))!important
+    }
+  }
+</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500;1,700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -10,7 +29,7 @@
   if (p.get('thumb') === '1') return;
   var l = document.createElement('link');
   l.rel = 'stylesheet';
-  l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  l.href = 'https://unpkg.com/leaflet@' + '1.9.4/dist/leaflet.css';
   l.crossOrigin = '';
   document.head.appendChild(l);
 })();
@@ -87,7 +106,7 @@
   .mobile-menu ul li:nth-child(5) a{transition-delay:.2s}
   .mobile-menu ul li:nth-child(6) a{transition-delay:.25s}
   .mobile-menu ul a em{font-style:italic;color:var(--accent)}
-  .mobile-cta{display:block;margin-top:54px;padding:18px;text-align:center;background:var(--accent);color:var(--bg);font-size:12px;font-weight:500;letter-spacing:.2em;text-transform:uppercase}
+  .mobile-cta{display:block;margin-top:54px;padding:18px;text-align:center;background:var(--accent);color:var(--accent-on,var(--bg));font-size:12px;font-weight:500;letter-spacing:.2em;text-transform:uppercase}
 
   /* ─── HERO · diagonal staircase ─── */
   .hero{padding:154px 0 100px;position:relative}
@@ -115,9 +134,9 @@
   .hero.in .sphoto:nth-child(3)::before{transition-delay:.36s}
   .sphoto:hover{filter:grayscale(0) contrast(1)}
   /* staircase positions */
-  .sphoto.s1{top:0;left:0;width:38%;height:62%;background-image:var(--img-1,url('https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=700&q=75'))}
-  .sphoto.s2{top:18%;left:34%;width:38%;height:64%;z-index:2;background-image:var(--img-2,url('https://images.unsplash.com/photo-1650044252595-cacd425982ff?auto=format&fit=crop&w=700&q=75'))}
-  .sphoto.s3{top:36%;right:0;width:34%;height:62%;background-image:var(--img-3,url('https://images.unsplash.com/photo-1630595632518-8217c0bceb8f?auto=format&fit=crop&w=700&q=75'))}
+  .sphoto.s1{top:0;left:0;width:38%;height:62%;background-image:var(--img-1,none)}
+  .sphoto.s2{top:18%;left:34%;width:38%;height:64%;z-index:2;background-image:var(--img-2,none)}
+  .sphoto.s3{top:36%;right:0;width:34%;height:62%;background-image:var(--img-3,none)}
   .sphoto.fallback{background:linear-gradient(180deg,var(--ink),var(--ink-2));filter:none}
   .sphoto.fallback.s2{background:linear-gradient(180deg,var(--bg-2),var(--bg-3))}
   .sphoto.fallback.s3{background:linear-gradient(180deg,var(--accent),var(--accent-hover))}
@@ -183,13 +202,12 @@
   .about-cols p{margin-bottom:18px;break-inside:avoid}
   .about-cols p strong{color:var(--ink);font-weight:600}
   .about-side{position:sticky;top:120px}
-  .about-photo{aspect-ratio:3/4;background:var(--bg-3) center/cover;background-image:var(--about-img,url('https://images.unsplash.com/photo-1559185590-765cdc663325?auto=format&fit=crop&w=700&q=75'));filter:grayscale(1);transition:filter .8s}
+  .about-photo{aspect-ratio:3/4;background:var(--bg-3) center/cover;background-image:var(--about-img,none);filter:grayscale(1);transition:filter .8s}
   .about-photo:hover{filter:grayscale(0)}
   .about-cap{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--ink-3);letter-spacing:.16em;text-transform:uppercase;margin-top:14px;line-height:1.6;display:flex;justify-content:space-between;gap:16px;padding-top:12px;border-top:1px solid var(--ink)}
   .about-cap strong{color:var(--ink);font-family:"Playfair Display",serif;font-size:16px;font-weight:500;letter-spacing:-.005em;text-transform:none;font-style:italic}
 
-
-  /* ─── ABOUT EXTRAS (mono-edito) ─── */
+/* ─── ABOUT EXTRAS (mono-edito) ─── */
   .mono-about-extras{display:flex;flex-direction:column;gap:96px;margin-top:96px;padding-top:64px;border-top:1px solid var(--ink);max-width:1320px;margin-left:auto;margin-right:auto;padding-left:54px;padding-right:54px;box-sizing:border-box}
   .mono-about-extra.about-grid{align-items:start}
   .mono-about-extra--text-first > :first-child{order:1}
@@ -197,8 +215,6 @@
   .mono-about-extra--photo-first > :first-child{order:2}
   .mono-about-extra--photo-first > :last-child{order:1}
   .mono-about-extra h3{font-family:"Playfair Display",serif;font-size:clamp(36px,4.5vw,56px);font-weight:500;line-height:.96;letter-spacing:-.02em;margin:24px 0 28px}
-  @media (max-width:768px){.mono-about-extras{padding:0 20px}.mono-about-extra.about-grid{grid-template-columns:1fr;gap:48px}.mono-about-extra .about-side{order:-1!important}}
-
   @media (max-width:768px){.mono-about-extras{padding:0 20px}.mono-about-extra.about-grid{grid-template-columns:1fr;gap:48px}.mono-about-extra .about-side{order:-1!important}}
   /* ─── GALLERY · mosaico editorial ─── */
   .gallery-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px;max-width:1320px;margin:0 auto;padding:0 54px}
@@ -366,8 +382,9 @@
   }
 </style>
 @endverbatim
+<!-- BRAND_OVERRIDE_PLACEHOLDER:accent -->
+<script src="/templates/brand-apply.js?v=1"></script>
 
-@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
 
 @endpush
 
@@ -427,9 +444,9 @@
 
     <div class="hero-stair">
       <div class="hero-issue" id="heroIssue"><strong id="heroIssueNum">№ 01</strong> edición especial<br/><span id="heroIssueVol">volumen I</span></div>
-      <div class="sphoto s1" id="heroPhoto1"><span class="sphoto-num">01</span><span class="sphoto-cap">Foto · 01</span></div>
-      <div class="sphoto s2" id="heroPhoto2"><span class="sphoto-num">02</span><span class="sphoto-cap">Foto · 02</span></div>
-      <div class="sphoto s3" id="heroPhoto3"><span class="sphoto-num">03</span><span class="sphoto-cap">Foto · 03</span></div>
+      <div class="sphoto s1" id="heroPhoto1"@if($portada) style="background-image:url('{{ $portada }}')" @endif><span class="sphoto-num">01</span><span class="sphoto-cap">Foto · 01</span></div>
+      <div class="sphoto s2" id="heroPhoto2"@if($portada_2) style="background-image:url('{{ $portada_2 }}')" @endif><span class="sphoto-num">02</span><span class="sphoto-cap">Foto · 02</span></div>
+      <div class="sphoto s3" id="heroPhoto3"@if($portada_3) style="background-image:url('{{ $portada_3 }}')" @endif><span class="sphoto-num">03</span><span class="sphoto-cap">Foto · 03</span></div>
     </div>
 
     <div class="hero-bottom">
@@ -478,13 +495,7 @@
         <div class="acc-head">
           <span class="acc-num">/ 01</span>
           <span class="acc-name">{{ ($services[0]['name'] ?? '') }}</span>
-          <span class="acc-price">
-            @if(isset($services[0]) && $services[0]['price'] !== null)
-            {{ number_format($services[0]['price'], 2, ",", ".") }} €
-            @else
-            Consultar
-            @endif
-          </span>
+          <span class="acc-price">@if(isset($services[0]) && $services[0]['price'] !== null){{ number_format($services[0]['price'], 2, ',', '.') }}@else@endif €</span>
           <span class="acc-toggle">+</span>
         </div>
         <div class="acc-body"><div class="acc-body-inner"><span></span><div>{{ ($services[0]['description'] ?? '') }} <em>Una propuesta cuidada de principio a fin.</em></div></div></div>
@@ -493,13 +504,7 @@
         <div class="acc-head">
           <span class="acc-num">/ 02</span>
           <span class="acc-name">{{ ($services[1]['name'] ?? '') }}</span>
-          <span class="acc-price">
-            @if(isset($services[1]) && $services[1]['price'] !== null)
-            {{ number_format($services[1]['price'], 2, ",", ".") }} €
-            @else
-            Consultar
-            @endif
-          </span>
+          <span class="acc-price">@if(isset($services[1]) && $services[1]['price'] !== null){{ number_format($services[1]['price'], 2, ',', '.') }}@else@endif €</span>
           <span class="acc-toggle">+</span>
         </div>
         <div class="acc-body"><div class="acc-body-inner"><span></span><div>{{ ($services[1]['description'] ?? '') }} Trabajamos con atención al detalle y plazos transparentes.</div></div></div>
@@ -508,13 +513,7 @@
         <div class="acc-head">
           <span class="acc-num">/ 03</span>
           <span class="acc-name">{{ ($services[2]['name'] ?? '') }}</span>
-          <span class="acc-price">
-            @if(isset($services[2]) && $services[2]['price'] !== null)
-            {{ number_format($services[2]['price'], 2, ",", ".") }} €
-            @else
-            Consultar
-            @endif
-          </span>
+          <span class="acc-price">@if(isset($services[2]) && $services[2]['price'] !== null){{ number_format($services[2]['price'], 2, ',', '.') }}@else@endif €</span>
           <span class="acc-toggle">+</span>
         </div>
         <div class="acc-body"><div class="acc-body-inner"><span></span><div>{{ ($services[2]['description'] ?? '') }} <em>Servicio principal de la casa.</em></div></div></div>
@@ -536,10 +535,10 @@
       <div class="about-cols" id="aboutDesc"></div>
     </div>
     <div class="about-side slide-up" data-d="1">
-      <div class="about-photo" id="aboutPhoto"></div>
+      <div class="about-photo" id="aboutPhoto"@if($foto_equipo) style="background-image:url('{{ $foto_equipo }}')" @endif></div>
     </div>
   </div>
-    @include('public.partials.about-extra-blocks-mono-edito')
+    <div id="aboutExtraBlocks" class="mono-about-extras" data-main-text-first="1"></div>
 </section>
 
 <!-- 6. GALERÍA -->
@@ -554,13 +553,10 @@
     </div>
   </div>
   <div class="gallery-grid" id="galleryGrid">
-    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=900&q=75')"></div></div>
-    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1650044252595-cacd425982ff?auto=format&fit=crop&w=700&q=75')"></div></div>
-    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1757689314932-bec6e9c39e51?auto=format&fit=crop&w=700&q=75')"></div></div>
-    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1630595632518-8217c0bceb8f?auto=format&fit=crop&w=700&q=75')"></div></div>
-    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1672015521020-ab4f86d5cc00?auto=format&fit=crop&w=700&q=75')"></div></div>
-    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1671493228689-754b0f200c84?auto=format&fit=crop&w=700&q=75')"></div></div>
-    <div class="gimg"><div class="gimg-bg" style="background-image:url('https://images.unsplash.com/photo-1559185590-765cdc663325?auto=format&fit=crop&w=700&q=75')"></div></div>
+@forelse($galeria as $imgUrl)
+    <div class="gimg"><div class="gimg-bg" style="background-image:url('{{ $imgUrl }}')"></div></div>
+@empty
+@endforelse
   </div>
 </section>
 
@@ -580,32 +576,14 @@
     <div class="hours-card slide-up">
       <span class="eyebrow">Horario semanal</span>
       <h3 class="serif">Estamos <em>aquí</em></h3>
-      @php
-  $scheduleDays = [
-    ['mon', 'Lunes', 1],
-    ['tue', 'Martes', 2],
-    ['wed', 'Miércoles', 3],
-    ['thu', 'Jueves', 4],
-    ['fri', 'Viernes', 5],
-    ['sat', 'Sábado', 6],
-    ['sun', 'Domingo', 0],
-  ];
-  $todayIdx = (int) now()->dayOfWeek;
-@endphp
       <div id="schedule">
-@foreach($scheduleDays as [$key, $dayName, $idx])
-@php
-  $row = is_array($horario) ? ($horario[$key] ?? null) : null;
-  $closed = !$row || !empty($row['closed']);
-  $open = !$closed && !empty($row['open']);
-  $isToday = $idx === $todayIdx;
-@endphp
-        <div class="schedule-row{{ $isToday ? ' today' : '' }}" data-day="{{ $idx }}"><span class="day">{{ $dayName }}</span><span class="time{{ !$open ? ' closed' : '' }}">@if($open)
-{{ $row["open"] }} — {{ $row["close"] }}
-@else
-Cerrado
-@endif</span></div>
-@endforeach
+        <div class="schedule-row" data-day="1"><span class="day">Lunes</span><span class="time">{{ $lunes ?? '' }}</span></div>
+        <div class="schedule-row" data-day="2"><span class="day">Martes</span><span class="time">{{ $martes ?? '' }}</span></div>
+        <div class="schedule-row" data-day="3"><span class="day">Miércoles</span><span class="time">{{ $miercoles ?? '' }}</span></div>
+        <div class="schedule-row" data-day="4"><span class="day">Jueves</span><span class="time">{{ $jueves ?? '' }}</span></div>
+        <div class="schedule-row" data-day="5"><span class="day">Viernes</span><span class="time">{{ $viernes ?? '' }}</span></div>
+        <div class="schedule-row" data-day="6"><span class="day">Sábado</span><span class="time">{{ $sabado ?? '' }}</span></div>
+        <div class="schedule-row" data-day="0"><span class="day">Domingo</span><span class="time closed">Cerrado</span></div>
       </div>
     </div>
     <aside id="contacto" class="hours-card slide-up" data-d="1">
@@ -698,7 +676,7 @@ Cerrado
   </div>
   <div class="foot-bot">
     <span>© {{ date('Y') }} {{ $nombre }} — Edición {{ $vol ?? '' }}</span>
-    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Hecho con <a href="https://onez.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
+    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Hecho con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
   </div>
 </footer>
 @endsection
@@ -707,6 +685,45 @@ Cerrado
 <script>
   window.__lwLat = {{ is_numeric($map_lat) ? $map_lat : 'null' }};
   window.__lwLon = {{ is_numeric($map_lon) ? $map_lon : 'null' }};
+</script>
+
+<script>
+window.lwIsEmbedPreview = function () {
+  return document.body.classList.contains('embed-preview')
+    || document.body.classList.contains('urban-preview')
+    || document.body.classList.contains('noir-preview')
+    || document.body.classList.contains('bloom-preview')
+    || document.body.classList.contains('sleek-preview');
+};
+window.lwImageBase = function (u) {
+  if (!u) return '';
+  try {
+    var p = new URL(u, location.href);
+    return p.origin + p.pathname;
+  } catch (e) {
+    return String(u).split('?')[0].split('#')[0];
+  }
+};
+window.lwSameImage = function (a, b) {
+  return window.lwImageBase(a) === window.lwImageBase(b);
+};
+window.lwTenantHeroSrc = function (src, sampleUrl) {
+  src = src ? String(src).trim() : '';
+  if (!src) return '';
+  if (window.lwIsEmbedPreview() && /^https?:\/\//i.test(src) && sampleUrl && src !== sampleUrl) {
+    return src + (src.indexOf('?') >= 0 ? '&' : '?') + 'lwts=' + Date.now();
+  }
+  return src;
+};
+window.lwGalleryMatchesDom = function (root, list) {
+  if (!root || !list || !list.length) return false;
+  var imgs = root.querySelectorAll('img');
+  if (imgs.length !== list.length) return false;
+  for (var i = 0; i < list.length; i++) {
+    if (!window.lwSameImage(imgs[i].src, list[i])) return false;
+  }
+  return true;
+};
 </script>
 
 <script>
@@ -741,16 +758,9 @@ function lwTrackClick(kind) {
 (function () {
   var p = new URLSearchParams(location.search);
   if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
-  if (window.__LW_LEAFLET_LOADER_STARTED) return;
-  window.__LW_LEAFLET_LOADER_STARTED = true;
   var s = document.createElement('script');
   s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
   s.crossOrigin = '';
-  s.onload = function () {
-    if (typeof lwBootTenantMap === 'function') {
-      lwBootTenantMap(window.__lwMapAddress || '');
-    }
-  };
   document.head.appendChild(s);
 })();
 </script>
@@ -843,6 +853,98 @@ html.lw-preview-inert a[href^="#"] {
     e.stopPropagation();
   }, true);
 })();
+</script>
+<script>
+/**
+ * Aplica teléfono y enlaces WhatsApp en plantillas HTML (iframe público / onboarding).
+ * - Actualiza [data-wa-link], cualquier <a href*="wa.me"> y placeholders {{ $whatsapp }}
+ * - Abre WhatsApp en nueva pestaña (necesario dentro del iframe del SPA)
+ */
+(function initThumbScrollLock() {
+  if (new URLSearchParams(window.location.search).get('thumb') !== '1') return;
+  var id = 'lw-thumb-scroll-lock';
+  if (document.getElementById(id)) return;
+  var style = document.createElement('style');
+  style.id = id;
+  style.textContent =
+    'html,body{overflow:hidden!important;height:100%!important;max-height:100%!important;' +
+    'overscroll-behavior:none!important;touch-action:none!important;' +
+    'position:fixed!important;width:100%!important;margin:0!important;}';
+  (document.head || document.documentElement).appendChild(style);
+})();
+
+(function (global) {
+  function digitsFrom(raw, key) {
+    if (!raw || raw[key] == null) return '';
+    return String(raw[key]).replace(/\D/g, '');
+  }
+
+  function resolvePhone(raw) {
+    raw = raw || {};
+    var phoneRaw = raw.telefono != null ? String(raw.telefono).trim() : '';
+    var phoneWa = phoneRaw.replace(/\D/g, '');
+    if (!phoneWa) {
+      phoneWa = digitsFrom(raw, 'whatsapp');
+    }
+    return { phoneRaw: phoneRaw, phoneWa: phoneWa };
+  }
+
+  function applyContactLinks(raw) {
+    var phones = resolvePhone(raw);
+    var phoneRaw = phones.phoneRaw;
+    var phoneWa = phones.phoneWa;
+    var waUrl = phoneWa ? 'https://wa.me/' + phoneWa : 'https://wa.me/';
+    var telHref = phoneWa ? 'tel:+' + phoneWa : 'tel:';
+
+    document
+      .querySelectorAll('a[data-wa-link], a[href*="wa.me"], a[href*="{{ $whatsapp }}"]')
+      .forEach(function (el) {
+        if (!(el instanceof HTMLAnchorElement)) return;
+        el.href = waUrl;
+        el.target = '_blank';
+        el.rel = 'noopener noreferrer';
+      });
+
+    document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+      if (!(el instanceof HTMLAnchorElement)) return;
+      el.href = telHref;
+    });
+
+    document.querySelectorAll('[data-phone-display]').forEach(function (el) {
+      el.textContent = phoneRaw || 'Tu teléfono';
+    });
+
+    bindContactClickTracking();
+  }
+
+  function bindContactClickTracking() {
+    function bindOnce(el, kind) {
+      if (!(el instanceof HTMLAnchorElement)) return;
+      if (el.dataset.lwTrackBound === '1') return;
+      el.dataset.lwTrackBound = '1';
+      el.addEventListener('click', function () {
+        try {
+          window.parent.postMessage({ type: 'lw:track-click', kind: kind }, '*');
+        } catch (_) {
+          /* ignore */
+        }
+      });
+    }
+
+    document
+      .querySelectorAll('a[data-wa-link], a[href*="wa.me"], a[href*="{{ $whatsapp }}"]')
+      .forEach(function (el) {
+        bindOnce(el, 'whatsapp_click');
+      });
+
+    document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+      bindOnce(el, 'phone_click');
+    });
+  }
+
+  global.lwApplyContactLinks = applyContactLinks;
+})(typeof window !== 'undefined' ? window : globalThis);
+
 </script>
 <script>
 (function initMonoPreviewModeClasses() {
@@ -1200,13 +1302,7 @@ function destroyMonoPreviewMap() {
 
 function updateMonoPreviewMap(lat, lon, label) {
   var el = document.getElementById('map');
-  if (!el || window.__LW_SKIP_LEAFLET) return;
-  if (typeof L === 'undefined') {
-    if (typeof lwWhenLeafletReady === 'function') {
-      lwWhenLeafletReady(function () { updateMonoPreviewMap(lat, lon, label); });
-    }
-    return;
-  }
+  if (!el || window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
     destroyMonoPreviewMap();
     return;
@@ -1503,6 +1599,7 @@ function applyLivePreviewData(raw, opts) {
 
 (function initLivePreviewFromQuery() {
   var params = new URLSearchParams(window.location.search);
+  if (params.get('landingDemo') === '1') return;
   if (!params.has('preview')) {
     syncMonoScheduleFromPreview(null);
     renderMonoSchedule();
@@ -1650,6 +1747,13 @@ function applyLivePreviewData(raw, opts) {
   if (closeBtn) closeBtn.addEventListener('click', closeLb);
 })();
 </script>
+<!--
+LW-CONTRACT-VERSION: 1
+Public: applyLivePreviewData, initLivePreviewFromQuery, initSecureMessageListener
+-->
+<script src="/templates/lw-landing-demo.js?v=2"></script>
+
+
 @endverbatim
 
 <script>
@@ -1658,7 +1762,6 @@ function applyLivePreviewData(raw, opts) {
     if (typeof applyLivePreviewData === 'function') {
       applyLivePreviewData({
         logo_url: @json($logo_url),
-        logo_scale: @json($logo_scale ?? null),
         nombre: @json($nombre),
         tagline: @json($tagline),
         telefono: @json($telefono),
@@ -1666,9 +1769,9 @@ function applyLivePreviewData(raw, opts) {
         portada: @json($portada),
         portada_2: @json($portada_2),
         portada_3: @json($portada_3),
+        portada_focal_x: @json($portada_focal_x),
+        portada_focal_y: @json($portada_focal_y),
         descripcion: @json($descripcion),
-        about_title: @json($about_title),
-        about_sections: @json($about_sections),
         foto_equipo: @json($foto_equipo),
         direccion: @json($direccion),
         correo: @json($correo),
@@ -1695,6 +1798,10 @@ function applyLivePreviewData(raw, opts) {
       else if (typeof updateNoirPreviewMap === 'function') updateNoirPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateSleekPreviewMap === 'function') updateSleekPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateBloomPreviewMap === 'function') updateBloomPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateGraphitePreviewMap === 'function') updateGraphitePreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateWildPreviewMap === 'function') updateWildPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateRepublicaPreviewMap === 'function') updateRepublicaPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateKairosPreviewMap === 'function') updateKairosPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
     }
     if (typeof window.tvAnimationsRefresh === 'function') {
       requestAnimationFrame(function () { window.tvAnimationsRefresh(); });

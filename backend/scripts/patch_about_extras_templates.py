@@ -160,7 +160,14 @@ def patch_file(path: Path, is_blade: bool) -> bool:
 
 def sync_public_assets() -> None:
     PUBLIC_TPL.mkdir(parents=True, exist_ok=True)
-    for name in ("lw-about-extras.js", "lw-about-extras.css"):
+    for name in (
+        "brand-apply.js",
+        "lw-about-extras.js",
+        "lw-about-extras.css",
+        "lw-contact-links.js",
+        "lw-landing-demo.js",
+        "lw-schedule.js",
+    ):
         src = HTML_DIR / name
         if src.exists():
             (PUBLIC_TPL / name).write_text(src.read_text(encoding="utf-8"), encoding="utf-8")

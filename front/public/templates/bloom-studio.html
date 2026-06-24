@@ -940,11 +940,17 @@ function updateBloomHeroSlider(raw) {
   var hasPortada = raw && Object.prototype.hasOwnProperty.call(raw, 'portada');
   if (!hasPortada) return;
   var heroCover = (raw && raw.portada ? String(raw.portada).trim() : '');
+  if (heroCover && typeof window.lwIsEmbedPreview === 'function' && !window.lwIsEmbedPreview()) {
+    var curBg = (heroBg.style.backgroundImage || '').replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
+    if (curBg && typeof window.lwSameImage === 'function' && window.lwSameImage(curBg, heroCover)) {
+      return;
+    }
+  }
   var withCacheBust = '';
   if (heroCover) {
-    /** Cache-bust solo para URLs HTTP(S) servidas (R2/storage). En `data:` el `?lwts=` rompe el URL
-     * (ERR_INVALID_URL) y en `blob:` invalida el lookup del object URL (hero queda en negro). */
-    if (/^https?:\/\//i.test(heroCover)) {
+    if (typeof window.lwTenantHeroSrc === 'function') {
+      withCacheBust = window.lwTenantHeroSrc(heroCover, '');
+    } else if (/^https?:\/\//i.test(heroCover)) {
       var sep = heroCover.indexOf('?') >= 0 ? '&' : '?';
       withCacheBust = heroCover + sep + 'lwts=' + Date.now();
     } else {
@@ -1018,7 +1024,8 @@ function renderBloomGallery(urls) {
   if (!root) return;
   var list = Array.isArray(urls) ? urls.filter(Boolean) : [];
   if (list.length === 0) {
-    root.innerHTML =
+    if (typeof window.lwIsEmbedPreview === 'function' && window.lwIsEmbedPreview()) {
+      root.innerHTML =
       '<div class="photo"><img src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Color</span></div>' +
       '<div class="photo tall"><img src="https://images.unsplash.com/photo-1605497788044-5a32c7078486?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Mechas balayage</span></div>' +
       '<div class="photo"><img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Corte recto</span></div>' +
@@ -1027,6 +1034,11 @@ function renderBloomGallery(urls) {
       '<div class="photo"><img src="https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Bob</span></div>' +
       '<div class="photo"><img src="https://images.unsplash.com/photo-1605497788044-5a32c7078486?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Detalle</span></div>' +
       '<div class="photo"><img src="https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?auto=format&fit=crop&w=800&q=70" alt=""/><span class="tag">Pelirrojo</span></div>';
+    }
+    return;
+  }
+  if (typeof window.lwIsEmbedPreview === 'function' && !window.lwIsEmbedPreview()
+      && typeof window.lwGalleryMatchesDom === 'function' && window.lwGalleryMatchesDom(root, list)) {
     return;
   }
   root.innerHTML = list
@@ -1512,7 +1524,17 @@ function applyLivePreviewData(raw, opts) {
   updateBloomHeroSlider(raw || {});
 
   const aboutPhotoBg = document.getElementById('aboutPhotoBg');
-  if (aboutPhotoBg) aboutPhotoBg.style.backgroundImage = fotoEquipo ? `url("${fotoEquipo}")` : '';
+  if (aboutPhotoBg) {
+    var isPreview = typeof window.lwIsEmbedPreview === 'function' && window.lwIsEmbedPreview();
+    if (isPreview || !fotoEquipo) {
+      aboutPhotoBg.style.backgroundImage = fotoEquipo ? `url("${fotoEquipo}")` : '';
+    } else {
+      var curBg = (aboutPhotoBg.style.backgroundImage || '').replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
+      if (!curBg || (typeof window.lwSameImage === 'function' && !window.lwSameImage(curBg, fotoEquipo))) {
+        aboutPhotoBg.style.backgroundImage = `url("${fotoEquipo}")`;
+      }
+    }
+  }
 
   const galeria = Array.isArray(raw?.galeria) ? raw.galeria.filter(Boolean) : [];
   renderBloomGallery(galeria);

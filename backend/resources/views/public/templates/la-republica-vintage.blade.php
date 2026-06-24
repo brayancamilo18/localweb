@@ -650,7 +650,6 @@
     .about-figure .vphoto{ max-width: 420px; margin-inline: auto; }
     .schedule-wrap{ grid-template-columns: 1fr; }
     .contact-cards{ grid-template-columns: 1fr; }
-    /* Galería móvil: carrusel horizontal; marco = tamaño de cada foto */
     #galeria .container{
       width: 100%;
       max-width: 100%;
@@ -743,6 +742,8 @@
     .vcard .btn{ margin-left: 0; }
   }
 </style>
+@endverbatim
+
 <style id="lw-template-hooks">
   section[id],a[id]{scroll-margin-top:100px}
   html.embed-preview-root,body.embed-preview{overflow:auto!important;height:auto!important;min-height:100%}
@@ -768,7 +769,7 @@
   .vphoto.has-photo .ph{display:none!important}
   .vphoto.has-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:sepia(.18) saturate(.92)}
   .g-item.has-photo .ph{display:none!important}
-  .g-item.has-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;filter:sepia(.22) saturate(.9) contrast(.98)  }
+  .g-item.has-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;filter:sepia(.22) saturate(.9) contrast(.98)}
 </style>
 <style id="lw-gallery-mobile">
   @media (max-width: 920px){
@@ -786,7 +787,6 @@
   }
 </style>
 <style id="lw-gallery-desktop">
-  /* Escritorio: mosaico original, sin solapamiento, marco = foto */
   @media (min-width: 921px){
     .gallery{
       display: grid;
@@ -834,7 +834,7 @@
     }
   }
 </style>
-@endverbatim
+
 
 @include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
 
@@ -962,7 +962,7 @@
 </section>
 
 <!-- ====================== 4. CARTA / SERVICIOS ====================== -->
-<section id="servicios"@if(count($services) === 0) class="is-hidden" style="display:none;"@else style=""@endif aria-labelledby="serv-title">
+<section id="servicios"@if(count($services) === 0) class="is-hidden" style="display:none;"@endif aria-labelledby="serv-title" style="display:none;">
   <div class="container">
     <div class="menu-panel reveal">
       <span class="corner tl" aria-hidden="true"></span>
@@ -1017,11 +1017,11 @@
       </figure>
       <div class="about-body">
         <span class="eyebrow flank reveal">Nuestra historia</span>
-        <h2 id="aboutTitle" class="reveal">{{ $about_title ?: 'Una casa con oficio, abierta desde ' . ($anio_fundacion ?: 'siempre') }}</h2>
+        <h2 id="aboutTitle" class="reveal">Una casa con oficio, abierta desde {{ $anio_fundacion ?: 'siempre' }}</h2>
         <p class="lede reveal" id="aboutLede">{{ $descripcion }}</p>
       </div>
     </div>
-    @include('public.partials.about-extra-blocks-republica')
+    <div id="aboutExtraBlocks" class="rep-about-extras"></div>
   </div>
 </section>
 
@@ -1032,7 +1032,7 @@
       <span class="eyebrow flank solo">Galería</span>
       <h2>El género, la casa y la gente</h2>
     </div>
-    <div class="gallery" data-stagger id="galleryLive">
+        <div class="gallery" data-stagger id="galleryLive">
 @forelse(($galeria ?? []) as $imgUrl)
     <figure class="g-item has-photo"><img class="rep-photo" src="{{ $imgUrl }}" alt="" loading="lazy" decoding="async"></figure>
 @empty
@@ -1044,7 +1044,6 @@
     <figure class="g-item"><div class="ph" role="img"><span class="ph-orn">★</span><span class="ph-label">FOTO · 06</span></div></figure>
 @endforelse
     </div>
-    <div class="gallery-dots" id="galleryDots" role="tablist" aria-label="Navegación de la galería" hidden></div>
   </div>
 </section>
 
@@ -1115,13 +1114,13 @@
       <span class="eyebrow flank solo">Contacto</span>
       <h2 id="contact-title">Reserva o pásate a vernos</h2>
     </div>
-    <a class="contact-phone reveal in num" href="{{ $whatsapp ? 'tel:+'.$whatsapp : 'tel:' }}" id="contactPhone" data-tel-link data-phone-display>{{ $telefono ?: ($whatsapp ? '+'.$whatsapp : '+00 000 000 000') }}</a>
+    <a class="contact-phone reveal in num" href="tel:+00000000000" id="contactPhone" data-tel-link data-phone-display>+00 000 000 000</a>
     <div class="rule reveal" style="color:var(--gold);"><span class="seg" style="border-color:var(--line);"></span><span class="star">✦</span><span class="seg" style="border-color:var(--line);"></span></div>
     <div class="contact-cards in" data-stagger>
       <a class="ccard ccard-wa" href="https://wa.me/{{ $whatsapp }}" data-wa-link>
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
         <span class="label">WhatsApp</span>
-        <span class="value num" id="contactWaValue" data-phone-display>{{ $telefono ?: ($whatsapp ? '+'.$whatsapp : '+00 000 000 000') }}</span>
+        <span class="value num" id="contactWaValue" data-phone-display>+00 000 000 000</span>
       </a>
       <a class="ccard" href="mailto:hola@ejemplo.com" id="contactEmailCard">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M3 7l9 6 9-6"/></svg>
@@ -1171,7 +1170,7 @@
       <div class="vc-text">
         <h3 id="vcard-title">Guarda nuestros datos</h3>
         <p>Descarga la tarjeta de contacto y tennos siempre a mano.</p>
-        <div class="vc-meta" id="vcardMeta">{{ $nombre ?: 'Tu negocio' }}</div>
+        <div class="vc-meta" id="vcardMeta">Tu negocio</div>
       </div>
       <a class="btn btn-cream" href="#" id="vcardBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
@@ -1212,7 +1211,7 @@
   <div class="container foot-top">
     <span class="monogram" aria-hidden="true">TN</span>
     <div class="foot-name" id="footName">Tu negocio</div>
-    <div class="foot-est" id="footTagline">{{ $tagline ?: 'Tagline corto de la casa' }}</div>
+    <div class="foot-est" id="footTagline">Tagline corto de la casa</div>
     <div class="rule" style="max-width:340px;margin-inline:auto;"><span class="seg" style="border-color:var(--line);"></span><span class="star">✦</span><span class="seg" style="border-color:var(--line);"></span></div>
     <nav class="foot-links" aria-label="Pie">
       <a class="ulink" href="#servicios">Servicios</a>
@@ -1229,19 +1228,47 @@
 
 @push('body-end')
 <script>
-(function () {
-  var p = new URLSearchParams(location.search);
-  if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
-  var s = document.createElement('script');
-  s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-  s.crossOrigin = '';
-  document.head.appendChild(s);
-})();
+  window.__lwLat = {{ is_numeric($map_lat) ? $map_lat : 'null' }};
+  window.__lwLon = {{ is_numeric($map_lon) ? $map_lon : 'null' }};
 </script>
 
 <script>
-  window.__lwLat = {{ is_numeric($map_lat) ? $map_lat : 'null' }};
-  window.__lwLon = {{ is_numeric($map_lon) ? $map_lon : 'null' }};
+window.lwIsEmbedPreview = function () {
+  return document.body.classList.contains('embed-preview')
+    || document.body.classList.contains('urban-preview')
+    || document.body.classList.contains('noir-preview')
+    || document.body.classList.contains('bloom-preview')
+    || document.body.classList.contains('sleek-preview');
+};
+window.lwImageBase = function (u) {
+  if (!u) return '';
+  try {
+    var p = new URL(u, location.href);
+    return p.origin + p.pathname;
+  } catch (e) {
+    return String(u).split('?')[0].split('#')[0];
+  }
+};
+window.lwSameImage = function (a, b) {
+  return window.lwImageBase(a) === window.lwImageBase(b);
+};
+window.lwTenantHeroSrc = function (src, sampleUrl) {
+  src = src ? String(src).trim() : '';
+  if (!src) return '';
+  if (window.lwIsEmbedPreview() && /^https?:\/\//i.test(src) && sampleUrl && src !== sampleUrl) {
+    return src + (src.indexOf('?') >= 0 ? '&' : '?') + 'lwts=' + Date.now();
+  }
+  return src;
+};
+window.lwGalleryMatchesDom = function (root, list) {
+  if (!root || !list || !list.length) return false;
+  var imgs = root.querySelectorAll('img');
+  if (imgs.length !== list.length) return false;
+  for (var i = 0; i < list.length; i++) {
+    if (!window.lwSameImage(imgs[i].src, list[i])) return false;
+  }
+  return true;
+};
 </script>
 
 <script>
@@ -1271,6 +1298,17 @@ function lwTrackClick(kind) {
 
 @verbatim
 
+
+<script>
+(function () {
+  var p = new URLSearchParams(location.search);
+  if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
+  var s = document.createElement('script');
+  s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  s.crossOrigin = '';
+  document.head.appendChild(s);
+})();
+</script>
 
 <script>
 (function(){
@@ -1495,6 +1533,19 @@ function lwTrackClick(kind) {
  * - Actualiza [data-wa-link], cualquier <a href*="wa.me"> y placeholders {{ $whatsapp }}
  * - Abre WhatsApp en nueva pestaña (necesario dentro del iframe del SPA)
  */
+(function initThumbScrollLock() {
+  if (new URLSearchParams(window.location.search).get('thumb') !== '1') return;
+  var id = 'lw-thumb-scroll-lock';
+  if (document.getElementById(id)) return;
+  var style = document.createElement('style');
+  style.id = id;
+  style.textContent =
+    'html,body{overflow:hidden!important;height:100%!important;max-height:100%!important;' +
+    'overscroll-behavior:none!important;touch-action:none!important;' +
+    'position:fixed!important;width:100%!important;margin:0!important;}';
+  (document.head || document.documentElement).appendChild(style);
+})();
+
 (function (global) {
   function digitsFrom(raw, key) {
     if (!raw || raw[key] == null) return '';
@@ -2091,7 +2142,6 @@ function applyLivePreviewData(raw, opts) {
       : 'Una casa con oficio, abierta desde ' + (year || 'siempre');
   }
   if (aboutLede && descripcion) aboutLede.textContent = descripcion;
-
   document.querySelectorAll('.monogram, .bmark').forEach(function (el) {
     if (el.id === 'navBrandLogo') return;
     el.textContent = initials;
@@ -2154,6 +2204,9 @@ function applyLivePreviewData(raw, opts) {
     destroyRepublicaPreviewMap();
   }
 }
+</script>
+<script src="/templates/lw-about-extras.js?v=2"></script>
+<script>
 
 (function initLivePreviewFromQuery() {
   var params = new URLSearchParams(window.location.search);
@@ -2191,7 +2244,6 @@ function applyLivePreviewData(raw, opts) {
 })();
 
 </script>
-<script src="/templates/lw-about-extras.js?v=2"></script>
 <script src="/templates/lw-landing-demo.js?v=2"></script>
 
 <!--
@@ -2207,7 +2259,6 @@ Public: applyLivePreviewData, initLivePreviewFromQuery, initSecureMessageListene
     if (typeof applyLivePreviewData === 'function') {
       applyLivePreviewData({
         logo_url: @json($logo_url),
-        logo_scale: @json($logo_scale ?? null),
         nombre: @json($nombre),
         tagline: @json($tagline),
         telefono: @json($telefono),
@@ -2215,10 +2266,9 @@ Public: applyLivePreviewData, initLivePreviewFromQuery, initSecureMessageListene
         portada: @json($portada),
         portada_2: @json($portada_2),
         portada_3: @json($portada_3),
+        portada_focal_x: @json($portada_focal_x),
+        portada_focal_y: @json($portada_focal_y),
         descripcion: @json($descripcion),
-        about_title: @json($about_title),
-        anio_fundacion: @json($anio_fundacion),
-        about_sections: @json($about_sections),
         foto_equipo: @json($foto_equipo),
         direccion: @json($direccion),
         correo: @json($correo),
@@ -2243,15 +2293,18 @@ Public: applyLivePreviewData, initLivePreviewFromQuery, initSecureMessageListene
     if (typeof syncRepublicaScheduleFromPreview === 'function') syncRepublicaScheduleFromPreview(@json($horario));
     if (typeof renderRepublicaSchedule === 'function') renderRepublicaSchedule();
     if (typeof applyRepublicaStatus === 'function') applyRepublicaStatus();
-    if (typeof updateRepublicaPreviewMap === 'function') {
-      updateRepublicaPreviewMap(
-        typeof window.__lwLat === 'number' ? window.__lwLat : @json(is_numeric($map_lat) ? $map_lat : null),
-        typeof window.__lwLon === 'number' ? window.__lwLon : @json(is_numeric($map_lon) ? $map_lon : null),
-        @json($nombre)
-      );
+    if (typeof window.__lwLat === 'number' && typeof window.__lwLon === 'number') {
+      if (typeof updateBoldPreviewMap === 'function') updateBoldPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateNoirPreviewMap === 'function') updateNoirPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateSleekPreviewMap === 'function') updateSleekPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateBloomPreviewMap === 'function') updateBloomPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateGraphitePreviewMap === 'function') updateGraphitePreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateWildPreviewMap === 'function') updateWildPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateRepublicaPreviewMap === 'function') updateRepublicaPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateKairosPreviewMap === 'function') updateKairosPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
     }
-    if (typeof window.republicaRevealRefresh === 'function') {
-      requestAnimationFrame(function () { window.republicaRevealRefresh(); });
+    if (typeof window.tvAnimationsRefresh === 'function') {
+      requestAnimationFrame(function () { window.tvAnimationsRefresh(); });
     }
   }
   if (document.readyState === 'loading') {

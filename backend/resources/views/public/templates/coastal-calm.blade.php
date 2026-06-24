@@ -1,6 +1,25 @@
 @extends('public.layouts.tenant')
 
 @push('head-extras')
+<style id="lw-responsive-safety">
+  html,body{overflow-x:clip;max-width:100%}
+  @media (max-width:880px){
+    .nav-inner{gap:10px;min-width:0;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+    .nav .brand,.brand,nav.top .brand,nav.top .logo{min-width:0;flex:1 1 auto;max-width:calc(100% - 118px)}
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo,nav.top .brand.brand-has-img .nav-brand-img{
+      width:auto!important;height:auto!important;max-width:min(140px,38vw)!important;
+      max-height:calc(44px * var(--lw-logo-scale,1.35))!important;object-fit:contain!important
+    }
+    .nav-actions,.nav .nav-right,nav.top .actions{flex-shrink:0;gap:8px}
+    .nav-cta,nav.top .nav-cta{white-space:nowrap;font-size:clamp(9px,2.8vw,11px);padding:7px 10px}
+    .menu-toggle{flex-shrink:0}
+  }
+  @media (max-width:480px){
+    .nav .brand.brand-has-img .nav-brand-img,.brand.brand-has-img .nav-brand-img,.brand.brand-has-img #navBrandLogo{
+      max-width:min(120px,34vw)!important;max-height:calc(38px * var(--lw-logo-scale,1.35))!important
+    }
+  }
+</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -10,7 +29,7 @@
   if (p.get('thumb') === '1') return;
   var l = document.createElement('link');
   l.rel = 'stylesheet';
-  l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  l.href = 'https://unpkg.com/leaflet@' + '1.9.4/dist/leaflet.css';
   l.crossOrigin = '';
   document.head.appendChild(l);
 })();
@@ -156,8 +175,7 @@
   .room-cta{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--terracotta);font-weight:500;border-bottom:1px solid var(--terracotta);padding-bottom:2px;transition:gap .2s}
   .room-cta:hover{gap:12px}
 
-
-  /* ─── ABOUT EXTRAS (coastal-calm) ─── */
+/* ─── ABOUT EXTRAS (coastal-calm) ─── */
   .coastal-about-extras{display:flex;flex-direction:column;gap:96px;margin-top:96px;padding-top:72px;border-top:1px solid rgba(42,42,38,.08);max-width:1254px;margin-left:auto;margin-right:auto}
   .coastal-about-extra.about-inner{max-width:100%}
   .coastal-about-extra--text-first .about-text{order:1}
@@ -216,7 +234,7 @@
   .bold-leaflet-divicon{background:transparent!important;border:none!important}
   .bold-map-pin-wrap{position:relative;width:56px;height:56px;display:flex;align-items:center;justify-content:center;pointer-events:none}
   .bold-map-core{width:12px;height:12px;background:var(--terracotta);border:3px solid var(--paper);border-radius:50%;box-shadow:0 0 0 1px var(--terracotta),0 4px 12px rgba(0,0,0,.2);position:relative;z-index:2}
-  .bold-map-radar-ring{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border:2px solid var(--terracotta);border-radius:50%;box-shadow:0 0 10px rgba(199,110,74,.25);transform-origin:center center;animation:boldMapRadar 2.5s cubic-bezier(.2,.7,.2,1) infinite;pointer-events:none}
+  .bold-map-radar-ring{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border:2px solid var(--terracotta);border-radius:50%;box-shadow:0 0 10px color-mix(in srgb, var(--terracotta) 25%, transparent);transform-origin:center center;animation:boldMapRadar 2.5s cubic-bezier(.2,.7,.2,1) infinite;pointer-events:none}
   .bold-map-radar-ring.d2{animation-delay:1.25s}
   @keyframes boldMapRadar{0%{transform:scale(0.4);opacity:.95}65%{opacity:.2}100%{transform:scale(2.15);opacity:0}}
   .map-directions-row{display:none;justify-content:flex-start;align-items:center;padding:20px 46px;background:var(--paper)}
@@ -308,8 +326,9 @@
   @media (max-width:654px){.lw-gallery-lightbox-close{top:8px;right:8px}}
 </style>
 @endverbatim
+<!-- BRAND_OVERRIDE_PLACEHOLDER:terracotta -->
+<script src="/templates/brand-apply.js?v=1"></script>
 
-@include('public.partials.brand-override', ['brandColor' => $brand_color ?? null, 'variableName' => $brand_variable ?? null])
 
 @endpush
 
@@ -360,7 +379,11 @@
       </div>
     </div>
     <div class="hero-photo" id="heroPhotoWrap">
+      @if($portada)
+      <img id="heroPhotoImg" src="{{ $portada }}" alt="{{ $nombre }}" decoding="async"/>
+      @else
       <img id="heroPhotoImg" src="" alt="" hidden style="display:none"/>
+      @endif
     </div>
   </div>
 </section>
@@ -384,7 +407,7 @@
       <p id="aboutDescripcion">Descripción del negocio: quiénes sois, qué hacéis y por qué importa.</p>
     </div>
   </div>
-    @include('public.partials.about-extra-blocks-coastal-calm')
+    <div id="aboutExtraBlocks" class="coastal-about-extras"></div>
 </section>
 
 <!-- ═══════════════════ SERVICES ═══════════════════ -->
@@ -463,7 +486,7 @@
       </a>
     </div>
   </div>
-  <div class="map-section @if(!is_numeric($map_lat) || !is_numeric($map_lon)) bold-map-empty @endif" id="mapSection">
+  <div class="map-section bold-map-empty" id="mapSection">
     <div class="map-shell">
       <div id="mapLeafletContainer" class="map-leaflet" role="img" aria-label="Mapa del negocio"></div>
     </div>
@@ -531,7 +554,7 @@
   </div>
   <div class="foot-bottom">
     <span id="footBottomBrand">© 2026 · Tu negocio</span>
-    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://onez.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
+    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
   </div>
 </footer>
 @endsection
@@ -540,6 +563,45 @@
 <script>
   window.__lwLat = {{ is_numeric($map_lat) ? $map_lat : 'null' }};
   window.__lwLon = {{ is_numeric($map_lon) ? $map_lon : 'null' }};
+</script>
+
+<script>
+window.lwIsEmbedPreview = function () {
+  return document.body.classList.contains('embed-preview')
+    || document.body.classList.contains('urban-preview')
+    || document.body.classList.contains('noir-preview')
+    || document.body.classList.contains('bloom-preview')
+    || document.body.classList.contains('sleek-preview');
+};
+window.lwImageBase = function (u) {
+  if (!u) return '';
+  try {
+    var p = new URL(u, location.href);
+    return p.origin + p.pathname;
+  } catch (e) {
+    return String(u).split('?')[0].split('#')[0];
+  }
+};
+window.lwSameImage = function (a, b) {
+  return window.lwImageBase(a) === window.lwImageBase(b);
+};
+window.lwTenantHeroSrc = function (src, sampleUrl) {
+  src = src ? String(src).trim() : '';
+  if (!src) return '';
+  if (window.lwIsEmbedPreview() && /^https?:\/\//i.test(src) && sampleUrl && src !== sampleUrl) {
+    return src + (src.indexOf('?') >= 0 ? '&' : '?') + 'lwts=' + Date.now();
+  }
+  return src;
+};
+window.lwGalleryMatchesDom = function (root, list) {
+  if (!root || !list || !list.length) return false;
+  var imgs = root.querySelectorAll('img');
+  if (imgs.length !== list.length) return false;
+  for (var i = 0; i < list.length; i++) {
+    if (!window.lwSameImage(imgs[i].src, list[i])) return false;
+  }
+  return true;
+};
 </script>
 
 <script>
@@ -574,16 +636,9 @@ function lwTrackClick(kind) {
 (function () {
   var p = new URLSearchParams(location.search);
   if (p.get('thumb') === '1') { window.__LW_SKIP_LEAFLET = true; return; }
-  if (window.__LW_LEAFLET_LOADER_STARTED) return;
-  window.__LW_LEAFLET_LOADER_STARTED = true;
   var s = document.createElement('script');
   s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
   s.crossOrigin = '';
-  s.onload = function () {
-    if (typeof lwBootTenantMap === 'function') {
-      lwBootTenantMap(window.__lwMapAddress || '');
-    }
-  };
   document.head.appendChild(s);
 })();
 </script>
@@ -676,6 +731,98 @@ html.lw-preview-inert a[href^="#"] {
     e.stopPropagation();
   }, true);
 })();
+</script>
+<script>
+/**
+ * Aplica teléfono y enlaces WhatsApp en plantillas HTML (iframe público / onboarding).
+ * - Actualiza [data-wa-link], cualquier <a href*="wa.me"> y placeholders {{ $whatsapp }}
+ * - Abre WhatsApp en nueva pestaña (necesario dentro del iframe del SPA)
+ */
+(function initThumbScrollLock() {
+  if (new URLSearchParams(window.location.search).get('thumb') !== '1') return;
+  var id = 'lw-thumb-scroll-lock';
+  if (document.getElementById(id)) return;
+  var style = document.createElement('style');
+  style.id = id;
+  style.textContent =
+    'html,body{overflow:hidden!important;height:100%!important;max-height:100%!important;' +
+    'overscroll-behavior:none!important;touch-action:none!important;' +
+    'position:fixed!important;width:100%!important;margin:0!important;}';
+  (document.head || document.documentElement).appendChild(style);
+})();
+
+(function (global) {
+  function digitsFrom(raw, key) {
+    if (!raw || raw[key] == null) return '';
+    return String(raw[key]).replace(/\D/g, '');
+  }
+
+  function resolvePhone(raw) {
+    raw = raw || {};
+    var phoneRaw = raw.telefono != null ? String(raw.telefono).trim() : '';
+    var phoneWa = phoneRaw.replace(/\D/g, '');
+    if (!phoneWa) {
+      phoneWa = digitsFrom(raw, 'whatsapp');
+    }
+    return { phoneRaw: phoneRaw, phoneWa: phoneWa };
+  }
+
+  function applyContactLinks(raw) {
+    var phones = resolvePhone(raw);
+    var phoneRaw = phones.phoneRaw;
+    var phoneWa = phones.phoneWa;
+    var waUrl = phoneWa ? 'https://wa.me/' + phoneWa : 'https://wa.me/';
+    var telHref = phoneWa ? 'tel:+' + phoneWa : 'tel:';
+
+    document
+      .querySelectorAll('a[data-wa-link], a[href*="wa.me"], a[href*="{{ $whatsapp }}"]')
+      .forEach(function (el) {
+        if (!(el instanceof HTMLAnchorElement)) return;
+        el.href = waUrl;
+        el.target = '_blank';
+        el.rel = 'noopener noreferrer';
+      });
+
+    document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+      if (!(el instanceof HTMLAnchorElement)) return;
+      el.href = telHref;
+    });
+
+    document.querySelectorAll('[data-phone-display]').forEach(function (el) {
+      el.textContent = phoneRaw || 'Tu teléfono';
+    });
+
+    bindContactClickTracking();
+  }
+
+  function bindContactClickTracking() {
+    function bindOnce(el, kind) {
+      if (!(el instanceof HTMLAnchorElement)) return;
+      if (el.dataset.lwTrackBound === '1') return;
+      el.dataset.lwTrackBound = '1';
+      el.addEventListener('click', function () {
+        try {
+          window.parent.postMessage({ type: 'lw:track-click', kind: kind }, '*');
+        } catch (_) {
+          /* ignore */
+        }
+      });
+    }
+
+    document
+      .querySelectorAll('a[data-wa-link], a[href*="wa.me"], a[href*="{{ $whatsapp }}"]')
+      .forEach(function (el) {
+        bindOnce(el, 'whatsapp_click');
+      });
+
+    document.querySelectorAll('[data-tel-link]').forEach(function (el) {
+      bindOnce(el, 'phone_click');
+    });
+  }
+
+  global.lwApplyContactLinks = applyContactLinks;
+})(typeof window !== 'undefined' ? window : globalThis);
+
 </script>
 <script>
 (function initCoastalPreviewModeClasses() {
@@ -799,8 +946,11 @@ function updateBoldHeroPhoto(raw) {
     img.style.display = 'none';
     return;
   }
-  var withCacheBust = src;
-  if (/^https?:\/\//i.test(src) && src !== COASTAL_PREVIEW_SAMPLE.portada) {
+  if (!shouldUseCoastalSampleMedia() && img.src && typeof window.lwSameImage === 'function' && window.lwSameImage(img.src, src)) return;
+  var withCacheBust = typeof window.lwTenantHeroSrc === 'function'
+    ? window.lwTenantHeroSrc(src, COASTAL_PREVIEW_SAMPLE.portada)
+    : src;
+  if (withCacheBust === src && /^https?:\/\//i.test(src) && src !== COASTAL_PREVIEW_SAMPLE.portada && shouldUseCoastalSampleMedia()) {
     var sep = src.indexOf('?') >= 0 ? '&' : '?';
     withCacheBust = src + sep + 'lwts=' + Date.now();
   }
@@ -887,14 +1037,8 @@ function updateBoldPreviewMap(lat, lon) {
     sec.classList.add('bold-map-empty');
     return;
   }
-  if (window.__LW_SKIP_LEAFLET) return;
+  if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
   sec.classList.remove('bold-map-empty');
-  if (typeof L === 'undefined') {
-    if (typeof lwWhenLeafletReady === 'function') {
-      lwWhenLeafletReady(function () { updateBoldPreviewMap(lat, lon); });
-    }
-    return;
-  }
 
   function applyMap() {
     if (window.__LW_SKIP_LEAFLET || typeof L === 'undefined') return;
@@ -1059,9 +1203,9 @@ function syncBoldTemplateExtensions(raw) {
   }
 
   var LW_DEFAULT_SOCIAL_BOLD = {
-    instagram: 'https://www.instagram.com/onez.es',
-    tiktok: 'https://www.tiktok.com/@onez',
-    facebook: 'https://www.facebook.com/onez'
+    instagram: 'https://www.instagram.com/localweb.es',
+    tiktok: 'https://www.tiktok.com/@localweb',
+    facebook: 'https://www.facebook.com/localweb'
   };
   function boldResolveSocialHref(raw, key, fallback) {
     var u = (raw[key] || '').trim();
@@ -1385,7 +1529,6 @@ window.lwRenderAboutExtrasImpl = renderCoastalAboutExtras;
 </script>
 <script src="/templates/lw-about-extras.js?v=2"></script>
 <script>
-
 (function initCoastalPreviewSampleMedia() {
   if (!shouldUseCoastalSampleMedia()) return;
   function boot() {
@@ -1406,6 +1549,7 @@ window.lwRenderAboutExtrasImpl = renderCoastalAboutExtras;
 /* ───── INIT FROM QUERY (fallback dev) ──────────────── */
 (function initLivePreviewFromQuery() {
   var params = new URLSearchParams(window.location.search);
+  if (params.get('landingDemo') === '1') return;
   if (!params.has('preview')) {
     syncBoldScheduleFromPreview(null);
     renderBoldSchedule();
@@ -1653,6 +1797,7 @@ setInterval(renderBoldSchedule, 60000);
 })();
 </script>
 
+<script src="/templates/lw-landing-demo.js?v=2"></script>
 
 @endverbatim
 
@@ -1662,7 +1807,6 @@ setInterval(renderBoldSchedule, 60000);
     if (typeof applyLivePreviewData === 'function') {
       applyLivePreviewData({
         logo_url: @json($logo_url),
-        logo_scale: @json($logo_scale ?? null),
         nombre: @json($nombre),
         tagline: @json($tagline),
         telefono: @json($telefono),
@@ -1670,9 +1814,9 @@ setInterval(renderBoldSchedule, 60000);
         portada: @json($portada),
         portada_2: @json($portada_2),
         portada_3: @json($portada_3),
+        portada_focal_x: @json($portada_focal_x),
+        portada_focal_y: @json($portada_focal_y),
         descripcion: @json($descripcion),
-        about_title: @json($about_title),
-        about_sections: @json($about_sections),
         foto_equipo: @json($foto_equipo),
         direccion: @json($direccion),
         correo: @json($correo),
@@ -1706,6 +1850,10 @@ setInterval(renderBoldSchedule, 60000);
       else if (typeof updateNoirPreviewMap === 'function') updateNoirPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateSleekPreviewMap === 'function') updateSleekPreviewMap(window.__lwLat, window.__lwLon);
       else if (typeof updateBloomPreviewMap === 'function') updateBloomPreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateGraphitePreviewMap === 'function') updateGraphitePreviewMap(window.__lwLat, window.__lwLon);
+      else if (typeof updateWildPreviewMap === 'function') updateWildPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateRepublicaPreviewMap === 'function') updateRepublicaPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
+      else if (typeof updateKairosPreviewMap === 'function') updateKairosPreviewMap(window.__lwLat, window.__lwLon, @json($nombre));
     }
     if (typeof window.tvAnimationsRefresh === 'function') {
       requestAnimationFrame(function () { window.tvAnimationsRefresh(); });

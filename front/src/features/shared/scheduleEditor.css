@@ -523,6 +523,27 @@
   color: var(--lw-schedule-danger);
 }
 
+.lw-schedule-editor__overnight-hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  color: var(--lw-schedule-muted);
+}
+
+.lw-schedule-editor__overnight-tag {
+  flex-shrink: 0;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--lw-schedule-accent-dark);
+  background: color-mix(in srgb, var(--lw-schedule-accent) 12%, transparent);
+  border-radius: 6px;
+  padding: 0.25rem 0.4375rem;
+  align-self: center;
+}
+
 .lw-schedule-editor__error {
   margin-top: 0.75rem;
   font-size: 0.8125rem;
