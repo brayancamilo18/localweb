@@ -9,6 +9,15 @@ export type TemplateServicePayload = {
   description: string | null
 }
 
+/** Eventos serializados para las plantillas HTML. */
+export type TemplateEventPayload = {
+  title: string
+  event_date: string
+  location: string | null
+  description: string | null
+  image_url: string | null
+}
+
 /** Misma forma que usa `TemplateIframe` / las plantillas `.html` vía `lw:onboarding-preview`. */
 export type HtmlTemplatePreviewPayload = {
   /** URL absoluta o relativa del logo (navbar); vacío = nombre en texto. */
@@ -36,6 +45,9 @@ export type HtmlTemplatePreviewPayload = {
   correo: string
   galeria: string[]
   horario: Schedule | null
+  hide_closed_days: boolean
+  events_enabled: boolean
+  events: TemplateEventPayload[]
   map_lat?: number | null
   map_lon?: number | null
   services: TemplateServicePayload[]
@@ -134,6 +146,18 @@ export function mapServicesForTemplatePreview(
   }))
 }
 
+function eventsPayload(business: PublicBusiness): TemplateEventPayload[] {
+  const list = business.events
+  if (!Array.isArray(list)) return []
+  return list.map((e) => ({
+    title: e.title,
+    event_date: e.event_date,
+    location: e.location ?? null,
+    description: e.description ?? null,
+    image_url: e.image_url ?? null,
+  }))
+}
+
 export function publicBusinessToTemplatePayload(business: PublicBusiness): HtmlTemplatePreviewPayload {
   const raw = business.images as
     | { cover?: unknown; gallery?: unknown; about?: unknown }
@@ -182,6 +206,9 @@ export function publicBusinessToTemplatePayload(business: PublicBusiness): HtmlT
     correo: (business.email ?? '').trim(),
     galeria: gallery.map((g) => g.url).filter((u): u is string => Boolean(u)),
     horario: business.schedule ?? null,
+    hide_closed_days: Boolean(business.hide_closed_days),
+    events_enabled: Boolean(business.events_enabled),
+    events: eventsPayload(business),
     map_lat: business.lat,
     map_lon: business.lng,
     services: servicesPayload(business),

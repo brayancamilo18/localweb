@@ -14,6 +14,7 @@ namespace App\Services;
 use App\Enums\ImageSection;
 use App\Models\Business;
 use App\Models\BusinessAboutSection;
+use App\Models\BusinessEvent;
 use App\Models\BusinessImage;
 use finfo;
 use Illuminate\Filesystem\FilesystemAdapter;
@@ -243,6 +244,49 @@ class ImageService
         $disk = Storage::disk('r2');
         $disk->delete($section->image_path);
         $section->update(['image_path' => null]);
+    }
+
+    /**
+     * Foto de eventos (Pro) en businesses/{id}/events/{uuid}.webp
+     */
+    public function replaceEventImage(UploadedFile|string $file, BusinessEvent $event): void
+    {
+        $preserveTransparency = $this->sourceMayHaveTransparency($file);
+        $manager = $this->createImageManager();
+        $image = $this->decodeSource($manager, $file);
+
+        if ($image->width() > 2000) {
+            $image = $image->scale(width: 2000);
+        }
+
+        $extension = $preserveTransparency ? 'png' : 'webp';
+        $path = sprintf(
+            'businesses/%d/events/%s.%s',
+            $event->business_id,
+            (string) Str::uuid(),
+            $extension
+        );
+
+        /** @var FilesystemAdapter $disk */
+        $disk = Storage::disk('r2');
+        if ($event->image_path) {
+            $disk->delete($event->image_path);
+        }
+
+        $this->persistToR2($image, $preserveTransparency, $path);
+        $event->update(['image_path' => $path]);
+    }
+
+    public function deleteEventImage(BusinessEvent $event): void
+    {
+        if (! $event->image_path) {
+            return;
+        }
+
+        /** @var FilesystemAdapter $disk */
+        $disk = Storage::disk('r2');
+        $disk->delete($event->image_path);
+        $event->update(['image_path' => null]);
     }
 
     public function reorder(Business $business, array $imageIds): void

@@ -1422,6 +1422,7 @@ var REPUBLICA_SCHEDULE_DEFAULT = [
   { day: 'Sábado',    open: '10:00', close: '00:30' },
   { day: 'Domingo',   open: '10:00', close: '17:00' }
 ];
+var HIDE_CLOSED = false;
 var SCHEDULE = REPUBLICA_SCHEDULE_DEFAULT.map(function (r) {
   return { day: r.day, open: r.open, close: r.close };
 });
@@ -1671,6 +1672,7 @@ function renderRepublicaSchedule() {
   var today = dayIndex(new Date().getDay());
   schedEl.innerHTML = SCHEDULE.map(function (row, i) {
     var closed = !row.open;
+    if (HIDE_CLOSED && closed) return '';
     var hours = closed ? 'Cerrado' : row.open + ' – ' + row.close;
     return (
       '<div class="sched-row ' +
@@ -1970,6 +1972,7 @@ function applyLivePreviewData(raw, opts) {
   if (Object.prototype.hasOwnProperty.call(raw, 'galeria')) {
     renderRepublicaGallery(raw.galeria);
   }
+    HIDE_CLOSED = raw && raw.hide_closed_days === true;
   syncRepublicaScheduleFromPreview(raw.horario);
   renderRepublicaSchedule();
   applyRepublicaStatus();
@@ -2063,6 +2066,7 @@ function applyLivePreviewData(raw, opts) {
 })();
 </script>
 <script src="/templates/lw-landing-demo.js?v=2"></script>
+<script src="/templates/lw-events.js"></script>
 
 <!--
 LW-CONTRACT-VERSION: 1

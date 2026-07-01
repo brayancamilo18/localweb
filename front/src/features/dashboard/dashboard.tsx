@@ -104,6 +104,7 @@ function DashSidebar({
     { icon: 'image', t: 'Imágenes', to: '/dashboard/images', dataTour: 'imagenes' },
     { icon: 'clock', t: 'Horarios', to: '/dashboard/schedule', dataTour: 'horarios' },
     { icon: 'list', t: 'Servicios', to: '/dashboard/services', dataTour: 'servicios' },
+    { icon: 'calendar', t: 'Eventos', to: '/dashboard/events', dataTour: 'eventos' },
     { icon: 'arrowUpRight', t: 'Enlaces Pro', to: '/dashboard/enlaces', dataTour: 'enlaces-pro' },
     { icon: 'barChart', t: 'Estadísticas', to: '/dashboard/stats', dataTour: 'estadisticas' },
     { icon: 'sparkle', t: 'Asistente IA', to: '/dashboard/asistente-ia', dataTour: 'asistente-ia' },

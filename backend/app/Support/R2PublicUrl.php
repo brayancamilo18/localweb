@@ -57,7 +57,7 @@ final class R2PublicUrl
             return false;
         }
 
-        if (preg_match('#^businesses/\d+/(cover|gallery|about|about_sections|logo|favicon)/#', $path)) {
+        if (preg_match('#^businesses/\d+/(cover|gallery|about|about_sections|events|logo|favicon)/#', $path)) {
             return true;
         }
 

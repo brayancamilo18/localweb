@@ -28,6 +28,7 @@ import Estadisticas from './features/dashboard/sections/Estadisticas'
 import BillingRedirect from './features/dashboard/sections/BillingRedirect'
 import Seguridad from './features/dashboard/sections/Seguridad'
 import Servicios from './features/dashboard/sections/Servicios'
+import Eventos from './features/dashboard/sections/Eventos'
 import EnlacesPro from './features/dashboard/sections/EnlacesPro'
 import AsistenteIa from './features/dashboard/sections/AsistenteIa'
 import AccountPage from './features/dashboard/sections/account/AccountPage'
@@ -143,6 +144,7 @@ function AppRoutes() {
           <Route path="images" element={<Imagenes />} />
           <Route path="schedule" element={<Horarios />} />
           <Route path="services" element={<Servicios />} />
+          <Route path="events" element={<Eventos />} />
           <Route path="enlaces" element={<EnlacesPro />} />
           <Route path="stats" element={<Estadisticas />} />
           <Route path="asistente-ia" element={<AsistenteIa />} />

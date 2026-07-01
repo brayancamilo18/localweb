@@ -50,6 +50,7 @@ class ResolveTenantForWeb
                 'template',
                 'services',
                 'aboutSections',
+                'events',
                 'images' => fn ($q) => $q->ordered(),
             ])
             ->first();

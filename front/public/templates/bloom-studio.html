@@ -1065,6 +1065,7 @@ const BLOOM_SCHEDULE_DEFAULT = [
   { name:"Sáb", full:"Sábado",    idx:6, open:"10:00", close:"14:00" },
   { name:"Dom", full:"Domingo",   idx:0, open:null,    close:null    },
 ];
+var HIDE_CLOSED = false;
 let SCHEDULE = BLOOM_SCHEDULE_DEFAULT.map(function (d) {
   return { name: d.name, full: d.full, idx: d.idx, open: d.open, close: d.close };
 });
@@ -1538,6 +1539,7 @@ function applyLivePreviewData(raw, opts) {
 
   const galeria = Array.isArray(raw?.galeria) ? raw.galeria.filter(Boolean) : [];
   renderBloomGallery(galeria);
+    HIDE_CLOSED = raw && raw.hide_closed_days === true;
   syncBloomScheduleFromPreview(raw.horario);
   render();
   syncBloomTemplateExtensions(raw);
@@ -1681,6 +1683,7 @@ function render(){
   SCHEDULE.forEach(d => {
     const isToday = d.idx === today;
     const closed = !d.open;
+    if (HIDE_CLOSED && closed) return;
     const card = document.createElement('div');
     card.className = `card${isToday ? ' today' : ''}${closed ? ' closed' : ''}`;
     card.innerHTML = `
@@ -1765,5 +1768,6 @@ setInterval(render, 60_000);
 </script>
 
 <script src="/templates/lw-landing-demo.js?v=2"></script>
+<script src="/templates/lw-events.js"></script>
 </body>
 </html>

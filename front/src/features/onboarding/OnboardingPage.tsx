@@ -2,14 +2,15 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Btn } from '../../components/primitives'
 import { apiClient } from '../../api/client'
-import { getBusiness } from '../../api/dashboard'
+import { getBusiness, updateBusiness } from '../../api/dashboard'
 import { getServices } from '../../api/services'
+import { getEvents } from '../../api/events'
 import { getAboutSections } from '../../api/aboutSections'
 import { fetchOnboardingTemplates, hydrateGalleryFromServerUrls } from '../../api/onboarding'
 import { keys } from '../../api/queryKeys'
-import type { BusinessService, Schedule, Template } from '../../types/api'
+import type { BusinessEvent, BusinessService, Schedule, Template } from '../../types/api'
 import { mapServicesForTemplatePreview } from '../public-page/publicTemplatePayload'
-import type { TemplateServicePayload } from '../public-page/publicTemplatePayload'
+import type { TemplateEventPayload, TemplateServicePayload } from '../public-page/publicTemplatePayload'
 import { useOnboarding } from './useOnboarding'
 import Step9ProSetup, { type Step9SetupPhase } from './steps/Step9ProSetup'
 import { useBrandColor } from '../shared/useBrandColor'
@@ -122,6 +123,7 @@ export default function OnboardingPage() {
   const [galleryPhotoFiles, setGalleryPhotoFiles] = useState<File[]>([])
   const [galleryDirty, setGalleryDirty] = useState(false)
   const [schedulePreview, setSchedulePreview] = useState<Schedule>(DEFAULT_SCHEDULE)
+  const [hideClosedDaysPreview, setHideClosedDaysPreview] = useState(false)
   const [step1PreviewVariant, setStep1PreviewVariant] = useState<Step1PreviewVariant>('urban-bold')
   const [step1LogoPreviewUrl, setStep1LogoPreviewUrl] = useState<string | undefined>(undefined)
   const [step1LogoScale, setStep1LogoScale] = useState(DEFAULT_LOGO_NAV_SCALE)
@@ -162,6 +164,7 @@ export default function OnboardingPage() {
   const prevWizardStepRef = useRef(currentStep)
   /** Servicios para el iframe; se actualiza al mutar la API y al cambiar la caché de React Query. */
   const [previewServices, setPreviewServices] = useState<TemplateServicePayload[]>([])
+  const [previewEvents, setPreviewEvents] = useState<TemplateEventPayload[]>([])
   const queryClient = useQueryClient()
   /** Hex enviado al iframe de vista previa (incluye default de paleta y cambios locales inmediatos). */
   const [brandColorLiveHex, setBrandColorLiveHex] = useState<string | null>(null)
@@ -221,6 +224,12 @@ export default function OnboardingPage() {
     enabled: step9Active,
   })
 
+  const eventsSnapQuery = useQuery({
+    queryKey: keys.dashboard.events,
+    queryFn: getEvents,
+    enabled: step9Active,
+  })
+
   const syncPreviewServicesFromCache = useCallback(() => {
     const fromQuery =
       servicesSnapQuery.data ??
@@ -228,6 +237,25 @@ export default function OnboardingPage() {
       businessSnapQuery.data?.services
     setPreviewServices(mapServicesForTemplatePreview(fromQuery))
   }, [servicesSnapQuery.data, queryClient, businessSnapQuery.data?.services])
+
+  const mapEventsForPreview = useCallback((list: BusinessEvent[] | undefined): TemplateEventPayload[] => {
+    if (!Array.isArray(list)) return []
+    return list.map((e) => ({
+      title: e.title,
+      event_date: e.event_date,
+      location: e.location ?? null,
+      description: e.description ?? null,
+      image_url: e.image_url ?? null,
+    }))
+  }, [])
+
+  const syncPreviewEventsFromCache = useCallback(() => {
+    const fromQuery =
+      eventsSnapQuery.data ??
+      queryClient.getQueryData<BusinessEvent[]>(keys.dashboard.events) ??
+      businessSnapQuery.data?.events
+    setPreviewEvents(mapEventsForPreview(fromQuery))
+  }, [eventsSnapQuery.data, queryClient, businessSnapQuery.data?.events, mapEventsForPreview])
 
   useEffect(() => {
     if (!step9Active) {
@@ -237,9 +265,33 @@ export default function OnboardingPage() {
     syncPreviewServicesFromCache()
   }, [step9Active, syncPreviewServicesFromCache])
 
+  useEffect(() => {
+    if (!step9Active) {
+      setPreviewEvents([])
+      return
+    }
+    syncPreviewEventsFromCache()
+  }, [step9Active, syncPreviewEventsFromCache])
+
   const handleServicesPreviewMutate = useCallback(() => {
     syncPreviewServicesFromCache()
-  }, [syncPreviewServicesFromCache])
+    syncPreviewEventsFromCache()
+  }, [syncPreviewServicesFromCache, syncPreviewEventsFromCache])
+
+  const handleEventsEnabledChange = useCallback(
+    async (enabled: boolean) => {
+      try {
+        const updated = await updateBusiness({ events_enabled: enabled })
+        queryClient.setQueryData(keys.dashboard.business, updated)
+        if (!enabled) setPreviewEvents([])
+        else syncPreviewEventsFromCache()
+      } catch {
+        // El toggle vuelve al valor del servidor en el siguiente refetch.
+        void queryClient.invalidateQueries({ queryKey: keys.dashboard.business })
+      }
+    },
+    [queryClient, syncPreviewEventsFromCache],
+  )
 
   const reservedSubdomain = useMemo(() => {
     const fromBiz = businessSubdomain?.trim() ?? ''
@@ -560,6 +612,12 @@ export default function OnboardingPage() {
       setSchedulePreview(d.schedule as Schedule)
     }
 
+    if (typeof d.hide_closed_days === 'boolean') {
+      setHideClosedDaysPreview(d.hide_closed_days)
+    } else if (typeof authBusiness?.hide_closed_days === 'boolean') {
+      setHideClosedDaysPreview(authBusiness.hide_closed_days)
+    }
+
     const serverGalleryUrls = galleryPreviewUrlsFromDraft(d as Record<string, unknown>)
     if (p?.galleryDataUrls?.length) {
       setGalleryPreviewUrls(p.galleryDataUrls)
@@ -597,6 +655,7 @@ export default function OnboardingPage() {
     authBusinessCity,
     authBusinessCountry,
     authBusinessCountryCode,
+    authBusiness?.hide_closed_days,
     templates,
   ])
 
@@ -767,6 +826,8 @@ export default function OnboardingPage() {
           ? b.images.gallery.map((g) => g.url).filter(Boolean)
           : []
     const schedule = useServer && b?.schedule ? b.schedule : schedulePreview
+    const hideClosedDays =
+      useServer && b != null ? Boolean(b.hide_closed_days) : hideClosedDaysPreview
     const mapLat =
       useServer && b?.lat != null && Number.isFinite(Number(b.lat)) ? Number(b.lat) : previewMapLat
     const mapLng =
@@ -779,6 +840,13 @@ export default function OnboardingPage() {
     const templateServices: TemplatePreviewData['templateServices'] = step9Active
       ? proOffersServices
         ? previewServices
+        : []
+      : undefined
+    const eventsEnabled =
+      useServer && b != null ? Boolean(b.events_enabled) : false
+    const events: TemplatePreviewData['events'] = step9Active
+      ? eventsEnabled
+        ? previewEvents
         : []
       : undefined
 
@@ -815,9 +883,12 @@ export default function OnboardingPage() {
       email: (previewEmail.trim() || b?.email || '').trim() || undefined,
       galleryUrls,
       schedule,
+      hideClosedDays,
       mapLat,
       mapLng,
       templateServices,
+      eventsEnabled,
+      events,
       googleBusinessUrl: step9Active ? (b?.google_business_url ?? '') : undefined,
       vcardEnabled: step9Active ? Boolean(b?.vcard_enabled) : undefined,
       isProCustomer: step9Active ? Boolean(b?.is_pro || b?.plan === 'pending') : undefined,
@@ -853,7 +924,9 @@ export default function OnboardingPage() {
     previewMapLng,
     proOffersServices,
     previewServices,
+    previewEvents,
     schedulePreview,
+    hideClosedDaysPreview,
     step8OrLater,
     step9Active,
     brandPreviewHex,
@@ -1113,7 +1186,13 @@ export default function OnboardingPage() {
         )
       case 5:
         return (
-          <Step5Horarios {...common} schedule={schedulePreview} onScheduleChange={setSchedulePreview} />
+          <Step5Horarios
+            {...common}
+            schedule={schedulePreview}
+            onScheduleChange={setSchedulePreview}
+            hideClosedDays={hideClosedDaysPreview}
+            onHideClosedDaysChange={setHideClosedDaysPreview}
+          />
         )
       case 6:
         return (
@@ -1151,6 +1230,8 @@ export default function OnboardingPage() {
             onSetupPhaseChange={setProSetupPhase}
             offersServices={proOffersServices}
             onOffersServicesChange={setProOffersServices}
+            eventsEnabled={Boolean(businessSnapQuery.data?.events_enabled)}
+            onEventsEnabledChange={(v) => void handleEventsEnabledChange(v)}
             onServicesPreviewMutate={handleServicesPreviewMutate}
             brandColorDefault={brandColorQuery.data?.default ?? '#000000'}
             brandColorPickerValue={brandColorLiveHex}
@@ -1175,6 +1256,7 @@ export default function OnboardingPage() {
     aboutTeamFile,
     galleryPhotoFiles,
     schedulePreview,
+    hideClosedDaysPreview,
     previewAddress,
     previewEmail,
     previewMapLat,
@@ -1188,6 +1270,8 @@ export default function OnboardingPage() {
     postCheckoutProGallery,
     proOffersServices,
     handleServicesPreviewMutate,
+    handleEventsEnabledChange,
+    businessSnapQuery.data?.events_enabled,
     proSetupPhase,
     resetProExtrasFlow,
     step1LogoFile,

@@ -43,6 +43,7 @@ import {
   buildPublicVcardUrl,
   defaultSocialUrls,
   resolvePublicApiBaseUrl,
+  type TemplateEventPayload,
 } from '../public-page/publicTemplatePayload'
 import { LocationPicker } from '../../components/location/LocationPicker'
 import type { LocationValue } from '../../lib/location/locationTypes'
@@ -137,6 +138,11 @@ type TemplatePreviewData = {
   galleryUrls?: string[]
   /** Horario semanal (paso 5) para vista previa en plantilla */
   schedule?: Schedule
+  /** Ocultar días cerrados en la web pública (paso 5). */
+  hideClosedDays?: boolean
+  /** Eventos Pro visibles en la web pública. */
+  eventsEnabled?: boolean
+  events?: TemplateEventPayload[]
   /** Coordenadas tras geocodificar la dirección (mapa en plantilla) */
   mapLat?: number
   mapLng?: number
@@ -554,6 +560,9 @@ function TemplateIframe({
             correo: previewData.email ?? '',
             galeria: previewData.galleryUrls ?? [],
             horario: previewData.schedule ?? null,
+            hide_closed_days: previewData.hideClosedDays ?? false,
+            events_enabled: previewData.eventsEnabled ?? false,
+            events: previewData.events ?? [],
             ...(Number.isFinite(previewData.mapLat) && Number.isFinite(previewData.mapLng)
               ? { map_lat: previewData.mapLat, map_lon: previewData.mapLng }
               : {}),
@@ -3188,22 +3197,31 @@ function Step5Horarios({
   isLoading: busy,
   schedule,
   onScheduleChange,
+  hideClosedDays,
+  onHideClosedDaysChange,
 }: WizardStepProps & {
   schedule: Schedule
   onScheduleChange: (s: Schedule) => void
+  hideClosedDays: boolean
+  onHideClosedDaysChange: (value: boolean) => void
 }) {
   const nav = useContext(WizardNavContext)
 
   useLayoutEffect(() => {
-    nav?.registerContinueHandler?.(() => schedule)
+    nav?.registerContinueHandler?.(() => ({
+      schedule,
+      hide_closed_days: hideClosedDays,
+    }))
     return () => nav?.registerContinueHandler?.(null)
-  }, [nav, schedule])
+  }, [nav, schedule, hideClosedDays])
 
   return (
     <>
       <ScheduleEditor
         schedule={schedule}
         onChange={onScheduleChange}
+        hideClosedDays={hideClosedDays}
+        onHideClosedDaysChange={onHideClosedDaysChange}
         disabled={busy}
         title="Vuestros horarios"
         subtitle="Plantilla rápida y ajusta horas. El interruptor abre o cierra cada día."

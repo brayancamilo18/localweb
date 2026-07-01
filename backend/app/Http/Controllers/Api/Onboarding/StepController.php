@@ -64,6 +64,7 @@ class StepController extends BaseApiController
             'phone' => $business->phone,
             'email' => $business->email,
             'schedule' => $business->schedule,
+            'hide_closed_days' => $business->hide_closed_days,
             'subdomain' => $business->subdomain,
         ];
     }
@@ -414,7 +415,10 @@ class StepController extends BaseApiController
     public function step5(Request $request, BusinessService $businessService)
     {
         $days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-        $rules = ['schedule' => ['required', 'array']];
+        $rules = [
+            'schedule' => ['required', 'array'],
+            'hide_closed_days' => ['sometimes', 'boolean'],
+        ];
         foreach ($days as $day) {
             $rules["schedule.{$day}.open"] = ['required', 'date_format:H:i'];
             $rules["schedule.{$day}.close"] = ['required', 'date_format:H:i'];
@@ -446,12 +450,19 @@ class StepController extends BaseApiController
 
         $draft = Cache::get($this->cacheKey($request->user()->id), []);
         $draft['schedule'] = $data['schedule'];
+        if (array_key_exists('hide_closed_days', $data)) {
+            $draft['hide_closed_days'] = $data['hide_closed_days'];
+        }
         $draft['step'] = 5;
         Cache::put($this->cacheKey($request->user()->id), $draft, now()->addHours(4));
 
-        $this->syncBusinessFromStep($request->user(), $businessService, [
+        $syncFields = [
             'schedule' => $data['schedule'],
-        ]);
+        ];
+        if (array_key_exists('hide_closed_days', $data)) {
+            $syncFields['hide_closed_days'] = $data['hide_closed_days'];
+        }
+        $this->syncBusinessFromStep($request->user(), $businessService, $syncFields);
 
         return $this->success(['ok' => true, 'next_step' => 6]);
     }
@@ -555,6 +566,7 @@ class StepController extends BaseApiController
             'lat' => $draft['lat'] ?? null,
             'lng' => $draft['lng'] ?? null,
             'schedule' => $draft['schedule'] ?? null,
+            'hide_closed_days' => $draft['hide_closed_days'] ?? false,
             'subdomain' => $data['subdomain'] ?? null,
         ];
 

@@ -1,0 +1,919 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Tu negocio · Plantilla fast-casual bold pop</title>
+<meta name="description" content="Plantilla profesional bold pop para negocios fast-casual: hamburgueserías, pizzerías, tacos, poke y comida callejera de calidad." />
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Manrope:wght@500;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    /* ===== Paleta bold pop (marca real) ===== */
+    --orange:    #ee7a1f;   /* naranja chispa — fondo principal */
+    --orange-d:  #d8650f;   /* naranja hondo para sombras de bloque */
+    --ink:       #1a1410;   /* negro cálido — texto y bordes */
+    --cream:     #fdecc2;   /* crema masa horneada — bloques de respiro */
+    --cream-d:   #f7e0a8;   /* crema un punto más cálida (hover) */
+    --brown:     #4a2818;   /* marrón profundo — type sobre crema / fondo */
+    --white:     #ffffff;   /* blanco puro, con contención */
+
+    --display: "Lilita One", system-ui, sans-serif;     /* chunky redondeada */
+    --body:    "Manrope", system-ui, sans-serif;        /* sans con peso */
+    --mono:    "Space Mono", "Courier New", monospace;  /* precios tipo ticket */
+
+    --container: 1200px;
+    --bd: 3px;                                            /* grosor borde negro */
+    --bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --soft:   cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* sombra dura desplazada */
+    --shadow:    6px 6px 0 var(--ink);
+    --shadow-sm: 4px 4px 0 var(--ink);
+    --shadow-lg: 9px 9px 0 var(--ink);
+  }
+
+  *,*::before,*::after{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin: 0;
+    font-family: var(--body);
+    color: var(--ink);
+    background: var(--orange);
+    line-height: 1.6;
+    font-size: 1.08rem;
+    font-weight: 600;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  img{ display: block; max-width: 100%; }
+  svg{ display: block; }
+  a{ color: inherit; }
+  button{ font: inherit; cursor: pointer; color: inherit; }
+  p{ margin: 0; }
+  h1,h2,h3,h4{ margin: 0; font-family: var(--display); font-weight: 400; line-height: .98; letter-spacing: .005em; }
+  .num{ font-variant-numeric: lining-nums tabular-nums; }
+
+  :focus-visible{ outline: var(--bd) solid var(--ink); outline-offset: 3px; }
+
+  .container{ width: min(100% - 32px, var(--container)); margin-inline: auto; position: relative; }
+  section{ padding: clamp(70px, 9vw, 120px) 0; position: relative; }
+  .bg-cream{ background: var(--cream); color: var(--ink); }
+  .bg-brown{ background: var(--brown); color: var(--cream); }
+
+  /* ===== Cápsulas / eyebrows chunky ===== */
+  .cap{
+    display: inline-flex; align-items: center; gap: .45rem;
+    font-family: var(--display); font-size: .92rem;
+    text-transform: uppercase; letter-spacing: .04em;
+    padding: .4rem .9rem;
+    border: var(--bd) solid var(--ink);
+    background: var(--cream); color: var(--ink);
+    border-radius: 999px;
+    box-shadow: var(--shadow-sm);
+  }
+  .cap.on-cream{ background: var(--orange); }
+  .cap.solid-ink{ background: var(--ink); color: var(--cream); }
+
+  .section-head{ max-width: 760px; margin-bottom: clamp(2.2rem,5vw,3.4rem); }
+  .section-head.center{ margin-inline: auto; text-align: center; }
+  .section-head h2{ font-size: clamp(2.6rem, 6vw, 4.6rem); margin-top: 1rem; color: inherit; text-wrap: balance; }
+  .section-head .lede{ font-size: 1.15rem; margin-top: 1rem; max-width: 52ch; font-weight: 600; }
+  .section-head.center .lede{ margin-inline: auto; }
+
+  /* ===== Botones chunky neobrutalist ===== */
+  .btn{
+    position: relative;
+    display: inline-flex; align-items: center; justify-content: center; gap: .55rem;
+    padding: 1rem 1.6rem;
+    font-family: var(--display); font-size: 1.05rem;
+    text-transform: uppercase; letter-spacing: .02em;
+    text-decoration: none;
+    border: var(--bd) solid var(--ink);
+    border-radius: 16px;
+    background: var(--cream); color: var(--ink);
+    box-shadow: var(--shadow);
+    transition: transform .22s var(--soft), box-shadow .22s var(--soft), background-color .22s var(--soft);
+  }
+  .btn:hover{ transform: translate(3px,3px); box-shadow: 3px 3px 0 var(--ink); }
+  .btn:active{ transform: translate(6px,6px); box-shadow: 0 0 0 var(--ink); }
+  .btn svg{ width: 19px; height: 19px; }
+  .btn-orange{ background: var(--orange); color: var(--ink); }
+  .btn-ink{ background: var(--ink); color: var(--cream); }
+  .btn-white{ background: var(--white); color: var(--ink); }
+  .btn-wa{ background: #1fbf5b; color: var(--white); }
+  .btn-sm{ padding: .6rem 1rem; font-size: .9rem; box-shadow: var(--shadow-sm); border-radius: 13px; }
+  .btn-sm:hover{ box-shadow: 2px 2px 0 var(--ink); }
+
+  /* ===== Enlace con marker underline ===== */
+  .mlink{ position: relative; text-decoration: none; font-weight: 800; padding: 0 2px; }
+  .mlink::before{
+    content: ""; position: absolute; left: 0; right: 0; bottom: 1px; height: 42%;
+    background: var(--ink); opacity: .9; z-index: -1;
+    transform: scaleX(0); transform-origin: left;
+    transition: transform .28s var(--soft);
+  }
+  .bg-brown .mlink::before, .bg-cream .mlink.inv::before{ background: var(--orange); }
+  .mlink:hover{ color: var(--cream); }
+  .bg-cream .mlink:hover{ color: var(--ink); }
+  .mlink:hover::before{ transform: scaleX(1); }
+
+  /* ===== Pill abierto/cerrado ===== */
+  .pill{
+    display: inline-flex; align-items: center; gap: .55rem;
+    padding: .45rem 1rem;
+    font-family: var(--display); font-size: .92rem; text-transform: uppercase; letter-spacing: .03em;
+    border: var(--bd) solid var(--ink); border-radius: 999px;
+    background: var(--white); color: var(--ink);
+    box-shadow: var(--shadow-sm);
+  }
+  .pill .dot{ width: 11px; height: 11px; border-radius: 50%; background: var(--ink); border: 2px solid var(--ink); }
+  .pill.is-open .dot{ background: #2fd06e; }
+  .pill.is-closed .dot{ background: #ff5a4d; }
+
+  /* ===== Formas geométricas decorativas ===== */
+  .shape{ position: absolute; pointer-events: none; z-index: 0; border: var(--bd) solid var(--ink); }
+  .shape.circle{ border-radius: 50%; }
+  .shape.c-cream{ background: var(--cream); }
+  .shape.c-brown{ background: var(--brown); }
+  .shape.c-orange{ background: var(--orange); }
+  .shape.c-white{ background: var(--white); }
+
+  /* ===== NAV ===== */
+  .nav{ position: fixed; inset: 14px 0 auto 0; z-index: 80; pointer-events: none; }
+  .nav-inner{
+    pointer-events: auto;
+    width: min(100% - 24px, var(--container)); margin-inline: auto;
+    display: flex; align-items: center; gap: 1rem;
+    background: rgba(238,122,31,.78);
+    backdrop-filter: saturate(160%) blur(12px); -webkit-backdrop-filter: saturate(160%) blur(12px);
+    border: var(--bd) solid var(--ink); border-radius: 20px;
+    padding: .5rem .55rem .5rem 1.2rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .brand{ display: flex; align-items: center; gap: .55rem; text-decoration: none; color: var(--ink); font-family: var(--display); font-size: 1.3rem; white-space: nowrap; }
+  .brand .bmark{
+    width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center;
+    background: var(--ink); color: var(--orange); border: 2px solid var(--ink); font-size: 1.1rem;
+  }
+  .nav-links{ display: flex; gap: .1rem; margin-left: auto; }
+  .nav-links a{
+    text-decoration: none; color: var(--ink);
+    font-family: var(--display); font-size: .92rem; text-transform: uppercase; letter-spacing: .02em;
+    padding: .5rem .8rem; border-radius: 11px; transition: background-color .2s var(--soft), color .2s var(--soft);
+  }
+  .nav-links a:hover{ background: var(--ink); color: var(--cream); }
+  .nav-cta{ display: flex; align-items: center; gap: .45rem; }
+  .burger{ display: none; width: 44px; height: 44px; border-radius: 12px; border: var(--bd) solid var(--ink); background: var(--cream); align-items: center; justify-content: center; box-shadow: var(--shadow-sm); }
+  .burger span, .burger span::before, .burger span::after{ display: block; width: 18px; height: 3px; background: var(--ink); border-radius: 2px; position: relative; }
+  .burger span::before, .burger span::after{ content: ""; position: absolute; left: 0; }
+  .burger span::before{ top: -6px; } .burger span::after{ top: 6px; }
+
+  .sheet{ position: fixed; inset: 0; z-index: 90; background: rgba(26,20,16,.5); display: none; }
+  .sheet.open{ display: block; }
+  .sheet-inner{ position: absolute; left: 14px; right: 14px; top: 14px; background: var(--cream); border: var(--bd) solid var(--ink); border-radius: 20px; padding: 1rem; box-shadow: var(--shadow); }
+  .sheet-inner nav{ display: grid; gap: .2rem; margin-top: .4rem; }
+  .sheet-inner a{ display: block; padding: .85rem 1rem; text-decoration: none; color: var(--ink); font-family: var(--display); font-size: 1.15rem; text-transform: uppercase; border-radius: 12px; }
+  .sheet-inner a:hover{ background: var(--orange); }
+  .sheet-close{ width: 40px; height: 40px; border-radius: 12px; border: var(--bd) solid var(--ink); background: var(--orange); display: grid; place-items: center; float: right; box-shadow: var(--shadow-sm); }
+
+  /* ===== HERO ===== */
+  .hero{ padding-top: clamp(130px, 15vw, 175px); padding-bottom: clamp(60px, 8vw, 90px); overflow: hidden; }
+  .hero .shape.s1{ width: 240px; height: 240px; top: 8%; right: -60px; }
+  .hero .shape.s2{ width: 120px; height: 120px; bottom: 14%; left: -40px; border-radius: 26px; }
+  .hero-top{ display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(1.6rem,4vw,3rem); align-items: center; position: relative; z-index: 1; }
+  .hero h1{
+    font-size: clamp(4.2rem, 13vw, 11rem);
+    color: var(--ink);
+    text-wrap: balance;
+  }
+  .hero h1 .tint{ color: var(--cream); -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; }
+  .hero-tagline{ font-size: 1.25rem; max-width: 42ch; margin-top: 1.4rem; font-weight: 700; }
+  .hero-cta{ display: flex; gap: .8rem; flex-wrap: wrap; margin-top: 1.9rem; }
+  .hero-status{ margin-top: 1.5rem; }
+
+  .hero-photos{ position: relative; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 1rem; }
+  .hero-photo{ position: relative; overflow: hidden; border: var(--bd) solid var(--ink); border-radius: 22px; box-shadow: var(--shadow); background: var(--cream); }
+  .hero-photo img{ width: 100%; height: 100%; object-fit: cover; transition: transform .35s var(--soft), filter .35s var(--soft); }
+  .hero-photo:hover img{ transform: scale(1.05); filter: saturate(1.12) brightness(1.04); }
+  .hero-photo.p1{ grid-row: span 2; aspect-ratio: 3/4.4; }
+  .hero-photo.p2{ aspect-ratio: 5/4; }
+  .hero-photo.p3{ aspect-ratio: 5/4; }
+
+  @media (min-width: 901px){
+    .hero-top{ grid-template-columns: 0.9fr 1.1fr; gap: clamp(1.8rem, 3.5vw, 3.2rem); }
+    .hero-photos{ gap: clamp(1rem, 1.5vw, 1.35rem); width: 100%; justify-self: stretch; }
+    .hero-photo{ border-radius: 24px; }
+    .hero-photo.p1{ aspect-ratio: 3/4; min-height: clamp(340px, 38vw, 480px); }
+    .hero-photo.p2,
+    .hero-photo.p3{ aspect-ratio: 4/3.15; min-height: clamp(148px, 16vw, 210px); }
+  }
+  @media (min-width: 1140px){
+    .hero-top{ grid-template-columns: 0.82fr 1.18fr; }
+    .hero-photos{ gap: 1.4rem; }
+    .hero-photo.p1{ min-height: clamp(380px, 42vh, 520px); }
+    .hero-photo.p2,
+    .hero-photo.p3{ min-height: clamp(168px, 18vw, 230px); }
+  }
+
+  /* fallback placeholder chunky */
+  .ph{ position: absolute; inset: 0; display: grid; place-items: center; gap: .6rem; text-align: center; }
+  .ph.o{ background: var(--orange); } .ph.c{ background: var(--cream); } .ph.b{ background: var(--brown); color: var(--cream); }
+  .ph::before{ content: ""; position: absolute; width: 46%; aspect-ratio: 1; border-radius: 50%; border: var(--bd) solid var(--ink); opacity: .25; }
+  .ph .emoji{ font-size: 2.6rem; position: relative; }
+  .ph .ph-label{ position: relative; font-family: var(--mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; padding: .2rem .55rem; border: 2px solid var(--ink); border-radius: 8px; }
+
+  /* ===== TICKER ===== */
+  .ticker{ background: var(--ink); color: var(--cream); border-top: var(--bd) solid var(--ink); border-bottom: var(--bd) solid var(--ink); overflow: hidden; padding: 0; }
+  .ticker-track{ display: flex; gap: 2.4rem; width: max-content; padding: 1rem 0; animation: tick 30s linear infinite; }
+  .ticker-item{ display: inline-flex; align-items: center; gap: 1rem; font-family: var(--display); font-size: 1.4rem; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; }
+  .ticker-item .sep{ color: var(--orange); }
+  @keyframes tick{ to{ transform: translateX(-50%); } }
+
+  /* ===== SERVICIOS — STICKY STACK ===== */
+  .stack-intro{ text-align: center; }
+  .stack{ position: relative; max-width: 900px; margin: clamp(2rem,5vw,3.4rem) auto 0; }
+  .stack-card{
+    position: sticky;
+    border: var(--bd) solid var(--ink); border-radius: 26px;
+    background: var(--cream); color: var(--ink);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    display: grid; grid-template-columns: 38% 1fr;
+    min-height: 300px;
+    margin-bottom: 26px;
+    will-change: transform;
+  }
+  .stack-card .sc-photo{ position: relative; border-right: var(--bd) solid var(--ink); min-height: 240px; }
+  .stack-card:nth-child(4n+1){ background: var(--cream); }
+  .stack-card:nth-child(4n+2){ background: var(--white); }
+  .stack-card:nth-child(4n+3){ background: var(--orange); }
+  .stack-card:nth-child(4n+3) .sc-num{ color: var(--ink); }
+  .stack-card:nth-child(4n){ background: var(--cream-d); }
+  .sc-body{ padding: clamp(1.4rem,3vw,2.4rem); display: flex; flex-direction: column; gap: .6rem; justify-content: center; }
+  .sc-top{ display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; }
+  .sc-num{ font-family: var(--mono); font-size: .82rem; color: var(--brown); }
+  .sc-name{ font-family: var(--display); font-size: clamp(1.8rem,3.4vw,2.8rem); line-height: 1; }
+  .sc-desc{ font-weight: 600; max-width: 42ch; }
+  .sc-foot{ display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: .6rem; flex-wrap: wrap; }
+  .sc-price{ font-family: var(--mono); font-weight: 700; font-size: clamp(1.8rem,3.6vw,2.6rem); background: var(--ink); color: var(--cream); padding: .15rem .7rem; border-radius: 12px; }
+  .stack-card:nth-child(4n+3) .sc-price{ background: var(--white); color: var(--ink); border: 2px solid var(--ink); }
+
+  /* pop al entrar */
+  .pop{ opacity: 0; transform: translateY(26px) scale(.94); }
+  .pop.in{ opacity: 1; transform: none; animation: popin .6s var(--bounce); }
+  @keyframes popin{ 0%{ transform: translateY(26px) scale(.94); } 60%{ transform: translateY(0) scale(1.02); } 100%{ transform: none; } }
+
+  /* ===== ABOUT ===== */
+  .about-grid{ display: grid; grid-template-columns: .95fr 1.05fr; gap: clamp(2rem,5vw,4rem); align-items: center; }
+  .about-photo{ position: relative; aspect-ratio: 1/1; border: var(--bd) solid var(--ink); border-radius: 28px; overflow: hidden; box-shadow: var(--shadow-lg); background: var(--cream); }
+  .about-photo img{ width: 100%; height: 100%; object-fit: cover; transition: transform .35s var(--soft); }
+  .about-photo:hover img{ transform: scale(1.05); }
+  .about-body h2{ font-size: clamp(2.4rem,5vw,4rem); margin-top: 1rem; }
+  .about-body .lede{ font-size: 1.15rem; margin-top: 1.1rem; font-weight: 600; }
+  .about-stats{ display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; margin-top: 2rem; }
+  .about-stat{ border: var(--bd) solid var(--cream); border-radius: 18px; padding: 1.1rem; text-align: center; }
+  .about-stat .n{ font-family: var(--display); font-size: 1.4rem; line-height: 1.2; word-break: break-word; }
+  .about-stat .l{ font-size: .82rem; margin-top: .4rem; font-weight: 700; opacity: .85; }
+
+  /* ===== GALERIA ===== */
+  .gallery{ display: grid; grid-template-columns: repeat(12,1fr); grid-auto-rows: 120px; gap: clamp(.8rem,1.6vw,1.2rem); }
+  .g-item{ position: relative; overflow: hidden; border: var(--bd) solid var(--ink); border-radius: 20px; box-shadow: var(--shadow); background: var(--cream); }
+  .g-item img{ width: 100%; height: 100%; object-fit: cover; transition: transform .35s var(--soft), filter .35s var(--soft); }
+  .g-item:hover img{ transform: scale(1.06); filter: saturate(1.12) brightness(1.04); }
+  .g-item:nth-child(1){ grid-column: span 5; grid-row: span 3; }
+  .g-item:nth-child(2){ grid-column: span 4; grid-row: span 2; }
+  .g-item:nth-child(3){ grid-column: span 3; grid-row: span 2; }
+  .g-item:nth-child(4){ grid-column: span 4; grid-row: span 2; }
+  .g-item:nth-child(5){ grid-column: span 3; grid-row: span 2; }
+  .g-item:nth-child(6){ grid-column: span 5; grid-row: span 2; }
+
+  /* ===== HORARIO ===== */
+  .schedule-wrap{ display: grid; grid-template-columns: 1.15fr .85fr; gap: clamp(1.4rem,3vw,2.2rem); align-items: stretch; }
+  .panel{ border: var(--bd) solid var(--ink); border-radius: 24px; background: var(--cream); box-shadow: var(--shadow-lg); overflow: hidden; }
+  .panel-head{ background: var(--ink); color: var(--cream); padding: 1.1rem 1.5rem; font-family: var(--display); font-size: 1.5rem; text-transform: uppercase; }
+  .sched-row{ display: flex; justify-content: space-between; align-items: center; padding: .95rem 1.5rem; border-bottom: 2px solid rgba(26,20,16,.18); }
+  .sched-row:last-child{ border-bottom: 0; }
+  .sched-row .day{ font-family: var(--display); text-transform: uppercase; font-size: 1.02rem; }
+  .sched-row .hours{ font-family: var(--mono); font-weight: 700; color: var(--brown); }
+  .sched-row.is-today{ background: var(--orange); }
+  .sched-row.is-closed .hours{ opacity: .55; }
+  .sched-side{ border: var(--bd) solid var(--ink); border-radius: 24px; background: var(--brown); color: var(--cream); padding: clamp(1.6rem,3.5vw,2.4rem); display: flex; flex-direction: column; gap: 1rem; justify-content: center; box-shadow: var(--shadow-lg); }
+  .sched-side h3{ font-family: var(--display); font-size: 2rem; }
+  .sched-side p{ font-weight: 600; opacity: .9; }
+
+  /* ===== CONTACTO ===== */
+  .contact-grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  .contact-big{ border: var(--bd) solid var(--ink); border-radius: 24px; padding: clamp(1.6rem,3.5vw,2.4rem); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; gap: .4rem; text-decoration: none; color: var(--ink); transition: transform .22s var(--soft), box-shadow .22s var(--soft); }
+  .contact-big:hover{ transform: translate(3px,3px); box-shadow: 4px 4px 0 var(--ink); }
+  .contact-big.c1{ background: var(--cream); } .contact-big.c2{ background: #1fbf5b; color: var(--white); border-color: var(--ink); }
+  .contact-big .label{ font-family: var(--display); text-transform: uppercase; font-size: 1rem; display: inline-flex; align-items: center; gap: .5rem; }
+  .contact-big .big{ font-family: var(--display); font-size: clamp(1.8rem,4.4vw,3rem); line-height: 1; }
+  .contact-big svg{ width: 26px; height: 26px; }
+  .contact-extra{ display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-top: 1.2rem; }
+  .ccard{ border: var(--bd) solid var(--ink); border-radius: 20px; background: var(--white); padding: 1.4rem; text-decoration: none; color: var(--ink); box-shadow: var(--shadow-sm); display: grid; gap: .3rem; transition: transform .22s var(--soft), box-shadow .22s var(--soft); }
+  .ccard:hover{ transform: translate(2px,2px); box-shadow: 2px 2px 0 var(--ink); }
+  .ccard .l{ font-family: var(--display); text-transform: uppercase; font-size: .8rem; opacity: .7; }
+  .ccard .v{ font-weight: 800; }
+
+  /* ===== MAPA ===== */
+  #map{ height: 440px; border: var(--bd) solid var(--ink); border-radius: 24px; box-shadow: var(--shadow-lg); overflow: hidden; }
+  .leaflet-container{ background: var(--cream); }
+
+  /* ===== OPINIONES ===== */
+  .reviews{ border: var(--bd) solid var(--ink); border-radius: 28px; background: var(--cream); padding: clamp(2.4rem,6vw,4.2rem); text-align: center; box-shadow: var(--shadow-lg); position: relative; overflow: hidden; }
+  .reviews .stars{ font-size: 2.4rem; letter-spacing: .12em; }
+  .reviews h2{ font-size: clamp(2.2rem,5vw,3.6rem); margin-top: .6rem; }
+  .reviews p{ max-width: 52ch; margin: 1rem auto 1.8rem; font-weight: 600; }
+
+  /* ===== VCARD ===== */
+  .vcard{ border: var(--bd) solid var(--ink); border-radius: 24px; background: var(--brown); color: var(--cream); padding: clamp(1.6rem,3.5vw,2.4rem); display: flex; align-items: center; gap: 1.4rem; flex-wrap: wrap; box-shadow: var(--shadow-lg); }
+  .vcard .ic{ width: 64px; height: 64px; border-radius: 16px; border: var(--bd) solid var(--cream); background: var(--orange); color: var(--ink); display: grid; place-items: center; flex: none; }
+  .vcard h3{ font-family: var(--display); font-size: 1.6rem; }
+  .vcard p{ font-weight: 600; opacity: .9; margin-top: .2rem; }
+  .vcard .btn{ margin-left: auto; }
+
+  /* ===== CTA FINAL ===== */
+  .final{ background: var(--orange); padding: clamp(80px,11vw,150px) 0; text-align: center; overflow: hidden; position: relative; }
+  .final .shape.f1{ width: 200px; height: 200px; top: 10%; left: -50px; }
+  .final .shape.f2{ width: 130px; height: 130px; bottom: 8%; right: -30px; border-radius: 28px; }
+  .final h2{ font-size: clamp(3.6rem, 13vw, 12rem); color: var(--ink); line-height: .9; position: relative; z-index: 1; }
+  .final p{ font-size: 1.2rem; font-weight: 700; max-width: 46ch; margin: 1.2rem auto 2rem; position: relative; z-index: 1; }
+  .final .ctas{ display: flex; gap: .9rem; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
+
+  /* ===== FOOTER ===== */
+  footer{ background: var(--ink); color: var(--cream); padding: clamp(3rem,6vw,4.5rem) 0 2rem; }
+  .footer-grid{ display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 2rem; }
+  footer .brand{ color: var(--cream); font-size: 1.6rem; }
+  footer .brand .bmark{ background: var(--orange); color: var(--ink); border-color: var(--cream); }
+  footer h4{ font-family: var(--display); font-size: 1.1rem; margin-bottom: .9rem; text-transform: uppercase; }
+  footer ul{ list-style: none; padding: 0; margin: 0; display: grid; gap: .65rem; }
+  footer .foot-contact li{ line-height: 1.4; word-break: break-word; }
+  footer a{ color: rgba(253,236,194,.82); text-decoration: none; font-weight: 600; }
+  footer a:hover{ color: var(--orange); }
+  .footer-bottom{ margin-top: 2.6rem; padding-top: 1.4rem; border-top: 2px solid rgba(253,236,194,.18); display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-family: var(--mono); font-size: .8rem; color: rgba(253,236,194,.6); }
+  .footer-bottom a{ color: rgba(253,236,194,.85); text-decoration: underline; }
+  .footer-bottom a:hover{ color: var(--cream); }
+
+  /* ===== Reveal ===== */
+  .reveal{ opacity: 0; transform: translateY(26px); transition: opacity .55s var(--soft), transform .6s var(--bounce); will-change: transform; }
+  .reveal.in{ opacity: 1; transform: none; }
+  [data-stagger] > *{ opacity: 0; transform: translateY(22px) scale(.96); transition: opacity .5s var(--soft), transform .6s var(--bounce); }
+  [data-stagger].in > *{ opacity: 1; transform: none; }
+  [data-stagger].in > *:nth-child(1){ transition-delay: 0ms; }
+  [data-stagger].in > *:nth-child(2){ transition-delay: 80ms; }
+  [data-stagger].in > *:nth-child(3){ transition-delay: 160ms; }
+  [data-stagger].in > *:nth-child(4){ transition-delay: 240ms; }
+  [data-stagger].in > *:nth-child(5){ transition-delay: 320ms; }
+  [data-stagger].in > *:nth-child(6){ transition-delay: 400ms; }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+    .reveal,[data-stagger] > *,.pop{ opacity:1 !important; transform:none !important; }
+    .ticker-track{ animation: none !important; }
+    .stack-card{ position: static !important; }
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 900px){
+    .nav-links{ display: none; }
+    .burger{ display: inline-flex; margin-left: auto; }
+    .nav-cta .btn:not(.btn-wa){ display: none; }
+    .hero-top{ grid-template-columns: 1fr; }
+    .about-grid{ grid-template-columns: 1fr; }
+    .about-photo{ max-width: 440px; }
+    .schedule-wrap{ grid-template-columns: 1fr; }
+    .contact-grid{ grid-template-columns: 1fr; }
+    .gallery{ grid-template-columns: repeat(6,1fr); grid-auto-rows: 116px; }
+    .g-item:nth-child(1){ grid-column: span 6; grid-row: span 2; }
+    .g-item:nth-child(n+2){ grid-column: span 3; grid-row: span 2; }
+    .footer-grid{ grid-template-columns: 1fr 1fr; }
+    /* Sticky stack OFF en móvil: columna normal */
+    .stack-card{ position: static; box-shadow: var(--shadow); margin-bottom: 18px; }
+  }
+  @media (max-width: 560px){
+    .hero-photos{ grid-template-columns: 1fr 1fr; }
+    .hero-photo.p1{ grid-row: span 1; grid-column: span 2; aspect-ratio: 16/9; }
+    .stack-card{ grid-template-columns: 1fr; }
+    .stack-card .sc-photo{ border-right: 0; border-bottom: var(--bd) solid var(--ink); aspect-ratio: 16/10; min-height: 0; }
+    .about-stats{ grid-template-columns: 1fr; }
+    .contact-extra{ grid-template-columns: 1fr; }
+    .gallery{ grid-template-columns: repeat(2,1fr); grid-auto-rows: 130px; }
+    .g-item{ grid-column: span 1 !important; grid-row: span 1 !important; }
+    .g-item:nth-child(1){ grid-column: span 2 !important; grid-row: span 2 !important; }
+    .footer-grid{ grid-template-columns: 1fr; }
+    .vcard{ flex-direction: column; align-items: flex-start; }
+    .vcard .btn{ margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ====================== 1. NAV ====================== -->
+<header class="nav" role="banner">
+  <div class="nav-inner">
+    <a href="#top" class="brand" aria-label="Inicio · Tu negocio">
+      <span class="bmark" aria-hidden="true">◆</span>
+      Tu negocio
+    </a>
+    <nav class="nav-links" aria-label="Principal">
+      <a href="#servicios">Servicios</a>
+      <a href="#nosotros">Nosotros</a>
+      <a href="#galeria">Galería</a>
+      <a href="#horario">Horario</a>
+      <a href="#opiniones">Opiniones</a>
+      <a href="#contacto">Contacto</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-wa btn-sm" href="https://wa.me/" aria-label="Pide por WhatsApp">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 3.5A11 11 0 0 0 3.6 17.3L2 22l4.8-1.5A11 11 0 1 0 20.5 3.5zM12 20a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.9.9-2.8-.2-.3A8 8 0 1 1 12 20z"/></svg>
+        Pide ya
+      </a>
+      <button class="burger" id="burger" aria-label="Abrir menú" aria-expanded="false" aria-controls="sheet">
+        <span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="sheet" id="sheet" role="dialog" aria-label="Menú" aria-modal="true">
+  <div class="sheet-inner">
+    <button class="sheet-close" id="sheetClose" aria-label="Cerrar menú">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 6l12 12M6 18L18 6"/></svg>
+    </button>
+    <nav aria-label="Menú móvil">
+      <a href="#servicios">Servicios</a>
+      <a href="#nosotros">Nosotros</a>
+      <a href="#galeria">Galería</a>
+      <a href="#horario">Horario</a>
+      <a href="#opiniones">Opiniones</a>
+      <a href="#contacto">Contacto</a>
+    </nav>
+  </div>
+</div>
+
+<main id="top">
+
+<!-- ====================== 2. HERO ====================== -->
+<section class="hero" aria-labelledby="hero-title">
+  <span class="shape circle c-cream s1" aria-hidden="true"></span>
+  <span class="shape c-brown s2" aria-hidden="true"></span>
+  <div class="container">
+    <div class="hero-top">
+      <div>
+        <span class="cap">★ Fast-casual · Recién hecho</span>
+        <h1 id="hero-title">Tu <span class="tint">negocio</span></h1>
+        <p class="hero-tagline">Frase corta y con chispa: qué cocinan, por qué está tan rico y por qué pedir aquí es lo mejor.</p>
+        <div class="hero-cta">
+          <a class="btn btn-ink" href="https://wa.me/">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 3.5A11 11 0 0 0 3.6 17.3L2 22l4.8-1.5A11 11 0 1 0 20.5 3.5z"/></svg>
+            Pide por WhatsApp
+          </a>
+          <a class="btn btn-cream" href="#servicios">Ver el menú</a>
+        </div>
+        <span class="pill is-open hero-status" id="heroStatus" role="status" aria-live="polite">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="heroStatusLabel">Abierto ahora</span>
+        </span>
+      </div>
+
+      <div class="hero-photos" aria-label="Fotos del negocio">
+        <figure class="hero-photo p1">
+          <div class="ph o" role="img" aria-label="Foto del producto estrella (placeholder)">
+            <span class="emoji" aria-hidden="true">🍔</span>
+            <span class="ph-label">FOTO · 3:4</span>
+          </div>
+        </figure>
+        <figure class="hero-photo p2">
+          <div class="ph c" role="img" aria-label="Foto del local (placeholder)">
+            <span class="emoji" aria-hidden="true">🍟</span>
+            <span class="ph-label">FOTO · 5:4</span>
+          </div>
+        </figure>
+        <figure class="hero-photo p3">
+          <div class="ph b" role="img" aria-label="Foto de bebida o postre (placeholder)">
+            <span class="emoji" aria-hidden="true">🥤</span>
+            <span class="ph-label">FOTO · 5:4</span>
+          </div>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== 3. TICKER ====================== -->
+<section class="ticker" aria-label="Mensajes destacados">
+  <div class="ticker-track" id="ticker">
+    <span class="ticker-item">Recién hecho <span class="sep" aria-hidden="true">●</span></span>
+    <span class="ticker-item">Ingredientes top <span class="sep" aria-hidden="true">▲</span></span>
+    <span class="ticker-item">Pide y recoge <span class="sep" aria-hidden="true">★</span></span>
+    <span class="ticker-item">Delivery rápido <span class="sep" aria-hidden="true">●</span></span>
+    <span class="ticker-item">Sabor de verdad <span class="sep" aria-hidden="true">▲</span></span>
+    <span class="ticker-item">Hecho con ganas <span class="sep" aria-hidden="true">★</span></span>
+  </div>
+</section>
+
+<!-- ====================== 4. SERVICIOS — STICKY STACK ====================== -->
+<section id="servicios" class="bg-cream" aria-labelledby="serv-title">
+  <div class="container">
+    <div class="section-head center stack-intro reveal">
+      <span class="cap on-cream">★ El menú</span>
+      <h2 id="serv-title">Lo que se cocina aquí</h2>
+    </div>
+    <div class="stack" id="stack"></div>
+  </div>
+</section>
+
+<!-- ====================== 5. ABOUT ====================== -->
+<section id="nosotros" class="bg-brown" aria-labelledby="about-title">
+  <div class="container">
+    <div class="about-grid">
+      <figure class="about-photo reveal">
+        <div class="ph o" role="img" aria-label="Foto del equipo (placeholder)">
+          <span class="emoji" aria-hidden="true">👨‍🍳</span>
+          <span class="ph-label">FOTO EQUIPO · 1:1</span>
+        </div>
+      </figure>
+      <div class="about-body">
+        <span class="cap reveal">★ Nosotros</span>
+        <h2 id="about-title" class="reveal">Gente con hambre de hacerlo rico</h2>
+        <p class="lede reveal">Cuenta aquí quién está detrás, cómo empezó todo y qué os hace diferentes. Producto, recetas y muchas ganas de que repitas.</p>
+        <div class="about-stats reveal" data-stagger>
+          <div class="about-stat">
+            <div class="n" id="aboutPhoneValue" data-phone-display>+00 000 000 000</div>
+            <div class="l">Teléfono</div>
+          </div>
+          <div class="about-stat">
+            <div class="n" id="aboutAddressValue">Calle Ejemplo, 00 · Ciudad</div>
+            <div class="l">Dirección</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== 6. GALERÍA ====================== -->
+<section id="galeria" aria-labelledby="gal-title">
+  <div class="container">
+    <div class="section-head center reveal">
+      <span class="cap">★ Galería</span>
+      <h2 id="gal-title">Para abrir el apetito</h2>
+    </div>
+    <div class="gallery" data-stagger>
+      <figure class="g-item"><div class="ph o" role="img" aria-label="Foto 1 (placeholder)"><span class="emoji" aria-hidden="true">🍔</span><span class="ph-label">FOTO · 01</span></div></figure>
+      <figure class="g-item"><div class="ph c" role="img" aria-label="Foto 2 (placeholder)"><span class="emoji" aria-hidden="true">🍕</span><span class="ph-label">FOTO · 02</span></div></figure>
+      <figure class="g-item"><div class="ph b" role="img" aria-label="Foto 3 (placeholder)"><span class="emoji" aria-hidden="true">🌮</span><span class="ph-label">FOTO · 03</span></div></figure>
+      <figure class="g-item"><div class="ph c" role="img" aria-label="Foto 4 (placeholder)"><span class="emoji" aria-hidden="true">🍟</span><span class="ph-label">FOTO · 04</span></div></figure>
+      <figure class="g-item"><div class="ph b" role="img" aria-label="Foto 5 (placeholder)"><span class="emoji" aria-hidden="true">🥤</span><span class="ph-label">FOTO · 05</span></div></figure>
+      <figure class="g-item"><div class="ph o" role="img" aria-label="Foto 6 (placeholder)"><span class="emoji" aria-hidden="true">🍩</span><span class="ph-label">FOTO · 06</span></div></figure>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== 7. HORARIO ====================== -->
+<section id="horario" class="bg-cream" aria-labelledby="sched-title">
+  <div class="container">
+    <div class="section-head center reveal">
+      <span class="cap on-cream">★ Horario</span>
+      <h2 id="sched-title">¿Cuándo cocinamos?</h2>
+    </div>
+    <div class="schedule-wrap">
+      <div class="panel reveal">
+        <div class="panel-head">Horario de la semana</div>
+        <div id="schedule"></div>
+      </div>
+      <aside class="sched-side reveal" aria-label="Estado actual">
+        <span class="pill is-open" id="sideStatus" style="align-self:flex-start;">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="sideStatusLabel">Abierto ahora</span>
+        </span>
+        <h3 id="sideStatusTitle">Estamos abiertos</h3>
+        <p id="sideStatusText">Pide ya o pasa. Te lo preparamos al momento.</p>
+        <a class="btn btn-orange" href="#contacto">Pide ahora</a>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== 8. CONTACTO ====================== -->
+<section id="contacto" aria-labelledby="contact-title">
+  <div class="container">
+    <div class="section-head center reveal">
+      <span class="cap">★ Contacto</span>
+      <h2 id="contact-title">Pide o reserva</h2>
+    </div>
+    <div class="contact-grid" data-stagger>
+      <a class="contact-big c1" href="tel:+00000000000">
+        <span class="label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2 4.1 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1 1 .3 1.8.6 2.7a2 2 0 0 1-.5 2.1L7.9 9.8a16 16 0 0 0 6 6l1.4-1.3a2 2 0 0 1 2-.5c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2z"/></svg> Llama</span>
+        <span class="big">Llámanos ya</span>
+      </a>
+      <a class="contact-big c2" href="https://wa.me/">
+        <span class="label"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 3.5A11 11 0 0 0 3.6 17.3L2 22l4.8-1.5A11 11 0 1 0 20.5 3.5z"/></svg> WhatsApp</span>
+        <span class="big">Escríbenos</span>
+      </a>
+    </div>
+    <div class="contact-extra" data-stagger>
+      <a class="ccard" href="/cdn-cgi/l/email-protection#f79f989b96b793989a9e999e98d994989a">
+        <span class="l">Escríbenos</span>
+        <span class="v"><span class="__cf_email__" data-cfemail="fb9394979abb9f949692959294d5989496">[email&#160;protected]</span></span>
+      </a>
+      <a class="ccard" href="#mapa">
+        <span class="l">Visítanos</span>
+        <span class="v">Calle Ejemplo, 00 · Ciudad</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== 9. MAPA ====================== -->
+<section id="mapa" class="bg-cream" aria-labelledby="map-title">
+  <div class="container">
+    <div class="section-head center reveal">
+      <span class="cap on-cream">★ Cómo llegar</span>
+      <h2 id="map-title">Aquí nos encuentras</h2>
+    </div>
+    <div id="map" class="reveal" role="application" aria-label="Mapa de ubicación"></div>
+  </div>
+</section>
+
+<!-- ====================== 10. OPINIONES ====================== -->
+<section id="opiniones" aria-labelledby="rev-title" style="display:none;">
+  <div class="container">
+    <div class="reviews reveal">
+      <div class="stars" aria-hidden="true">★★★★★</div>
+      <h2 id="rev-title">A la gente le encanta</h2>
+      <p>Las opiniones reales viven en Google. Toca el botón y mira qué cuenta quien ya pidió aquí.</p>
+      <a class="btn btn-ink" href="https://www.google.com/" rel="noopener" target="_blank">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.6a4.8 4.8 0 0 1-2.1 3.1v2.6h3.4A10.4 10.4 0 0 0 22 12.2zM12 22a10 10 0 0 0 6.9-2.5l-3.4-2.6a6.2 6.2 0 0 1-9.3-3.3H2.7v2.6A10 10 0 0 0 12 22zM5.7 13.6a6 6 0 0 1 0-3.8V7.2H2.7a10 10 0 0 0 0 9.6zM12 6a5.4 5.4 0 0 1 3.8 1.5l2.9-2.9A10 10 0 0 0 2.7 7.2l3 2.3A6 6 0 0 1 12 6z"/></svg>
+        Ver opiniones en Google
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== 11. VCARD ====================== -->
+<section aria-labelledby="vcard-title" style="display:none;">
+  <div class="container">
+    <div class="vcard reveal">
+      <span class="ic" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="30" height="30"><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3h5v18h-5"/></svg>
+      </span>
+      <div>
+        <h3 id="vcard-title">Guarda nuestros datos</h3>
+        <p>Descarga la tarjeta de contacto y los tengas siempre a mano.</p>
+      </div>
+      <a class="btn btn-orange" href="#" id="vcardBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+        Guardar contacto
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== 12. CTA FINAL ====================== -->
+<section class="final" aria-labelledby="final-title">
+  <span class="shape circle c-cream f1" aria-hidden="true"></span>
+  <span class="shape c-brown f2" aria-hidden="true"></span>
+  <div class="container">
+    <span class="cap solid-ink reveal">★ Pide ya</span>
+    <h2 id="final-title" class="reveal">¿Tienes<br>hambre?</h2>
+    <p class="reveal">Pide en menos de un minuto por WhatsApp o pasa a recogerlo. Te lo dejamos listo y calentito.</p>
+    <div class="ctas reveal">
+      <a class="btn btn-ink" href="https://wa.me/" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 3.5A11 11 0 0 0 3.6 17.3L2 22l4.8-1.5A11 11 0 1 0 20.5 3.5z"/></svg>
+        Pide por WhatsApp
+      </a>
+      <a class="btn btn-cream" href="tel:+00000000000">Llamar ahora</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ====================== 13. FOOTER ====================== -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a href="#top" class="brand"><span class="bmark" aria-hidden="true">◆</span> Tu negocio</a>
+        <p style="margin-top:1rem;color:rgba(253,236,194,.8);max-width:34ch;font-weight:600;">Frase corta sobre la filosofía del negocio: comida rica, rápida y hecha con ganas.</p>
+      </div>
+      <div>
+        <h4>Navega</h4>
+        <ul>
+          <li><a href="#servicios">Servicios</a></li>
+          <li><a href="#nosotros">Nosotros</a></li>
+          <li><a href="#galeria">Galería</a></li>
+          <li><a href="#horario">Horario</a></li>
+          <li><a href="#contacto">Contacto</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contacto</h4>
+        <ul class="foot-contact">
+          <li id="footPhoneRow" hidden><a href="tel:+00000000000"><span id="footPhoneDisplay"></span></a></li>
+          <li id="footEmailRow" hidden><a href="mailto:hola@ejemplo.com" id="footEmailLink"><span id="footEmailDisplay"></span></a></li>
+          <li id="footAddressRow" hidden><a href="#mapa" id="footAddressLink"><span id="footAddressText"></span></a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> Tu negocio · Todos los derechos reservados</span>
+      <span><a href="/aviso-legal" target="_blank" rel="noopener noreferrer">Aviso legal</a> · <a href="/privacidad" target="_blank" rel="noopener noreferrer">Privacidad</a> · <a href="/cookies" target="_blank" rel="noopener noreferrer">Cookies</a></span>
+    </div>
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+(function(){
+  'use strict';
+  var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var MOBILE = window.matchMedia('(max-width: 900px)').matches;
+
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  /* ===== Menú móvil ===== */
+  var burger = document.getElementById('burger');
+  var sheet = document.getElementById('sheet');
+  var sheetClose = document.getElementById('sheetClose');
+  function openSheet(){ sheet.classList.add('open'); burger.setAttribute('aria-expanded','true'); }
+  function closeSheet(){ sheet.classList.remove('open'); burger.setAttribute('aria-expanded','false'); }
+  burger.addEventListener('click', openSheet);
+  sheetClose.addEventListener('click', closeSheet);
+  sheet.addEventListener('click', function(e){ if(e.target === sheet) closeSheet(); });
+  [].forEach.call(sheet.querySelectorAll('a'), function(a){ a.addEventListener('click', closeSheet); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeSheet(); });
+
+  /* ===== Ticker (duplicar para loop) ===== */
+  var ticker = document.getElementById('ticker');
+  if(ticker) ticker.innerHTML += ticker.innerHTML;
+
+  /* ===== Servicios — STICKY STACK ===== */
+  var MENU = [
+    { name: 'Plato uno',   price: '00€', desc: 'Descripción corta y apetecible: ingredientes top y por qué está tan rico.', tag: 'TOP',        emoji: '🍔', ph: 'o' },
+    { name: 'Plato dos',   price: '00€', desc: 'Descripción corta y apetecible: ingredientes top y por qué está tan rico.', tag: 'NUEVO',      emoji: '🍕', ph: 'c' },
+    { name: 'Plato tres',  price: '00€', desc: 'Descripción corta y apetecible: ingredientes top y por qué está tan rico.', tag: 'RECOMENDADO',emoji: '🌮', ph: 'b' },
+    { name: 'Plato cuatro',price: '00€', desc: 'Descripción corta y apetecible: ingredientes top y por qué está tan rico.', tag: 'VEGGIE',     emoji: '🥗', ph: 'o' },
+    { name: 'Plato cinco', price: '00€', desc: 'Descripción corta y apetecible: ingredientes top y por qué está tan rico.', tag: 'DULCE',      emoji: '🍩', ph: 'c' }
+  ];
+  var stack = document.getElementById('stack');
+  if(stack){
+    stack.innerHTML = MENU.map(function(m,i){
+      var n = (i+1 < 10 ? '0' : '') + (i+1);
+      return '<article class="stack-card pop">'
+        + '<div class="sc-photo"><div class="ph ' + m.ph + '" role="img" aria-label="Foto del plato (placeholder)">'
+        +   '<span class="emoji" aria-hidden="true">' + m.emoji + '</span>'
+        +   '<span class="ph-label">FOTO PLATO</span></div></div>'
+        + '<div class="sc-body">'
+        +   '<div class="sc-top"><span class="sc-num">N° ' + n + '</span>'
+        +     (m.tag ? '<span class="cap" style="font-size:.78rem;padding:.25rem .7rem;box-shadow:none;">' + m.tag + '</span>' : '') + '</div>'
+        +   '<h3 class="sc-name">' + m.name + '</h3>'
+        +   '<p class="sc-desc">' + m.desc + '</p>'
+        +   '<div class="sc-foot"><span class="sc-price num">' + m.price + '</span>'
+        +     '<a class="btn btn-ink btn-sm" href="https://wa.me/">Pide este</a></div>'
+        + '</div></article>';
+    }).join('');
+
+    /* alturas sticky escalonadas (solo si NO es móvil y sin reduced-motion) */
+    var cards = [].slice.call(stack.querySelectorAll('.stack-card'));
+    function layoutStack(){
+      var mob = window.matchMedia('(max-width: 900px)').matches;
+      cards.forEach(function(c, i){
+        if(REDUCED || mob){ c.style.top = ''; return; }
+        c.style.top = (96 + i * 16) + 'px';
+      });
+    }
+    layoutStack();
+    window.addEventListener('resize', layoutStack, { passive: true });
+  }
+
+  /* ===== Reveal + pop (chequeo de viewport, robusto) ===== */
+  var revealEls = [].slice.call(document.querySelectorAll('.reveal, [data-stagger], .pop'));
+  if(REDUCED){
+    revealEls.forEach(function(el){ el.classList.add('in'); });
+  } else {
+    var ticking = false;
+    function showInView(){
+      var vh = window.innerHeight || document.documentElement.clientHeight;
+      for(var i = revealEls.length - 1; i >= 0; i--){
+        var el = revealEls[i];
+        var r = el.getBoundingClientRect();
+        if(r.top < vh * 0.92 && r.bottom > 0){ el.classList.add('in'); revealEls.splice(i, 1); }
+      }
+      ticking = false;
+    }
+    function onScroll(){ if(!ticking){ ticking = true; requestAnimationFrame(showInView); } }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    window.addEventListener('load', showInView);
+    showInView();
+    setTimeout(showInView, 400);
+    setTimeout(function(){ revealEls.forEach(function(el){ el.classList.add('in'); }); }, 2500);
+  }
+
+  /* ===== Horario + estado en vivo ===== */
+  var SCHEDULE = [
+    { day: 'Lunes',     open: '12:00', close: '23:30' },
+    { day: 'Martes',    open: '12:00', close: '23:30' },
+    { day: 'Miércoles', open: '12:00', close: '23:30' },
+    { day: 'Jueves',    open: '12:00', close: '23:30' },
+    { day: 'Viernes',   open: '12:00', close: '01:00' },
+    { day: 'Sábado',    open: '12:00', close: '01:00' },
+    { day: 'Domingo',   open: '13:00', close: '23:00' }
+  ];
+  function dayIndex(js){ return (js + 6) % 7; }
+  var schedEl = document.getElementById('schedule');
+  if(schedEl){
+    var today = dayIndex(new Date().getDay());
+    schedEl.innerHTML = SCHEDULE.map(function(row,i){
+      var closed = !row.open;
+      var hours = closed ? 'Cerrado' : row.open + ' – ' + row.close;
+      return '<div class="sched-row ' + (i===today?'is-today':'') + ' ' + (closed?'is-closed':'') + '">'
+        + '<span class="day">' + row.day + '</span>'
+        + '<span class="hours num">' + hours + '</span></div>';
+    }).join('');
+  }
+  function toMin(h){ var p = h.split(':'); return (+p[0])*60 + (+p[1]); }
+  function status(now){
+    var idx = dayIndex(now.getDay());
+    var row = SCHEDULE[idx];
+    var cur = now.getHours()*60 + now.getMinutes();
+    if(!row.open) return { open:false, text:'Cerrado hoy', sub:'Vuelve mañana o escríbenos.' };
+    var o = toMin(row.open), c = toMin(row.close);
+    if(c <= o) c += 1440;
+    if(cur >= o && cur < c) return { open:true, text:'Abierto · cierra a las ' + row.close, sub:'Pide ya o pasa. Te lo preparamos al momento.' };
+    if(cur < o) return { open:false, text:'Abrimos a las ' + row.open, sub:'Te atendemos en cuanto abramos.' };
+    return { open:false, text:'Cerrado por hoy', sub:'Escríbenos, te atendemos mañana.' };
+  }
+  function applyStatus(){
+    var s = status(new Date());
+    [['heroStatus','heroStatusLabel'],['sideStatus','sideStatusLabel']].forEach(function(pair){
+      var pill = document.getElementById(pair[0]); var lbl = document.getElementById(pair[1]);
+      if(!pill || !lbl) return;
+      pill.classList.toggle('is-open', s.open);
+      pill.classList.toggle('is-closed', !s.open);
+      lbl.textContent = s.text;
+    });
+    var t = document.getElementById('sideStatusTitle');
+    var x = document.getElementById('sideStatusText');
+    if(t) t.textContent = s.open ? 'Estamos abiertos' : 'Ahora cerrado';
+    if(x) x.textContent = s.sub;
+  }
+  applyStatus();
+  setInterval(applyStatus, 60000);
+
+  /* ===== Leaflet ===== */
+  var COORDS = [40.4168, -3.7038];
+  var ls = document.createElement('script');
+  ls.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  ls.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+  ls.crossOrigin = '';
+  ls.onload = function(){
+    if(!window.L) return;
+    var map = L.map('map', { scrollWheelZoom:false }).setView(COORDS, 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap', maxZoom: 19
+    }).addTo(map);
+    var icon = L.divIcon({
+      className: 'bold-marker',
+      html: '<div style="width:42px;height:42px;border-radius:13px;background:#ee7a1f;color:#1a1410;display:grid;place-items:center;border:3px solid #1a1410;box-shadow:4px 4px 0 #1a1410;"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg></div>',
+      iconSize: [42,42], iconAnchor: [21,21]
+    });
+    L.marker(COORDS, { icon: icon, title:'Tu negocio' }).addTo(map)
+      .bindPopup('<strong>Tu negocio</strong><br>Calle Ejemplo, 00 · Ciudad');
+  };
+  document.head.appendChild(ls);
+
+  /* ===== vCard ===== */
+  var vc = document.getElementById('vcardBtn');
+  if(vc){
+    vc.addEventListener('click', function(e){
+      e.preventDefault();
+      var v = [
+        'BEGIN:VCARD','VERSION:3.0',
+        'FN:Tu negocio','ORG:Tu negocio',
+        'TEL;TYPE=WORK,VOICE:+00000000000',
+        'EMAIL:hola@dominio.com',
+        'URL:https://tu-dominio.com',
+        'ADR:;;Calle Ejemplo, 00;Ciudad;;00000;',
+        'END:VCARD'
+      ].join('\n');
+      var blob = new Blob([v], { type:'text/vcard' });
+      var u = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = u; a.download = 'tu-negocio.vcf';
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){ URL.revokeObjectURL(u); a.remove(); }, 500);
+    });
+  }
+})();
+</script>
+</body>
+</html>

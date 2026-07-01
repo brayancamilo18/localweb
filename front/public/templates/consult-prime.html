@@ -693,6 +693,27 @@
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
+
+var HIDE_CLOSED = false;
+function lwApplyHideClosedScheduleRows() {
+  var wrap = document.getElementById('schedule');
+  if (!wrap) return;
+  wrap.querySelectorAll('.schedule-row').forEach(function (row) {
+    if (!HIDE_CLOSED) {
+      row.style.display = '';
+      return;
+    }
+    var closed = row.querySelector('.time.closed');
+    row.style.display = closed ? 'none' : '';
+  });
+}
+window.addEventListener('message', function (e) {
+  if (!e.data || e.data.type !== 'lw:onboarding-preview' || !e.data.payload) return;
+  if (e.origin !== window.location.origin) return;
+  HIDE_CLOSED = e.data.payload.hide_closed_days === true;
+  lwApplyHideClosedScheduleRows();
+});
+
 (function(){
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -786,5 +807,6 @@
 <link rel="stylesheet" href="/templates/lw-about-extras.css?v=2">
 <script src="/templates/lw-about-extras.js?v=2"></script>
 <script src="/templates/lw-landing-demo.js?v=2"></script>
+<script src="/templates/lw-events.js"></script>
 </body>
 </html>

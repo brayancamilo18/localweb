@@ -6,9 +6,11 @@ use App\Listeners\StripeEventListener;
 use App\Models\Business;
 use App\Models\BusinessImage;
 use App\Models\BusinessAboutSection;
+use App\Models\BusinessEvent;
 use App\Models\BusinessService;
 use App\Models\Template;
 use App\Observers\BusinessAboutSectionObserver;
+use App\Observers\BusinessEventObserver;
 use App\Observers\BusinessImageObserver;
 use App\Observers\BusinessObserver;
 use App\Observers\BusinessServiceObserver;
@@ -73,6 +75,7 @@ class AppServiceProvider extends ServiceProvider
         BusinessImage::observe(BusinessImageObserver::class);
         BusinessService::observe(BusinessServiceObserver::class);
         BusinessAboutSection::observe(BusinessAboutSectionObserver::class);
+        BusinessEvent::observe(BusinessEventObserver::class);
         Template::observe(TemplateObserver::class);
 
         // En local el frontend (vite) proxyfica /api hacia el contenedor "nginx", así que las

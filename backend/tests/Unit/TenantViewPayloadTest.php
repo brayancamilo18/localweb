@@ -51,6 +51,7 @@ it('builds payload with all required keys', function () {
         'correo',
         'galeria',
         'horario',
+        'hide_closed_days',
         'map_lat',
         'map_lon',
         'services',
@@ -58,6 +59,8 @@ it('builds payload with all required keys', function () {
         'google_business_url',
         'booking_url',
         'vcard_enabled',
+        'events_enabled',
+        'events',
         'is_pro',
         'brand_color',
         'brand_variable',
@@ -151,4 +154,44 @@ it('omits brand_color when stored hex is invalid', function () {
     $payload = app(TenantViewPayload::class)->build($business);
 
     expect($payload['brand_color'])->toBeNull();
+});
+
+it('includes only future events in public payload', function () {
+    $business = Business::factory()->create([
+        'events_enabled' => true,
+    ]);
+
+    $business->events()->createMany([
+        [
+            'title' => 'Pasado',
+            'event_date' => now()->subDay(),
+            'location' => null,
+            'description' => null,
+        ],
+        [
+            'title' => 'Futuro',
+            'event_date' => now()->addDay(),
+            'location' => 'Madrid',
+            'description' => 'Descripción',
+        ],
+    ]);
+
+    $business->load('events');
+
+    $payload = app(TenantViewPayload::class)->build($business);
+
+    expect($payload['events_enabled'])->toBeTrue()
+        ->and($payload['events'])->toHaveCount(1)
+        ->and($payload['events'][0]['title'])->toBe('Futuro')
+        ->and($payload['events'][0]['location'])->toBe('Madrid');
+});
+
+it('returns empty events when relation not loaded', function () {
+    $business = Business::factory()->create([
+        'events_enabled' => true,
+    ]);
+
+    $payload = app(TenantViewPayload::class)->build($business);
+
+    expect($payload['events'])->toBe([]);
 });

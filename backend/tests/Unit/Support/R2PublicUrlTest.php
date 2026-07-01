@@ -14,7 +14,8 @@ it('builds proxy URLs for allowed paths', function () {
 it('rejects unsafe media paths', function () {
     expect(R2PublicUrl::isAllowedPath('../etc/passwd'))->toBeFalse()
         ->and(R2PublicUrl::isAllowedPath('businesses/1/cover/x.webp'))->toBeTrue()
-        ->and(R2PublicUrl::isAllowedPath('businesses/1/logo/x.png'))->toBeTrue();
+        ->and(R2PublicUrl::isAllowedPath('businesses/1/logo/x.png'))->toBeTrue()
+        ->and(R2PublicUrl::isAllowedPath('businesses/1/events/x.webp'))->toBeTrue();
 });
 
 it('returns null for empty paths', function () {

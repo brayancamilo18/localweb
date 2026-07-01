@@ -1,0 +1,171 @@
+backend/database/seeders/DevelopmentSeeder.php:21:                'name' => 'LocalWeb Demo',
+backend/database/seeders/DevelopmentSeeder.php:35:            ['email' => 'test@localweb.com'],
+backend/app/Http/Middleware/ResolveTenantForWeb.php:15:        $root = (string) config('localweb.domains.root');
+backend/app/Http/Middleware/ResolveTenantForWeb.php:16:        $tenantSuffix = (string) config('localweb.domains.tenant_suffix');
+backend/app/Http/Controllers/Api/BillingController.php:203:                'product' => 'LocalWeb Pro',
+backend/app/Http/Controllers/PublicSitemapController.php:51:        $tenantSuffix = config('localweb.domains.tenant_suffix');
+backend/app/Http/Controllers/PublicSitemapController.php:94:        $loc = 'https://'.$business->subdomain.'.'.config('localweb.domains.tenant_suffix').'/';
+backend/app/Http/Controllers/PublicRobotsController.php:41:        $root = (string) config('localweb.domains.root');
+backend/app/Http/Controllers/PublicRobotsController.php:65:        $sitemap = 'https://'.$business->subdomain.'.'.config('localweb.domains.tenant_suffix').'/sitemap.xml';
+backend/app/Services/SeoMetaBuilder.php:13:        $canonical = 'https://'.$business->subdomain.'.'.config('localweb.domains.tenant_suffix').'/';
+backend/app/Services/SeoMetaBuilder.php:25:            'og_site_name' => (string) config('localweb.seo.site_name'),
+backend/app/Services/SeoMetaBuilder.php:89:        return (string) config('localweb.seo.default_og_image');
+backend/app/Services/GeocodingService.php:13:            'User-Agent' => 'LocalWeb/1.0 (localweb@app.com)',
+backend/app/Services/JsonLdBuilder.php:26:            'url' => 'https://'.$business->subdomain.'.'.config('localweb.domains.tenant_suffix').'/',
+backend/app/Services/TenantViewPayload.php:143:        return (string) config('localweb.default_social.'.$key);
+backend/app/Services/BusinessService.php:258:        $base = $base !== '' ? $base : 'localweb';
+backend/app/Console/Commands/RegenerateMasterSitemap.php:23:            'https://'.config('localweb.domains.root').'/sitemap-index.xml'
+backend/config/public_page.php:14:    'app.localweb.es', 'localweb.es' => 'localweb.es',
+backend/config/localweb.php:5:        'instagram' => env('LOCALWEB_DEFAULT_INSTAGRAM', 'https://www.instagram.com/localweb.es'),
+backend/config/localweb.php:6:        'tiktok' => env('LOCALWEB_DEFAULT_TIKTOK', 'https://www.tiktok.com/@localweb'),
+backend/config/localweb.php:7:        'facebook' => env('LOCALWEB_DEFAULT_FACEBOOK', 'https://www.facebook.com/localweb'),
+backend/config/localweb.php:14:        'root' => env('LOCALWEB_ROOT_DOMAIN', 'localhost'),
+backend/config/localweb.php:19:        'tenant_suffix' => env('LOCALWEB_TENANT_SUFFIX', 'localhost'),
+backend/config/localweb.php:27:            'LOCALWEB_DEFAULT_OG_IMAGE',
+backend/config/localweb.php:28:            'https://'.env('LOCALWEB_ROOT_DOMAIN', 'localhost').'/og-default.png'
+backend/config/localweb.php:32:        'site_name' => env('LOCALWEB_SITE_NAME', 'app.onez.es'),
+backend/config/subdomains.php:9:        'webhooks', 'auth', 'oauth', 'localweb', 'tenant',
+backend/resources/views/public/404.blade.php:20:  <a href="https://{{ config('localweb.domains.root') }}">Volver al inicio</a>
+backend/resources/views/public/templates/coastal-calm.blade.php:518:    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
+backend/resources/views/public/templates/coastal-calm.blade.php:1048:    instagram: 'https://www.instagram.com/localweb.es',
+backend/resources/views/public/templates/coastal-calm.blade.php:1049:    tiktok: 'https://www.tiktok.com/@localweb',
+backend/resources/views/public/templates/coastal-calm.blade.php:1050:    facebook: 'https://www.facebook.com/localweb'
+backend/resources/views/public/templates/tavola-warm.blade.php:715:      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Web hecha con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
+backend/resources/views/public/templates/tavola-warm.blade.php:1247:    instagram: 'https://www.instagram.com/localweb.es',
+backend/resources/views/public/templates/tavola-warm.blade.php:1248:    tiktok: 'https://www.tiktok.com/@localweb',
+backend/resources/views/public/templates/tavola-warm.blade.php:1249:    facebook: 'https://www.facebook.com/localweb'
+backend/resources/views/public/templates/luxe-atelier.blade.php:685:    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Hecho con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
+backend/resources/views/public/templates/versa-studio.blade.php:729:      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Hecho con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
+backend/resources/views/public/templates/versa-studio.blade.php:1245:    instagram: 'https://www.instagram.com/localweb.es',
+backend/resources/views/public/templates/versa-studio.blade.php:1246:    tiktok: 'https://www.tiktok.com/@localweb',
+backend/resources/views/public/templates/versa-studio.blade.php:1247:    facebook: 'https://www.facebook.com/localweb',
+backend/resources/views/public/templates/bloom-studio.blade.php:787:      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
+backend/resources/views/public/templates/bloom-studio.blade.php:1344:    instagram: 'https://www.instagram.com/localweb.es',
+backend/resources/views/public/templates/bloom-studio.blade.php:1345:    tiktok: 'https://www.tiktok.com/@localweb',
+backend/resources/views/public/templates/bloom-studio.blade.php:1346:    facebook: 'https://www.facebook.com/localweb'
+backend/resources/views/public/templates/bloom-studio.blade.php:1382:  document.title = `${name} — LocalWeb`;
+backend/resources/views/public/templates/trust-clinic.blade.php:574:      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Web creada con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
+backend/resources/views/public/templates/trust-clinic.blade.php:1104:    instagram: 'https://www.instagram.com/localweb.es',
+backend/resources/views/public/templates/trust-clinic.blade.php:1105:    tiktok: 'https://www.tiktok.com/@localweb',
+backend/resources/views/public/templates/trust-clinic.blade.php:1106:    facebook: 'https://www.facebook.com/localweb'
+backend/resources/views/public/templates/graphite-soft.blade.php:552:    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
+backend/resources/views/public/templates/graphite-soft.blade.php:1436:  instagram: 'https://www.instagram.com/localweb.es',
+backend/resources/views/public/templates/graphite-soft.blade.php:1437:  tiktok: 'https://www.tiktok.com/@localweb',
+backend/resources/views/public/templates/graphite-soft.blade.php:1438:  facebook: 'https://www.facebook.com/localweb',
+backend/resources/views/public/templates/urban-bold.blade.php:806:    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
+backend/resources/views/public/templates/urban-bold.blade.php:1334:    instagram: 'https://www.instagram.com/localweb.es',
+backend/resources/views/public/templates/urban-bold.blade.php:1335:    tiktok: 'https://www.tiktok.com/@localweb',
+backend/resources/views/public/templates/urban-bold.blade.php:1336:    facebook: 'https://www.facebook.com/localweb'
+backend/resources/views/public/templates/noir-elite.blade.php:802:<!-- ═══ 5. FOOTER (datos + redes + LocalWeb) ════════════ -->
+backend/resources/views/public/templates/noir-elite.blade.php:841:      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
+backend/resources/views/public/templates/noir-elite.blade.php:1409:    instagram: 'https://www.instagram.com/localweb.es',
+backend/resources/views/public/templates/noir-elite.blade.php:1410:    tiktok: 'https://www.tiktok.com/@localweb',
+backend/resources/views/public/templates/noir-elite.blade.php:1411:    facebook: 'https://www.facebook.com/localweb'
+backend/resources/views/public/templates/noir-elite.blade.php:1445:  document.title = `${name} — LocalWeb`;
+backend/resources/views/public/templates/mono-edito.blade.php:689:    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Hecho con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
+backend/resources/views/public/templates/craft-pro.blade.php:573:    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
+backend/resources/views/public/templates/craft-pro.blade.php:1117:    instagram: 'https://www.instagram.com/localweb.es',
+backend/resources/views/public/templates/craft-pro.blade.php:1118:    tiktok: 'https://www.tiktok.com/@localweb',
+backend/resources/views/public/templates/craft-pro.blade.php:1119:    facebook: 'https://www.facebook.com/localweb'
+backend/resources/views/public/templates/tech-sleek.blade.php:657:    <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
+backend/resources/views/public/templates/tech-sleek.blade.php:1075:  var SOCIAL = { instagram:'https://www.instagram.com/localweb.es', tiktok:'https://www.tiktok.com/@localweb', facebook:'https://www.facebook.com/localweb' };
+backend/resources/views/public/templates/wild-pet.blade.php:1636:      <span id="tpl-platform-branding"@if($is_pro) style="display:none;"@endif>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">ONEZ</a></span>
+backend/tests/Unit/SeoMetaBuilderTest.php:109:    expect($seo['canonical'])->toBe('https://kairos.'.config('localweb.domains.tenant_suffix').'/');
+backend/tests/Unit/SeoMetaBuilderTest.php:118:    expect($seo['og_image'])->toBe(config('localweb.seo.default_og_image'));
+backend/tests/Unit/TenantViewPayloadTest.php:99:    expect($payload['instagram_url'])->toBe(config('localweb.default_social.instagram'));
+backend/tests/Unit/Services/AuthServiceTest.php:15:        'email' => 'valid@localweb.com',
+backend/tests/Unit/Services/AuthServiceTest.php:20:    $authenticated = $service->attemptLogin('valid@localweb.com', 'password123');
+backend/tests/Unit/Services/AuthServiceTest.php:27:        'email' => 'invalid@localweb.com',
+backend/tests/Unit/Services/AuthServiceTest.php:32:    $service->attemptLogin('invalid@localweb.com', 'bad-password');
+backend/tests/Unit/Services/AuthServiceTest.php:38:    $key = 'login:127.0.0.1:test@localweb.com';
+backend/tests/Unit/Services/AuthServiceTest.php:50:    $key = 'login:127.0.0.1:test@localweb.com';
+backend/tests/Feature/PublicTenant/PublicTenantPageTest.php:34:    test()->get('http://nonexistent-xyz-123.'.config('localweb.domains.tenant_suffix').'/')
+backend/tests/Feature/PublicTenant/SitemapTest.php:35:    $response = test()->get('http://'.config('localweb.domains.root').'/sitemap-index.xml');
+backend/tests/Feature/PublicTenant/SitemapTest.php:49:    $response = test()->get('http://'.config('localweb.domains.root').'/sitemap-index.xml');
+backend/tests/Feature/PublicTenant/ResolveTenantForWebTest.php:12:        'localweb.domains.tenant_suffix' => 'app.onez.es',
+backend/tests/Feature/PublicTenant/ResolveTenantForWebTest.php:13:        'localweb.domains.root' => 'app.onez.es',
+backend/tests/Feature/PublicTenant/RobotsTest.php:30:        'https://'.config('localweb.domains.root').'/robots.txt'
+backend/tests/Feature/Api/AuthApiTest.php:13:        'email' => 'api-register@localweb.com',
+backend/tests/Feature/Api/AuthApiTest.php:18:        ->assertJsonPath('data.user.email', 'api-register@localweb.com')
+backend/tests/Feature/Api/AuthApiTest.php:25:    $user = \App\Models\User::where('email', 'api-register@localweb.com')->first();
+backend/tests/Feature/Api/AuthApiTest.php:91:    User::factory()->create(['email' => 'duplicate@localweb.com']);
+backend/tests/Feature/Api/AuthApiTest.php:94:        'email' => 'duplicate@localweb.com',
+backend/tests/Feature/Api/AuthApiTest.php:100:        'email' => 'login@localweb.com',
+backend/tests/Feature/Api/AuthApiTest.php:105:        'email' => 'login@localweb.com',
+backend/tests/Feature/Api/AuthApiTest.php:110:        ->assertJsonPath('data.user.email', 'login@localweb.com');
+backend/tests/Feature/Api/AuthApiTest.php:117:        'email' => 'badlogin@localweb.com',
+backend/tests/Feature/Api/AuthApiTest.php:122:        'email' => 'badlogin@localweb.com',
+backend/tests/Feature/Api/AuthApiTest.php:129:        'email' => 'ratelimit@localweb.com',
+backend/tests/Feature/Api/AuthApiTest.php:135:            'email' => 'ratelimit@localweb.com',
+backend/tests/Feature/Api/AuthApiTest.php:141:        'email' => 'ratelimit@localweb.com',
+backend/tests/Feature/Api/PasswordResetTest.php:16:        'email' => 'no-existe@localweb.com',
+backend/tests/Feature/Api/PasswordResetTest.php:27:    $user = User::factory()->create(['email' => 'reset@localweb.com']);
+backend/tests/Feature/Api/PasswordResetTest.php:30:        'email' => 'reset@localweb.com',
+backend/tests/Feature/Api/PasswordResetTest.php:44:        'email' => 'change@localweb.com',
+backend/tests/Feature/Api/PasswordResetTest.php:52:        'email' => 'change@localweb.com',
+backend/tests/Feature/Api/PasswordResetTest.php:63:    $user = User::factory()->create(['email' => 'badtoken@localweb.com']);
+backend/tests/Feature/Api/PasswordResetTest.php:76:    $user = User::factory()->create(['email' => 'shortpass@localweb.com']);
+backend/tests/Feature/Api/PasswordResetTest.php:88:        'email' => 'nologin@localweb.com',
+backend/tests/Pest.php:59:    return $business->subdomain.'.'.config('localweb.domains.tenant_suffix');
+backend/storage/framework/views/a09251d7bd602eab17c4d9cf0b12d60d.php:804:    <span id="tpl-platform-branding"<?php if($is_pro): ?> style="display:none;"<?php endif; ?>>Creado con <a href="https://localweb.es" target="_blank" rel="noopener noreferrer">LocalWeb</a></span>
+backend/storage/framework/views/a09251d7bd602eab17c4d9cf0b12d60d.php:1332:    instagram: 'https://www.instagram.com/localweb.es',
+backend/storage/framework/views/a09251d7bd602eab17c4d9cf0b12d60d.php:1333:    tiktok: 'https://www.tiktok.com/@localweb',
+backend/storage/framework/views/a09251d7bd602eab17c4d9cf0b12d60d.php:1334:    facebook: 'https://www.facebook.com/localweb'
+backend/.env:1:APP_NAME=LocalWeb
+backend/.env:26:DB_DATABASE=localweb
+backend/.env:27:DB_USERNAME=localweb
+backend/.env:73:AWS_ACCESS_KEY_ID=localweb
+backend/.env:74:AWS_SECRET_ACCESS_KEY=localweb-secret-minio
+backend/.env:76:AWS_BUCKET=localweb
+backend/.env:79:AWS_URL=http://localhost:9000/localweb
+backend/.env.example:10:# CORS_ALLOWED_ORIGINS_PATTERNS=#^https://[\w-]+\.localweb\.es$#
+backend/.env.example:43:# - SESSION_DOMAIN: en dev "localhost"; en prod ".localweb.es" para compartir entre
+backend/.env.example:44:#   subdominios (app.localweb.es y api.localweb.es).
+backend/.env.example:70:# Prod: ej. "app.localweb.es,localweb.es".
+backend/.env.example:83:MAIL_FROM_NAME="LocalWeb"
+backend/.env.example:99:# Consola: http://localhost:9001 · API S3: http://localhost:9000 · Usuario/contraseña: localweb / localweb-secret-minio
+backend/.env.example:103:AWS_ACCESS_KEY_ID=localweb
+backend/.env.example:104:AWS_SECRET_ACCESS_KEY=localweb-secret-minio
+backend/.env.example:106:AWS_BUCKET=localweb
+backend/.env.example:109:AWS_URL=http://localhost:9000/localweb
+backend/DEVELOPMENT.md:11:   solo para que axios la lea y reenvíe) y `localweb_session` (HttpOnly).
+backend/DEVELOPMENT.md:26:| `APP_URL` | `http://localhost` | `https://api.localweb.es` (con HTTPS, dominio, no IP) |
+backend/DEVELOPMENT.md:28:| `SESSION_DOMAIN` | `localhost` | `.localweb.es` (punto inicial: comparte cookie entre `localweb.es` y `api.localweb.es`) |
+backend/DEVELOPMENT.md:31:| `SANCTUM_STATEFUL_DOMAINS` | `localhost:5173,localhost:4173,127.0.0.1:5173,127.0.0.1:4173` | `app.localweb.es,localweb.es` |
+backend/DEVELOPMENT.md:32:| `CORS_ALLOWED_ORIGINS` | (default) | `https://localweb.es,https://app.localweb.es` |
+backend/routes/web.php:21:    ->domain('{subdomain}.'.config('localweb.domains.tenant_suffix'))
+front/src/features/public-page/publicTemplatePayload.ts:58:    instagram: ig || 'https://www.instagram.com/localweb.es',
+front/src/features/public-page/publicTemplatePayload.ts:59:    tiktok: tt || 'https://www.tiktok.com/@localweb',
+front/src/features/public-page/publicTemplatePayload.ts:60:    facebook: fb || 'https://www.facebook.com/localweb',
+front/src/features/public-page/PublicPage.tsx:24:  'webhooks', 'auth', 'oauth', 'localweb', 'tenant',
+front/src/features/dashboard/sections/__tests__/MiPaginaQrSection.test.tsx:38:  public_url: 'https://cafeluna.localweb.app',
+front/src/features/dashboard/sections/__tests__/MiPaginaQrSection.test.tsx:159:    expect(await screen.findByText('cafeluna.localweb.app')).toBeInTheDocument()
+front/src/features/dashboard/sections/SubdomainSetupModal.tsx:17:  'webhooks', 'auth', 'oauth', 'localweb', 'tenant',
+front/src/features/onboarding/wizard.tsx:333:      return 'casa-lumen.localweb.es'
+front/src/features/onboarding/wizard.tsx:335:      return 'salon-margarita.localweb.es'
+front/src/features/onboarding/wizard.tsx:337:      return 'studio-barber.localweb.es'
+front/src/features/onboarding/wizard.tsx:339:      return 'hotel-marea.localweb.es'
+front/src/features/onboarding/wizard.tsx:341:      return 'construcciones-lanza.localweb.es'
+front/src/features/onboarding/wizard.tsx:343:      return 'tavola-roma.localweb.es'
+front/src/features/onboarding/wizard.tsx:345:      return 'atlas-studio.localweb.es'
+front/src/features/onboarding/wizard.tsx:347:      return 'clinica-vega.localweb.es'
+front/src/features/onboarding/wizard.tsx:349:      return 'estudio-versa.localweb.es'
+front/src/features/onboarding/wizard.tsx:351:      return 'taller-linea.localweb.es'
+front/src/features/onboarding/wizard.tsx:353:      return 'maison-eclat.localweb.es'
+front/src/features/onboarding/wizard.tsx:355:      return 'nomada-store.localweb.es'
+front/src/features/onboarding/wizard.tsx:357:      return 'patitas-felices.localweb.es'
+front/src/features/onboarding/wizard.tsx:359:      return 'studio-barber.localweb.es'
+front/src/features/onboarding/wizard.tsx:2224:  url = 'estudio-marta.localweb.es',
+front/src/features/onboarding/wizard.tsx:3440:    <PreviewBrowser url="estudio-marta.localweb.es">
+front/src/components/ui/toast-system/__tests__/Toast.test.tsx:76:      description: 'estudio-marta.localweb.es ya es visible.',
+front/src/components/ui/toast-system/__tests__/Toast.test.tsx:83:    expect(screen.getByText('estudio-marta.localweb.es ya es visible.')).toBeInTheDocument()
+front/src/layouts/AdminLayout.tsx:149:              LOCALWEB
+front/src/lib/tenant.ts:38: * (p. ej. silgodev.onez.es en prod, silgodev.localweb.es en local).
+front/src/lib/tenant.ts:47:    return 'localweb.es'
+front/src/lib/tenant.ts:62:  if (hostname === 'localweb.es' || hostname.endsWith('.localweb.es')) {
+front/src/lib/tenant.ts:63:    return 'localweb.es'
+front/src/lib/tenant.ts:66:  return 'localweb.es'
+front/src/api/client.ts:26: * Producción: SPA y API comparten eTLD+1 (p. ej. localweb.es / api.localweb.es) con
+front/src/api/client.ts:27: * SESSION_DOMAIN=.localweb.es. El SPA llama al backend en su URL absoluta vía
+_styles.md:1:# Sistema visual emails LocalWeb
+_styles.md:30:Marcadas con `{{variable}}` para que el backend de LocalWeb las inyecte.

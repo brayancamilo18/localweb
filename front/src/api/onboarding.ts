@@ -184,8 +184,14 @@ export async function hydrateGalleryFromServerUrls(urls: string[]): Promise<File
   )
 }
 
-export async function step5(schedule: Schedule): Promise<StepResponse> {
-  const response = await apiClient.post<ApiResponse<StepResponse>>('/onboarding/step/5', { schedule })
+export async function step5(data: {
+  schedule: Schedule
+  hide_closed_days?: boolean
+}): Promise<StepResponse> {
+  const response = await apiClient.post<ApiResponse<StepResponse>>('/onboarding/step/5', {
+    schedule: data.schedule,
+    hide_closed_days: data.hide_closed_days ?? false,
+  })
   return response.data.data
 }
 

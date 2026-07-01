@@ -243,6 +243,15 @@ export interface BusinessAboutSection {
   image_url: string | null
 }
 
+export interface BusinessEvent {
+  id: number
+  title: string
+  event_date: string
+  location: string | null
+  description: string | null
+  image_url: string | null
+}
+
 export interface DaySchedule {
   open: string
   close: string
@@ -303,7 +312,9 @@ export interface Business {
   tiktok_url: string | null
   facebook_url: string | null
   vcard_enabled: boolean
+  events_enabled: boolean
   schedule: Schedule | null
+  hide_closed_days: boolean
   logo_url: string | null
   favicon_url: string | null
   whatsapp_url: string | null
@@ -318,6 +329,7 @@ export interface Business {
   }
   services: BusinessService[]
   about_sections?: BusinessAboutSection[]
+  events?: BusinessEvent[]
   stats?: DashboardBusinessStats | null
   created_at?: string | null
 }

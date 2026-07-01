@@ -957,6 +957,10 @@ function lwTrackClick(kind) {
 </script>
 
 
+<script>
+var HIDE_CLOSED = @json($hide_closed_days);
+</script>
+
 @verbatim
 
 
@@ -1454,6 +1458,7 @@ function renderKairosSchedule() {
   var today = dayIndex(new Date().getDay());
   schedEl.innerHTML = SCHEDULE.map(function (row, i) {
     var closed = !row.open;
+    if (HIDE_CLOSED && closed) return '';
     var hours = closed ? 'Cerrado' : row.open + ' – ' + row.close;
     return (
       '<div class="sched-row ' +
@@ -1792,6 +1797,7 @@ function applyLivePreviewData(raw, opts) {
   if (Object.prototype.hasOwnProperty.call(raw, 'galeria')) {
     renderKairosGallery(raw.galeria);
   }
+    HIDE_CLOSED = raw && raw.hide_closed_days === true;
   syncKairosScheduleFromPreview(raw.horario);
   renderKairosSchedule();
   applyKairosStatus();
@@ -1870,6 +1876,7 @@ Public: applyLivePreviewData, initLivePreviewFromQuery, initSecureMessageListene
         correo: @json($correo),
         galeria: @json($galeria),
         horario: @json($horario),
+        hide_closed_days: @json($hide_closed_days),
         map_lat: @json($map_lat),
         map_lon: @json($map_lon),
         services: @json($services),

@@ -9,6 +9,7 @@ import { keys } from '../../../api/queryKeys'
 import { useAuthStore } from '../../../store/authStore'
 import { clearOnboardingPersistForUser } from '../onboardingPersist'
 import ProServicesEditor from '../../shared/ProServicesEditor'
+import ProEventsEditor from '../../shared/ProEventsEditor'
 import ProIntegrationsForm from '../../shared/ProIntegrationsForm'
 import DashboardSectionHeader from '../../dashboard/components/DashboardSectionHeader'
 import FaviconUploader from '../../shared/FaviconUploader'
@@ -24,7 +25,9 @@ export type Step9ProSetupProps = WizardStepProps & {
   onSetupPhaseChange: (phase: Step9SetupPhase) => void
   offersServices: boolean
   onOffersServicesChange: (v: boolean) => void
-  /** Tras crear/editar/borrar servicios: refrescar la vista previa del iframe. */
+  eventsEnabled: boolean
+  onEventsEnabledChange: (v: boolean) => void
+  /** Tras crear/editar/borrar servicios o eventos: refrescar la vista previa del iframe. */
   onServicesPreviewMutate?: () => void
   brandColorDefault: string
   brandColorPickerValue?: string | null
@@ -37,6 +40,8 @@ export default function Step9ProSetup({
   onSetupPhaseChange,
   offersServices,
   onOffersServicesChange,
+  eventsEnabled,
+  onEventsEnabledChange,
   onServicesPreviewMutate,
   brandColorDefault,
   brandColorPickerValue = null,
@@ -153,6 +158,36 @@ export default function Step9ProSetup({
                 </h2>
               </div>
               <ProServicesEditor isPro onboarding onAfterMutate={onServicesPreviewMutate} />
+            </Card>
+          ) : null}
+
+          <Card padding={20} style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>
+                  ¿Publicas eventos (conciertos, actuaciones, fechas)?
+                </div>
+                <p className="lw-small" style={{ margin: 0, color: 'var(--lw-text-2)' }}>
+                  Si no activas esta opción, la sección de eventos no se mostrará en la web.
+                </p>
+              </div>
+              <Switch
+                checked={eventsEnabled}
+                onChange={onEventsEnabledChange}
+                label={eventsEnabled ? 'Sí' : 'No'}
+              />
+            </div>
+          </Card>
+
+          {eventsEnabled ? (
+            <Card padding={20} style={{ marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                <Icon name="calendar" size={20} color="var(--lw-accent)" />
+                <h2 className="lw-h2" style={{ margin: 0, fontSize: 17 }}>
+                  Añade tus próximos eventos
+                </h2>
+              </div>
+              <ProEventsEditor isPro onboarding onAfterMutate={onServicesPreviewMutate} />
             </Card>
           ) : null}
 

@@ -104,6 +104,39 @@ it('dashboard business with business returns 200', function () {
         ->assertJsonPath('data.id', $business->id);
 });
 
+it('dashboard update business persists schedule and hide_closed_days', function () {
+    $business = Business::create([
+        'name' => 'B',
+        'subdomain' => 'sched-hide-test',
+        'subdomain_type' => 'random',
+        'sector' => 'otros',
+        'hide_closed_days' => false,
+    ]);
+    $user = User::factory()->create(['business_id' => $business->id]);
+    $schedule = [
+        'mon' => ['open' => '09:00', 'close' => '18:00', 'closed' => false],
+        'tue' => ['open' => '09:00', 'close' => '18:00', 'closed' => false],
+        'wed' => ['open' => '09:00', 'close' => '18:00', 'closed' => false],
+        'thu' => ['open' => '09:00', 'close' => '18:00', 'closed' => false],
+        'fri' => ['open' => '09:00', 'close' => '18:00', 'closed' => false],
+        'sat' => ['open' => null, 'close' => null, 'closed' => true],
+        'sun' => ['open' => null, 'close' => null, 'closed' => true],
+    ];
+
+    test()->actingAs($user)
+        ->putJson('/api/v1/dashboard/business', [
+            'schedule' => $schedule,
+            'hide_closed_days' => true,
+        ])
+        ->assertStatus(200)
+        ->assertJsonPath('data.hide_closed_days', true)
+        ->assertJsonPath('data.schedule.sat.closed', true);
+
+    $fresh = $business->fresh();
+    expect($fresh->hide_closed_days)->toBeTrue()
+        ->and($fresh->schedule['sat']['closed'] ?? null)->toBeTrue();
+});
+
 it('dashboard update business persists changes', function () {
     $business = Business::create(['name' => 'B', 'subdomain' => 'bcd-efgh-jklm', 'subdomain_type' => 'random', 'sector' => 'otros']);
     $user = User::factory()->create(['business_id' => $business->id]);

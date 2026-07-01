@@ -1063,6 +1063,7 @@ const NOIR_SCHEDULE_DEFAULT = [
   { name:"Sábado",    idx:6, open:"13:00", close:"01:00", split:false },
   { name:"Domingo",   idx:0, open:null,    close:null,    split:false },
 ];
+var HIDE_CLOSED = false;
 let SCHEDULE = NOIR_SCHEDULE_DEFAULT.map(function (d) {
   return { name: d.name, idx: d.idx, open: d.open, close: d.close, split: d.split };
 });
@@ -1707,6 +1708,7 @@ function applyLivePreviewData(raw, opts){
 
   const galeria = Array.isArray(raw?.galeria) ? raw.galeria.filter(Boolean) : [];
   renderNoirGallery(galeria);
+    HIDE_CLOSED = raw && raw.hide_closed_days === true;
   syncNoirScheduleFromPreview(raw.horario);
   renderSchedule();
   syncNoirTemplateExtensions(raw);
@@ -1844,6 +1846,7 @@ function renderSchedule(){
   ordered.forEach(d => {
     const isToday = d.idx === today;
     const openDay = Boolean(d.open);
+    if (HIDE_CLOSED && !openDay) return;
     const hoursText = openDay
       ? (typeof lwFormatScheduleHours === 'function'
           ? lwFormatScheduleHours(d.open, d.close)
@@ -2029,5 +2032,6 @@ setInterval(renderSchedule, 60_000);
 </script>
 
 <script src="/templates/lw-landing-demo.js?v=2"></script>
+<script src="/templates/lw-events.js"></script>
 </body>
 </html>
