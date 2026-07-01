@@ -82,6 +82,7 @@ export function Icon({ name, size = 16, stroke = 1.5, color = 'currentColor', st
     palette:<><circle cx="7" cy="11" r="1.5"/><circle cx="11" cy="7" r="1.5"/><circle cx="16" cy="9" r="1.5"/><circle cx="17" cy="14" r="1.5"/><path d="M12 3a9 9 0 1 0 0 18c1 0 1.5-.5 1.5-1.5 0-1-1-1.5-1-2.5 0-1 1-2 2-2h2a4 4 0 0 0 4-4 9 9 0 0 0-9-8z"/></>,
     scissors:<><circle cx="6" cy="7" r="2.5"/><circle cx="6" cy="17" r="2.5"/><line x1="20" y1="4" x2="8.5" y2="15.5"/><line x1="14" y1="14" x2="20" y2="20"/><line x1="20" y1="4" x2="14" y2="10"/></>,
     refresh:<><polyline points="20 6 20 11 15 11"/><polyline points="4 18 4 13 9 13"/><path d="M20 11A8 8 0 0 0 6 7"/><path d="M4 13a8 8 0 0 0 14 4"/></>,
+    calendar:<><rect x="4" y="5" width="16" height="15" rx="2"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="4" y1="10" x2="20" y2="10"/></>,
     bell:   <><path d="M6 8a6 6 0 0 1 12 0v5l1.5 3H4.5L6 13z"/><path d="M10 19a2 2 0 0 0 4 0"/></>,
     logOut: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></>,
   };
