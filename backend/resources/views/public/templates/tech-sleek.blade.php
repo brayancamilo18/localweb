@@ -784,6 +784,10 @@ function lwTrackClick(kind) {
 </script>
 
 
+<script>
+var HIDE_CLOSED = @json($hide_closed_days);
+</script>
+
 @verbatim
 
 
@@ -1318,6 +1322,7 @@ function renderSleekSchedule() {
   var ordered = SLEEK_SCHEDULE.slice().sort(function (a, b) { return ((a.idx + 6) % 7) - ((b.idx + 6) % 7); });
   ordered.forEach(function (d) {
     var isToday = d.idx === today, openDay = Boolean(d.open);
+    if (HIDE_CLOSED && !openDay) return;
     var row = document.createElement('div');
     row.className = 'schedule-row' + (isToday ? ' today' : '');
     row.innerHTML = '<span class="day">' + d.full + '</span>' + (openDay ? '<span class="time">' + d.open + ' → ' + d.close + '</span>' : '<span class="time closed">cerrado</span>');
@@ -1449,6 +1454,7 @@ function applyLivePreviewData(raw, opts) {
   if (Number.isFinite(latN) && Number.isFinite(lonN)) updateSleekPreviewMap(latN, lonN);
   else updateSleekPreviewMap(NaN, NaN);
 
+    HIDE_CLOSED = raw && raw.hide_closed_days === true;
   syncSleekScheduleFromPreview(raw && raw.horario);
   renderSleekSchedule();
   syncSleekTemplateExtensions(raw || {});
@@ -1900,6 +1906,7 @@ setInterval(renderSleekSchedule, 60000);
         correo: @json($correo),
         galeria: @json($galeria),
         horario: @json($horario),
+        hide_closed_days: @json($hide_closed_days),
         map_lat: @json($map_lat),
         map_lon: @json($map_lon),
         services: @json($services),

@@ -798,6 +798,7 @@ var LUXE_SCHEDULE_DEFAULT = [
   { name: 'Sáb', full: 'Sábado', idx: 6, open: '10:00', close: '18:00' },
   { name: 'Dom', full: 'Domingo', idx: 0, open: null, close: null },
 ];
+var HIDE_CLOSED = false;
 var SCHEDULE = LUXE_SCHEDULE_DEFAULT.map(function (d) {
   return { name: d.name, full: d.full, idx: d.idx, open: d.open, close: d.close };
 });
@@ -919,6 +920,7 @@ function renderLuxeSchedule() {
   ordered.forEach(function (d) {
     var isToday = d.idx === today;
     var openDay = Boolean(d.open);
+    if (HIDE_CLOSED && !openDay) return;
     var row = document.createElement('div');
     row.className = 'schedule-row' + (isToday ? ' today' : '');
     row.setAttribute('data-day', String(d.idx));
@@ -1365,6 +1367,7 @@ function applyLivePreviewData(raw, opts) {
     renderLuxeGallery(galeria);
   }
   updateLuxeTicker(raw);
+    HIDE_CLOSED = raw && raw.hide_closed_days === true;
   syncLuxeScheduleFromPreview(raw.horario);
   renderLuxeSchedule();
   syncLuxeFooter(raw);
@@ -1570,5 +1573,6 @@ LW-CONTRACT-VERSION: 1
 Public: applyLivePreviewData, initLivePreviewFromQuery, initSecureMessageListener
 -->
 <script src="/templates/lw-landing-demo.js?v=2"></script>
+<script src="/templates/lw-events.js"></script>
 
 </html>

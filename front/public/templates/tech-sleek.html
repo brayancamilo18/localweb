@@ -828,6 +828,7 @@ const SLEEK_SCHEDULE_DEFAULT = [
   { name:"Sáb", full:"Sábado",    idx:6, open:null,    close:null    },
   { name:"Dom", full:"Domingo",   idx:0, open:null,    close:null    },
 ];
+var HIDE_CLOSED = false;
 let SLEEK_SCHEDULE = SLEEK_SCHEDULE_DEFAULT.map(function (d) {
   return { name: d.name, full: d.full, idx: d.idx, open: d.open, close: d.close };
 });
@@ -1147,6 +1148,7 @@ function renderSleekSchedule() {
   var ordered = SLEEK_SCHEDULE.slice().sort(function (a, b) { return ((a.idx + 6) % 7) - ((b.idx + 6) % 7); });
   ordered.forEach(function (d) {
     var isToday = d.idx === today, openDay = Boolean(d.open);
+    if (HIDE_CLOSED && !openDay) return;
     var row = document.createElement('div');
     row.className = 'schedule-row' + (isToday ? ' today' : '');
     row.innerHTML = '<span class="day">' + d.full + '</span>' + (openDay ? '<span class="time">' + d.open + ' → ' + d.close + '</span>' : '<span class="time closed">cerrado</span>');
@@ -1280,6 +1282,7 @@ function applyLivePreviewData(raw, opts) {
   if (Number.isFinite(latN) && Number.isFinite(lonN)) updateSleekPreviewMap(latN, lonN);
   else updateSleekPreviewMap(NaN, NaN);
 
+    HIDE_CLOSED = raw && raw.hide_closed_days === true;
   syncSleekScheduleFromPreview(raw && raw.horario);
   renderSleekSchedule();
   syncSleekTemplateExtensions(raw || {});
@@ -1728,5 +1731,6 @@ setInterval(renderSleekSchedule, 60000);
 </script>
 
 <script src="/templates/lw-landing-demo.js?v=2"></script>
+<script src="/templates/lw-events.js"></script>
 </body>
 </html>

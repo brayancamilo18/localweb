@@ -904,6 +904,10 @@ function lwTrackClick(kind) {
 </script>
 
 
+<script>
+var HIDE_CLOSED = @json($hide_closed_days);
+</script>
+
 @verbatim
 
 
@@ -1717,6 +1721,7 @@ function applyLivePreviewData(raw, opts) {
 
   const galeria = Array.isArray(raw?.galeria) ? raw.galeria.filter(Boolean) : [];
   renderBloomGallery(galeria);
+    HIDE_CLOSED = raw && raw.hide_closed_days === true;
   syncBloomScheduleFromPreview(raw.horario);
   render();
   syncBloomTemplateExtensions(raw);
@@ -1823,6 +1828,7 @@ function render(){
   SCHEDULE.forEach(d => {
     const isToday = d.idx === today;
     const closed = !d.open;
+    if (HIDE_CLOSED && closed) return;
     const card = document.createElement('div');
     card.className = `card${isToday ? ' today' : ''}${closed ? ' closed' : ''}`;
     card.innerHTML = `
@@ -1931,6 +1937,7 @@ setInterval(render, 60_000);
         correo: @json($correo),
         galeria: @json($galeria),
         horario: @json($horario),
+        hide_closed_days: @json($hide_closed_days),
         map_lat: @json($map_lat),
         map_lon: @json($map_lon),
         services: @json($services),

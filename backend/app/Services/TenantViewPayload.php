@@ -48,6 +48,7 @@ class TenantViewPayload
             'correo' => $business->email ?? '',
             'galeria' => $this->galleryUrls($business),
             'horario' => $business->schedule,
+            'hide_closed_days' => (bool) $business->hide_closed_days,
             'map_lat' => $business->lat,
             'map_lon' => $business->lng,
             'services' => $this->servicesPayload($business),
@@ -55,7 +56,10 @@ class TenantViewPayload
             'google_business_url' => $business->google_business_url ?? '',
             'booking_url' => $business->booking_url ?? '',
             'vcard_enabled' => (bool) $business->vcard_enabled,
+            'events_enabled' => (bool) $business->events_enabled,
+            'events' => $this->eventsPayload($business),
             'is_pro' => $business->is_pro,
+            'template_slug' => $business->template?->slug,
             'brand_color' => $brandColor,
             'brand_variable' => $brandVariable,
             'subdomain' => $subdomain,
@@ -156,6 +160,31 @@ class TenantViewPayload
                 'name' => $service->name,
                 'price' => is_null($service->price) ? null : (float) $service->price,
                 'description' => $service->description,
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{title: string, event_date: string, location: string|null, description: string|null, image_url: string|null}>
+     */
+    private function eventsPayload(Business $business): array
+    {
+        if (! $business->relationLoaded('events')) {
+            return [];
+        }
+
+        $startOfToday = now()->startOfDay();
+
+        return $business->events
+            ->filter(fn ($event) => $event->event_date !== null && $event->event_date >= $startOfToday)
+            ->sortBy('event_date')
+            ->map(fn ($event) => [
+                'title' => $event->title,
+                'event_date' => $event->event_date->toIso8601String(),
+                'location' => $event->location,
+                'description' => $event->description,
+                'image_url' => $event->image_url,
             ])
             ->values()
             ->all();

@@ -43,7 +43,9 @@ class BusinessResource extends JsonResource
             'tiktok_url' => $this->tiktok_url,
             'facebook_url' => $this->facebook_url,
             'vcard_enabled' => (bool) $this->vcard_enabled,
+            'events_enabled' => (bool) $this->events_enabled,
             'schedule' => $this->schedule,
+            'hide_closed_days' => (bool) $this->hide_closed_days,
             'is_published' => $this->is_published,
             'plan' => is_object($this->plan) ? $this->plan->value : $this->plan,
             'plan_activated_at' => $this->plan_activated_at,
@@ -62,6 +64,10 @@ class BusinessResource extends JsonResource
             'about_sections' => $this->whenLoaded(
                 'aboutSections',
                 fn () => BusinessAboutSectionResource::collection($this->aboutSections)->resolve(),
+            ),
+            'events' => $this->whenLoaded(
+                'events',
+                fn () => BusinessEventResource::collection($this->events)->resolve(),
             ),
             'stats' => $this->when(isset($this->stats), $this->stats),
             'created_at' => $this->created_at,

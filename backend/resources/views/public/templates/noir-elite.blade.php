@@ -1031,6 +1031,10 @@ function lwTrackClick(kind) {
 </script>
 
 
+<script>
+var HIDE_CLOSED = @json($hide_closed_days);
+</script>
+
 @verbatim
 
 
@@ -1889,6 +1893,7 @@ function applyLivePreviewData(raw, opts){
 
   const galeria = Array.isArray(raw?.galeria) ? raw.galeria.filter(Boolean) : [];
   renderNoirGallery(galeria);
+    HIDE_CLOSED = raw && raw.hide_closed_days === true;
   syncNoirScheduleFromPreview(raw.horario);
   renderSchedule();
   syncNoirTemplateExtensions(raw);
@@ -1989,6 +1994,7 @@ function renderSchedule(){
   ordered.forEach(d => {
     const isToday = d.idx === today;
     const openDay = Boolean(d.open);
+    if (HIDE_CLOSED && !openDay) return;
     const hoursText = openDay
       ? (typeof lwFormatScheduleHours === 'function'
           ? lwFormatScheduleHours(d.open, d.close)
@@ -2198,6 +2204,7 @@ setInterval(renderSchedule, 60_000);
         correo: @json($correo),
         galeria: @json($galeria),
         horario: @json($horario),
+        hide_closed_days: @json($hide_closed_days),
         map_lat: @json($map_lat),
         map_lon: @json($map_lon),
         services: @json($services),

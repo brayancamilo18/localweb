@@ -32,6 +32,8 @@ export type ScheduleEditorProps = {
   saving?: boolean
   savedAt?: Date | null
   error?: string
+  hideClosedDays?: boolean
+  onHideClosedDaysChange?: (value: boolean) => void
 }
 
 export default function ScheduleEditor({
@@ -45,6 +47,8 @@ export default function ScheduleEditor({
   saving = false,
   savedAt = null,
   error,
+  hideClosedDays = false,
+  onHideClosedDaysChange,
 }: ScheduleEditorProps) {
   const [activePreset, setActivePreset] = useState<SchedulePresetKind | null>('lv')
   const summary = useMemo(() => scheduleSummary(schedule), [schedule])
@@ -153,6 +157,21 @@ export default function ScheduleEditor({
       </section>
 
       <div className="lw-schedule-editor__days">
+        {onHideClosedDaysChange ? (
+          <div className="lw-schedule-editor__hide-closed">
+            <div className="lw-schedule-editor__hide-closed-text">
+              <div className="lw-schedule-editor__day-name">Ocultar en mi web los días cerrados</div>
+              <div className="lw-schedule-editor__day-hours">
+                Los días marcados como cerrados no aparecerán en tu página.
+              </div>
+            </div>
+            <ScheduleToggle
+              on={hideClosedDays}
+              disabled={disabled}
+              onChange={onHideClosedDaysChange}
+            />
+          </div>
+        ) : null}
         {DAY_KEYS.map((key) => {
           const row = schedule[key]
           const isOpen = !row.closed

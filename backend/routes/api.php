@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\BillingController;
 use App\Http\Controllers\Api\Dashboard\BusinessController as DashboardBusinessController;
 use App\Http\Controllers\Api\Dashboard\ImagesController;
 use App\Http\Controllers\Api\Dashboard\AboutSectionsController;
+use App\Http\Controllers\Api\Dashboard\EventsController;
 use App\Http\Controllers\Api\Dashboard\ServicesController;
 use App\Http\Controllers\Api\Dashboard\StatsController;
 use App\Http\Controllers\Api\Dashboard\TemplatesController;
@@ -188,6 +189,12 @@ Route::prefix('v1')->group(function (): void {
             Route::delete('/about-sections/{aboutSection}', [AboutSectionsController::class, 'destroy'])->middleware('pro.features');
             Route::post('/about-sections/{aboutSection}/photo', [AboutSectionsController::class, 'uploadPhoto'])->middleware('pro.features');
             Route::delete('/about-sections/{aboutSection}/photo', [AboutSectionsController::class, 'deletePhoto'])->middleware('pro.features');
+            Route::get('/events', [EventsController::class, 'index']);
+            Route::post('/events', [EventsController::class, 'store'])->middleware('pro.features');
+            Route::put('/events/{event}', [EventsController::class, 'update'])->middleware('pro.features');
+            Route::delete('/events/{event}', [EventsController::class, 'destroy'])->middleware('pro.features');
+            Route::post('/events/{event}/photo', [EventsController::class, 'uploadPhoto'])->middleware('pro.features');
+            Route::delete('/events/{event}/photo', [EventsController::class, 'deletePhoto'])->middleware('pro.features');
         });
     });
 

@@ -669,6 +669,10 @@ function lwTrackClick(kind) {
 </script>
 
 
+<script>
+var HIDE_CLOSED = @json($hide_closed_days);
+</script>
+
 @verbatim
 
 
@@ -1062,6 +1066,7 @@ function renderSchedule() {
   ordered.forEach(function (d) {
     var isToday = d.idx === today;
     var openDay = Boolean(d.open);
+    if (HIDE_CLOSED && !openDay) return;
     var row = document.createElement('div');
     row.className = 'row' + (isToday ? ' today' : '');
     var hoursText = openDay ? d.open + ' — ' + d.close : 'Cerrado';
@@ -1823,6 +1828,7 @@ function applyLivePreviewData(raw, opts) {
     updateGraphitePreviewMap(NaN, NaN);
   }
 
+    HIDE_CLOSED = raw && raw.hide_closed_days === true;
   syncGraphiteScheduleFromPreview(raw.horario);
   renderSchedule();
   syncGraphiteTemplateExtensions(raw);
@@ -1947,6 +1953,7 @@ setInterval(renderSchedule, 60000);
         correo: @json($correo),
         galeria: @json($galeria),
         horario: @json($horario),
+        hide_closed_days: @json($hide_closed_days),
         map_lat: @json($map_lat),
         map_lon: @json($map_lon),
         services: @json($services),

@@ -1,0 +1,693 @@
+/* Sección «Próximos eventos» — destacado editorial + agenda (estilos de plantilla) */
+#lw-eventos {
+  --lw-ev-accent: var(--gold, var(--accent, currentColor));
+  --lw-ev-muted: var(--muted, color-mix(in srgb, currentColor 62%, transparent));
+  --lw-ev-border: var(--hairline, color-mix(in srgb, currentColor 14%, transparent));
+  --lw-ev-bg: var(--bg-2, transparent);
+
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: clamp(3.5rem, 8vw, 6.5rem) 0;
+  color: inherit;
+  background: var(--lw-ev-bg);
+  border-top: 1px solid var(--lw-ev-border);
+  font-family: var(--sans, "Inter", ui-sans-serif, system-ui, sans-serif);
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+#lw-eventos *,
+#lw-eventos *::before,
+#lw-eventos *::after {
+  box-sizing: border-box;
+}
+
+#lw-eventos .lw-eventos__inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 4vw, 2.875rem);
+}
+
+#lw-eventos .lw-eventos__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+  margin-bottom: clamp(2rem, 5vw, 3rem);
+}
+
+#lw-eventos .lw-eventos__eyebrow,
+#lw-eventos .lw-eventos__title {
+  color: inherit;
+}
+
+#lw-eventos .lw-eventos__hero-head {
+  display: grid;
+  gap: 2rem;
+  margin-bottom: clamp(1.25rem, 3vw, 4rem);
+}
+
+#lw-eventos .section-head {
+  margin-bottom: clamp(1.25rem, 3vw, 4rem);
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  #lw-eventos .lw-eventos__hero-head {
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 3rem;
+  }
+}
+
+#lw-eventos .lw-eventos__count {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  border-top: 1px solid var(--lw-ev-border);
+  padding-top: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  #lw-eventos .lw-eventos__count {
+    border-top: none;
+    padding-top: 0;
+    padding-bottom: 0.5rem;
+    justify-self: end;
+  }
+}
+
+#lw-eventos .lw-eventos__count-num {
+  font-family: var(--serif, "Cormorant Garamond", Georgia, serif);
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-weight: 300;
+  line-height: 1;
+  color: var(--lw-ev-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+#lw-eventos .lw-eventos__count-label {
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--lw-ev-muted);
+  line-height: 1.5;
+}
+
+/* ── Destacado editorial ─────────────────────────────── */
+#lw-eventos .lw-eventos__featured {
+  margin-bottom: clamp(2rem, 5vw, 3.5rem);
+}
+
+#lw-eventos .lw-eventos__featured-grid {
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  #lw-eventos .lw-eventos__featured-grid {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: clamp(2rem, 4vw, 3.5rem);
+  }
+}
+
+#lw-eventos .lw-eventos__featured-media {
+  margin: 0;
+  min-width: 0;
+}
+
+#lw-eventos .lw-eventos__featured-img-wrap {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--gold-line, var(--lw-ev-border));
+  outline: 1px solid var(--gold-line, transparent);
+  outline-offset: 8px;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+#lw-eventos .lw-eventos__featured-img-wrap img {
+  display: block;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: min(58vh, 520px);
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: center;
+}
+
+#lw-eventos .lw-eventos__featured-img-wrap--empty {
+  display: grid;
+  place-items: center;
+  gap: 0.35rem;
+  min-height: 280px;
+  aspect-ratio: 4 / 5;
+  max-height: min(58vh, 520px);
+}
+
+#lw-eventos .lw-eventos__featured-img-veil {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 45%, color-mix(in srgb, var(--bg, #0a0a0a) 75%, transparent) 100%);
+}
+
+#lw-eventos .lw-eventos__date-badge {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--gold-line, var(--lw-ev-border));
+  background: color-mix(in srgb, var(--bg, #0a0a0a) 72%, transparent);
+  backdrop-filter: blur(6px);
+  text-align: center;
+}
+
+#lw-eventos .lw-eventos__date-badge-day {
+  display: block;
+  font-family: var(--serif, "Cormorant Garamond", Georgia, serif);
+  font-size: 1.75rem;
+  line-height: 1;
+  color: var(--lw-ev-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+#lw-eventos .lw-eventos__date-badge-meta {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--lw-ev-muted);
+}
+
+#lw-eventos .lw-eventos__featured-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding-top: 0.25rem;
+}
+
+@media (min-width: 900px) {
+  #lw-eventos .lw-eventos__featured-body {
+    padding-top: 1.5rem;
+  }
+}
+
+#lw-eventos .lw-eventos__featured-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--lw-ev-accent);
+}
+
+#lw-eventos .lw-eventos__icon {
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+#lw-eventos .lw-eventos__featured-title {
+  margin: 0 0 0.75rem;
+  font-family: var(--serif, "Cormorant Garamond", Georgia, serif);
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  font-weight: 300;
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: inherit;
+}
+
+#lw-eventos .lw-eventos__featured-desc {
+  margin: 0 0 1.25rem;
+  max-width: 42ch;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--lw-ev-muted);
+}
+
+#lw-eventos .lw-eventos__featured-place {
+  margin-bottom: 1.5rem;
+  width: 100%;
+  border-top: 1px solid var(--lw-ev-border);
+  padding-top: 1.25rem;
+}
+
+#lw-eventos .lw-eventos__featured-place-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--lw-ev-muted);
+}
+
+#lw-eventos .lw-eventos__featured-place-text {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: inherit;
+}
+
+#lw-eventos .lw-eventos__ics-btn,
+#lw-eventos .lw-eventos__featured-body .btn {
+  margin-top: 0.25rem;
+}
+
+/* Carrusel */
+#lw-eventos .lw-eventos__carousel-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+#lw-eventos .lw-eventos__carousel-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+#lw-eventos .lw-eventos__carousel-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid var(--gold-line, var(--lw-ev-border));
+  background: transparent;
+  color: var(--lw-ev-accent);
+  cursor: pointer;
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+#lw-eventos .lw-eventos__carousel-btn:hover,
+#lw-eventos .lw-eventos__carousel-btn:focus-visible {
+  background: color-mix(in srgb, var(--lw-ev-accent) 12%, transparent);
+  border-color: var(--lw-ev-accent);
+  outline: none;
+}
+
+#lw-eventos .lw-eventos__carousel-counter {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--lw-ev-muted);
+}
+
+/* Agenda */
+#lw-eventos .lw-eventos__agenda {
+  margin-top: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+#lw-eventos .lw-eventos__agenda-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--lw-ev-border);
+  padding-bottom: 1rem;
+  margin-bottom: 0;
+}
+
+#lw-eventos .lw-eventos__agenda-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#lw-eventos .lw-eventos__agenda-item {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+  gap: 0.75rem 1rem;
+  align-items: center;
+  width: 100%;
+  padding: 1.25rem 0;
+  border: none;
+  border-bottom: 1px solid var(--lw-ev-border);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+@media (min-width: 768px) {
+  #lw-eventos .lw-eventos__agenda-item {
+    grid-template-columns: 3rem 8rem minmax(0, 1fr) 10rem 2rem;
+    gap: 1rem 1.25rem;
+    padding: 1.5rem 0;
+  }
+}
+
+#lw-eventos .lw-eventos__agenda-item:hover,
+#lw-eventos .lw-eventos__agenda-item.is-active {
+  color: var(--lw-ev-accent);
+}
+
+#lw-eventos .lw-eventos__agenda-idx {
+  font-family: var(--serif, "Cormorant Garamond", Georgia, serif);
+  font-size: 1.35rem;
+  font-weight: 300;
+  color: var(--lw-ev-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+#lw-eventos .lw-eventos__agenda-item.is-active .lw-eventos__agenda-idx,
+#lw-eventos .lw-eventos__agenda-item:hover .lw-eventos__agenda-idx {
+  color: var(--lw-ev-accent);
+}
+
+#lw-eventos .lw-eventos__agenda-date {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--lw-ev-accent);
+}
+
+#lw-eventos .lw-eventos__agenda-title {
+  font-family: var(--serif, "Cormorant Garamond", Georgia, serif);
+  font-size: clamp(1.15rem, 2.2vw, 1.65rem);
+  font-weight: 300;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  grid-column: 1 / -2;
+}
+
+@media (min-width: 768px) {
+  #lw-eventos .lw-eventos__agenda-title {
+    grid-column: auto;
+  }
+}
+
+#lw-eventos .lw-eventos__agenda-venue {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--lw-ev-muted);
+  grid-column: 2 / -1;
+}
+
+@media (min-width: 768px) {
+  #lw-eventos .lw-eventos__agenda-venue {
+    grid-column: auto;
+  }
+}
+
+#lw-eventos .lw-eventos__agenda-arrow {
+  justify-self: end;
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--lw-ev-border);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--lw-ev-muted);
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+#lw-eventos .lw-eventos__agenda-item.is-active .lw-eventos__agenda-arrow,
+#lw-eventos .lw-eventos__agenda-item:hover .lw-eventos__agenda-arrow {
+  border-color: var(--lw-ev-accent);
+  color: var(--lw-ev-accent);
+  background: color-mix(in srgb, var(--lw-ev-accent) 10%, transparent);
+}
+
+/* ── Noir Elite / Bloom ───────────────────────────────── */
+#lw-eventos.lw-eventos--noir-elite,
+#lw-eventos.lw-eventos--bloom-studio {
+  --lw-ev-bg: var(--bg-2);
+  padding: 154px 0;
+  border-top-color: var(--hairline);
+}
+
+@media (max-width: 899px) {
+  #lw-eventos {
+    padding: 3.5rem 0;
+  }
+
+  #lw-eventos.lw-eventos--noir-elite,
+  #lw-eventos.lw-eventos--bloom-studio {
+    padding: 5rem 0 4rem;
+  }
+
+  #lw-eventos .section-head {
+    margin-bottom: 1.25rem;
+    gap: 10px;
+  }
+
+  #lw-eventos .lw-eventos__hero-head {
+    margin-bottom: 1rem;
+    gap: 0.75rem;
+  }
+
+  #lw-eventos .lw-eventos__featured {
+    margin-bottom: 1.5rem;
+  }
+
+  #lw-eventos .lw-eventos__featured-grid {
+    gap: 1rem;
+  }
+
+  #lw-eventos .lw-eventos__featured-img-wrap {
+    outline-offset: 4px;
+  }
+
+  #lw-eventos .lw-eventos__featured-img-wrap img {
+    max-height: min(40vh, 360px);
+  }
+
+  #lw-eventos .lw-eventos__featured-body {
+    padding-top: 0;
+  }
+}
+
+#lw-eventos.lw-eventos--noir-elite .lw-eventos__featured-title.noir-svc-name,
+#lw-eventos.lw-eventos--bloom-studio .lw-eventos__featured-title.noir-svc-name {
+  font-size: clamp(2.25rem, 4vw, 3.25rem);
+  letter-spacing: 0.06em;
+}
+
+#lw-eventos.lw-eventos--noir-elite .lw-eventos__featured-desc.noir-svc-desc,
+#lw-eventos.lw-eventos--bloom-studio .lw-eventos__featured-desc.noir-svc-desc {
+  font-size: 15px;
+  line-height: 1.95;
+}
+
+#lw-eventos.lw-eventos--noir-elite .lw-eventos__featured-img-wrap,
+#lw-eventos.lw-eventos--bloom-studio .lw-eventos__featured-img-wrap {
+  border-radius: 0;
+}
+
+/* ── Urban Bold / Craft Pro ─────────────────────────────── */
+#lw-eventos.lw-eventos--urban-bold,
+#lw-eventos.lw-eventos--craft-pro {
+  --lw-ev-accent: var(--lime, var(--orange, currentColor));
+  --lw-ev-bg: var(--bg, transparent);
+  --lw-ev-border: color-mix(in srgb, var(--ink, currentColor) 18%, transparent);
+}
+
+#lw-eventos.lw-eventos--urban-bold .lw-eventos__featured-title,
+#lw-eventos.lw-eventos--craft-pro .lw-eventos__featured-title {
+  font-family: var(--display, var(--cond, inherit));
+  text-transform: uppercase;
+}
+
+#lw-eventos.lw-eventos--urban-bold .lw-eventos__featured-img-wrap,
+#lw-eventos.lw-eventos--craft-pro .lw-eventos__featured-img-wrap {
+  border-radius: 0;
+  border-width: 2px;
+  outline: none;
+}
+
+#lw-eventos.lw-eventos--bloom-studio {
+  --lw-ev-accent: var(--coral, var(--peach, currentColor));
+  --lw-ev-bg: var(--cream, var(--bg-2, #fff8f4));
+  --lw-ev-muted: rgba(28, 28, 28, 0.72);
+  --lw-ev-border: color-mix(in srgb, var(--coral, currentColor) 22%, transparent);
+  padding: clamp(4rem, 8vw, 7rem) 0;
+}
+
+#lw-eventos.lw-eventos--bloom-studio .lw-eventos__featured-img-wrap {
+  border-radius: 18px;
+  outline: none;
+}
+
+#lw-eventos.lw-eventos--bloom-studio .lw-eventos__featured-title.bloom-svc-name {
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+
+#lw-eventos.lw-eventos--kairos-bold {
+  --lw-ev-accent: var(--orange, var(--ink, currentColor));
+  --lw-ev-bg: var(--cream, #f6efe4);
+  --lw-ev-border: color-mix(in srgb, var(--ink, currentColor) 16%, transparent);
+}
+
+#lw-eventos.lw-eventos--kairos-bold .lw-eventos__featured-title,
+#lw-eventos.lw-eventos--kairos-bold .lw-eventos__agenda-title {
+  font-family: var(--display, "Lilita One", system-ui, sans-serif);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+#lw-eventos.lw-eventos--kairos-bold .lw-eventos__featured-img-wrap {
+  border-radius: 0;
+  border-width: 2px;
+  outline: none;
+}
+
+#lw-eventos.lw-eventos--la-republica-vintage {
+  --lw-ev-accent: var(--gold, #d4a85a);
+  --lw-ev-bg: var(--cream, var(--bg-2, transparent));
+  --lw-ev-border: color-mix(in srgb, var(--gold, currentColor) 28%, transparent);
+}
+
+#lw-eventos.lw-eventos--la-republica-vintage .lw-eventos__featured-title,
+#lw-eventos.lw-eventos--la-republica-vintage .lw-eventos__agenda-title {
+  font-family: var(--display, "Alfa Slab One", Georgia, serif);
+}
+
+#lw-eventos.lw-eventos--tavola-warm {
+  --lw-ev-accent: var(--terracotta, var(--warm, currentColor));
+  --lw-ev-bg: var(--bg-2, var(--cream, transparent));
+}
+
+#lw-eventos.lw-eventos--tavola-warm .lw-eventos__featured-title,
+#lw-eventos.lw-eventos--tavola-warm .lw-eventos__agenda-title {
+  font-family: var(--display, var(--serif, Georgia, serif));
+}
+
+#lw-eventos.lw-eventos--luxe-atelier,
+#lw-eventos.lw-eventos--mono-edito,
+#lw-eventos.lw-eventos--consult-prime,
+#lw-eventos.lw-eventos--soft-organic,
+#lw-eventos.lw-eventos--trust-clinic {
+  --lw-ev-bg: var(--bg-2, var(--cream, transparent));
+}
+
+#lw-eventos.lw-eventos--luxe-atelier .lw-eventos__featured-title.serif,
+#lw-eventos.lw-eventos--mono-edito .lw-eventos__featured-title.serif,
+#lw-eventos.lw-eventos--consult-prime .lw-eventos__featured-title.serif,
+#lw-eventos.lw-eventos--soft-organic .lw-eventos__featured-title.serif,
+#lw-eventos.lw-eventos--trust-clinic .lw-eventos__featured-title.serif {
+  font-family: var(--serif, Georgia, serif);
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+
+#lw-eventos.lw-eventos--handyman-pro,
+#lw-eventos.lw-eventos--versa-studio {
+  --lw-ev-bg: var(--bg-2, var(--cream, transparent));
+}
+
+#lw-eventos.lw-eventos--handyman-pro .lw-eventos__featured-title.cond,
+#lw-eventos.lw-eventos--handyman-pro .lw-eventos__agenda-title.cond {
+  font-family: var(--cond, "Barlow Condensed", Impact, sans-serif);
+  text-transform: uppercase;
+}
+
+#lw-eventos.lw-eventos--versa-studio .lw-eventos__featured-title.display,
+#lw-eventos.lw-eventos--versa-studio .lw-eventos__agenda-title.display {
+  font-family: var(--display, var(--serif, Georgia, serif));
+}
+
+#lw-eventos.lw-eventos--tech-sleek,
+#lw-eventos.lw-eventos--graphite-soft {
+  --lw-ev-accent: var(--cyan, var(--accent, var(--violet, currentColor)));
+  --lw-ev-bg: var(--bg, transparent);
+  --lw-ev-border: var(--line, color-mix(in srgb, currentColor 14%, transparent));
+}
+
+#lw-eventos.lw-eventos--tech-sleek .lw-eventos__featured-title,
+#lw-eventos.lw-eventos--tech-sleek .lw-eventos__agenda-title {
+  font-family: var(--display, var(--sans, inherit));
+  letter-spacing: -0.02em;
+}
+
+#lw-eventos.lw-eventos--graphite-soft .lw-eventos__featured-title.serif,
+#lw-eventos.lw-eventos--graphite-soft .lw-eventos__agenda-title.serif {
+  font-family: var(--serif, Georgia, serif);
+}
+
+#lw-eventos.lw-eventos--graphite-soft .lw-eventos__featured-meta.sec-num,
+#lw-eventos.lw-eventos--graphite-soft .lw-eventos__graphite-head .sec-num {
+  font-family: var(--mono, ui-monospace, monospace);
+}
+
+#lw-eventos.lw-eventos--wild-pet {
+  --lw-ev-accent: var(--ink, currentColor);
+  --lw-ev-bg: var(--amar-soft, var(--bg-2, #fff8d9));
+  --lw-ev-border: color-mix(in srgb, var(--ink, currentColor) 22%, transparent);
+}
+
+#lw-eventos.lw-eventos--wild-pet .lw-eventos__featured-title,
+#lw-eventos.lw-eventos--wild-pet .lw-eventos__agenda-title {
+  font-family: var(--display, var(--sans, inherit));
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+#lw-eventos.lw-eventos--wild-pet .lw-eventos__featured-img-wrap {
+  border-radius: 18px;
+  border-width: 3px;
+  outline: none;
+}
+
+#lw-eventos.lw-eventos--coastal-calm {
+  --lw-ev-accent: var(--sage-deep, var(--terracotta, currentColor));
+  --lw-ev-bg: var(--sand, var(--bg-2, transparent));
+  --lw-ev-border: color-mix(in srgb, var(--sage-deep, currentColor) 20%, transparent);
+}
+
+#lw-eventos.lw-eventos--coastal-calm .lw-eventos__featured-img-wrap {
+  border-radius: 20px;
+  outline: none;
+}
+
+#lw-eventos.lw-eventos--coastal-calm .lw-eventos__coastal-head h2 {
+  margin: 12px 0 0;
+  font-family: var(--serif, Georgia, serif);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 500;
+}
+
+/* Agenda: títulos con clases de servicio por plantilla */
+#lw-eventos.lw-eventos--noir-elite .lw-eventos__agenda-title.noir-svc-name,
+#lw-eventos.lw-eventos--bloom-studio .lw-eventos__agenda-title.bloom-svc-name {
+  font-size: clamp(1.1rem, 2vw, 1.45rem);
+  text-transform: uppercase;
+}
+
+#lw-eventos.lw-eventos--urban-bold .lw-eventos__agenda-title {
+  font-size: clamp(1.2rem, 2.2vw, 1.65rem);
+  text-transform: uppercase;
+}
+
+/* Cabeceras auxiliares */
+#lw-eventos .lw-eventos__coastal-head,
+#lw-eventos .lw-eventos__graphite-head {
+  margin-bottom: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+#lw-eventos .sched-head {
+  margin-bottom: clamp(1.25rem, 3vw, 3rem);
+}
+

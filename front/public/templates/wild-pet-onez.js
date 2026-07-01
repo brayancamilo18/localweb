@@ -23,6 +23,7 @@
     { day: 'Sábado', open: '10:00', close: '14:00' },
     { day: 'Domingo', open: null, close: null },
   ];
+  var HIDE_CLOSED = false;
   var WILD_SCHEDULE = WILD_SCHEDULE_DEFAULT.map(function (r) {
     return { day: r.day, open: r.open, close: r.close };
   });
@@ -230,6 +231,7 @@
     var today = wildDayIndex(new Date().getDay());
     schedEl.innerHTML = WILD_SCHEDULE.map(function (row, i) {
       var closed = !row.open;
+      if (HIDE_CLOSED && closed) return '';
       return (
         '<div class="schedule-row ' +
         (i === today ? 'is-today' : '') +
@@ -830,6 +832,7 @@
     updateWildPreviewMap(coords.lat, coords.lon, name);
     syncWildMapsLink(raw);
 
+    HIDE_CLOSED = raw && raw.hide_closed_days === true;
     syncWildScheduleFromPreview(raw.horario);
     renderWildSchedule();
     syncWildTemplateExtensions(raw);

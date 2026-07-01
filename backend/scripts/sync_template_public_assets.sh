@@ -8,7 +8,7 @@ SRC="$ROOT/front/public/templates"
 DST="$ROOT/backend/public/templates"
 
 mkdir -p "$DST"
-for asset in brand-apply.js lw-about-extras.css lw-about-extras.js lw-contact-links.js lw-landing-demo.js lw-schedule.js; do
+for asset in brand-apply.js lw-about-extras.css lw-about-extras.js lw-contact-links.js lw-events.css lw-events.js lw-landing-demo.js lw-schedule.js; do
   if [[ -f "$SRC/$asset" ]]; then
     cp "$SRC/$asset" "$DST/$asset"
     echo "OK $asset"

@@ -325,9 +325,22 @@ export function useOnboarding(): UseOnboardingResult {
             }
             break
           }
-          case 5:
-            await step5(data as Schedule)
+          case 5: {
+            const raw = data as { schedule: Schedule; hide_closed_days?: boolean } | Schedule | undefined
+            if (raw && typeof raw === 'object' && 'schedule' in raw) {
+              const d = raw as { schedule: Schedule; hide_closed_days?: boolean }
+              await step5({
+                schedule: d.schedule,
+                hide_closed_days: d.hide_closed_days ?? false,
+              })
+            } else if (raw && typeof raw === 'object' && 'mon' in raw) {
+              await step5({ schedule: raw as Schedule, hide_closed_days: false })
+            } else {
+              setErrors({ schedule: 'Configura el horario de tu negocio' })
+              return
+            }
             break
+          }
           case 6:
             await step6(
               data as {

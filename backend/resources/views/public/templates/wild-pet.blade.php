@@ -2017,6 +2017,7 @@ function lwTrackClick(kind) {
   var WILD_SCHEDULE = WILD_SCHEDULE_DEFAULT.map(function (r) {
     return { day: r.day, open: r.open, close: r.close };
   });
+  var HIDE_CLOSED = false;
 
   var WILD_SERVICE_ICONS = {
     paw: '<svg viewBox="0 0 24 24" fill="currentColor" width="26" height="26"><circle cx="6" cy="10" r="2"/><circle cx="10" cy="6" r="2"/><circle cx="14" cy="6" r="2"/><circle cx="18" cy="10" r="2"/><path d="M12 11c-3 0-6 2.5-6 5.5 0 2 1.5 3.5 3.5 3.5.9 0 1.6-.4 2.5-.4s1.6.4 2.5.4c2 0 3.5-1.5 3.5-3.5 0-3-3-5.5-6-5.5z"/></svg>',
@@ -2221,6 +2222,7 @@ function lwTrackClick(kind) {
     var today = wildDayIndex(new Date().getDay());
     schedEl.innerHTML = WILD_SCHEDULE.map(function (row, i) {
       var closed = !row.open;
+      if (HIDE_CLOSED && closed) return '';
       return (
         '<div class="schedule-row ' +
         (i === today ? 'is-today' : '') +
@@ -2821,6 +2823,7 @@ function lwTrackClick(kind) {
     updateWildPreviewMap(coords.lat, coords.lon, name);
     syncWildMapsLink(raw);
 
+    HIDE_CLOSED = raw && raw.hide_closed_days === true;
     syncWildScheduleFromPreview(raw.horario);
     renderWildSchedule();
     syncWildTemplateExtensions(raw);
@@ -2977,6 +2980,7 @@ function lwTrackClick(kind) {
         ciudad: @json($ciudad),
         galeria: @json($galeria),
         horario: @json($horario),
+        hide_closed_days: @json($hide_closed_days),
         map_lat: @json($map_lat),
         map_lon: @json($map_lon),
         services: @json($services),

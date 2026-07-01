@@ -1,0 +1,1319 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>ONEZ — La web profesional de tu negocio, lista hoy</title>
+<meta name="description" content="Crea la web profesional de tu negocio local en minutos. Galería, horarios, mapa y reservas por WhatsApp. Sin programar, sin diseñador. Primer mes gratis." />
+<meta property="og:title" content="ONEZ — La web profesional de tu negocio, lista hoy" />
+<meta property="og:description" content="Crea la web profesional de tu negocio local en minutos. Sin programar. Primer mes gratis." />
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="es_ES" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="theme-color" content="#FAFAF7" />
+
+<!-- Fuentes -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          bg:         "#FAFAF7",
+          surface:    "#FFFFFF",
+          alt:        "#F3F2EF",
+          brand:      "#0F6E56",
+          brandHover: "#0A5A45",
+          brandSoft:  "#E1F5EE",
+          mint:       "#5DCAA5",
+          ink:        "#0B1F1A",
+          ink2:       "#2C2C2A",
+          ink3:       "#888780",
+          ink4:       "#A8A7A0",
+          line:       "#E8E6E1",
+          lineStrong: "#D4D2CC",
+        },
+        fontFamily: {
+          sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'ui-monospace', 'Menlo', 'monospace'],
+        },
+        boxShadow: {
+          '1':   '0 1px 2px rgba(11,31,26,.04)',
+          '2':   '0 1px 3px rgba(11,31,26,.06), 0 4px 12px rgba(11,31,26,.04)',
+          'pop': '0 8px 24px rgba(11,31,26,.10), 0 1px 2px rgba(11,31,26,.06)',
+          'btn': '0 1px 0 rgba(255,255,255,.15) inset, 0 1px 2px rgba(15,23,42,.12)',
+        },
+        borderRadius: {
+          'btn': '10px',
+        }
+      }
+    }
+  };
+</script>
+
+<style>
+  :root {
+    color-scheme: light;
+  }
+  html, body {
+    background: #FAFAF7;
+    color: #2C2C2A;
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "cv11", "ss01";
+    letter-spacing: -0.005em;
+  }
+  body { font-size: 17px; line-height: 1.6; }
+  @media (max-width: 640px){ body { font-size: 16px; } }
+
+  /* Titulares */
+  .h-display { letter-spacing: -0.03em; line-height: 1.02; font-weight: 600; color: #0B1F1A; }
+  .h-section { letter-spacing: -0.03em; line-height: 1.08; font-weight: 600; color: #0B1F1A; }
+  .eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #0F6E56;
+  }
+  @media (min-width: 768px){ .eyebrow { font-size: 12px; } }
+
+  /* Botones */
+  .btn-primary {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: #0F6E56; color: #fff; font-weight: 600;
+    border-radius: 10px;
+    box-shadow: 0 1px 0 rgba(255,255,255,.15) inset, 0 1px 2px rgba(15,23,42,.12);
+    transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
+    will-change: transform;
+  }
+  .btn-primary:hover {
+    background: #0A5A45;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(11,31,26,.10), 0 1px 2px rgba(11,31,26,.06);
+  }
+  .btn-primary.size-xl { height: 56px; padding: 0 32px; font-size: 16px; }
+  .btn-primary.size-md { height: 44px; padding: 0 18px; font-size: 14.5px; }
+  .btn-primary.size-sm { height: 38px; padding: 0 14px; font-size: 14px; }
+
+  .btn-inverse {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: #fff; color: #0F6E56; font-weight: 600;
+    border-radius: 10px;
+    box-shadow: 0 1px 0 rgba(255,255,255,.5) inset, 0 1px 2px rgba(0,0,0,.12);
+    transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
+  }
+  .btn-inverse:hover {
+    background: #F3F2EF;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  }
+  .btn-inverse.size-xl { height: 56px; padding: 0 32px; font-size: 16px; }
+
+  .btn-ghost {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: #0B1F1A; font-weight: 500; font-size: 15px;
+    padding: 8px 4px; position: relative;
+    transition: color .15s ease;
+  }
+  .btn-ghost::after {
+    content: ""; position: absolute; left: 4px; right: 4px; bottom: 4px;
+    height: 1px; background: currentColor; transform: scaleX(.35); transform-origin: left;
+    transition: transform .25s ease, background .15s ease; opacity: .6;
+  }
+  .btn-ghost:hover { color: #0F6E56; }
+  .btn-ghost:hover::after { transform: scaleX(1); opacity: 1; }
+
+  /* Focus ring */
+  .focus-ring:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(15,110,86,.14), 0 0 0 1px #0F6E56;
+  }
+
+  /* Pills */
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #E1F5EE; color: #0F6E56;
+    font-size: 11px; font-weight: 600; letter-spacing: .04em;
+    padding: 5px 10px; border-radius: 999px;
+  }
+
+  /* Stripes (placeholders foto) */
+  .stripes {
+    background-color: #EDECE7;
+    background-image: repeating-linear-gradient(
+      135deg,
+      rgba(11,31,26,.06) 0 1px,
+      transparent 1px 9px
+    );
+  }
+  .stripes-warm {
+    background-color: #F3E9DD;
+    background-image: repeating-linear-gradient(135deg, rgba(120,80,30,.08) 0 1px, transparent 1px 9px);
+  }
+  .stripes-rose {
+    background-color: #F2E3E3;
+    background-image: repeating-linear-gradient(135deg, rgba(160,50,80,.08) 0 1px, transparent 1px 9px);
+  }
+  .stripes-green {
+    background-color: #E5EFE6;
+    background-image: repeating-linear-gradient(135deg, rgba(20,80,50,.10) 0 1px, transparent 1px 9px);
+  }
+  .stripes-dark {
+    background-color: #1E1E1B;
+    background-image: repeating-linear-gradient(135deg, rgba(255,255,255,.06) 0 1px, transparent 1px 9px);
+  }
+
+  /* Hero glow */
+  .hero-glow {
+    background:
+      radial-gradient(circle at 78% 8%, rgba(93,202,165,.22), transparent 55%),
+      radial-gradient(circle at 12% 92%, rgba(15,110,86,.06), transparent 50%),
+      linear-gradient(180deg, #FAFAF7 0%, #F6F5F1 100%);
+  }
+
+  /* Mockups – phone frame */
+  .phone {
+    position: relative;
+    border-radius: 42px;
+    padding: 10px;
+    background: linear-gradient(165deg, #2C2C2A 0%, #1a1a18 50%, #0B1F1A 100%);
+    box-shadow:
+      0 30px 60px -20px rgba(11,31,26,.35),
+      0 18px 30px -18px rgba(11,31,26,.25),
+      0 0 0 1px rgba(255,255,255,.04) inset;
+  }
+  .phone::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 50%;
+    border-radius: 42px 42px 0 0;
+    background: linear-gradient(180deg, rgba(255,255,255,.05), transparent);
+    pointer-events: none;
+  }
+  .phone-screen {
+    position: relative;
+    background: #FAFAF7;
+    border-radius: 32px;
+    overflow: hidden;
+    width: 100%;
+    aspect-ratio: 9 / 19.5;
+  }
+  .phone-notch {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    width: 88px; height: 22px; background: #0B1F1A; border-radius: 999px;
+    z-index: 5;
+  }
+  .phone-notch::after {
+    content: ""; position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    width: 7px; height: 7px; border-radius: 999px; background: #1a1a18;
+    box-shadow: inset 0 0 0 1.5px rgba(93,202,165,.35);
+  }
+
+  /* Float animation (muy lenta) */
+  @keyframes float-a {
+    0%,100% { transform: translateY(0px) rotate(var(--rot, 0deg)); }
+    50%     { transform: translateY(-8px) rotate(var(--rot, 0deg)); }
+  }
+  @keyframes float-b {
+    0%,100% { transform: translateY(0px) rotate(var(--rot, 0deg)); }
+    50%     { transform: translateY(-12px) rotate(var(--rot, 0deg)); }
+  }
+  .float-a { animation: float-a 7s ease-in-out infinite; }
+  .float-b { animation: float-b 9s ease-in-out infinite; }
+
+  /* Glow pulse */
+  @keyframes pulse-glow {
+    0%,100% { opacity: .55; transform: scale(1); }
+    50%     { opacity: .9;  transform: scale(1.04); }
+  }
+  .pulse-glow { animation: pulse-glow 5s ease-in-out infinite; }
+
+  /* Fade-up reveal */
+  .reveal { opacity: 0; transform: translateY(16px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .float-a, .float-b, .pulse-glow { animation: none !important; }
+  }
+
+  /* Card hover */
+  .card-hover {
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(11,31,26,.10), 0 1px 2px rgba(11,31,26,.06);
+    border-color: #D4D2CC;
+  }
+
+  /* Header sticky */
+  .nav-base {
+    backdrop-filter: saturate(140%) blur(10px);
+    -webkit-backdrop-filter: saturate(140%) blur(10px);
+    background: rgba(250,250,247,.85);
+    transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    border-bottom: 1px solid transparent;
+  }
+  .nav-base.scrolled {
+    border-bottom-color: #E8E6E1;
+  }
+
+  /* WhatsApp button inside mocks */
+  .wa-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    background: #0F6E56; color: #fff; font-weight: 600;
+    border-radius: 10px;
+    width: 100%; padding: 9px 12px; font-size: 12.5px;
+    box-shadow: 0 1px 0 rgba(255,255,255,.15) inset, 0 1px 2px rgba(11,31,26,.18);
+  }
+  .wa-btn-dark {
+    background: #5DCAA5; color: #0B1F1A;
+  }
+
+  /* FAQ accordion */
+  details.faq summary { list-style: none; cursor: pointer; }
+  details.faq summary::-webkit-details-marker { display: none; }
+  details.faq summary .chev { transition: transform .25s ease; }
+  details[open].faq summary .chev { transform: rotate(45deg); }
+  details.faq { border-bottom: 1px solid #E8E6E1; }
+  details.faq:first-of-type { border-top: 1px solid #E8E6E1; }
+  details.faq .answer {
+    max-height: 0; overflow: hidden;
+    transition: max-height .35s ease, padding .35s ease;
+  }
+  details[open].faq .answer { max-height: 600px; padding-bottom: 18px; }
+
+  /* Mobile menu */
+  .menu-panel { transform: translateY(-8px); opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; }
+  .menu-panel.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
+
+  /* Trust seals row */
+  .seal { display: inline-flex; align-items: center; gap: 8px; color: #2C2C2A; font-size: 13px; }
+  .seal svg { color: #0F6E56; flex: none; }
+
+  /* Code-y mono caption */
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: .02em; color: #888780; }
+
+  /* Selection */
+  ::selection { background: #5DCAA5; color: #0B1F1A; }
+
+  /* Phone content typography overrides */
+  .phone-screen, .phone-screen * { font-family: 'Inter', sans-serif; }
+</style>
+</head>
+<body class="bg-bg text-ink2">
+
+<!-- =========================================================
+     Skip link
+========================================================= -->
+<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:bg-ink focus:text-white focus:px-3 focus:py-2 focus:rounded">Saltar al contenido</a>
+
+<!-- =========================================================
+     HEADER STICKY
+========================================================= -->
+<header id="nav" class="nav-base fixed top-0 inset-x-0 z-40">
+  <div class="max-w-[1180px] mx-auto px-5 sm:px-6 lg:px-8 h-[64px] flex items-center justify-between">
+    <a href="#top" class="flex items-center gap-1 focus-ring rounded">
+      <span class="font-bold text-[20px] tracking-[-0.03em] text-ink">ONEZ</span>
+      <span class="text-[20px] font-bold text-brand leading-none">•</span>
+    </a>
+
+    <nav class="hidden md:flex items-center gap-1">
+      <a href="#como-funciona" class="px-3 py-2 text-[14.5px] text-ink2 hover:text-ink rounded focus-ring">Cómo funciona</a>
+      <a href="#plantillas" class="px-3 py-2 text-[14.5px] text-ink2 hover:text-ink rounded focus-ring">Plantillas</a>
+      <a href="#precio" class="px-3 py-2 text-[14.5px] text-ink2 hover:text-ink rounded focus-ring">Precio</a>
+      <a href="#faq" class="px-3 py-2 text-[14.5px] text-ink2 hover:text-ink rounded focus-ring">FAQ</a>
+    </nav>
+
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Enlace EDITAR: /login -->
+      <a href="/login" class="hidden sm:inline-flex items-center px-3 py-2 text-[14.5px] text-ink2 hover:text-ink rounded focus-ring">Entrar</a>
+      <!-- CTA principal EDITAR: /register?ref=ONEZ-PILOTO -->
+      <a href="/register?ref=ONEZ-PILOTO" data-cta="header"
+         class="btn-primary size-sm focus-ring">
+        Empieza gratis
+      </a>
+      <button id="menuBtn" class="md:hidden inline-flex items-center justify-center w-10 h-10 rounded focus-ring" aria-label="Abrir menú" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Menú móvil -->
+  <div id="menuPanel" class="menu-panel md:hidden absolute inset-x-3 top-[68px] bg-surface border border-line rounded-[14px] shadow-pop p-3">
+    <a href="#como-funciona" class="block px-3 py-2.5 text-[15px] text-ink2 rounded hover:bg-alt">Cómo funciona</a>
+    <a href="#plantillas" class="block px-3 py-2.5 text-[15px] text-ink2 rounded hover:bg-alt">Plantillas</a>
+    <a href="#precio" class="block px-3 py-2.5 text-[15px] text-ink2 rounded hover:bg-alt">Precio</a>
+    <a href="#faq" class="block px-3 py-2.5 text-[15px] text-ink2 rounded hover:bg-alt">FAQ</a>
+    <a href="/login" class="block px-3 py-2.5 text-[15px] text-ink2 rounded hover:bg-alt">Entrar</a>
+    <a href="/register?ref=ONEZ-PILOTO" data-cta="header-mobile" class="btn-primary size-md w-full mt-2 focus-ring">Empieza gratis</a>
+  </div>
+</header>
+
+<main id="main" class="pt-[64px]">
+
+<!-- =========================================================
+     1. HERO
+========================================================= -->
+<section id="top" class="relative hero-glow overflow-hidden">
+  <!-- Glow extra que pulsa -->
+  <div aria-hidden="true" class="pointer-events-none absolute -top-20 right-[-10%] w-[640px] h-[640px] rounded-full pulse-glow"
+       style="background: radial-gradient(circle, rgba(93,202,165,.22) 0%, rgba(93,202,165,0) 60%);"></div>
+
+  <div class="max-w-[1180px] mx-auto px-5 sm:px-6 lg:px-8 pt-14 sm:pt-20 pb-16 sm:pb-24">
+    <div class="grid lg:grid-cols-[1.05fr_1fr] gap-12 lg:gap-10 items-center">
+      <!-- Copy -->
+      <div class="reveal">
+        <div class="eyebrow mb-5 inline-flex items-center gap-2">
+          <span class="inline-block w-1.5 h-1.5 rounded-full bg-mint"></span>
+          Programa piloto · Plazas limitadas
+        </div>
+
+        <!--
+          Alternativas de H1 (descártalas si no gustan):
+          · "La web que tu negocio se merece. Lista hoy."
+          · "Tu negocio merece más que un perfil de Instagram."
+          · "Tu web profesional, sin programar, sin diseñador, hoy."
+        -->
+        <h1 class="h-display text-[clamp(40px,7vw,72px)]">
+          La web que tu negocio<br class="hidden sm:block" />
+          se merece. <span class="text-brand">Lista hoy.</span>
+        </h1>
+
+        <p class="mt-6 text-[17px] sm:text-[18px] text-ink2 max-w-[560px]">
+          Crea la web profesional de tu negocio en minutos. Galería, horarios, mapa y reservas por WhatsApp.
+          <span class="text-ink">Sin programar, sin diseñador.</span>
+        </p>
+
+        <div class="mt-8 flex flex-wrap items-center gap-3 sm:gap-4">
+          <!-- CTA EDITAR: /register?ref=ONEZ-PILOTO -->
+          <a href="/register?ref=ONEZ-PILOTO" data-cta="hero" class="btn-primary size-xl focus-ring">
+            Empieza gratis
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a href="#como-funciona" data-cta="ver-como-funciona" class="btn-ghost focus-ring rounded">
+            Ver cómo funciona
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+          </a>
+        </div>
+
+        <p class="mt-4 text-[13.5px] text-ink3">
+          Primer mes gratis · Te avisamos antes de cobrar · Cancela cuando quieras
+        </p>
+
+        <!-- Sellos de confianza -->
+        <div class="mt-8 grid grid-cols-2 sm:flex sm:flex-wrap gap-x-6 gap-y-3 pt-6 border-t border-line max-w-[560px]">
+          <span class="seal">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>
+            Mes gratis
+          </span>
+          <span class="seal">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>
+            Aviso antes de cobrar
+          </span>
+          <span class="seal">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            Cancela cuando quieras
+          </span>
+          <span class="seal">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            Pago seguro con Stripe
+          </span>
+        </div>
+      </div>
+
+      <!-- Mockups -->
+      <div class="relative h-[560px] sm:h-[640px] lg:h-[680px]">
+        <!-- Soft blob behind -->
+        <div aria-hidden="true" class="absolute -inset-6 -z-10 rounded-[60px]"
+             style="background: radial-gradient(60% 60% at 50% 45%, rgba(225,245,238,.9), rgba(225,245,238,0) 70%);"></div>
+
+        <!-- Phone 1: Floristería (atrás-izq) -->
+        <div class="absolute left-0 sm:left-[2%] top-[6%] w-[44%] sm:w-[42%] max-w-[230px] float-a" style="--rot:-6deg; transform: rotate(-6deg);">
+          <div class="phone">
+            <div class="phone-screen">
+              <div class="phone-notch"></div>
+              <!-- Hero foto -->
+              <div class="stripes-rose h-[44%] flex items-end p-3">
+                <div class="text-[10px] mono text-[#6b3445]">[ FOTO TIENDA ]</div>
+              </div>
+              <div class="px-3 pt-3">
+                <div class="text-[10px] uppercase tracking-[.12em] text-[#a04060] font-semibold">Floristería</div>
+                <div class="text-[15px] font-semibold text-ink leading-tight mt-0.5">Flora · Malasaña</div>
+                <div class="text-[10.5px] text-ink3 mt-0.5">Abierto · hoy 10:00 – 20:00</div>
+                <div class="mt-2.5 space-y-1.5">
+                  <div class="flex items-center justify-between text-[10.5px]"><span class="text-ink2">Ramo de temporada</span><span class="font-semibold text-ink">28€</span></div>
+                  <div class="flex items-center justify-between text-[10.5px]"><span class="text-ink2">Bouquet novia</span><span class="font-semibold text-ink">85€</span></div>
+                  <div class="flex items-center justify-between text-[10.5px]"><span class="text-ink2">Planta interior</span><span class="font-semibold text-ink">desde 15€</span></div>
+                </div>
+                <div class="mt-3">
+                  <div class="wa-btn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4a10 10 0 0 0-16 12L3 21l5-1A10 10 0 1 0 20 4Z"/></svg>
+                    Pedir por WhatsApp
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phone 2: Peluquería (centro, protagonista) -->
+        <div class="absolute left-[18%] sm:left-[22%] top-[2%] w-[54%] sm:w-[50%] max-w-[280px] z-10 float-b" style="--rot:2deg; transform: rotate(2deg);">
+          <div class="phone">
+            <div class="phone-screen">
+              <div class="phone-notch"></div>
+              <!-- Hero foto -->
+              <div class="stripes-dark h-[42%] flex items-end p-3 relative">
+                <div class="absolute inset-0" style="background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,.55) 100%);"></div>
+                <div class="relative">
+                  <div class="text-[9.5px] mono text-white/55">[ FOTO INTERIOR ]</div>
+                  <div class="text-white text-[16px] font-semibold tracking-[-0.01em] leading-tight mt-1">Mono Studio</div>
+                  <div class="text-white/75 text-[10.5px]">Peluquería · Chamberí, Madrid</div>
+                </div>
+              </div>
+              <div class="px-3 pt-2.5 pb-3">
+                <div class="flex items-center gap-1.5 text-[10px] text-ink3">
+                  <span class="inline-block w-1.5 h-1.5 rounded-full bg-brand"></span>
+                  Abierto hoy · 10 – 21h
+                </div>
+                <div class="mt-2 text-[10.5px] text-ink uppercase tracking-[.12em] font-semibold">Servicios</div>
+                <div class="mt-1.5 space-y-1.5">
+                  <div class="flex items-center justify-between text-[11px]"><span class="text-ink2">Corte mujer</span><span class="font-semibold text-ink">32€</span></div>
+                  <div class="flex items-center justify-between text-[11px]"><span class="text-ink2">Corte hombre</span><span class="font-semibold text-ink">22€</span></div>
+                  <div class="flex items-center justify-between text-[11px]"><span class="text-ink2">Color + tratamiento</span><span class="font-semibold text-ink">68€</span></div>
+                  <div class="flex items-center justify-between text-[11px]"><span class="text-ink2">Recogido</span><span class="font-semibold text-ink">45€</span></div>
+                </div>
+                <div class="mt-3 grid grid-cols-3 gap-1.5">
+                  <div class="stripes h-9 rounded"></div>
+                  <div class="stripes h-9 rounded"></div>
+                  <div class="stripes h-9 rounded"></div>
+                </div>
+                <div class="mt-3">
+                  <div class="wa-btn">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4a10 10 0 0 0-16 12L3 21l5-1A10 10 0 1 0 20 4Z"/></svg>
+                    Reservar por WhatsApp
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phone 3: Restaurante (delante-der) -->
+        <div class="absolute right-0 sm:right-[2%] top-[20%] w-[46%] sm:w-[44%] max-w-[240px] float-a" style="--rot:7deg; transform: rotate(7deg);">
+          <div class="phone">
+            <div class="phone-screen" style="background:#0B1F1A;">
+              <div class="phone-notch"></div>
+              <!-- Hero foto oscura -->
+              <div class="stripes-warm h-[42%] relative">
+                <div class="absolute inset-0" style="background: linear-gradient(180deg, transparent 30%, rgba(11,31,26,.7) 100%);"></div>
+                <div class="absolute bottom-2 left-3 right-3">
+                  <div class="text-white text-[15px] font-semibold tracking-[-0.01em]">Sal & Brasa</div>
+                  <div class="text-white/70 text-[10px]">Restaurante · Lavapiés</div>
+                </div>
+              </div>
+              <div class="px-3 pt-2.5 pb-3 text-white/90">
+                <div class="text-[10px] uppercase tracking-[.12em] text-mint font-semibold">Carta del día</div>
+                <div class="mt-1.5 space-y-1.5">
+                  <div class="flex items-center justify-between text-[10.5px]"><span class="text-white/80">Pulpo a la brasa</span><span class="font-semibold text-white">18€</span></div>
+                  <div class="flex items-center justify-between text-[10.5px]"><span class="text-white/80">Steak tartar</span><span class="font-semibold text-white">22€</span></div>
+                  <div class="flex items-center justify-between text-[10.5px]"><span class="text-white/80">Menú degustación</span><span class="font-semibold text-white">42€</span></div>
+                </div>
+                <div class="mt-2.5 flex items-center justify-between text-[10px] text-white/60">
+                  <span>Mar – Sáb · 13–16h, 20–23h</span>
+                </div>
+                <div class="mt-3">
+                  <div class="wa-btn wa-btn-dark">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4a10 10 0 0 0-16 12L3 21l5-1A10 10 0 1 0 20 4Z"/></svg>
+                    Reservar mesa
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     3. TIRA DE SECTORES
+========================================================= -->
+<section class="bg-alt border-y border-line">
+  <div class="max-w-[1180px] mx-auto px-5 sm:px-6 lg:px-8 py-10 sm:py-12">
+    <div class="text-center mb-7">
+      <div class="eyebrow mb-2">Pensado para tu negocio local</div>
+      <h2 class="h-section text-[22px] sm:text-[26px]">Sea cual sea tu sector, te entendemos</h2>
+    </div>
+    <div class="grid grid-cols-4 sm:grid-cols-8 gap-3 sm:gap-4">
+      <!-- Each: icon + label -->
+      <div class="flex flex-col items-center text-center reveal">
+        <div class="w-11 h-11 rounded-full bg-surface border border-line flex items-center justify-center text-brand">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v8a6 6 0 0 0 12 0V4"/><path d="M9 4h6"/><path d="M12 18v3"/></svg>
+        </div>
+        <span class="mt-2 text-[12.5px] text-ink2">Peluquería</span>
+      </div>
+      <div class="flex flex-col items-center text-center reveal">
+        <div class="w-11 h-11 rounded-full bg-surface border border-line flex items-center justify-center text-brand">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14"/><path d="M7 6v12"/><path d="M17 6v12"/><path d="M5 18h14"/></svg>
+        </div>
+        <span class="mt-2 text-[12.5px] text-ink2">Barbería</span>
+      </div>
+      <div class="flex flex-col items-center text-center reveal">
+        <div class="w-11 h-11 rounded-full bg-surface border border-line flex items-center justify-center text-brand">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6"/><circle cx="12" cy="14" r="6"/></svg>
+        </div>
+        <span class="mt-2 text-[12.5px] text-ink2">Estética</span>
+      </div>
+      <div class="flex flex-col items-center text-center reveal">
+        <div class="w-11 h-11 rounded-full bg-surface border border-line flex items-center justify-center text-brand">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11h14"/><path d="M5 11a7 7 0 0 1 14 0"/><path d="M3 15h18"/><path d="M5 19h14"/></svg>
+        </div>
+        <span class="mt-2 text-[12.5px] text-ink2">Restaurante</span>
+      </div>
+      <div class="flex flex-col items-center text-center reveal">
+        <div class="w-11 h-11 rounded-full bg-surface border border-line flex items-center justify-center text-brand">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h11a3 3 0 0 1 0 6h-1"/><path d="M5 8v8a3 3 0 0 0 3 3h4a3 3 0 0 0 3-3"/><path d="M8 2v3M11 2v3"/></svg>
+        </div>
+        <span class="mt-2 text-[12.5px] text-ink2">Cafetería</span>
+      </div>
+      <div class="flex flex-col items-center text-center reveal">
+        <div class="w-11 h-11 rounded-full bg-surface border border-line flex items-center justify-center text-brand">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4-4 7-7 7-12a7 7 0 0 0-14 0c0 5 3 8 7 12Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        </div>
+        <span class="mt-2 text-[12.5px] text-ink2">Floristería</span>
+      </div>
+      <div class="flex flex-col items-center text-center reveal">
+        <div class="w-11 h-11 rounded-full bg-surface border border-line flex items-center justify-center text-brand">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16"/><path d="M4 12h16"/></svg>
+        </div>
+        <span class="mt-2 text-[12.5px] text-ink2">Clínica</span>
+      </div>
+      <div class="flex flex-col items-center text-center reveal">
+        <div class="w-11 h-11 rounded-full bg-surface border border-line flex items-center justify-center text-brand">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6"/><path d="M20 9v6"/><path d="M7 6v12"/><path d="M17 6v12"/><path d="M7 12h10"/></svg>
+        </div>
+        <span class="mt-2 text-[12.5px] text-ink2">Gimnasio</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     4. CÓMO FUNCIONA
+========================================================= -->
+<section id="como-funciona" class="bg-bg">
+  <div class="max-w-[1180px] mx-auto px-5 sm:px-6 lg:px-8 py-20 sm:py-28">
+    <div class="max-w-[640px] mb-12 reveal">
+      <div class="eyebrow mb-3">Cómo funciona</div>
+      <h2 class="h-section text-[clamp(30px,4.5vw,44px)]">Tres pasos. Quince minutos. Tu web publicada.</h2>
+      <p class="mt-4 text-ink2 text-[17px]">Sin instalaciones, sin plugins, sin volverte loco. Tú aportas la información de tu negocio; nosotros nos encargamos del resto.</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-5">
+      <!-- Paso 1 -->
+      <article class="relative bg-surface border border-line rounded-[20px] p-7 card-hover reveal">
+        <div class="absolute top-5 right-6 text-[88px] leading-none font-bold text-brandSoft select-none" aria-hidden="true">1</div>
+        <div class="w-11 h-11 rounded-[12px] bg-brandSoft text-brand flex items-center justify-center mb-5 relative z-10">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>
+        </div>
+        <h3 class="text-ink font-semibold text-[19px] tracking-[-0.01em] relative z-10">Cuéntanos de tu negocio</h3>
+        <p class="mt-2 text-ink2 text-[15px] relative z-10">Nombre, sector, horarios, servicios, fotos. Te guiamos con preguntas claras — como rellenar una ficha.</p>
+      </article>
+
+      <!-- Paso 2 -->
+      <article class="relative bg-surface border border-line rounded-[20px] p-7 card-hover reveal">
+        <div class="absolute top-5 right-6 text-[88px] leading-none font-bold text-brandSoft select-none" aria-hidden="true">2</div>
+        <div class="w-11 h-11 rounded-[12px] bg-brandSoft text-brand flex items-center justify-center mb-5 relative z-10">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18"/><path d="M9 4v14"/></svg>
+        </div>
+        <h3 class="text-ink font-semibold text-[19px] tracking-[-0.01em] relative z-10">Elige tu plantilla</h3>
+        <p class="mt-2 text-ink2 text-[15px] relative z-10">Diseños pensados para tu sector. Cámbiala cuando quieras, sin tocar el contenido — tu información se mantiene intacta.</p>
+      </article>
+
+      <!-- Paso 3 -->
+      <article class="relative bg-surface border border-line rounded-[20px] p-7 card-hover reveal">
+        <div class="absolute top-5 right-6 text-[88px] leading-none font-bold text-brandSoft select-none" aria-hidden="true">3</div>
+        <div class="w-11 h-11 rounded-[12px] bg-brandSoft text-brand flex items-center justify-center mb-5 relative z-10">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12A10 10 0 1 1 12 2"/><path d="m9 12 2 2 4-5"/><path d="M16 3h5v5"/></svg>
+        </div>
+        <h3 class="text-ink font-semibold text-[19px] tracking-[-0.01em] relative z-10">Publica y comparte</h3>
+        <p class="mt-2 text-ink2 text-[15px] relative z-10">Tu web queda online en tu subdominio. Comparte el enlace o el QR — en WhatsApp, redes, o pégalo en la entrada del local.</p>
+      </article>
+    </div>
+
+    <div class="mt-12 flex flex-wrap items-center gap-4">
+      <a href="/register?ref=ONEZ-PILOTO" data-cta="como-funciona" class="btn-primary size-xl focus-ring">
+        Empieza gratis
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+      <span class="text-[14px] text-ink3">Primer mes gratis · Cancela en un clic</span>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     5. BENEFICIOS
+========================================================= -->
+<section class="bg-alt border-y border-line">
+  <div class="max-w-[1180px] mx-auto px-5 sm:px-6 lg:px-8 py-20 sm:py-28">
+    <div class="max-w-[640px] mb-12 reveal">
+      <div class="eyebrow mb-3">Todo lo que necesitas</div>
+      <h2 class="h-section text-[clamp(30px,4.5vw,44px)]">Una web completa, no una tarjeta de visita</h2>
+      <p class="mt-4 text-ink2 text-[17px]">Cada pieza pensada para que el cliente que entra en tu web acabe en tu local o reservando contigo.</p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- 1 -->
+      <article class="bg-surface border border-line rounded-[18px] p-6 card-hover reveal">
+        <div class="w-10 h-10 rounded-[10px] bg-brandSoft text-brand flex items-center justify-center mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+        </div>
+        <h3 class="text-ink font-semibold text-[17px] tracking-[-0.01em]">Web publicada en tu subdominio</h3>
+        <p class="mt-1.5 text-ink2 text-[14.5px]">Un enlace tuyo, fácil de compartir: <span class="mono text-ink3">tunegocio.onez.es</span></p>
+      </article>
+      <!-- 2 -->
+      <article class="bg-surface border border-line rounded-[18px] p-6 card-hover reveal">
+        <div class="w-10 h-10 rounded-[10px] bg-brandSoft text-brand flex items-center justify-center mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m21 17-5-5-9 9"/></svg>
+        </div>
+        <h3 class="text-ink font-semibold text-[17px] tracking-[-0.01em]">Galería de fotos</h3>
+        <p class="mt-1.5 text-ink2 text-[14.5px]">Sube fotos de tu local, productos o trabajos. Se ven impecables en móvil y escritorio.</p>
+      </article>
+      <!-- 3 -->
+      <article class="bg-surface border border-line rounded-[18px] p-6 card-hover reveal">
+        <div class="w-10 h-10 rounded-[10px] bg-brandSoft text-brand flex items-center justify-center mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h16"/><path d="M19 9v6"/></svg>
+        </div>
+        <h3 class="text-ink font-semibold text-[17px] tracking-[-0.01em]">Servicios con precios</h3>
+        <p class="mt-1.5 text-ink2 text-[14.5px]">Lista clara de lo que ofreces y cuánto cuesta. Edítala cuando quieras.</p>
+      </article>
+      <!-- 4 -->
+      <article class="bg-surface border border-line rounded-[18px] p-6 card-hover reveal">
+        <div class="w-10 h-10 rounded-[10px] bg-brandSoft text-brand flex items-center justify-center mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        </div>
+        <h3 class="text-ink font-semibold text-[17px] tracking-[-0.01em]">Horarios + Google Maps</h3>
+        <p class="mt-1.5 text-ink2 text-[14.5px]">Tus horarios siempre al día y un mapa para que lleguen a tu puerta sin perderse.</p>
+      </article>
+      <!-- 5 -->
+      <article class="bg-surface border border-line rounded-[18px] p-6 card-hover reveal">
+        <div class="w-10 h-10 rounded-[10px] bg-brandSoft text-brand flex items-center justify-center mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4a10 10 0 0 0-16 12L3 21l5-1A10 10 0 1 0 20 4Z"/></svg>
+        </div>
+        <h3 class="text-ink font-semibold text-[17px] tracking-[-0.01em]">Reservas por WhatsApp</h3>
+        <p class="mt-1.5 text-ink2 text-[14.5px]">Un botón en cada página. Tus clientes te escriben con un toque, sin formularios complicados.</p>
+      </article>
+      <!-- 6 -->
+      <article class="bg-surface border border-line rounded-[18px] p-6 card-hover reveal">
+        <div class="w-10 h-10 rounded-[10px] bg-brandSoft text-brand flex items-center justify-center mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M11 18h2"/></svg>
+        </div>
+        <h3 class="text-ink font-semibold text-[17px] tracking-[-0.01em]">Optimizada para móvil</h3>
+        <p class="mt-1.5 text-ink2 text-[14.5px]">El 80% de tus clientes te buscará desde el móvil. Tu web se ve perfecta ahí — sin trucos.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     6. SEO — "Para que te encuentren en Google"
+========================================================= -->
+<section class="bg-bg">
+  <div class="max-w-[1180px] mx-auto px-5 sm:px-6 lg:px-8 py-20 sm:py-28">
+    <div class="max-w-[760px] mb-12 reveal">
+      <div class="eyebrow mb-3">Visibilidad</div>
+      <h2 class="h-section text-[clamp(30px,4.5vw,44px)]">Para que te encuentren en Google. Sin que tengas que saber cómo.</h2>
+      <p class="mt-4 text-ink2 text-[17px]">
+        Cada web que creas con ONEZ viene preparada para aparecer en Google y verse perfecta al compartirla.
+        A esto se le llama <span class="text-ink font-medium">SEO</span> — y lo hacemos por ti, automáticamente.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-5">
+      <!-- 1 -->
+      <article class="bg-surface border border-line rounded-[20px] p-7 card-hover reveal">
+        <div class="w-11 h-11 rounded-[12px] bg-brandSoft text-brand flex items-center justify-center mb-5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
+        </div>
+        <h3 class="text-ink font-semibold text-[19px] tracking-[-0.01em]">Apareces en las búsquedas locales</h3>
+        <p class="mt-2 text-ink2 text-[15px]">Tu negocio se presenta a Google con su nombre, sector, dirección y horarios, para que aparezca cuando alguien busca cerca de ti.</p>
+      </article>
+      <!-- 2 -->
+      <article class="bg-surface border border-line rounded-[20px] p-7 card-hover reveal">
+        <div class="w-11 h-11 rounded-[12px] bg-brandSoft text-brand flex items-center justify-center mb-5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="10" r="1.5"/><path d="m3 18 6-6 4 4 3-3 5 5"/></svg>
+        </div>
+        <h3 class="text-ink font-semibold text-[19px] tracking-[-0.01em]">Bonito al compartir por WhatsApp</h3>
+        <p class="mt-2 text-ink2 text-[15px]">Cuando envías tu enlace, se ve una tarjeta con tu foto, tu nombre y una descripción — no un enlace soso. Más clics, mejor imagen.</p>
+      </article>
+      <!-- 3 -->
+      <article class="bg-surface border border-line rounded-[20px] p-7 card-hover reveal">
+        <div class="w-11 h-11 rounded-[12px] bg-brandSoft text-brand flex items-center justify-center mb-5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.5 5.5L20 9l-4 4 1 5.5-5-3-5 3 1-5.5L4 9l5.5-.5Z"/></svg>
+        </div>
+        <h3 class="text-ink font-semibold text-[19px] tracking-[-0.01em]">Tu ficha, lista para destacar</h3>
+        <p class="mt-2 text-ink2 text-[15px]">Horarios, ubicación en el mapa y datos de contacto se entregan en el formato que Google entiende, para que tu negocio destaque en los resultados.</p>
+      </article>
+    </div>
+
+    <div class="mt-10 reveal">
+      <p class="text-ink text-[17px] font-medium">Tú rellenas tus datos una vez. ONEZ se encarga del resto.</p>
+      <p class="mt-2 text-[12.5px] text-ink3">Incluye etiquetas meta, Open Graph, Twitter Cards y datos estructurados Schema.org — generados automáticamente para cada web.</p>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     7. PLANTILLAS — "Así se verá tu web"
+========================================================= -->
+<section id="plantillas" class="bg-alt border-y border-line">
+  <div class="max-w-[1180px] mx-auto px-5 sm:px-6 lg:px-8 py-20 sm:py-28">
+    <div class="flex flex-wrap items-end justify-between gap-6 mb-12 reveal">
+      <div class="max-w-[640px]">
+        <div class="eyebrow mb-3">Diseños profesionales listos para tu negocio</div>
+        <h2 class="h-section text-[clamp(30px,4.5vw,44px)]">Así se verá tu web</h2>
+        <p class="mt-4 text-ink2 text-[17px]">Varios estilos disponibles. Eliges uno, lo personalizas con tus datos y publicas. Cámbialo cuando quieras.</p>
+      </div>
+      <p class="mono text-ink3">// Ejemplos de diseño · no son clientes reales</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <!-- Plantilla CLARA: Bloom Studio -->
+      <article class="bg-surface border border-line rounded-[20px] overflow-hidden card-hover reveal">
+        <div class="p-5 border-b border-line flex items-center justify-between">
+          <div>
+            <div class="text-[10.5px] uppercase tracking-[.12em] text-ink3 font-semibold">Plantilla</div>
+            <div class="text-ink font-semibold text-[18px] tracking-[-0.01em]">Bloom Studio</div>
+          </div>
+          <span class="pill">Estilo claro</span>
+        </div>
+        <div class="bg-[#FBF8F3] p-6 sm:p-8" style="background: linear-gradient(180deg,#FBF8F3,#F3EBDD);">
+          <!-- Mini mock -->
+          <div class="bg-white rounded-[14px] shadow-2 overflow-hidden border border-[#EFE7D6]">
+            <div class="px-5 pt-5">
+              <div class="text-[10px] tracking-[.18em] uppercase text-[#9b7a3c] font-semibold">Peluquería · Madrid</div>
+              <div class="text-[22px] sm:text-[26px] font-semibold tracking-[-0.02em] text-[#2a200f] leading-tight mt-1">Mono Studio</div>
+              <div class="text-[12.5px] text-[#6a5a3c] mt-1">Cortes pensados. Color que respira.</div>
+            </div>
+            <div class="px-5 mt-4 grid grid-cols-3 gap-1.5">
+              <div class="stripes-warm aspect-square rounded"></div>
+              <div class="stripes-warm aspect-square rounded"></div>
+              <div class="stripes-warm aspect-square rounded"></div>
+            </div>
+            <div class="px-5 py-4 flex items-center gap-3">
+              <button class="text-[12px] font-semibold text-white bg-[#2a200f] rounded-[8px] px-3.5 py-2">Reservar</button>
+              <span class="text-[11.5px] text-[#9b7a3c]">Abierto · 10–21h</span>
+            </div>
+          </div>
+          <div class="mt-4 flex items-center justify-between text-[11px] text-[#9b7a3c]">
+            <span class="mono">tipografía: serif moderna</span>
+            <span class="mono">paleta: arena / oliva</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Plantilla OSCURA: Noir Elite -->
+      <article class="bg-surface border border-line rounded-[20px] overflow-hidden card-hover reveal">
+        <div class="p-5 border-b border-line flex items-center justify-between">
+          <div>
+            <div class="text-[10.5px] uppercase tracking-[.12em] text-ink3 font-semibold">Plantilla</div>
+            <div class="text-ink font-semibold text-[18px] tracking-[-0.01em]">Noir Elite</div>
+          </div>
+          <span class="pill" style="background:#0B1F1A;color:#5DCAA5;">Estilo oscuro</span>
+        </div>
+        <div class="p-6 sm:p-8" style="background: linear-gradient(165deg,#1a1a18,#0B1F1A);">
+          <!-- Mini mock -->
+          <div class="rounded-[14px] overflow-hidden border border-white/10" style="background:#11201c;">
+            <div class="stripes-dark h-32 relative">
+              <div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.6))"></div>
+              <div class="absolute bottom-3 left-5 right-5">
+                <div class="text-[10px] tracking-[.18em] uppercase text-mint font-semibold">Restaurante · Lavapiés</div>
+                <div class="text-[22px] sm:text-[26px] font-semibold tracking-[-0.02em] text-white leading-tight mt-1">Sal &amp; Brasa</div>
+              </div>
+            </div>
+            <div class="px-5 py-4 text-white/85">
+              <div class="text-[12px] text-white/65">Carta de temporada. Brasa de encina. Reserva imprescindible.</div>
+              <div class="mt-3 flex items-center justify-between">
+                <button class="text-[12px] font-semibold text-[#0B1F1A] bg-mint rounded-[8px] px-3.5 py-2">Reservar mesa</button>
+                <span class="text-[11.5px] text-white/55">Mar–Sáb · 20–23h</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 flex items-center justify-between text-[11px] text-white/50">
+            <span class="mono">tipografía: sans elegante</span>
+            <span class="mono">paleta: verde-tinta / mint</span>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="mt-10 flex flex-wrap items-center gap-4 reveal">
+      <a href="/register?ref=ONEZ-PILOTO" data-cta="plantillas" class="btn-primary size-xl focus-ring">
+        Empieza gratis
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+      <span class="text-[14px] text-ink3">Elige tu plantilla durante el registro.</span>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     8. POR QUÉ PILOTO
+========================================================= -->
+<section class="bg-bg">
+  <div class="max-w-[1180px] mx-auto px-5 sm:px-6 lg:px-8 py-20 sm:py-28">
+    <div class="grid lg:grid-cols-[1fr_1.1fr] gap-12 items-center">
+      <div class="reveal">
+        <div class="eyebrow mb-3">Por qué ahora</div>
+        <h2 class="h-section text-[clamp(30px,4.5vw,44px)]">Sé de los primeros y ayúdanos a construir ONEZ</h2>
+        <p class="mt-5 text-ink2 text-[17px]">
+          Somos un equipo pequeño en Madrid. Estamos abriendo plazas limitadas para los primeros negocios que quieran su web con nosotros y trabajar codo con codo.
+        </p>
+        <div class="mt-6 inline-flex items-center gap-3 bg-alt border border-line rounded-[12px] px-4 py-3">
+          <span class="inline-block w-2 h-2 rounded-full bg-brand"></span>
+          <span class="text-[14.5px] text-ink"><span class="font-semibold">Piloto limitado a 50 negocios.</span> Una vez cerrado, lista de espera.</span>
+        </div>
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-4 reveal">
+        <article class="bg-surface border border-line rounded-[18px] p-6 card-hover">
+          <div class="w-10 h-10 rounded-[10px] bg-brandSoft text-brand flex items-center justify-center mb-4">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9 8.5 8.5 0 0 1 8.5 8.5Z"/></svg>
+          </div>
+          <h3 class="text-ink font-semibold text-[16.5px]">Acceso directo al equipo</h3>
+          <p class="mt-1.5 text-ink2 text-[14.5px]">Si algo no funciona, hablas con la persona que lo construye. Sin tickets, sin agentes.</p>
+        </article>
+        <article class="bg-surface border border-line rounded-[18px] p-6 card-hover">
+          <div class="w-10 h-10 rounded-[10px] bg-brandSoft text-brand flex items-center justify-center mb-4">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>
+          </div>
+          <h3 class="text-ink font-semibold text-[16.5px]">Tu feedback marca el roadmap</h3>
+          <p class="mt-1.5 text-ink2 text-[14.5px]">Las funciones que pidan los pilotos van primero. Construimos contigo, no para ti.</p>
+        </article>
+        <article class="bg-surface border border-line rounded-[18px] p-6 card-hover">
+          <div class="w-10 h-10 rounded-[10px] bg-brandSoft text-brand flex items-center justify-center mb-4">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 6H9a3 3 0 0 0 0 6h6a3 3 0 0 1 0 6H7"/></svg>
+          </div>
+          <h3 class="text-ink font-semibold text-[16.5px]">Precio piloto si te quedas</h3>
+          <p class="mt-1.5 text-ink2 text-[14.5px]">Si nos acompañas, mantienes el precio piloto mientras tu cuenta esté activa.</p>
+        </article>
+        <article class="bg-surface border border-line rounded-[18px] p-6 card-hover">
+          <div class="w-10 h-10 rounded-[10px] bg-brandSoft text-brand flex items-center justify-center mb-4">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4-4 7-7 7-12a7 7 0 0 0-14 0c0 5 3 8 7 12Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          </div>
+          <h3 class="text-ink font-semibold text-[16.5px]">Hecho en Madrid</h3>
+          <p class="mt-1.5 text-ink2 text-[14.5px]">Equipo local. Soporte en español, en horario español, escrito por personas.</p>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     9. PRECIO
+========================================================= -->
+<section id="precio" class="bg-alt border-y border-line">
+  <div class="max-w-[1180px] mx-auto px-5 sm:px-6 lg:px-8 py-20 sm:py-28">
+    <div class="max-w-[640px] mx-auto text-center mb-12 reveal">
+      <div class="eyebrow mb-3">Precio</div>
+      <h2 class="h-section text-[clamp(30px,4.5vw,44px)]">Un plan. Sin sorpresas.</h2>
+      <p class="mt-4 text-ink2 text-[17px]">Tu primer mes gratis. Después, un único precio piloto, todo incluido. Cancelas cuando quieras.</p>
+    </div>
+
+    <div class="max-w-[560px] mx-auto reveal">
+      <div class="relative bg-surface border border-line rounded-[24px] p-7 sm:p-9 shadow-2">
+        <!-- glow corner -->
+        <div aria-hidden="true" class="absolute -top-10 -right-10 w-48 h-48 rounded-full pointer-events-none"
+             style="background: radial-gradient(circle, rgba(93,202,165,.25), transparent 65%);"></div>
+
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <div class="eyebrow">Plan Pro</div>
+            <h3 class="text-ink font-semibold text-[22px] tracking-[-0.01em] mt-1">Tu primer mes gratis</h3>
+          </div>
+          <span class="pill">Piloto</span>
+        </div>
+
+        <div class="mt-6 flex items-baseline gap-3">
+          <span class="text-[44px] sm:text-[56px] font-semibold text-ink tracking-[-0.03em] leading-none">0€</span>
+          <span class="text-[15px] text-ink2">tu primer mes</span>
+        </div>
+        <div class="mt-1.5 text-[14px] text-ink3">
+          Después <span class="line-through">8,99€/mes</span> <span class="text-ink font-semibold">precio piloto</span>. Sin permanencia.
+        </div>
+
+        <ul class="mt-7 space-y-3">
+          <li class="flex items-start gap-3 text-[15px] text-ink2">
+            <span class="mt-0.5 inline-flex w-5 h-5 rounded-full bg-brandSoft text-brand items-center justify-center flex-none">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>
+            </span>
+            Web publicada en tu subdominio (<span class="mono text-ink3">tunegocio.onez.es</span>)
+          </li>
+          <li class="flex items-start gap-3 text-[15px] text-ink2">
+            <span class="mt-0.5 inline-flex w-5 h-5 rounded-full bg-brandSoft text-brand items-center justify-center flex-none">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>
+            </span>
+            Galería, horarios, mapa y servicios con precios
+          </li>
+          <li class="flex items-start gap-3 text-[15px] text-ink2">
+            <span class="mt-0.5 inline-flex w-5 h-5 rounded-full bg-brandSoft text-brand items-center justify-center flex-none">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>
+            </span>
+            Reservas por WhatsApp con un toque
+          </li>
+          <li class="flex items-start gap-3 text-[15px] text-ink2">
+            <span class="mt-0.5 inline-flex w-5 h-5 rounded-full bg-brandSoft text-brand items-center justify-center flex-none">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>
+            </span>
+            Optimización para Google y vista previa al compartir
+          </li>
+          <li class="flex items-start gap-3 text-[15px] text-ink2">
+            <span class="mt-0.5 inline-flex w-5 h-5 rounded-full bg-brandSoft text-brand items-center justify-center flex-none">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>
+            </span>
+            Cambia de plantilla cuando quieras, sin perder tus datos
+          </li>
+          <li class="flex items-start gap-3 text-[15px] text-ink2">
+            <span class="mt-0.5 inline-flex w-5 h-5 rounded-full bg-brandSoft text-brand items-center justify-center flex-none">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>
+            </span>
+            Soporte directo por email y WhatsApp
+          </li>
+        </ul>
+
+        <a href="/register?ref=ONEZ-PILOTO" data-cta="precio" class="btn-primary size-xl focus-ring w-full mt-8">
+          Empieza gratis
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+
+        <div class="mt-4 grid grid-cols-2 gap-y-2 gap-x-4 text-[12.5px] text-ink3">
+          <span class="flex items-center gap-1.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>
+            Primer mes gratis
+          </span>
+          <span class="flex items-center gap-1.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>
+            Aviso antes de cobrar
+          </span>
+          <span class="flex items-center gap-1.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            Cancela en un clic
+          </span>
+          <span class="flex items-center gap-1.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            Pago seguro con Stripe
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     10. FAQ
+========================================================= -->
+<section id="faq" class="bg-bg">
+  <div class="max-w-[820px] mx-auto px-5 sm:px-6 lg:px-8 py-20 sm:py-28">
+    <div class="text-center mb-12 reveal">
+      <div class="eyebrow mb-3">Preguntas frecuentes</div>
+      <h2 class="h-section text-[clamp(30px,4.5vw,44px)]">Lo que sueles preguntarnos</h2>
+    </div>
+
+    <div class="reveal">
+      <!-- Q: tarjeta (obligatoria) -->
+      <details class="faq py-5 group" data-faq="tarjeta">
+        <summary class="flex items-center justify-between gap-4">
+          <span class="text-ink font-semibold text-[17px] sm:text-[18px] tracking-[-0.01em]">¿Me piden la tarjeta?</span>
+          <span class="chev inline-flex items-center justify-center w-7 h-7 rounded-full bg-alt text-ink2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </span>
+        </summary>
+        <div class="answer text-ink2 text-[15.5px] pt-3 pr-10">
+          Sí, para activar el plan — pero <span class="text-ink font-medium">no te cobramos nada el primer mes</span> y te avisamos por email antes de cualquier cobro. Cancelas en un clic, sin permanencia. El pago se procesa con Stripe.
+        </div>
+      </details>
+
+      <details class="faq py-5" data-faq="fin-mes-gratis">
+        <summary class="flex items-center justify-between gap-4">
+          <span class="text-ink font-semibold text-[17px] sm:text-[18px] tracking-[-0.01em]">¿Qué pasa cuando acaba el mes gratis?</span>
+          <span class="chev inline-flex items-center justify-center w-7 h-7 rounded-full bg-alt text-ink2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </span>
+        </summary>
+        <div class="answer text-ink2 text-[15.5px] pt-3 pr-10">
+          Te avisamos por email unos días antes. Si te quedas, pasamos al precio piloto. Si no, cancelas con un clic desde tu cuenta y no hay cobro.
+        </div>
+      </details>
+
+      <details class="faq py-5" data-faq="cancelar">
+        <summary class="flex items-center justify-between gap-4">
+          <span class="text-ink font-semibold text-[17px] sm:text-[18px] tracking-[-0.01em]">¿Puedo cancelar cuando quiera?</span>
+          <span class="chev inline-flex items-center justify-center w-7 h-7 rounded-full bg-alt text-ink2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </span>
+        </summary>
+        <div class="answer text-ink2 text-[15.5px] pt-3 pr-10">
+          Sí. Desde tu cuenta, en un clic. No hay permanencia ni penalizaciones. Si cancelas durante el mes gratis, no se cobra nada.
+        </div>
+      </details>
+
+      <details class="faq py-5" data-faq="mi-web-es-mia">
+        <summary class="flex items-center justify-between gap-4">
+          <span class="text-ink font-semibold text-[17px] sm:text-[18px] tracking-[-0.01em]">¿La web es mía?</span>
+          <span class="chev inline-flex items-center justify-center w-7 h-7 rounded-full bg-alt text-ink2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </span>
+        </summary>
+        <div class="answer text-ink2 text-[15.5px] pt-3 pr-10">
+          El contenido — tus textos, fotos, datos de tu negocio — es 100% tuyo, y puedes descargarlo cuando quieras. La plantilla y la infraestructura las pone ONEZ.
+        </div>
+      </details>
+
+      <details class="faq py-5" data-faq="sectores">
+        <summary class="flex items-center justify-between gap-4">
+          <span class="text-ink font-semibold text-[17px] sm:text-[18px] tracking-[-0.01em]">¿Para qué negocios sirve?</span>
+          <span class="chev inline-flex items-center justify-center w-7 h-7 rounded-full bg-alt text-ink2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </span>
+        </summary>
+        <div class="answer text-ink2 text-[15.5px] pt-3 pr-10">
+          Negocios locales con clientes que reservan o pasan por el local: peluquerías, barberías, estética, restaurantes, cafeterías, floristerías, clínicas, estudios y similares. Si dudas, escríbenos.
+        </div>
+      </details>
+
+      <details class="faq py-5" data-faq="quien">
+        <summary class="flex items-center justify-between gap-4">
+          <span class="text-ink font-semibold text-[17px] sm:text-[18px] tracking-[-0.01em]">¿Quién está detrás de ONEZ?</span>
+          <span class="chev inline-flex items-center justify-center w-7 h-7 rounded-full bg-alt text-ink2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </span>
+        </summary>
+        <div class="answer text-ink2 text-[15.5px] pt-3 pr-10">
+          Un equipo pequeño con base en Madrid. Construimos ONEZ para que tener una web profesional deje de ser un proyecto y pase a ser una tarde.
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     11. CTA FINAL DE CIERRE
+========================================================= -->
+<section class="relative overflow-hidden" style="background: linear-gradient(135deg,#0F6E56,#0B1F1A);">
+  <div aria-hidden="true" class="pointer-events-none absolute -top-32 -left-20 w-[520px] h-[520px] rounded-full pulse-glow"
+       style="background: radial-gradient(circle, rgba(93,202,165,.35), transparent 65%);"></div>
+  <div aria-hidden="true" class="pointer-events-none absolute -bottom-32 -right-20 w-[420px] h-[420px] rounded-full"
+       style="background: radial-gradient(circle, rgba(93,202,165,.18), transparent 65%);"></div>
+
+  <div class="relative max-w-[1180px] mx-auto px-5 sm:px-6 lg:px-8 py-20 sm:py-28 text-center">
+    <div class="reveal max-w-[760px] mx-auto">
+      <div class="eyebrow mb-4" style="color:#5DCAA5;">Programa piloto · Plazas limitadas</div>
+      <h2 class="h-display text-white text-[clamp(36px,6vw,60px)]">
+        Tu web profesional,<br/> lista hoy.
+      </h2>
+      <p class="mt-6 text-white/75 text-[17px] sm:text-[18px]">
+        Tarda menos en publicar tu web que en preparar un café. En serio.
+      </p>
+
+      <div class="mt-9 flex flex-wrap items-center justify-center gap-4">
+        <a href="/register?ref=ONEZ-PILOTO" data-cta="cierre" class="btn-inverse size-xl focus-ring">
+          Empieza gratis
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+
+      <p class="mt-5 text-white/65 text-[13.5px]">
+        Primer mes gratis · Te avisamos antes de cobrar · Cancela cuando quieras · Pago seguro con Stripe
+      </p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- =========================================================
+     12. FOOTER
+========================================================= -->
+<footer class="bg-bg border-t border-line">
+  <div class="max-w-[1180px] mx-auto px-5 sm:px-6 lg:px-8 py-14">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
+      <div class="lg:col-span-2">
+        <a href="#top" class="inline-flex items-center gap-1">
+          <span class="font-bold text-[22px] tracking-[-0.03em] text-ink">ONEZ</span>
+          <span class="text-[22px] font-bold text-brand leading-none">•</span>
+        </a>
+        <p class="mt-3 text-ink2 text-[15px] max-w-[380px]">
+          Webs profesionales para negocios locales. Hecho en Madrid.
+        </p>
+      </div>
+
+      <div>
+        <div class="text-[11px] uppercase tracking-[.12em] text-ink3 font-semibold">Legal</div>
+        <ul class="mt-3 space-y-2 text-[14.5px]">
+          <li><a class="text-ink2 hover:text-ink focus-ring rounded" href="/aviso-legal">Aviso legal</a></li>
+          <li><a class="text-ink2 hover:text-ink focus-ring rounded" href="/privacidad">Privacidad</a></li>
+          <li><a class="text-ink2 hover:text-ink focus-ring rounded" href="/cookies">Cookies</a></li>
+          <li><a class="text-ink2 hover:text-ink focus-ring rounded" href="/terminos">Términos</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="text-[11px] uppercase tracking-[.12em] text-ink3 font-semibold">Contacto</div>
+        <ul class="mt-3 space-y-2 text-[14.5px]">
+          <!-- EDITAR: dirección de email -->
+          <li><a class="text-ink2 hover:text-ink focus-ring rounded" href="mailto:contacto@onez.es">contacto@onez.es</a></li>
+          <!-- EDITAR: número de WhatsApp -->
+          <li><a class="text-ink2 hover:text-ink focus-ring rounded" href="https://wa.me/34000000000">WhatsApp</a></li>
+          <li><a class="text-ink2 hover:text-ink focus-ring rounded" href="/login">Entrar</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-12 pt-6 border-t border-line flex flex-wrap items-center justify-between gap-4">
+      <p class="text-[13px] text-ink3">© 2026 ONEZ · Hecho en Madrid</p>
+      <p class="text-[13px] text-ink3">Tu web profesional, lista hoy.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+<script>
+/* =========================================================
+   ANALYTICS · cómo enchufar
+   - Plausible: añade en el head antes del cierre:
+       <script defer data-domain="onez.es"
+               src="https://plausible.io/js/script.tagged-events.js"><\/script>
+   - GA4 (vía GTM dataLayer): añade tu snippet GTM en el head.
+   La función track() de abajo dispara en ambos automáticamente.
+========================================================= */
+(function () {
+  'use strict';
+
+  // ---- track ----
+  function track(event, props) {
+    props = props || {};
+    try {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push(Object.assign({ event: event }, props));
+    } catch (e) {}
+    try {
+      if (typeof window.plausible === 'function') {
+        window.plausible(event, { props: props });
+      }
+    } catch (e) {}
+    // fallback
+    if (typeof console !== 'undefined' && console.log) {
+      console.log('[track]', event, props);
+    }
+  }
+  window.track = track;
+
+  // ---- Sticky header border on scroll ----
+  var nav = document.getElementById('nav');
+  function onScroll() {
+    if (window.scrollY > 6) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
+  }
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // ---- Mobile menu ----
+  var menuBtn = document.getElementById('menuBtn');
+  var menuPanel = document.getElementById('menuPanel');
+  function closeMenu() {
+    menuPanel.classList.remove('open');
+    menuBtn.setAttribute('aria-expanded', 'false');
+  }
+  menuBtn.addEventListener('click', function () {
+    var open = menuPanel.classList.toggle('open');
+    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  menuPanel.querySelectorAll('a').forEach(function (a) {
+    a.addEventListener('click', closeMenu);
+  });
+  document.addEventListener('click', function (e) {
+    if (!menuPanel.contains(e.target) && !menuBtn.contains(e.target)) closeMenu();
+  });
+
+  // ---- CTA tracking ----
+  document.querySelectorAll('[data-cta]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      var loc = el.getAttribute('data-cta');
+      if (loc === 'ver-como-funciona') {
+        track('cta_secondary_click', { location: 'hero' });
+      } else {
+        // normalize header/header-mobile both as 'header'
+        if (loc === 'header-mobile') loc = 'header';
+        track('cta_primary_click', { location: loc });
+      }
+    });
+  });
+
+  // ---- FAQ open tracking + smoother accordion ----
+  document.querySelectorAll('details.faq').forEach(function (d) {
+    d.addEventListener('toggle', function () {
+      if (d.open) {
+        track('faq_open', { question: d.getAttribute('data-faq') || '' });
+      }
+    });
+  });
+
+  // ---- Reveal on scroll ----
+  var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var reveals = document.querySelectorAll('.reveal');
+  if (prefersReduced || !('IntersectionObserver' in window)) {
+    reveals.forEach(function (el) { el.classList.add('in'); });
+  } else {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    reveals.forEach(function (el) { io.observe(el); });
+  }
+
+  // ---- Scroll depth (25/50/75/100) ----
+  var marks = [25, 50, 75, 100];
+  var fired = {};
+  function depthHandler() {
+    var doc = document.documentElement;
+    var winH = window.innerHeight;
+    var scrollTop = window.scrollY || doc.scrollTop;
+    var docH = Math.max(doc.scrollHeight, document.body.scrollHeight) - winH;
+    if (docH <= 0) return;
+    var pct = Math.round((scrollTop / docH) * 100);
+    marks.forEach(function (m) {
+      if (!fired[m] && pct >= m) {
+        fired[m] = true;
+        track('scroll_depth', { percent: m });
+      }
+    });
+  }
+  window.addEventListener('scroll', depthHandler, { passive: true });
+  depthHandler();
+
+  // ---- Smooth scroll for in-page anchors (header offset) ----
+  document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      var id = a.getAttribute('href');
+      if (id.length < 2) return;
+      var target = document.querySelector(id);
+      if (!target) return;
+      e.preventDefault();
+      var top = target.getBoundingClientRect().top + window.scrollY - 64;
+      window.scrollTo({ top: top, behavior: prefersReduced ? 'auto' : 'smooth' });
+    });
+  });
+})();
+</script>
+</body>
+</html>

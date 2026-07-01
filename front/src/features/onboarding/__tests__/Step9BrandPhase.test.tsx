@@ -42,6 +42,10 @@ vi.mock('../../shared/ProServicesEditor', () => ({
   default: () => <div data-testid="pro-services-editor" />,
 }))
 
+vi.mock('../../shared/ProEventsEditor', () => ({
+  default: () => <div data-testid="pro-events-editor" />,
+}))
+
 vi.mock('../../shared/ProIntegrationsForm', () => ({
   default: () => <div data-testid="pro-integrations-form" />,
 }))
@@ -66,6 +70,8 @@ function renderStep9(phase: 'services' | 'brand' | 'extras', onPhaseChange = vi.
         onSetupPhaseChange={onPhaseChange}
         offersServices
         onOffersServicesChange={vi.fn()}
+        eventsEnabled={false}
+        onEventsEnabledChange={vi.fn()}
         brandColorDefault="#d4ff3a"
         onBrandColorLiveChange={vi.fn()}
       />,

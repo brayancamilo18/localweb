@@ -86,6 +86,7 @@ class BusinessService
             'lat' => $data['lat'] ?? null,
             'lng' => $data['lng'] ?? null,
             'schedule' => $data['schedule'] ?? null,
+            'hide_closed_days' => $data['hide_closed_days'] ?? $business->hide_closed_days,
         ]);
 
         if ($plan === 'free') {
@@ -122,7 +123,7 @@ class BusinessService
         $allowed = [
             'name', 'sector', 'template_id', 'tagline', 'description', 'about_title',
             'address', 'city', 'country', 'country_code', 'lat', 'lng',
-            'phone', 'email', 'schedule',
+            'phone', 'email', 'schedule', 'hide_closed_days',
         ];
         $payload = array_intersect_key($fields, array_flip($allowed));
 

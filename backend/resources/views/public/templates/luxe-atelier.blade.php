@@ -748,6 +748,10 @@ function lwTrackClick(kind) {
 </script>
 
 
+<script>
+var HIDE_CLOSED = @json($hide_closed_days);
+</script>
+
 @verbatim
 
 
@@ -1083,6 +1087,7 @@ function renderLuxeSchedule() {
   ordered.forEach(function (d) {
     var isToday = d.idx === today;
     var openDay = Boolean(d.open);
+    if (HIDE_CLOSED && !openDay) return;
     var row = document.createElement('div');
     row.className = 'schedule-row' + (isToday ? ' today' : '');
     row.setAttribute('data-day', String(d.idx));
@@ -1529,6 +1534,7 @@ function applyLivePreviewData(raw, opts) {
     renderLuxeGallery(galeria);
   }
   updateLuxeTicker(raw);
+    HIDE_CLOSED = raw && raw.hide_closed_days === true;
   syncLuxeScheduleFromPreview(raw.horario);
   renderLuxeSchedule();
   syncLuxeFooter(raw);
@@ -1735,6 +1741,7 @@ Public: applyLivePreviewData, initLivePreviewFromQuery, initSecureMessageListene
         correo: @json($correo),
         galeria: @json($galeria),
         horario: @json($horario),
+        hide_closed_days: @json($hide_closed_days),
         map_lat: @json($map_lat),
         map_lon: @json($map_lon),
         services: @json($services),

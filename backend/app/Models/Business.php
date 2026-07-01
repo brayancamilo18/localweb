@@ -41,6 +41,7 @@ class Business extends Tenant
         'lat',
         'lng',
         'schedule',
+        'hide_closed_days',
         'is_published',
         'plan',
         'plan_activated_at',
@@ -52,6 +53,7 @@ class Business extends Tenant
         'google_business_url',
         'booking_url',
         'vcard_enabled',
+        'events_enabled',
         'instagram_url',
         'tiktok_url',
         'facebook_url',
@@ -67,10 +69,12 @@ class Business extends Tenant
             'dashboard_pro_tour_completed_at' => 'datetime',
             'ai_intro_seen_at' => 'datetime',
             'schedule' => 'array',
+            'hide_closed_days' => 'boolean',
             'lat' => 'float',
             'lng' => 'float',
             'is_published' => 'boolean',
             'vcard_enabled' => 'boolean',
+            'events_enabled' => 'boolean',
             'deleted_at' => 'datetime',
             'plan' => Plan::class,
         ];
@@ -89,6 +93,11 @@ class Business extends Tenant
     public function aboutSections(): HasMany
     {
         return $this->hasMany(BusinessAboutSection::class)->orderBy('display_order');
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(BusinessEvent::class)->orderBy('event_date');
     }
 
     public function owner(): HasOne

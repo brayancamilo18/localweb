@@ -21,7 +21,7 @@ class BusinessController extends BaseApiController
     {
         $user = $request->user();
         $business = $user->business()
-            ->with(['template', 'services', 'aboutSections', 'images' => fn ($q) => $q->ordered()])
+            ->with(['template', 'services', 'aboutSections', 'events', 'images' => fn ($q) => $q->ordered()])
             ->firstOrFail();
 
         if ($plans->canAccessAnalytics($user)) {
@@ -73,6 +73,7 @@ class BusinessController extends BaseApiController
             'email' => ['nullable', 'email', 'max:191'],
             'address' => ['nullable', 'string'],
             'schedule' => ['nullable', 'array'],
+            'hide_closed_days' => ['sometimes', 'boolean'],
             'google_maps_url' => ['nullable', 'string', 'max:2048', 'regex:#^https?://.+#i'],
             'google_business_url' => ['nullable', 'string', 'max:2048', 'regex:#^https?://.+#i'],
             'booking_url' => ['nullable', 'string', 'max:2048', 'regex:#^https?://.+#i'],
@@ -80,6 +81,7 @@ class BusinessController extends BaseApiController
             'tiktok_url' => ['nullable', 'string', 'max:2048', 'regex:#^https?://.+#i'],
             'facebook_url' => ['nullable', 'string', 'max:2048', 'regex:#^https?://.+#i'],
             'vcard_enabled' => ['sometimes', 'boolean'],
+            'events_enabled' => ['sometimes', 'boolean'],
         ]);
 
         if (array_key_exists('address', $data) && $data['address'] !== $business->address) {
@@ -109,7 +111,7 @@ class BusinessController extends BaseApiController
             GenerateBusinessSeoMeta::dispatch($updated->id)->afterCommit();
         }
 
-        $updated->load(['template', 'services', 'images' => fn ($q) => $q->ordered()]);
+        $updated->load(['template', 'services', 'events', 'images' => fn ($q) => $q->ordered()]);
 
         return $this->success(new BusinessResource($updated));
     }

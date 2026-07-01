@@ -308,6 +308,25 @@
   overflow: hidden;
 }
 
+.lw-schedule-editor__hide-closed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--lw-schedule-ink) 5%, transparent);
+}
+
+@media (min-width: 640px) {
+  .lw-schedule-editor__hide-closed {
+    padding: 1rem 1.5rem;
+  }
+}
+
+.lw-schedule-editor__hide-closed-text {
+  min-width: 0;
+}
+
 @media (min-width: 640px) {
   .lw-schedule-editor__days {
     border-radius: 1.5rem;
